@@ -39,7 +39,7 @@ async function listeGruplar(db) {
 async function grupUyeleri(db, grupId) {
   return all(
     db,
-    `SELECT m.user_id, m.rutbe, u.reis_adi, p.puan
+    `SELECT m.user_id, m.rutbe, u.reis_adi, p.puan, p.last_seen_at
      FROM mafya_uyeleri m
      JOIN users u ON u.id = m.user_id
      JOIN players p ON p.user_id = m.user_id

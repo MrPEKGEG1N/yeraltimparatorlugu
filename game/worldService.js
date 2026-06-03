@@ -324,8 +324,13 @@ async function dusmanaCok(db, attackerId, attacker, hedefAd) {
   );
   if (!hedef) return { ok: false, error: "Oyuncu bulunamadı. Reis adını doğru yaz." };
   if (hedef.id === attackerId) return { ok: false, error: "Kendine saldıramazsın Reis!" };
-  if (attacker.guc <= hedef.guc) {
+  
+  if (attacker.guc < hedef.guc * 0.1) {
     return { ok: false, error: ZAYIF_HAMLE_MSG };
+  }
+  
+  if (attacker.guc < hedef.guc) {
+    return { ok: false, error: "Rakibin senden daha güçlü! Gücün yetersiz!" };
   }
 
   const saldiranRow = await get(db, `SELECT reis_adi FROM users WHERE id = ?`, [attackerId]);

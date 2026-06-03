@@ -134,6 +134,6 @@ const LIMAN_BILGI = {
 const COUNCIL = { maliyet: 20000, gucCarpan: 1.3 };
 
 const ICRAAT_MAX = 25;
-const ICRAAT_REGEN_SEC = 12;
+const ICRAAT_REGEN_SEC = 144;
 
 module.exports = { HIRE, JOBS, LIMAN_BILGI, COUNCIL, ICRAAT_MAX, ICRAAT_REGEN_SEC };

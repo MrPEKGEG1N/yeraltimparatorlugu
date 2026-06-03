@@ -302,6 +302,35 @@ function createGameRouter(db) {
     }
   });
 
+  router.get("/mafya/grup/:grupId", async (req, res) => {
+    try {
+      const grupId = parseInt(req.params.grupId, 10);
+      if (!grupId) return res.status(400).json({ ok: false, error: "Geçersiz grup." });
+
+      const grup = await get(
+        db,
+        `SELECT g.id, g.isim, g.evi_seviyesi, g.kasa FROM mafya_gruplar g WHERE g.id = ?`,
+        [grupId]
+      );
+      if (!grup) return res.status(404).json({ ok: false, error: "Grup bulunamadı." });
+
+      const uyeler = await all(
+        db,
+        `SELECT u.id, u.reis_adi, p.saygınlık, mg.rutbe FROM users u
+         JOIN players p ON u.id = p.user_id
+         JOIN mafya_grup_uyelik mg ON u.id = mg.user_id
+         WHERE mg.grup_id = ?
+         ORDER BY mg.rutbe DESC, p.saygınlık DESC`,
+        [grupId]
+      );
+
+      res.json({ ok: true, grup: { ...grup, uyeler } });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ ok: false, error: "Grup bilgileri yüklenemedi." });
+    }
+  });
+
   return router;
 }
 

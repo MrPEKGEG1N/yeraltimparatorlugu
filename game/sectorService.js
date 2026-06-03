@@ -80,40 +80,54 @@ async function sektorPanel(db, userId) {
   return { sahiplik, saatlikKazanc: toplam };
 }
 
-async function mekanAl(db, userId, player, sektor, mekanKey) {
+async function mekanAl(db, userId, player, sektor, mekanKey, kalanAdet = 1) {
   const m = mekanTanim(sektor, mekanKey);
   if (!m) return { ok: false, error: "Geçersiz mekan." };
+
+  const satinAlinacakAdet = Math.min(kalanAdet, 999);
+  if (satinAlinacakAdet < 1) {
+    return { ok: false, error: "Geçerli bir adet gir." };
+  }
 
   const mevcut = await get(
     db,
     `SELECT adet FROM sektor_sahiplik WHERE user_id = ? AND sektor = ? AND mekan_key = ?`,
     [userId, sektor, mekanKey]
   );
-  const adet = mevcut ? mevcut.adet : 0;
-  const fiyat = sonrakiFiyat(m.fiyat, adet);
+  const oncekiAdet = mevcut ? mevcut.adet : 0;
+  let toplamMaliyet = 0;
+  let toplamSayginlik = 0;
 
-  if (player.kasa < fiyat) {
+  for (let i = 0; i < satinAlinacakAdet; i++) {
+    const fiyat = sonrakiFiyat(m.fiyat, oncekiAdet + i);
+    toplamMaliyet += fiyat;
+  }
+
+  if (player.kasa < toplamMaliyet) {
     return {
       ok: false,
-      error: `Kasanda yeterli nakit yok! ${fiyat.toLocaleString("tr-TR")} TL gerekir.`,
+      error: `Kasanda yeterli nakit yok! ${satinAlinacakAdet} adet için ${toplamMaliyet.toLocaleString("tr-TR")} TL gerekir.`,
     };
   }
 
-  player.kasa -= fiyat;
-  player.puan += m.sayginlik;
+  player.kasa -= toplamMaliyet;
+  toplamSayginlik = m.sayginlik * satinAlinacakAdet;
+  player.puan += toplamSayginlik;
 
+  const yeniAdet = oncekiAdet + satinAlinacakAdet;
+  
   if (mevcut) {
     await run(
       db,
-      `UPDATE sektor_sahiplik SET adet = adet + 1 WHERE user_id = ? AND sektor = ? AND mekan_key = ?`,
-      [userId, sektor, mekanKey]
+      `UPDATE sektor_sahiplik SET adet = ? WHERE user_id = ? AND sektor = ? AND mekan_key = ?`,
+      [yeniAdet, userId, sektor, mekanKey]
     );
   } else {
     await run(
       db,
       `INSERT INTO sektor_sahiplik (user_id, sektor, mekan_key, adet, last_income_hour)
-       VALUES (?, ?, ?, 1, NULL)`,
-      [userId, sektor, mekanKey]
+       VALUES (?, ?, ?, ?, NULL)`,
+      [userId, sektor, mekanKey, yeniAdet]
     );
   }
 
@@ -123,13 +137,15 @@ async function mekanAl(db, userId, player, sektor, mekanKey) {
     userId,
   ]);
 
-  await logStatHareket(db, userId, "sayginlik", m.sayginlik);
+  await logStatHareket(db, userId, "sayginlik", toplamSayginlik);
 
   return {
     ok: true,
-    mesaj: `${m.ad} satın alındı! (+${m.sayginlik} saygınlık)`,
-    fiyat,
-    yeniAdet: adet + 1,
+    mesaj: satinAlinacakAdet > 1 
+      ? `${m.ad} ${satinAlinacakAdet} adet satın alındı! (+${toplamSayginlik} saygınlık)`
+      : `${m.ad} satın alındı! (+${toplamSayginlik} saygınlık)`,
+    fiyat: toplamMaliyet,
+    yeniAdet,
   };
 }
 

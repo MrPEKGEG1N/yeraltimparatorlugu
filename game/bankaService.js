@@ -5,33 +5,47 @@ async function getBanka(db, userId) {
   return row ? row.yatirilan_miktar : 0;
 }
 
-async function paraYatir(db, userId, player) {
-  const yatirilacak = Math.floor(player.kasa * 0.2);
-  if (yatirilacak < 1) {
-    return { ok: false, error: "Yatırılacak para yok." };
+async function paraYatir(db, userId, player, yatirMiktari) {
+  const yatir = Math.floor(yatirMiktari || 0);
+  if (yatir < 1) {
+    return { ok: false, error: "Geçerli bir miktar gir." };
+  }
+  if (player.kasa < yatir) {
+    return { ok: false, error: `Yeterli paran yok. (Kasanda: ${player.kasa.toLocaleString("tr-TR")} TL)` };
   }
   
-  player.kasa -= yatirilacak;
+  player.kasa -= yatir;
   const mevcut = await getBanka(db, userId);
-  const yeni = mevcut + yatirilacak;
+  const yeni = mevcut + yatir;
   
   await run(db, `INSERT OR REPLACE INTO banka_hesaplari (user_id, yatirilan_miktar) VALUES (?, ?)`, [userId, yeni]);
   await run(db, `UPDATE players SET kasa = ? WHERE user_id = ?`, [player.kasa, userId]);
   
-  return { ok: true, yatirilan: yatirilacak, toplam: yeni };
+  return { ok: true, yatirilan: yatir, toplam: yeni };
 }
 
-async function paraCek(db, userId, player) {
+async function paraCek(db, userId, player, cekMiktari) {
   const mevcut = await getBanka(db, userId);
-  if (mevcut < 1) {
-    return { ok: false, error: "Bankada para yok." };
+  const cek = Math.floor(cekMiktari || 0);
+  
+  if (cek < 1) {
+    return { ok: false, error: "Geçerli bir miktar gir." };
+  }
+  if (mevcut < cek) {
+    return { ok: false, error: `Bankada yeterli para yok. (Bankada: ${mevcut.toLocaleString("tr-TR")} TL)` };
   }
   
-  player.kasa += mevcut;
-  await run(db, `UPDATE players SET kasa = ? WHERE user_id = ?`, [player.kasa, userId]);
-  await run(db, `DELETE FROM banka_hesaplari WHERE user_id = ?`, [userId]);
+  const kalan = mevcut - cek;
+  player.kasa += cek;
   
-  return { ok: true, cekilen: mevcut, yeniKasa: player.kasa };
+  if (kalan > 0) {
+    await run(db, `UPDATE banka_hesaplari SET yatirilan_miktar = ? WHERE user_id = ?`, [kalan, userId]);
+  } else {
+    await run(db, `DELETE FROM banka_hesaplari WHERE user_id = ?`, [userId]);
+  }
+  await run(db, `UPDATE players SET kasa = ? WHERE user_id = ?`, [player.kasa, userId]);
+  
+  return { ok: true, cekilen: cek, yeniKasa: player.kasa };
 }
 
 module.exports = {

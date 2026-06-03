@@ -367,7 +367,9 @@ function arayuzGuncelle() {
   document.getElementById('kasa').innerText = fmt(oyuncuKasa) + ' TL';
   document.getElementById('guc').innerText = fmt(oyuncuGuc);
   document.getElementById('puan').innerText = fmt(oyuncuPuan);
-  document.getElementById('icraat').innerText = oyuncuIcraat;
+  var icraatEl = document.getElementById('icraat');
+  icraatEl.innerText = oyuncuIcraat;
+  icraatEl.title = 'Saatte +25 hak kazanılır. (İş yaparken harcarsın)';
   var smsEl = document.getElementById('smsHakki');
   var devEl = document.getElementById('devletIliskisi');
   if (smsEl) smsEl.innerText = oyuncuSms;
@@ -1008,17 +1010,19 @@ function ekranDegistir(tip) {
   }
 
   if (tip === 'banka') {
-    var yatirilacak = Math.floor(oyuncuKasa * 0.2);
     ic.innerHTML = '<h2>🏦 BANKA</h2>'
-      + '<p>"Paranı güvene al. Kasandaki %20\'sini yatırabilir, tümünü çekebilirsin."</p>'
+      + '<p>"Paranı güvene al. İstediğin miktarı yatırıp istediğin miktarı çekebilirsin."</p>'
       + '<div class="is-kart" style="text-align:center;max-width:520px;margin:0 auto 14px;"><h3 class="bolum-baslik">Banka Hesabı</h3>'
-      + '<p style="font-size:24px;color:#b8942a;margin:16px 0;">💰 ' + fmt(bankaBakiye) + ' TL</p></div>'
+      + '<p style="font-size:24px;color:#ffd700;margin:16px 0;">💰 ' + fmt(bankaBakiye) + ' TL</p></div>'
       + '<div class="is-kart" style="max-width:520px;margin:0 auto;"><h3 class="bolum-baslik">Para Yatır</h3>'
-      + '<p>Kasandaki %20\'sini yatırabilirsin.</p>'
-      + '<p>💵 Yatırılacak: <b>' + fmt(yatirilacak) + ' TL</b></p>'
+      + '<p>Kasandaki parasını istediğin miktarda yatırabilirsin.</p>'
+      + '<label>Yatırılacak Miktar (TL):</label>'
+      + '<input type="number" id="bankaYatirMiktar" min="1" max="' + oyuncuKasa + '" value="' + Math.floor(oyuncuKasa / 2) + '" style="width:100%;margin:8px 0;">'
       + '<button class="btn-is" onclick="bankaYatir()">[ 💰 YATIR ]</button></div>'
       + '<div class="is-kart" style="max-width:520px;margin:16px auto 0;"><h3 class="bolum-baslik">Para Çek</h3>'
-      + '<p>Bankadaki tüm parayı çekebilirsin.</p>'
+      + '<p>Bankadaki parasını istediğin miktarda çekebilirsin.</p>'
+      + '<label>Çekilecek Miktar (TL):</label>'
+      + '<input type="number" id="bankaCekMiktar" min="1" max="' + bankaBakiye + '" value="' + Math.floor(bankaBakiye / 2) + '" style="width:100%;margin:8px 0;">'
       + '<button class="btn-is kirmizi-btn" onclick="bankaCek()">[ 💸 ÇEK ]</button></div>';
     return;
   }
@@ -1030,9 +1034,9 @@ function ekranDegistir(tip) {
 
   if (tip === 'mekan_devri') {
     var mekanOpts = mekanDevriSecenekleri();
-    ic.innerHTML = '<h2>🔄 MEKAN DEVRİ</h2>'
-      + '<p>"Mekanlarını dostlarına devret."</p>'
-      + '<div class="is-kart" style="max-width:560px;margin:0 auto;">'
+    ic.innerHTML = '<h2>🔄 MEKAN DEVRİ & PARA GÖNDERME</h2>'
+      + '<p>"Mekanlarını dostlarına devret veya para gönder."</p>'
+      + '<div class="is-kart" style="max-width:560px;margin:0 auto;"><h3 class="bolum-baslik">Mekan Devret</h3>'
       + '<p><label>Dost reis adı</label>'
       + '<input type="text" id="mekanDevriHedef" class="dusman-input" placeholder="Dost reis adı..." maxlength="24" style="width:100%;margin:6px 0 12px;"></p>'
       + '<p><label>Devredilecek mekan</label>'
@@ -1040,7 +1044,14 @@ function ekranDegistir(tip) {
       + '<p><label>Adet</label>'
       + '<input type="number" id="mekanDevriAdet" class="dusman-input" value="1" min="1" max="999" style="width:100%;margin:6px 0 12px;"></p>'
       + '<button class="btn-is mavi-btn" onclick="mekanDevret()">[ 🔄 DEVRET ]</button>'
-      + '<div id="mekanDevriSonuc" class="saldiri-sonuc gizli" style="margin-top:12px;"></div></div>';
+      + '<div id="mekanDevriSonuc" class="saldiri-sonuc gizli" style="margin-top:12px;"></div></div>'
+      + '<div class="is-kart" style="max-width:560px;margin:16px auto 0;"><h3 class="bolum-baslik">Para Gönder</h3>'
+      + '<p><label>Alıcı reis adı</label>'
+      + '<input type="text" id="paraGonderHedef" class="dusman-input" placeholder="Alıcı reis adı..." maxlength="24" style="width:100%;margin:6px 0 12px;"></p>'
+      + '<p><label>Gönderilecek Miktar (TL)</label>'
+      + '<input type="number" id="paraGonderMiktar" class="dusman-input" value="100000" min="1" max="999999999" style="width:100%;margin:6px 0 12px;"></p>'
+      + '<button class="btn-is" onclick="paraGonder()">[ 💸 PARA GÖNDER ]</button>'
+      + '<div id="paraGonderSonuc" class="saldiri-sonuc gizli" style="margin-top:12px;"></div></div>';
     return;
   }
 
@@ -1244,7 +1255,12 @@ async function istihbaratSpy() {
 }
 
 async function bankaYatir() {
-  var ef = await sunucuAksiyon('banka_yatir');
+  var miktar = parseInt(document.getElementById('bankaYatirMiktar').value, 10) || 0;
+  if (miktar < 1) {
+    toast('Geçerli bir miktar gir.', 'hata');
+    return;
+  }
+  var ef = await sunucuAksiyon('banka_yatir', null, null, { miktar: miktar });
   if (ef === null) return;
   sesCal('para');
   toast('💰 ' + fmt(ef.yatirilan) + ' TL yatırıldı! — Toplam: ' + fmt(ef.toplam) + ' TL', 'basari');
@@ -1253,7 +1269,12 @@ async function bankaYatir() {
 }
 
 async function bankaCek() {
-  var ef = await sunucuAksiyon('banka_cek');
+  var miktar = parseInt(document.getElementById('bankaCekMiktar').value, 10) || 0;
+  if (miktar < 1) {
+    toast('Geçerli bir miktar gir.', 'hata');
+    return;
+  }
+  var ef = await sunucuAksiyon('banka_cek', null, null, { miktar: miktar });
   if (ef === null) return;
   sesCal('para');
   toast('💸 ' + fmt(ef.cekilen) + ' TL çekildi!', 'basari');
@@ -1281,6 +1302,24 @@ async function mekanDevret() {
     sonucDiv.innerHTML = '<p style="color:#090;">✅ ' + (ef.mesaj || 'Mekan devredildi.') + '</p>';
   }
   toast(ef.mesaj || 'Mekan devredildi.', 'basari');
+}
+
+async function paraGonder() {
+  var hedef = (document.getElementById('paraGonderHedef') || {}).value.trim();
+  var miktar = parseInt((document.getElementById('paraGonderMiktar') || {}).value, 10) || 0;
+  if (!hedef) { toast('Alıcı reis adını yaz.', 'hata'); return; }
+  if (miktar < 1) { toast('Geçerli bir miktar gir.', 'hata'); return; }
+  var ef = await sunucuAksiyon('para_gonder', null, null, {
+    hedef: hedef,
+    miktar: miktar
+  });
+  if (ef === null) return;
+  var sonucDiv = document.getElementById('paraGonderSonuc');
+  if (sonucDiv) {
+    sonucDiv.classList.remove('gizli');
+    sonucDiv.innerHTML = '<p style="color:#090;">✅ ' + (ef.mesaj || fmt(miktar) + ' TL gönderildi.') + '</p>';
+  }
+  toast(ef.mesaj || fmt(miktar) + ' TL gönderildi.', 'basari');
 }
 
 async function medyaHaberYayinla() {
@@ -1570,7 +1609,7 @@ function mafyaGurupListesiHTML(gruplar, basvuruModu) {
   }
   var html = '<h3 class="bolum-baslik">Mevcut Mafya Grupları</h3>';
   gruplar.forEach(function(g) {
-    html += '<div class="is-kart" style="padding:14px;"><b>' + g.isim + '</b>';
+    html += '<div class="is-kart" style="padding:14px;"><b><button class="btn-is mavi-btn" style="margin:0;padding:4px 8px;" onclick="mafyaGrupGoster(' + g.id + ')">' + g.isim + '</button></b>';
     if (g.lider_adi) html += ' <span style="color:#888;">— Lider: ' + g.lider_adi + '</span>';
     html += '<p style="color:#777;font-size:13px;margin:8px 0;">' + (g.aciklama || '—') + '</p>';
     if (basvuruModu) {
@@ -1601,13 +1640,20 @@ async function mafyaGurubumCiz(box) {
       return;
     }
 
-    var html = '<div class="is-kart"><h3 style="color:#b8942a;font-size:20px;">' + data.uyelik.isim + ' Mafya Grubu</h3>'
-      + '<p style="color:#777;">' + (data.uyelik.aciklama || '') + '</p></div>'
+    var html = '<div class="is-kart"><h3 style="color:#ffd700;font-size:20px;text-shadow:0 0 8px rgba(255,215,0,0.4);">' + data.uyelik.isim + '</h3>'
+      + '<p style="color:#c9a961;">' + (data.uyelik.aciklama || '') + '</p></div>'
       + '<div class="tablo-container mafya-uyeler-tablo" style="margin-top:16px;">'
-      + '<div class="tablo-izgara tablo-baslik-satir"><span>İSİM</span><span>RÜTBE</span><span>SAYGINLIK</span><span></span><span></span></div>';
+      + '<div class="tablo-izgara tablo-baslik-satir"><span>İSİM</span><span>RÜTBE</span><span>SAYGINLIK</span><span>OFFLINE</span><span></span><span></span></div>';
+    var now = Math.floor(Date.now() / 1000);
     (data.uyeler || []).forEach(function(u) {
       var liderSatir = data.uyelik.benLiderim && u.user_id !== data.uyelik.liderUserId;
-      html += '<div class="tablo-izgara"><span>' + u.reis_adi + '</span><span>' + u.rutbe + '</span><span>' + fmt(u.puan) + '</span><span>';
+      var lastSeenAt = u.last_seen_at || 0;
+      var offlineSeconds = lastSeenAt > 0 ? (now - lastSeenAt) : 0;
+      var offlineHours = Math.floor(offlineSeconds / 3600);
+      var offlineMinutes = Math.floor((offlineSeconds % 3600) / 60);
+      var offlineStr = offlineHours > 0 ? (offlineHours + 'h ' + offlineMinutes + 'm') : (offlineMinutes + 'm');
+      var offlineColor = offlineHours > 24 ? '#f08080' : (offlineHours > 1 ? '#ffa500' : '#90ee90');
+      html += '<div class="tablo-izgara"><span style="color:#e0e0e0;">' + u.reis_adi + '</span><span style="color:#c9a961;">' + u.rutbe + '</span><span style="color:#ffd700;">' + fmt(u.puan) + '</span><span style="color:' + offlineColor + ';">' + offlineStr + '</span><span>';
       if (liderSatir) {
         html += '<button type="button" class="btn-is" style="padding:4px 8px;font-size:11px;" onclick="mafyaRutbe(' + u.user_id + ')">✎ Rütbe</button> '
           + '<button type="button" class="btn-is mavi-btn" style="padding:4px 8px;font-size:11px;" onclick="mafyaDevret(' + u.user_id + ')">👑 Devret</button>';
@@ -1622,9 +1668,9 @@ async function mafyaGurubumCiz(box) {
     if (data.uyelik.benLiderim) {
       html += '<div style="margin-top:20px;">';
       if (data.basvurular && data.basvurular.length) {
-        html += '<h3 class="bolum-baslik">📩 Başvurular</h3>';
+        html += '<h3 class="bolum-baslik" style="color:#ffd700;">📩 Başvurular</h3>';
         data.basvurular.forEach(function(b) {
-          html += '<p style="margin-bottom:8px;">' + b.reis_adi
+          html += '<p style="margin-bottom:8px;color:#e0e0e0;">' + b.reis_adi
             + ' <button type="button" class="btn-is" onclick="mafyaKabul(' + b.id + ')">Kabul</button> '
             + '<button type="button" class="btn-is kirmizi-btn" onclick="mafyaRed(' + b.id + ')">Red</button></p>';
         });
@@ -1685,6 +1731,50 @@ async function mafyaBasvur(grupId) {
   if (ef === null) return;
   toast('Başvuru gönderildi.', 'basari');
 }
+
+async function mafyaGrupGoster(grupId) {
+  var response = await fetch('/api/mafya/grup/' + grupId);
+  if (!response.ok) {
+    toast('Grup bilgileri alınamadı.', 'hata');
+    return;
+  }
+  var data = await response.json();
+  if (!data.ok) {
+    toast(data.error || 'Hata', 'hata');
+    return;
+  }
+
+  var grup = data.grup;
+  var html = '<div style="padding:20px;">';
+  html += '<h2 style="color:#ffd700;margin-bottom:16px;">' + grup.isim + '</h2>';
+  
+  html += '<div style="margin-bottom:20px;">';
+  html += '<h3 style="color:#c9a961;">🏠 Mafya Evi</h3>';
+  html += '<p style="color:#ddd;margin:8px 0;"><strong>Seviye:</strong> ' + (grup.evi_seviyesi || 0) + '</p>';
+  html += '<p style="color:#ddd;margin:8px 0;"><strong>Kasasında:</strong> ₺ ' + (grup.kasa || 0).toLocaleString() + '</p>';
+  html += '</div>';
+
+  html += '<div style="margin-bottom:20px;">';
+  html += '<h3 style="color:#c9a961;">👥 Üyeler (' + (grup.uyeler ? grup.uyeler.length : 0) + ')</h3>';
+  if (grup.uyeler && grup.uyeler.length) {
+    html += '<div style="max-height:300px;overflow-y:auto;">';
+    grup.uyeler.forEach(function(u) {
+      html += '<div style="padding:8px;border-bottom:1px solid #333;color:#ddd;">';
+      html += '<strong>' + u.reis_adi + '</strong> <span style="color:#888;">(' + (u.rutbe || 'Üye') + ')</span>';
+      html += '<br/><span style="color:#777;font-size:12px;">Saygınlık: <span style="color:#ffd700;">' + (u.saygınlık || 0) + '</span></span>';
+      html += '</div>';
+    });
+    html += '</div>';
+  } else {
+    html += '<p style="color:#777;">Henüz üye yok.</p>';
+  }
+  html += '</div>';
+
+  html += '</div>';
+
+  document.getElementById('oyunEkrani').innerHTML = html;
+}
+
 
 async function mafyaKabul(id) {
   await sunucuAksiyon('mafya_kabul', String(id));
@@ -1905,14 +1995,26 @@ function sektorEkranCiz(ic, sektor, baslik) {
       + '<p>💵 Alış: <b>' + fmt(fiyat) + ' TL</b> &nbsp;|&nbsp; Sahip: <b>' + adet + '</b> adet</p>'
       + '<p>⏱️ Saatlik Getiri: <b style="color:#28a745;">' + fmt(m.saatlik) + ' TL</b> (adet başı)</p>'
       + '<p>🕶️ Saygınlık: <b>+' + m.sayginlik + '</b> (sabit)</p>'
+      + '<div style="margin-top:8px;">'
+      + '<input type="number" id="mekanAdetGir_' + sektor + '_' + key + '" placeholder="Adet" value="1" min="1" max="999" style="width:60px;padding:4px;margin-right:8px;background:#222;color:#ffd700;border:1px solid #555;">'
       + '<button class="btn-is" onclick="mekanAl(\'' + sektor + '\', \'' + key + '\')">[ 🏢 MEKAN AL ]</button>'
+      + '</div>'
       + '</div></div></div>';
   });
   ic.innerHTML = html;
 }
 
 async function mekanAl(sektor, key) {
-  var ef = await sunucuAksiyon('mekan_al', sektor + ':' + key);
+  const idStr = 'mekanAdetGir_' + sektor + '_' + key;
+  const adetInput = document.getElementById(idStr);
+  if (!adetInput) {
+    console.error('Input element not found:', idStr);
+    toast('Adet giriş alanı bulunamadı. Sayfayı yenile.', 'hata');
+    return;
+  }
+  const adet = parseInt(adetInput.value, 10) || 1;
+  console.log('mekanAl:', { sektor, key, adet });
+  var ef = await sunucuAksiyon('mekan_al', sektor + ':' + key, null, { adet });
   if (ef) toast(ef.mesaj || 'Mekan alındı!', 'basari');
   ekranDegistir('sektor_' + sektor);
 }

@@ -20,12 +20,14 @@ function turkeyDayKey() {
 async function ensureSmsReset(db, userId, row) {
   const day = turkeyDayKey();
   if (row.last_sms_day === day) return row.sms_hakki;
+  const kalanHak = row.sms_hakki || 0;
+  const yeniHak = Math.min(kalanHak + SMS_GUNLUK, SMS_GUNLUK * 2);
   await run(
     db,
     `UPDATE players SET sms_hakki = ?, last_sms_day = ? WHERE user_id = ?`,
-    [SMS_GUNLUK, day, userId]
+    [yeniHak, day, userId]
   );
-  return SMS_GUNLUK;
+  return yeniHak;
 }
 
 async function getSmsHakki(db, userId) {

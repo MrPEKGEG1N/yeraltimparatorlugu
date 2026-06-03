@@ -37,8 +37,8 @@ async function ensureSaygiTables(db) {
 }
 
 function gunFarki(baslangic, bitis) {
-  const ms = Math.max(0, (bitis - baslangic) * 1000);
-  return Math.max(1, Math.ceil(ms / (24 * 60 * 60 * 1000)));
+  const saniye = Math.max(0, bitis - baslangic);
+  return Math.max(1, Math.ceil(saniye / 86400));
 }
 
 function trTarih(ts) {

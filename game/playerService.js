@@ -414,7 +414,8 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
 
   if (action === "mekan_al") {
     const [sektor, mekanKey] = String(key || "").split(":");
-    const sonuc = await mekanAl(db, userId, player, sektor, mekanKey);
+    const adet = parseInt(extra.adet, 10) || 1;
+    const sonuc = await mekanAl(db, userId, player, sektor, mekanKey, adet);
     if (!sonuc.ok) return sonuc;
     player = await loadPlayer(db, userId);
     return {
@@ -559,7 +560,8 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
   }
 
   if (action === "banka_yatir") {
-    const sonuc = await paraYatir(db, userId, player);
+    const yatirMiktari = parseInt(extra.miktar, 10) || 0;
+    const sonuc = await paraYatir(db, userId, player, yatirMiktari);
     if (!sonuc.ok) return sonuc;
     player = await loadPlayer(db, userId);
     return {
@@ -570,7 +572,8 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
   }
 
   if (action === "banka_cek") {
-    const sonuc = await paraCek(db, userId, player);
+    const cekMiktari = parseInt(extra.miktar, 10) || 0;
+    const sonuc = await paraCek(db, userId, player, cekMiktari);
     if (!sonuc.ok) return sonuc;
     player = await loadPlayer(db, userId);
     return {
@@ -606,6 +609,32 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
     };
   }
 
+  if (action === "para_gonder") {
+    const hedefAdi = String(extra.hedef || "").trim();
+    const gonderMiktari = parseInt(extra.miktar, 10) || 0;
+    if (!hedefAdi) return { ok: false, error: "Alıcı reis adı gerekli." };
+    if (gonderMiktari < 1) return { ok: false, error: "Geçerli bir miktar gir." };
+    if (player.kasa < gonderMiktari) return { ok: false, error: "Yeterli paran yok." };
+
+    const hedef = await get(
+      db,
+      `SELECT id, reis_adi FROM users WHERE LOWER(reis_adi) = LOWER(?) OR LOWER(username) = LOWER(?)`,
+      [hedefAdi, hedefAdi]
+    );
+    if (!hedef) return { ok: false, error: "Bu isimde oyuncu bulunamadı." };
+    if (hedef.id === userId) return { ok: false, error: "Kendine para gönderemezsin." };
+
+    player.kasa -= gonderMiktari;
+    await run(db, `UPDATE players SET kasa = kasa + ? WHERE user_id = ?`, [gonderMiktari, hedef.id]);
+    await run(db, `UPDATE players SET kasa = ? WHERE user_id = ?`, [player.kasa, userId]);
+
+    return {
+      ok: true,
+      player: await publicPlayerFull(db, userId, player),
+      effect: { type: "para_gonder", mesaj: hedef.reis_adi + " isimli oyuncuya " + gonderMiktari.toLocaleString("tr-TR") + " TL gönderildi." },
+    };
+  }
+
   if (action === "mafya_savas_ilan") {
     const grup = await kullaniciGrubu(db, userId);
     const benLiderim = !!grup && grup.lider_user_id === userId;
@@ -614,7 +643,7 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
     }
 
     // Lider, hedef gurup adını yazarak savaş ilan edebilsin
-    const hedefAd = String(extra.hedefGrupAdi || extra.hedef || "").trim();
+    const hedefAd = String(extra.hedefGurupAdi || extra.hedefGrupAdi || extra.hedef || "").trim();
     if (!hedefAd) return { ok: false, error: "Hedef mafya grubu adı gerekli." };
 
     // Üye sayısı şartı: iki tarafta da en az 3 üye
