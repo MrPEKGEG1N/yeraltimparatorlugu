@@ -1,0 +1,406 @@
+/* Medya — haber yayınla & son haberler */
+#masterLayout #anaIcerik .med-sayfa {
+  display: flex;
+  justify-content: center;
+  padding: 10px 14px 32px;
+}
+
+#masterLayout #anaIcerik .med-cerceve {
+  position: relative;
+  width: min(820px, 100%);
+  border: 2px solid rgba(184, 148, 42, 0.52);
+  border-radius: 6px;
+  background: linear-gradient(175deg, rgba(26, 20, 14, 0.98) 0%, rgba(8, 6, 4, 0.99) 100%);
+  box-shadow:
+    0 22px 60px rgba(0, 0, 0, 0.72),
+    inset 0 0 90px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 220, 140, 0.07);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+#masterLayout #anaIcerik .med-cerceve::before {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  border: 1px solid rgba(184, 148, 42, 0.2);
+  border-radius: 3px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+#masterLayout #anaIcerik .med-banner {
+  position: relative;
+  height: clamp(130px, 24vw, 180px);
+  overflow: hidden;
+}
+
+#masterLayout #anaIcerik .med-banner img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 35%;
+  filter: saturate(0.85) contrast(1.06);
+}
+
+#masterLayout #anaIcerik .med-banner-ortu {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(16, 12, 8, 0.12) 0%,
+    rgba(16, 12, 8, 0.52) 52%,
+    rgba(10, 7, 5, 0.98) 100%
+  );
+}
+
+#masterLayout #anaIcerik .med-baslik-wrap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  padding: 16px 22px 18px;
+  text-align: center;
+}
+
+#masterLayout #anaIcerik .med-baslik-ikon {
+  display: block;
+  font-size: 28px;
+  line-height: 1;
+  margin-bottom: 6px;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.7));
+}
+
+#masterLayout #anaIcerik .med-baslik-wrap h2 {
+  margin: 0 0 6px;
+  font-family: "Cinzel", Georgia, serif;
+  font-size: clamp(20px, 3.2vw, 28px);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: #f0e6d0;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.85);
+}
+
+#masterLayout #anaIcerik .med-motto {
+  margin: 0;
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 13px;
+  font-style: italic;
+  line-height: 1.45;
+  color: rgba(210, 195, 165, 0.88);
+}
+
+#masterLayout #anaIcerik .med-govde {
+  position: relative;
+  z-index: 1;
+  padding: 20px 22px 24px;
+}
+
+#masterLayout #anaIcerik .med-giris {
+  margin: 0 0 18px;
+  text-align: center;
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 14px;
+  line-height: 1.55;
+  color: #ccc;
+}
+
+#masterLayout #anaIcerik .med-paneller {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+#masterLayout #anaIcerik .med-panel {
+  padding: 18px 18px 20px;
+  border: 1px solid rgba(184, 148, 42, 0.35);
+  border-radius: 5px;
+  background: linear-gradient(180deg, rgba(28, 22, 16, 0.95), rgba(10, 8, 6, 0.98));
+  box-shadow: inset 0 1px 0 rgba(255, 220, 140, 0.05);
+}
+
+#masterLayout #anaIcerik .med-panel--yayin {
+  border-color: rgba(180, 70, 60, 0.45);
+}
+
+#masterLayout #anaIcerik .med-panel--haberler {
+  border-color: rgba(184, 148, 42, 0.32);
+}
+
+#masterLayout #anaIcerik .med-panel-baslik {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+#masterLayout #anaIcerik .med-panel-ikon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  font-size: 18px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(184, 148, 42, 0.28);
+  flex-shrink: 0;
+}
+
+#masterLayout #anaIcerik .med-panel-baslik h3 {
+  margin: 0;
+  font-family: "Oswald", "Roboto Condensed", sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: #e8dcc8;
+}
+
+#masterLayout #anaIcerik .med-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #bbb;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+#masterLayout #anaIcerik .med-meta strong {
+  color: #e8a040;
+  font-weight: 700;
+}
+
+#masterLayout #anaIcerik .med-meta-etiket {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #c5a059;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+#masterLayout #anaIcerik .med-alan {
+  margin-bottom: 14px;
+}
+
+#masterLayout #anaIcerik .med-alan label {
+  display: block;
+  margin-bottom: 6px;
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #c5a059;
+}
+
+#masterLayout #anaIcerik .med-textarea {
+  display: block;
+  width: 100%;
+  min-height: 88px;
+  padding: 12px 14px;
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #e8e0d4;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(184, 148, 42, 0.32);
+  border-radius: 4px;
+  resize: vertical;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#masterLayout #anaIcerik .med-textarea::placeholder {
+  color: #666;
+  font-style: italic;
+}
+
+#masterLayout #anaIcerik .med-textarea:focus {
+  outline: none;
+  border-color: rgba(200, 80, 60, 0.55);
+  box-shadow: 0 0 0 2px rgba(180, 60, 50, 0.15);
+}
+
+#masterLayout #anaIcerik .med-btn {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  padding: 12px 18px;
+  font-family: "Oswald", "Roboto Condensed", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: #f5ebe0;
+  background: linear-gradient(180deg, rgba(140, 45, 38, 0.95), rgba(90, 22, 18, 0.98));
+  border: 1px solid rgba(200, 80, 70, 0.45);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+#masterLayout #anaIcerik .med-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+  box-shadow: 0 6px 20px rgba(120, 30, 25, 0.35);
+}
+
+#masterLayout #anaIcerik .med-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+#masterLayout #anaIcerik .med-sonuc {
+  margin-top: 12px;
+  padding: 10px 12px;
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 13px;
+  line-height: 1.45;
+  border-radius: 4px;
+  text-align: center;
+}
+
+#masterLayout #anaIcerik .med-sonuc--basari {
+  color: #8ed4a0;
+  background: rgba(40, 100, 55, 0.2);
+  border: 1px solid rgba(80, 180, 95, 0.35);
+}
+
+#masterLayout #anaIcerik .med-sonuc--hata {
+  color: #e8a0a0;
+  background: rgba(100, 30, 30, 0.22);
+  border: 1px solid rgba(180, 70, 70, 0.35);
+}
+
+#masterLayout #anaIcerik .med-haber-liste {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#masterLayout #anaIcerik .med-haber-bos {
+  margin: 0;
+  padding: 18px 14px;
+  text-align: center;
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 13px;
+  font-style: italic;
+  color: #888;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 4px;
+  border: 1px dashed rgba(184, 148, 42, 0.2);
+}
+
+#masterLayout #anaIcerik .med-haber-kart {
+  position: relative;
+  padding: 14px 14px 14px 16px;
+  border-radius: 4px;
+  background: linear-gradient(135deg, rgba(22, 18, 14, 0.95), rgba(12, 10, 8, 0.98));
+  border: 1px solid rgba(184, 148, 42, 0.22);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+#masterLayout #anaIcerik .med-haber-kart::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 3px;
+  border-radius: 0 2px 2px 0;
+  background: linear-gradient(180deg, #b03028, #7a1818);
+}
+
+#masterLayout #anaIcerik .med-haber-ust {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+#masterLayout #anaIcerik .med-haber-kaynak {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+#masterLayout #anaIcerik .med-haber-avatar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #1a1614;
+  border: 1px solid rgba(180, 70, 60, 0.4);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+#masterLayout #anaIcerik .med-haber-avatar-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+#masterLayout #anaIcerik .med-haber-avatar-img--ozel {
+  object-position: center;
+}
+
+#masterLayout #anaIcerik .med-haber-reis {
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #e8c878;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#masterLayout #anaIcerik .med-haber-zaman {
+  flex-shrink: 0;
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #777;
+}
+
+#masterLayout #anaIcerik .med-haber-metin {
+  margin: 0;
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 14px;
+  line-height: 1.55;
+  color: #ddd8cc;
+  word-break: break-word;
+}
+
+@media (max-width: 768px) {
+  #masterLayout #anaIcerik .med-govde {
+    padding: 16px 14px 20px;
+  }
+
+  #masterLayout #anaIcerik .med-haber-ust {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+}

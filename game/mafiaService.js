@@ -72,7 +72,7 @@ async function grupOlustur(db, userId, isim, aciklama) {
     userId,
     "Mafya Lideri",
   ]);
-  await run(db, `UPDATE users SET grup = ? WHERE id = ?`, [temizIsim + " Mafya Grubu", userId]);
+  await run(db, `UPDATE users SET grup = ? WHERE id = ?`, [temizIsim, userId]);
   return { ok: true, grupId, isim: temizIsim };
 }
 
@@ -130,10 +130,7 @@ async function basvuruKabul(db, liderId, basvuruId) {
     "Mafya Üyesi",
   ]);
   const grup = await get(db, `SELECT isim FROM mafya_gruplari WHERE id = ?`, [b.grup_id]);
-  await run(db, `UPDATE users SET grup = ? WHERE id = ?`, [
-    grup.isim + " Mafya Grubu",
-    b.user_id,
-  ]);
+  await run(db, `UPDATE users SET grup = ? WHERE id = ?`, [grup.isim, b.user_id]);
   return { ok: true };
 }
 
@@ -238,6 +235,39 @@ async function guruptanCik(db, userId, player) {
   return { ok: true, player };
 }
 
+async function grupAciklamaDegistir(db, liderId, yeniAciklama) {
+  const grup = await kullaniciGrubu(db, liderId);
+  if (!grup || grup.lider_user_id !== liderId) {
+    return { ok: false, error: "Sadece Mafya Grubu lideri açıklamayı değiştirebilir." };
+  }
+  const acik = String(yeniAciklama || "").trim().slice(0, 200);
+  await run(db, `UPDATE mafya_gruplari SET aciklama = ? WHERE id = ?`, [acik, grup.id]);
+  return { ok: true, aciklama: acik };
+}
+
+async function grupIsimDegistir(db, liderId, yeniIsim) {
+  const grup = await kullaniciGrubu(db, liderId);
+  if (!grup || grup.lider_user_id !== liderId) {
+    return { ok: false, error: "Sadece Mafya Grubu lideri grup adını değiştirebilir." };
+  }
+  const temizIsim = String(yeniIsim || "").trim().slice(0, 32);
+  if (temizIsim.length < 2) return { ok: false, error: "Grup adı en az 2 karakter." };
+
+  const varMi = await get(
+    db,
+    `SELECT id FROM mafya_gruplari WHERE LOWER(isim) = LOWER(?) AND id <> ?`,
+    [temizIsim, grup.id]
+  );
+  if (varMi) return { ok: false, error: "Bu isimde grup zaten var." };
+
+  await run(db, `UPDATE mafya_gruplari SET isim = ? WHERE id = ?`, [temizIsim, grup.id]);
+  const uyeler = await all(db, `SELECT user_id FROM mafya_uyeleri WHERE grup_id = ?`, [grup.id]);
+  for (const u of uyeler) {
+    await run(db, `UPDATE users SET grup = ? WHERE id = ?`, [temizIsim, u.user_id]);
+  }
+  return { ok: true, isim: temizIsim };
+}
+
 async function mafyaPanel(db, userId) {
   const uyelik = await kullaniciGrubu(db, userId);
   const bekleyenSayisi = await bekleyenBasvuruSayisi(db, userId);
@@ -274,6 +304,30 @@ async function mafyaPanel(db, userId) {
   };
 }
 
+async function grupProfil(db, grupId) {
+  const grup = await get(
+    db,
+    `SELECT id, isim, aciklama FROM mafya_gruplari WHERE id = ?`,
+    [grupId]
+  );
+  if (!grup) return null;
+
+  const uyeler = await grupUyeleri(db, grupId);
+  const { eviGetir } = require("./mafyaEviService");
+  const ev = await eviGetir(db, grupId);
+  const toplamSayginlik = uyeler.reduce((s, u) => s + (u.puan || 0), 0);
+
+  return {
+    id: grup.id,
+    isim: grup.isim,
+    aciklama: grup.aciklama || "",
+    uyeSayisi: uyeler.length,
+    toplamSayginlik,
+    evSeviye: ev.seviye,
+    evKapasite: ev.kapasite,
+  };
+}
+
 module.exports = {
   CIKIS_UCRET,
   mafyaPanel,
@@ -289,4 +343,7 @@ module.exports = {
   gurupDagit,
   guruptanCik,
   bekleyenBasvuruSayisi,
+  grupProfil,
+  grupIsimDegistir,
+  grupAciklamaDegistir,
 };

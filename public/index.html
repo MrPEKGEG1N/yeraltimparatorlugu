@@ -6,23 +6,47 @@
   <title>Yeraltı İmparatorluğu</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Roboto+Condensed:wght@300;400;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=23">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,300;1,400&family=Oswald:wght@400;600;700&family=Roboto+Condensed:wght@300;400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="components/MasterLayout.module.css?v=120">
+  <link rel="stylesheet" href="liderlik.css?v=105">
+  <link rel="stylesheet" href="ekran-icerik.css?v=112">
+  <link rel="stylesheet" href="gazete.css?v=104">
+  <link rel="stylesheet" href="profil.css?v=113">
+  <link rel="stylesheet" href="menu-hub.css?v=103">
+  <link rel="stylesheet" href="dusman.css?v=105">
+  <link rel="stylesheet" href="banka.css?v=108">
+  <link rel="stylesheet" href="gunluk-gorevler.css?v=110">
+  <link rel="stylesheet" href="racon-raporu.css?v=3">
+  <link rel="stylesheet" href="guvenli-yer.css?v=13">
+  <link rel="stylesheet" href="istihbarat.css?v=102">
+  <link rel="stylesheet" href="sadakat-yemini.css?v=3">
+  <link rel="stylesheet" href="sehre-hukmet.css?v=1">
+  <link rel="stylesheet" href="mekan-devri.css?v=2">
+  <link rel="stylesheet" href="medya.css?v=2">
+  <link rel="stylesheet" href="sohbet.css?v=2">
+  <link rel="stylesheet" href="avukat.css?v=2">
+  <link rel="stylesheet" href="kara-liste.css?v=6">
+  <link rel="stylesheet" href="egitim.css?v=2">
+  <link rel="stylesheet" href="responsive.css?v=101">
+  <link href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css" rel="stylesheet">
 </head>
 <body>
 
 <!-- GİRİŞ / KAYIT -->
 <div id="authEkran" class="auth-ekran">
   <div class="auth-kutu">
-    <h1 class="auth-logo">👑 YERALTİ İMPARATORLUĞU</h1>
-    <p class="auth-alt">Hesabınla giriş yap veya yeni reis olarak kayıt ol.</p>
+    <div class="auth-kutu-cerceve" aria-hidden="true"></div>
+    <header class="auth-baslik">
+      <h1 class="auth-logo">👑 YERALTİ İMPARATORLUĞU</h1>
+      <p class="auth-alt">Hesabınla giriş yap veya yeni reis olarak kayıt ol.</p>
+    </header>
 
     <div class="auth-sekmeler">
       <button type="button" id="sekmeGiris" class="auth-sekme aktif-sekme">GİRİŞ</button>
       <button type="button" id="sekmeKayit" class="auth-sekme">KAYIT OL</button>
     </div>
 
-    <form id="authForm" class="auth-form" autocomplete="on">
+    <form id="authForm" class="auth-form" autocomplete="on" novalidate>
       <div id="reisAdiAlan" class="auth-alan gizli">
         <label for="reisAdi">Reis Adın</label>
         <input type="text" id="reisAdi" name="reisAdi" maxlength="24" placeholder="Örn: Doğan">
@@ -45,157 +69,257 @@
       </div>
       <div class="auth-alan">
         <label for="username">Kullanıcı Adı</label>
-        <input type="text" id="username" name="username" required minlength="3" maxlength="20" pattern="[a-zA-Z0-9_]+" placeholder="dogan_reis">
+        <input type="text" id="username" name="username" required minlength="3" maxlength="20" pattern="[a-zA-Z0-9_]+" placeholder="Kullanıcı Adını Yaz">
       </div>
       <div class="auth-alan">
         <label for="password">Şifre</label>
         <input type="password" id="password" name="password" required minlength="6" placeholder="••••••">
       </div>
+      <input type="text" id="authHoneypot" name="website" tabindex="-1" autocomplete="off" class="gizli" aria-hidden="true">
       <p id="authHata" class="auth-hata gizli"></p>
       <button type="submit" id="authGonder" class="auth-btn">[ ⚔️ GİRİŞ YAP ]</button>
     </form>
   </div>
 </div>
 
-<div id="oyunEkran" class="gizli">
-
-<div id="bgKatman" class="bg-katman" aria-hidden="true"></div>
-<div id="bgIsimEtiket" class="bg-isim-etiket"></div>
-
 <div id="yukleniyor" class="yukleniyor">⏳ İMPARATORLUK YÜKLENİYOR...</div>
 
-<!-- ÜST BAR -->
-<div class="ust-bar">
-  <div class="ust-sol">
-    <button class="liderlik-btn" onclick="ekranDegistir('liderlik')">🏆 LİDERLİK TABLOSU</button>
-    <span class="reis-etiket" id="reisEtiket"></span>
-    <button class="cikis-btn" type="button" onclick="cikisYap()">ÇIKIŞ</button>
-    <div class="stat"><span class="stat-label">⏳ İcraat:</span> <span class="stat-val icraat-vurgu" id="icraat">25</span></div>
-    <div class="stat"><span class="stat-label">📱 SMS:</span> <span class="stat-val" id="smsHakki">50</span></div>
-    <div class="stat"><span class="stat-label">🏛️ Devlet:</span> <span class="stat-val" id="devletIliskisi">100</span></div>
-    <div class="stat"><span class="stat-label">🕶️ Saygınlık:</span> <span class="stat-val" id="puan">1.500</span></div>
-    <div class="stat"><span class="stat-label">⚔️ Güç:</span> <span class="stat-val" id="guc">500</span></div>
-    <div class="stat"><span class="stat-label">💵 Kasa:</span> <span class="stat-val kasa-val" id="kasa">10.000 TL</span></div>
-    <div id="sehirBanner" class="sehir-banner gizli"></div>
-  </div>
-  <div class="ust-sag">
-    <div class="saygi-duvari-kutu" id="saygiDuvariKutu">
-      <div class="saygi-duvari-baslik">🏛️ SAYGI DUVARI</div>
-      <ul class="saygi-duvari-liste" id="saygiDuvariListe"><li style="color:#888;">Yükleniyor...</li></ul>
+<div id="masterLayout" class="gizli">
+  <header class="ml-header" id="headerStatsBar">
+    <div class="stats-bar">
+      <button type="button" class="ml-btn-red" onclick="ekranDegistir('liderlik')">LİDERLİK TABLOSU</button>
+      <div class="ml-stat-chip ml-stat-chip--tip" id="chipIcraat" data-tip="Saatlik +25 hak kazanılır"><span>⏳</span><span class="ml-stat-label">İcraat:</span><span class="ml-stat-val icraat-vurgu" id="icraat">25</span></div>
+      <div class="ml-stat-chip ml-stat-chip--tip" id="chipSms" data-tip="Günlük +50 sms hak kazanılır"><span>📱</span><span class="ml-stat-label">SMS:</span><span class="ml-stat-val" id="smsHakki">50</span></div>
+      <div class="ml-stat-chip ml-stat-chip--tip" id="chipAvukat" data-tip="İlişkin düşerse icraat yapamazsın"><span>⚖️</span><span class="ml-stat-label">Avukat:</span><span class="ml-stat-val" id="devletIliskisi">100</span></div>
+      <div class="ml-stat-chip ml-stat-chip--tip" id="chipSayginlik" data-tip="Sıralamadaki durumunu belirler"><span>🕶️</span><span class="ml-stat-label">Saygınlık:</span><span class="ml-stat-val" id="puan">1.500</span></div>
+      <div class="ml-stat-chip"><span>⚔️</span><span class="ml-stat-label">Güç:</span><span class="ml-stat-val" id="guc">500</span></div>
+      <div class="ml-stat-chip"><span>💵</span><span class="ml-stat-label">Kasa:</span><span class="ml-stat-val kasa-val" id="kasa">10.000 TL</span></div>
+      <button type="button" class="ml-stat-chip ml-stat-chip--banka ml-stat-chip--tip" onclick="ekranDegistir('banka')" data-tip="Bankaya yatırdığın toplam miktar"><span>🏦</span><span class="ml-stat-label">Banka:</span><span class="ml-stat-val" id="bankaUst">0 TL</span></button>
+      <span class="gizli" id="onlineSayisi">0</span>
     </div>
-    <button type="button" class="sehir-tarihi-btn" onclick="ekranDegistir('sehirTarihi')">📜 ŞEHİR TARİHİ</button>
-  </div>
-</div>
-
-<!-- ANA YAPI -->
-<div class="ana-yapi">
-
-  <!-- SOL MENÜ -->
-  <div class="sol-menu">
-    <div class="menu-baslik">👑 YERALTI DÜNYASI</div>
-
-    <button class="menu-btn aktif-menu" id="profilMenuBtn" onclick="ekranDegistir('profilim')">👤 Profilim</button>
-
-    <button class="menu-btn" onclick="toggleMenu('guclenMenu', this)">💪 Güçlen</button>
-    <div id="guclenMenu" class="alt-menu">
-      <button onclick="ekranDegistir('korumaEkibi')">👥 Ekip Kirala</button>
-      <button onclick="ekranDegistir('silahlan')">🔫 Silahlan</button>
-      <button onclick="ekranDegistir('luksYasam')">💎 Lüks Yaşam</button>
+    <div class="ml-header-right ml-header-profile">
+      <div id="saygiDuvariKutu"><ul class="ml-saygi-liste" id="saygiDuvariListe"><li style="color:#888;">Yükleniyor...</li></ul></div>
+      <button type="button" onclick="ekranDegistir('profilim')">👤 <span id="reisEtiket"></span></button>
+      <button type="button" onclick="ekranDegistir('sehirTarihi')">ŞEHİR TARİHİ</button>
+      <button type="button" onclick="cikisYap()">ÇIKIŞ</button>
     </div>
+  </header>
 
-    <button class="menu-btn" onclick="toggleMenu('buyumeMenu', this)">⭐ Büyüme Adımları</button>
-    <div id="buyumeMenu" class="alt-menu">
-      <button onclick="ekranDegistir('mahalle')">🏡 Mahalle İşleri</button>
-      <button onclick="ekranDegistir('semt')">🏢 Semt İşleri</button>
-      <button onclick="ekranDegistir('sehir')">🌆 Şehir İşleri</button>
-    </div>
-
-    <button class="menu-btn" onclick="toggleMenu('mekanMenu', this)">🏢 Mekan Sahibi</button>
-    <div id="mekanMenu" class="alt-menu">
-      <button onclick="ekranDegistir('sektor_yeralti')">Yeraltı Sektörü</button>
-      <button onclick="ekranDegistir('sektor_silah')">Silah Sektörü</button>
-      <button onclick="ekranDegistir('sektor_paket')">Paket Sektörü</button>
-      <button onclick="ekranDegistir('mekan_devri')">Mekan Devri</button>
-    </div>
-
-    <button class="menu-btn" onclick="ekranDegistir('istihbarat')">🕵️ İstihbarat</button>
-    <button class="menu-btn" onclick="ekranDegistir('banka')">🏦 Banka</button>
-    <button class="menu-btn" onclick="ekranDegistir('medya')">📰 Medya</button>
-    <button class="menu-btn" id="gazeteMenuBtn" onclick="ekranDegistir('gazete')">📰 Gazete Oku</button>
-
-    <button class="menu-btn" onclick="toggleMenu('babaMenu', this)">👑 Şehre Hükmet</button>
-    <div id="babaMenu" class="alt-menu">
-      <button onclick="ekranDegistir('baba_soz')">📿 Sözünü Geçir</button>
-      <button onclick="ekranDegistir('baba_sadakat')">⚔️ Sadakat Yemini</button>
-      <button onclick="ekranDegistir('liman')">🚢 Liman İşletmeleri</button>
-    </div>
-
-    <button class="menu-btn" onclick="toggleMenu('sohbetMenu', this)" id="sohbetMenuBtn">💬 Sohbet</button>
-    <div id="sohbetMenu" class="alt-menu">
-      <button id="mesajKutuBtn" onclick="ekranDegistir('mesajKutusu')">📬 Mesaj Kutusu</button>
-      <button onclick="ekranDegistir('mafyaSohbet')">🕶️ Mafya Sohbetleri</button>
-    </div>
-
-    <button class="menu-btn" onclick="ekranDegistir('dusmanaCok')">🎯 Düşmana Çök</button>
-
-    <button class="menu-btn" onclick="ekranDegistir('karaListe')">💀 Kara Liste</button>
-
-    <button class="menu-btn" id="mafyaMenuBtn" onclick="toggleMenu('mafyaMenu', this)">🕶️ Mafya Grubu</button>
-    <div id="mafyaMenu" class="alt-menu">
-      <button onclick="mafyaMenuSec('olustur')">Mafya Grubu Oluştur</button>
-      <button onclick="mafyaMenuSec('katil')">Mafya Grubuna Katıl</button>
-      <button onclick="mafyaMenuSec('gurubum')">Mafya Grubum</button>
-      <button onclick="mafyaMenuSec('savaslar')">Mafya Savaşları</button>
-      <button onclick="mafyaMenuSec('isler')">Mafya İşleri</button>
-      <button onclick="mafyaMenuSec('evi')">Mafya Evi</button>
-    </div>
-    <button class="menu-btn" onclick="ekranDegistir('devletIliskisi')">🏛️ Devlet İlişkisi</button>
+  <div class="ml-top-ribbon">
+    <img class="ml-top-ribbon-img" src="/images/ui/top-ribbon-full.png?v=85" alt="" aria-hidden="true">
+    <span class="ml-top-ribbon-txt" id="masterFramePlaque">LİDERLİK TABLOSU</span>
   </div>
 
-  <!-- İÇERİK -->
-  <div class="icerik" id="anaIcerik"></div>
+  <nav class="ml-sidebar" id="sidebarMenu">
+    <div class="g2-frame g2-frame--menu">
+      <span class="g2-c g2-tl" aria-hidden="true"></span>
+      <span class="g2-c g2-tr" aria-hidden="true"></span>
+      <span class="g2-c g2-bl" aria-hidden="true"></span>
+      <span class="g2-c g2-br" aria-hidden="true"></span>
+      <span class="g2-e g2-et" aria-hidden="true"></span>
+      <span class="g2-e g2-el" aria-hidden="true"></span>
+      <span class="g2-e g2-er" aria-hidden="true"></span>
+      <span class="g2-e g2-eb" aria-hidden="true"></span>
+      <div class="g2-body mafya-sidebar-panel">
+        <div class="sidebar-title">
+          <img class="sm-title-bg" src="/images/ui/sm-title-plaque.png?v=85" alt="" aria-hidden="true">
+          <span class="sm-title-txt">YERALTI DÜNYASI</span>
+        </div>
+        <ul class="menu-list ml-sidebar-nav">
+      <li><button type="button" class="ml-menu-item" id="profilMenuBtn" onclick="ekranDegistir('profilim')">👤 Profilim</button></li>
+      <li><button type="button" class="ml-menu-item" id="guvenliYerMenuBtn" onclick="ekranDegistir('guvenliYer')">🏠 Güvenli Yer</button></li>
+      <li><button type="button" class="ml-menu-item" id="gunlukGorevlerMenuBtn" onclick="ekranDegistir('gunlukGorevler')">📜 Günlük Görevler</button></li>
+      <li><button type="button" class="ml-menu-item" id="guclenMenuBtn" onclick="ekranDegistir('guclen')">💪 Güçlen</button></li>
+      <li><button type="button" class="ml-menu-item" id="buyumeMenuBtn" onclick="ekranDegistir('buyume')">⭐ Büyüme Adımları</button></li>
+      <li><button type="button" class="ml-menu-item" id="mekanMenuBtn" onclick="ekranDegistir('mekan')">🏢 Mekan Sahibi</button></li>
+      <li><button type="button" class="ml-menu-item" id="mekanDevriMenuBtn" onclick="ekranDegistir('mekan_devri')">🔄 Mekan Devri</button></li>
+      <li><button type="button" class="ml-menu-item" onclick="ekranDegistir('istihbarat')">🕵️ İstihbarat</button></li>
+      <li><button type="button" class="ml-menu-item" onclick="ekranDegistir('banka')">🏦 Banka</button></li>
+      <li><button type="button" class="ml-menu-item" onclick="ekranDegistir('medya')">📰 Medya</button></li>
+      <li><button type="button" class="ml-menu-item" id="gazeteMenuBtn" onclick="ekranDegistir('gazete')">📰 Gazete Oku</button></li>
+      <li><button type="button" class="ml-menu-item" id="babaMenuBtn" onclick="ekranDegistir('sehreHukmet')">👑 Şehre Hükmet</button></li>
+      <li><button type="button" class="ml-menu-item" id="sohbetMenuBtn" onclick="toggleMenu('sohbetMenu', this)">💬 Sohbet</button></li>
+      <li><ul id="sohbetMenu" class="ml-alt-menu">
+        <li><button type="button" class="ml-menu-item" id="mesajKutuBtn" onclick="ekranDegistir('mesajKutusu')">📬 Mesaj Kutusu</button></li>
+        <li><button type="button" class="ml-menu-item" onclick="ekranDegistir('mafyaSohbet')">🕶️ Mafya Sohbetleri</button></li>
+      </ul></li>
+      <li><button type="button" class="ml-menu-item" onclick="ekranDegistir('dusmanaCok')">🎯 Düşmana Çök</button></li>
+      <li><button type="button" class="ml-menu-item" onclick="ekranDegistir('karaListe')">💀 Kara Liste</button></li>
+      <li><button type="button" class="ml-menu-item" onclick="egitimAc()">📖 Oyun Eğitimi</button></li>
+      <li><button type="button" class="ml-menu-item" id="mafyaMenuBtn" onclick="toggleMenu('mafyaMenu', this)">🕶️ Mafya Grubu</button></li>
+      <li><ul id="mafyaMenu" class="ml-alt-menu">
+        <li><button type="button" class="ml-menu-item" onclick="mafyaMenuSec('olustur')">Mafya Grubu Oluştur</button></li>
+        <li><button type="button" class="ml-menu-item" onclick="mafyaMenuSec('katil')">Mafya Grubuna Katıl</button></li>
+        <li><button type="button" class="ml-menu-item" onclick="mafyaMenuSec('gurubum')">Mafya Grubum</button></li>
+        <li><button type="button" class="ml-menu-item" onclick="mafyaMenuSec('isler')">Mafya İşleri</button></li>
+      </ul></li>
+      <li><button type="button" class="ml-menu-item" onclick="ekranDegistir('devletIliskisi')">⚖️ Avukat</button></li>
+    </ul>
+      </div>
+    </div>
+  </nav>
 
+  <main class="ml-main-content">
+    <div class="g2-main">
+      <div class="g2-plaque" aria-hidden="true"></div>
+      <div class="g2-frame g2-frame--panel">
+        <span class="g2-c g2-tl" aria-hidden="true"></span>
+        <span class="g2-c g2-tr" aria-hidden="true"></span>
+        <span class="g2-c g2-bl" aria-hidden="true"></span>
+        <span class="g2-c g2-br" aria-hidden="true"></span>
+        <span class="g2-e g2-et" aria-hidden="true"></span>
+        <span class="g2-e g2-eb" aria-hidden="true"></span>
+        <span class="g2-e g2-el" aria-hidden="true"></span>
+        <span class="g2-e g2-er" aria-hidden="true"></span>
+        <div class="g2-body ui-frame-inner">
+          <div id="oyunEkran">
+            <div id="sehirBanner" class="gizli"></div>
+            <div id="anaIcerik"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
 </div>
 
 <!-- MODAL -->
 <div id="soygunModal" class="modal-arkaplan">
   <div class="modal-pencere">
-    <img id="modalResim" src="" class="modal-resim" alt="">
-    <div class="modal-baslik">💥 İCRAAT BAŞARILI!</div>
-    <p id="modalTebrik" class="modal-tebrik"></p>
-    <div class="modal-detay">
-      <div class="modal-satir">
-        <span>💵 Net Kazanç:</span>
-        <span id="modalPara" class="kazanc-yesil"></span>
-      </div>
-      <div class="modal-satir">
-        <span>⏳ Harcanan İcraat:</span>
-        <span id="modalIcraat" class="icraat-vurgu"></span>
-      </div>
+    <div class="modal-hero">
+      <img id="modalResim" src="" class="modal-resim" alt="">
     </div>
-    <button class="kapat-btn" onclick="pencereKapat()">[ ⚔️ RACONU KES ]</button>
+    <div class="modal-icerik">
+      <div class="modal-baslik">💥 İCRAAT BAŞARILI!</div>
+      <p id="modalTebrik" class="modal-tebrik"></p>
+      <div class="modal-detay">
+        <div class="modal-satir">
+          <span>💵 Net Kazanç:</span>
+          <span id="modalPara" class="kazanc-yesil"></span>
+        </div>
+        <div class="modal-satir">
+          <span>⏳ Harcanan İcraat:</span>
+          <span id="modalIcraat" class="icraat-vurgu"></span>
+        </div>
+        <div class="modal-satir" id="modalDevletSatir" style="display:none">
+          <span>⚖️ Avukat İlişkisi:</span>
+          <span id="modalDevlet" class="icraat-vurgu" style="color:#ff8888"></span>
+        </div>
+      </div>
+      <button class="kapat-btn" onclick="pencereKapat()">[ ⚔️ RACONU KES ]</button>
+    </div>
   </div>
 </div>
 
-</div><!-- #oyunEkran -->
+<div id="hosgeldinModal" class="racon-modal gizli" role="dialog" aria-modal="true" aria-labelledby="raconBaslik" aria-label="Racon Raporu">
+  <div class="racon-kart">
+    <div class="racon-kart-cerceve" aria-hidden="true"></div>
+    <div class="racon-kart-parilti" aria-hidden="true"></div>
 
-<div id="hosgeldinModal" class="racon-modal gizli" role="dialog" aria-label="Racon Raporu">
-  <div class="racon-frame">
-    <img src="/images/racon-raporu.png?v=24" alt="Racon Raporu" class="racon-frame-img">
-    <span id="raconSaat" class="racon-overlay racon-overlay-saat">0</span>
-    <span id="raconSaatlik" class="racon-overlay racon-overlay-saatlik">0 TL/saat</span>
-    <span id="raconKazanc" class="racon-overlay racon-overlay-kazanc">0 TL</span>
-    <button type="button" class="racon-overlay-btn" onclick="hosgeldinKapat()" aria-label="Devam et"></button>
+    <header class="racon-baslik">
+      <div class="racon-emblem" aria-hidden="true">
+        <div class="racon-emblem-ic">
+          <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="40" cy="40" r="36" stroke="#c9a84c" stroke-width="1.2" opacity="0.45"/>
+            <path d="M26 34c0-7 6-12 14-12s14 5 14 12v4H26v-4z" fill="#c9a84c"/>
+            <ellipse cx="40" cy="34" rx="15" ry="4.5" fill="#1a1612"/>
+            <rect x="34" y="28" width="12" height="3" rx="1" fill="#8a7030"/>
+            <path d="M22 48l8-3 10 8 10-8 8 3" stroke="#c9a84c" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M18 46l6 2M56 46l-6 2" stroke="#c9a84c" stroke-width="1.4" stroke-linecap="round"/>
+            <path d="M30 52l4 6M50 52l-4 6" stroke="#a08030" stroke-width="1.2" stroke-linecap="round"/>
+          </svg>
+        </div>
+      </div>
+      <h2 id="raconBaslik" class="racon-baslik-yazi">Racon Raporu</h2>
+    </header>
+
+    <p class="racon-ust-metin">Sen yokken sokaklar hareketliydi.</p>
+
+    <div class="racon-govde">
+      <div class="racon-satir racon-satir--saat">
+        <div class="racon-ikon-kapsul" aria-hidden="true">
+          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14 8h20l-2 8H16L14 8z" stroke="currentColor" stroke-width="1.4" fill="rgba(201,168,76,0.18)"/>
+            <path d="M16 16h16v3c0 6-4 10-8 14-4-4-8-8-8-14v-3z" stroke="currentColor" stroke-width="1.4" fill="rgba(201,168,76,0.06)"/>
+            <path d="M20 34h8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="racon-satir-icerik">
+          <div class="racon-stat-blok">
+            <span id="raconSaat" class="racon-stat-deger">0</span>
+            <span class="racon-kirmizi">Saat</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="racon-satir">
+        <div class="racon-ikon-kapsul" aria-hidden="true">
+          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="24" cy="21" r="9" stroke="currentColor" stroke-width="1.4"/>
+            <path d="M24 15v6.5l3.5 2.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+            <rect x="11" y="29" width="26" height="9" rx="1.5" stroke="currentColor" stroke-width="1.4" fill="rgba(201,168,76,0.1)"/>
+            <path d="M15 33h5M24 33h3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="racon-satir-icerik">
+          <p class="racon-satir-metin">
+            Mekanlar tam kapasite çalıştı, payımıza düşen
+            <span class="racon-deger-grup">
+              <span id="raconKazanc" class="racon-deger">0</span><span class="racon-kirmizi"> TL</span>
+            </span>
+            kasaya girdi.
+          </p>
+        </div>
+      </div>
+
+      <div class="racon-satir racon-satir--uyari">
+        <div class="racon-ikon-kapsul" aria-hidden="true">
+          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="24" cy="15" rx="9" ry="5.5" stroke="currentColor" stroke-width="1.4"/>
+            <circle cx="24" cy="15" r="2.5" fill="currentColor"/>
+            <path d="M15 28c2-3.5 5.5-5.5 9-5.5s7 2 9 5.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+            <path d="M19 34c1.8 2.5 4 4 5 4s3.2-1.5 5-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="racon-satir-icerik">
+          <p class="racon-satir-metin racon-satir-metin--uyari">
+            Yalnız, dikkat et; rakipler senin yokluğunu fırsat bilip mekanları yoklamışlar, gücünü artırman şart.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="racon-alt-bolum">
+      <button type="button" id="raconDevamBtn" class="racon-devam-btn" onclick="hosgeldinKapat()">[ DEVAM ET ]</button>
+    </div>
   </div>
 </div>
 
 <div id="sesKontrol" class="ses-kontrol" title="Ses ayarları">
-  <button type="button" id="sesAcKapa" class="ses-btn" onclick="sesToggle()">🔊</button>
-  <input type="range" id="sesSeviye" class="ses-slider" min="0" max="100" value="70" oninput="sesSeviyeDegistir(this.value)">
+  <button type="button" id="sesAcKapa" class="ses-btn" aria-label="Sesi aç/kapa">🔊</button>
+  <input type="range" id="sesSeviye" class="ses-slider" min="0" max="100" value="70">
 </div>
 
-<script src="mekanlar-data.js?v=23"></script>
-<script src="script.js?v=23"></script>
-<script src="auth.js?v=23"></script>
+<audio id="arkaPlanMuzik" class="gizli" loop playsinline preload="none"></audio>
+
+<!-- OYUN EĞİTİMİ -->
+<div id="tutorialModal" class="eg-modal gizli" role="dialog" aria-modal="true" aria-labelledby="tutorialBaslik" aria-hidden="true">
+  <div class="eg-modal-ortu" aria-hidden="true"></div>
+  <div class="eg-panel">
+    <img src="/images/egitim/egitim-panel.png?v=1" alt="" class="eg-panel-img">
+    <h2 id="tutorialBaslik">Oyun Eğitimi: Hoşgeldiniz</h2>
+    <p id="tutorialMetin"></p>
+    <button type="button" id="tutorialIleri" class="eg-btn eg-btn--ileri">İleri</button>
+    <button type="button" id="tutorialKapat" class="eg-btn eg-btn--kapat">Kapat</button>
+  </div>
+</div>
+<button type="button" id="tutorialResumeBtn" class="eg-devam-btn gizli" title="Eğitime kaldığın yerden devam et">📖 Eğitime Devam</button>
+
+<script src="https://openfpcdn.io/fingerprintjs/v4/iife.min.js"></script>
+<script src="security.js?v=1"></script>
+<script src="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js"></script>
+<script src="mekanlar-data.js?v=85"></script>
+<script src="tutorialEngine.js?v=2"></script>
+  <script src="script.js?v=208"></script>
+<script src="auth.js?v=89"></script>
 </body>
 </html>

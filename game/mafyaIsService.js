@@ -208,6 +208,14 @@ async function isGerceklestir(db, grupId, isId) {
   }
 
   await run(db, `UPDATE mafya_isleri SET durum = 'tamamlandi' WHERE id = ?`, [isId]);
+
+  const { gorevOlayIsle } = require("./gunlukGorevService");
+  const gorevTamamlananByUser = {};
+  for (const k of uygun) {
+    const gorevSonuc = await gorevOlayIsle(db, k.userId, "mafya_is", {});
+    gorevTamamlananByUser[k.userId] = gorevSonuc.yeniTamamlanan || 0;
+  }
+
   return {
     ok: true,
     mesaj:
@@ -217,6 +225,7 @@ async function isGerceklestir(db, grupId, isId) {
     kazancKisi: isDef.kazancKisi,
     sayginlikKisi: isDef.sayginlikKisi,
     katilim: uygun.length,
+    gorevTamamlananByUser,
   };
 }
 

@@ -1,0 +1,392 @@
+/* Mekan Devri — devret & para gönder */
+#masterLayout #anaIcerik .md-sayfa {
+  display: flex;
+  justify-content: center;
+  padding: 10px 14px 32px;
+}
+
+#masterLayout #anaIcerik .md-cerceve {
+  position: relative;
+  width: min(820px, 100%);
+  border: 2px solid rgba(184, 148, 42, 0.52);
+  border-radius: 6px;
+  background: linear-gradient(175deg, rgba(26, 20, 14, 0.98) 0%, rgba(8, 6, 4, 0.99) 100%);
+  box-shadow:
+    0 22px 60px rgba(0, 0, 0, 0.72),
+    inset 0 0 90px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 220, 140, 0.07);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+#masterLayout #anaIcerik .md-cerceve::before {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  border: 1px solid rgba(184, 148, 42, 0.2);
+  border-radius: 3px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+#masterLayout #anaIcerik .md-banner {
+  position: relative;
+  height: clamp(130px, 24vw, 170px);
+  overflow: hidden;
+}
+
+#masterLayout #anaIcerik .md-banner img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 40%;
+  filter: saturate(0.82) contrast(1.06);
+}
+
+#masterLayout #anaIcerik .md-banner-ortu {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(16, 12, 8, 0.12) 0%,
+    rgba(16, 12, 8, 0.52) 52%,
+    rgba(10, 7, 5, 0.98) 100%
+  );
+}
+
+#masterLayout #anaIcerik .md-baslik-wrap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  padding: 16px 22px 18px;
+  text-align: center;
+}
+
+#masterLayout #anaIcerik .md-baslik-ikon {
+  display: block;
+  font-size: 28px;
+  line-height: 1;
+  margin-bottom: 6px;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.7));
+}
+
+#masterLayout #anaIcerik .md-baslik-wrap h2 {
+  margin: 0 0 6px;
+  font-family: "Cinzel", Georgia, serif;
+  font-size: clamp(20px, 3.2vw, 28px);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #f0d878;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.85);
+}
+
+#masterLayout #anaIcerik .md-baslik-alt {
+  margin: 0;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(14px, 2vw, 16px);
+  font-style: italic;
+  color: rgba(228, 215, 190, 0.9);
+}
+
+#masterLayout #anaIcerik .md-govde {
+  position: relative;
+  z-index: 1;
+  padding: 20px 22px 24px;
+}
+
+#masterLayout #anaIcerik .md-giris {
+  margin: 0 0 18px;
+  text-align: center;
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 14px;
+  line-height: 1.55;
+  color: #ccc;
+}
+
+#masterLayout #anaIcerik .md-paneller {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+#masterLayout #anaIcerik .md-mekan-secim {
+  margin-bottom: 14px;
+}
+
+#masterLayout #anaIcerik .md-mekan-secim-etiket {
+  display: block;
+  margin-bottom: 10px;
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #c5a059;
+}
+
+#masterLayout #anaIcerik .md-mekan-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(108px, 1fr));
+  gap: 10px;
+  max-height: 280px;
+  overflow-y: auto;
+  padding: 4px 2px 6px;
+  margin: 0 -2px;
+}
+
+#masterLayout #anaIcerik .md-mekan-kart {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  margin: 0;
+  padding: 0;
+  border: 2px solid rgba(184, 148, 42, 0.28);
+  border-radius: 5px;
+  background: linear-gradient(180deg, rgba(20, 16, 12, 0.95), rgba(8, 6, 4, 0.98));
+  cursor: pointer;
+  overflow: hidden;
+  text-align: center;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+#masterLayout #anaIcerik .md-mekan-kart:hover {
+  border-color: rgba(232, 200, 106, 0.45);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+}
+
+#masterLayout #anaIcerik .md-mekan-kart--secili {
+  border-color: rgba(100, 180, 255, 0.75);
+  box-shadow:
+    0 0 0 1px rgba(100, 180, 255, 0.35),
+    0 8px 22px rgba(40, 100, 180, 0.25);
+}
+
+#masterLayout #anaIcerik .md-mekan-kart-img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: #0a0806;
+}
+
+#masterLayout #anaIcerik .md-mekan-kart-img img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  pointer-events: none;
+}
+
+#masterLayout #anaIcerik .md-mekan-kart-ad {
+  display: block;
+  padding: 6px 6px 2px;
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #e8dcc8;
+  word-break: break-word;
+}
+
+#masterLayout #anaIcerik .md-mekan-kart-adet {
+  display: block;
+  padding: 0 6px 8px;
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  color: #e8a040;
+}
+
+#masterLayout #anaIcerik .md-alan--adet {
+  max-width: 140px;
+}
+
+#masterLayout #anaIcerik .md-panel {
+  padding: 18px 18px 20px;
+  border: 1px solid rgba(184, 148, 42, 0.35);
+  border-radius: 5px;
+  background: linear-gradient(180deg, rgba(28, 22, 16, 0.95), rgba(10, 8, 6, 0.98));
+  box-shadow: inset 0 1px 0 rgba(255, 220, 140, 0.05);
+}
+
+#masterLayout #anaIcerik .md-panel--mekan {
+  border-color: rgba(100, 160, 220, 0.35);
+}
+
+#masterLayout #anaIcerik .md-panel--para {
+  border-color: rgba(80, 180, 100, 0.35);
+}
+
+#masterLayout #anaIcerik .md-panel-baslik {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+#masterLayout #anaIcerik .md-panel-ikon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  font-size: 20px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(184, 148, 42, 0.28);
+  flex-shrink: 0;
+}
+
+#masterLayout #anaIcerik .md-panel-baslik h3 {
+  margin: 0;
+  font-family: "Cinzel", serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #e8c86a;
+}
+
+#masterLayout #anaIcerik .md-alan {
+  margin-bottom: 14px;
+}
+
+#masterLayout #anaIcerik .md-alan label {
+  display: block;
+  margin-bottom: 6px;
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #c5a059;
+}
+
+#masterLayout #anaIcerik .md-alan input,
+#masterLayout #anaIcerik .md-alan select {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  background: rgba(6, 4, 3, 0.9);
+  border: 1px solid rgba(184, 148, 42, 0.28);
+  border-radius: 4px;
+  color: #e8dcc8;
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#masterLayout #anaIcerik .md-alan input:focus,
+#masterLayout #anaIcerik .md-alan select:focus {
+  border-color: rgba(232, 200, 106, 0.5);
+  box-shadow: 0 0 0 2px rgba(232, 200, 106, 0.1);
+}
+
+#masterLayout #anaIcerik .md-alan select {
+  cursor: pointer;
+}
+
+#masterLayout #anaIcerik .md-alan select option {
+  background: #1a1410;
+  color: #e8dcc8;
+}
+
+#masterLayout #anaIcerik .md-btn {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  padding: 12px 14px;
+  font-family: "Cinzel", serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-align: center;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: filter 0.2s ease, transform 0.15s ease;
+}
+
+#masterLayout #anaIcerik .md-btn:active {
+  transform: translateY(1px);
+}
+
+#masterLayout #anaIcerik .md-btn--mavi {
+  color: #d8e8ff;
+  background: linear-gradient(180deg, rgba(40, 80, 140, 0.95), rgba(22, 48, 88, 0.98));
+  border-color: rgba(100, 160, 230, 0.45);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+#masterLayout #anaIcerik .md-btn--mavi:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+#masterLayout #anaIcerik .md-btn--yesil {
+  color: #d8f5dc;
+  background: linear-gradient(180deg, rgba(34, 100, 52, 0.95), rgba(18, 60, 32, 0.98));
+  border-color: rgba(80, 180, 95, 0.45);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+#masterLayout #anaIcerik .md-btn--yesil:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+#masterLayout #anaIcerik .md-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: none;
+}
+
+#masterLayout #anaIcerik .md-alan input:disabled,
+#masterLayout #anaIcerik .md-alan select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+#masterLayout #anaIcerik .md-sonuc {
+  margin-top: 12px;
+  padding: 10px 12px;
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 13px;
+  line-height: 1.45;
+  border-radius: 4px;
+  text-align: center;
+}
+
+#masterLayout #anaIcerik .md-sonuc--basari {
+  color: #8ed4a0;
+  background: rgba(40, 100, 55, 0.2);
+  border: 1px solid rgba(80, 180, 95, 0.35);
+}
+
+#masterLayout #anaIcerik .md-bos-uyari {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  font-size: 12px;
+  font-style: italic;
+  text-align: center;
+  color: #999;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 4px;
+}
+
+@media (max-width: 768px) {
+  #masterLayout #anaIcerik .md-govde {
+    padding: 16px 14px 20px;
+  }
+
+  #masterLayout #anaIcerik .md-mekan-grid {
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+    max-height: 240px;
+  }
+}

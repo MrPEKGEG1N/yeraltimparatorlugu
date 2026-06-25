@@ -1,26 +1,87 @@
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET, COOKIE_NAME } = require("../config");
+const { get } = require("../db/database");
 
-function requireAuth(req, res, next) {
-  const token =
+async function loadAuthUser(db, userId) {
+  if (!db || !userId) return null;
+  return get(
+    db,
+    `SELECT id, username, reis_adi, banned, is_admin, token_version FROM users WHERE id = ?`,
+    [userId]
+  );
+}
+
+function readToken(req) {
+  return (
     req.cookies?.[COOKIE_NAME] ||
-    (req.headers.authorization || "").replace(/^Bearer\s+/i, "");
+    (req.headers.authorization || "").replace(/^Bearer\s+/i, "")
+  );
+}
 
+function attachUser(req, row) {
+  req.user = {
+    id: row.id,
+    username: row.username,
+    reisAdi: row.reis_adi,
+    isAdmin: !!row.is_admin,
+  };
+}
+
+async function verifySession(db, req, res) {
+  const token = readToken(req);
   if (!token) {
-    return res.status(401).json({ ok: false, error: "Giriş yapmanız gerekiyor." });
+    res.status(401).json({ ok: false, error: "Giriş yapmanız gerekiyor." });
+    return null;
   }
 
   try {
     const payload = jwt.verify(token, JWT_SECRET);
-    req.user = {
-      id: payload.userId,
-      username: payload.username,
-      reisAdi: payload.reisAdi,
-    };
-    next();
+    const row = await loadAuthUser(db, payload.userId);
+
+    if (!row) {
+      res.status(401).json({ ok: false, error: "Kullanıcı bulunamadı." });
+      return null;
+    }
+    if (row.banned) {
+      res.status(403).json({ ok: false, error: "Hesabınız askıya alındı." });
+      return null;
+    }
+    if ((row.token_version || 0) !== (payload.tv || 0)) {
+      res.status(401).json({ ok: false, error: "Oturum sonlandırıldı. Tekrar giriş yapın." });
+      return null;
+    }
+
+    attachUser(req, row);
+    return row;
   } catch {
-    return res.status(401).json({ ok: false, error: "Oturum süresi doldu. Tekrar giriş yapın." });
+    res.status(401).json({ ok: false, error: "Oturum süresi doldu. Tekrar giriş yapın." });
+    return null;
   }
 }
 
-module.exports = { requireAuth };
+function createRequireAuth(db) {
+  return async function requireAuth(req, res, next) {
+    const row = await verifySession(db, req, res);
+    if (!row) return;
+    next();
+  };
+}
+
+function createRequireAdmin(db) {
+  return async function requireAdmin(req, res, next) {
+    const row = await verifySession(db, req, res);
+    if (!row) return;
+    if (!row.is_admin) {
+      res.status(403).json({ ok: false, error: "Yönetici yetkisi gerekli." });
+      return;
+    }
+    next();
+  };
+}
+
+/** Geriye uyumluluk — db olmadan ban kontrolü yapılmaz */
+function requireAuth(req, res, next) {
+  return createRequireAuth(null)(req, res, next);
+}
+
+module.exports = { requireAuth, createRequireAuth, createRequireAdmin, loadAuthUser };

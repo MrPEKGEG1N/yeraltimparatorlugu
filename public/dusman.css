@@ -1,0 +1,191 @@
+/* Düşmana Çök — görsel panel */
+#masterLayout #anaIcerik .dusman-hub {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 12px 20px;
+}
+
+#masterLayout #anaIcerik .dusman-panel {
+  position: relative;
+  width: min(680px, 100%);
+  line-height: 0;
+}
+
+#masterLayout #anaIcerik .dusman-panel-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  user-select: none;
+  pointer-events: none;
+}
+
+/* Görseldeki gömülü input satırını tamamen kapat */
+#masterLayout #anaIcerik .dusman-panel-input-ortu {
+  position: absolute;
+  left: 5%;
+  top: 63.4%;
+  width: 90%;
+  height: 9%;
+  background: #0a0705;
+  border: none;
+  border-radius: 2px;
+  z-index: 1;
+  pointer-events: none;
+}
+
+#masterLayout #anaIcerik .dusman-panel-input {
+  position: absolute;
+  left: 5%;
+  top: 63.4%;
+  width: 90%;
+  height: 7.2%;
+  margin: 0;
+  padding: 0 14px;
+  background: #0a0705;
+  border: 1px solid rgba(184, 148, 42, 0.55);
+  border-radius: 2px;
+  color: #e8dcc8;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(14px, 2vw, 17px);
+  outline: none;
+  box-sizing: border-box;
+  z-index: 2;
+}
+
+#masterLayout #anaIcerik .dusman-panel-input::placeholder {
+  color: rgba(180, 170, 155, 0.65);
+}
+
+#masterLayout #anaIcerik .dusman-panel-input:focus {
+  border-color: rgba(220, 180, 90, 0.85);
+  box-shadow: 0 0 14px rgba(184, 148, 42, 0.22);
+}
+
+#masterLayout #anaIcerik .dusman-panel-btn {
+  position: absolute;
+  left: 10.5%;
+  top: 74.6%;
+  width: 79%;
+  height: 8.8%;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+#masterLayout #anaIcerik .dusman-panel-btn:hover:not(:disabled) {
+  background: rgba(160, 25, 25, 0.22);
+  box-shadow: 0 0 22px rgba(255, 70, 50, 0.35);
+}
+
+#masterLayout #anaIcerik .dusman-panel-btn:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+#masterLayout #anaIcerik .dusman-sonuc-alt {
+  width: min(680px, 100%);
+  margin-top: 14px;
+}
+
+#masterLayout #anaIcerik .dusman-hedef-kart {
+  padding: 14px 16px;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(184, 148, 42, 0.45);
+  border-radius: 4px;
+  text-align: center;
+}
+
+#masterLayout #anaIcerik .dusman-hedef-kart h3 {
+  margin: 0 0 6px;
+  font-family: "Cinzel", serif;
+  font-size: 18px;
+  color: #e8c86a;
+  font-weight: 700;
+}
+
+#masterLayout #anaIcerik .dusman-hedef-kart p {
+  margin: 4px 0;
+  color: #ccc;
+  font-size: 14px;
+}
+
+#masterLayout #anaIcerik .dusman-hedef-aksiyon {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+#masterLayout #anaIcerik .dusman-hedef-aksiyon .btn-is {
+  min-width: 140px;
+}
+
+#masterLayout #anaIcerik .dusman-sonuc-alt .saldiri-sonuc {
+  margin-top: 0;
+}
+
+#masterLayout #anaIcerik .dusman-guc-alan {
+  width: min(680px, 100%);
+  margin-top: 18px;
+  padding: 16px;
+  text-align: center;
+}
+
+#masterLayout #anaIcerik .dusman-guc-aciklama {
+  color: #a89880;
+  font-size: 13px;
+  margin: 0 0 12px;
+  line-height: 1.5;
+}
+
+#masterLayout #anaIcerik .dusman-rakip-kutu {
+  width: min(680px, 100%);
+  margin-top: 12px;
+}
+
+#masterLayout #anaIcerik .dusman-rakip-kart {
+  padding: 14px 16px;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(184, 148, 42, 0.45);
+  border-radius: 4px;
+}
+
+#masterLayout #anaIcerik .dusman-rakip-satir {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+#masterLayout #anaIcerik .dusman-rakip-satir:last-of-type {
+  border-bottom: none;
+}
+
+#masterLayout #anaIcerik .dusman-rakip-bilgi {
+  text-align: left;
+  min-width: 0;
+  flex: 1;
+}
+
+#masterLayout #anaIcerik .dusman-rakip-bilgi b {
+  display: block;
+  font-family: "Cinzel", serif;
+  color: #e8c86a;
+  font-size: 15px;
+  margin-bottom: 4px;
+}
+
+#masterLayout #anaIcerik .dusman-rakip-meta {
+  display: block;
+  color: #aaa;
+  font-size: 12px;
+}

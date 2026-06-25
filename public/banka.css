@@ -1,0 +1,223 @@
+/* Banka sayfası — formlar */
+#masterLayout #anaIcerik .banka-sayfa {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 8px 12px 24px;
+}
+
+#masterLayout #anaIcerik .banka-bakiye-kart {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  padding: 14px 18px;
+  margin-bottom: 16px;
+  background: linear-gradient(180deg, rgba(42, 32, 22, 0.95), rgba(18, 12, 8, 0.98));
+  border: 1px solid rgba(184, 148, 42, 0.55);
+  border-radius: 6px;
+  box-shadow: inset 0 1px 0 rgba(255, 220, 140, 0.08);
+}
+
+#masterLayout #anaIcerik .banka-bakiye-kart .banka-bakiye-etiket {
+  font-family: "Cinzel", serif;
+  font-size: 14px;
+  color: #c5a059;
+  letter-spacing: 0.06em;
+}
+
+#masterLayout #anaIcerik .banka-bakiye-kart .banka-bakiye-tutar {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(22px, 3vw, 28px);
+  font-weight: 700;
+  color: #ffd76a;
+}
+
+#masterLayout #anaIcerik .banka-bakiye-kart .banka-kasa-not {
+  width: 100%;
+  font-size: 13px;
+  color: #999;
+}
+
+#masterLayout #anaIcerik .banka-islem-ust {
+  display: grid;
+  grid-template-columns: 1fr minmax(200px, 260px);
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+#masterLayout #anaIcerik .banka-kart {
+  padding: 16px 18px;
+  background: linear-gradient(180deg, rgba(36, 28, 20, 0.96), rgba(14, 10, 7, 0.98));
+  border: 1px solid rgba(184, 148, 42, 0.45);
+  border-radius: 6px;
+}
+
+#masterLayout #anaIcerik .banka-kart h3 {
+  margin: 0 0 6px;
+  font-family: "Cinzel", serif;
+  font-size: 17px;
+  color: #e8c86a;
+  font-weight: 700;
+}
+
+#masterLayout #anaIcerik .banka-kart p {
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: #aaa;
+  line-height: 1.45;
+}
+
+#masterLayout #anaIcerik .banka-kart label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 12px;
+  color: #c5a059;
+  font-weight: 600;
+}
+
+#masterLayout #anaIcerik .banka-kart .banka-miktar-input {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 12px;
+  padding: 10px 12px !important;
+  background: rgba(8, 6, 4, 0.95) !important;
+  border: 1px solid rgba(184, 148, 42, 0.5) !important;
+  border-radius: 4px;
+  color: #f0e6d0 !important;
+  font-family: "Roboto Condensed", sans-serif !important;
+  font-size: 16px !important;
+}
+
+#masterLayout #anaIcerik .banka-kart .banka-miktar-input:focus {
+  outline: none;
+  border-color: rgba(220, 180, 90, 0.85) !important;
+  box-shadow: 0 0 10px rgba(184, 148, 42, 0.2);
+}
+
+#masterLayout #anaIcerik .banka-btn-yatir,
+#masterLayout #anaIcerik .banka-btn-cek {
+  display: inline-block;
+  width: 100%;
+  padding: 11px 16px;
+  border: none;
+  border-radius: 5px;
+  font-family: "Cinzel", serif;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: filter 0.2s ease, transform 0.15s ease;
+}
+
+#masterLayout #anaIcerik .banka-btn-yatir {
+  background: linear-gradient(180deg, #2d8f47, #1e6b34);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+#masterLayout #anaIcerik .banka-btn-yatir:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+#masterLayout #anaIcerik .banka-btn-cek {
+  background: linear-gradient(180deg, #a82828, #7a1818);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+#masterLayout #anaIcerik .banka-btn-cek:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+#masterLayout #anaIcerik .banka-btn-yatir:disabled,
+#masterLayout #anaIcerik .banka-btn-cek:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+#masterLayout #anaIcerik .banka-hesap-makinesi {
+  padding: 12px;
+  background: linear-gradient(180deg, rgba(30, 24, 18, 0.98), rgba(10, 8, 6, 0.99));
+  border: 1px solid rgba(140, 120, 90, 0.5);
+  border-radius: 6px;
+}
+
+#masterLayout #anaIcerik .banka-calc-ekran {
+  padding: 8px 10px;
+  margin-bottom: 8px;
+  background: #0a0806;
+  border: 1px solid #333;
+  border-radius: 3px;
+  text-align: right;
+  font-family: "Roboto Condensed", monospace;
+  font-size: 18px;
+  color: #b8e8b0;
+  min-height: 22px;
+}
+
+#masterLayout #anaIcerik .banka-calc-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+}
+
+#masterLayout #anaIcerik .banka-calc-tus {
+  padding: 10px 0;
+  background: linear-gradient(180deg, #3a3228, #221c16) !important;
+  border: 1px solid rgba(120, 100, 70, 0.45) !important;
+  border-radius: 4px;
+  color: #e8dcc8 !important;
+  font-family: "Roboto Condensed", sans-serif !important;
+  font-size: 16px !important;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+#masterLayout #anaIcerik .banka-calc-tus:hover {
+  background: linear-gradient(180deg, #4a4034, #2e261e) !important;
+}
+
+#masterLayout #anaIcerik .banka-calc-tus--sil {
+  font-size: 18px !important;
+}
+
+#masterLayout #anaIcerik .banka-bilgi-kart {
+  padding: 14px 18px;
+  margin-bottom: 16px;
+  background: linear-gradient(180deg, rgba(28, 24, 18, 0.96), rgba(12, 10, 8, 0.98));
+  border: 1px solid rgba(140, 120, 80, 0.45);
+  border-radius: 6px;
+  font-size: 13px;
+  color: #ccc;
+  line-height: 1.55;
+}
+
+#masterLayout #anaIcerik .banka-bilgi-kart b {
+  color: #e8c86a;
+}
+
+#masterLayout #anaIcerik .mafya-grup-mesaj-alan {
+  display: flex;
+  justify-content: center;
+  margin-top: 28px;
+  padding-bottom: 12px;
+}
+
+#masterLayout #anaIcerik .mafya-grup-mesaj-btn {
+  font-size: 14px !important;
+  padding: 12px 24px !important;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+@media (max-width: 768px) {
+  #masterLayout #anaIcerik .banka-islem-ust {
+    grid-template-columns: 1fr;
+  }
+
+  #masterLayout #anaIcerik .banka-ozet-grid {
+    grid-template-columns: 1fr;
+  }
+}

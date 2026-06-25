@@ -1,0 +1,841 @@
+/* Menü içerik ekranları — görsel boyut / hizalama (anaIcerik) */
+#masterLayout #anaIcerik {
+  max-width: 100%;
+}
+
+#masterLayout #anaIcerik img {
+  max-width: 100%;
+}
+
+/* —— Profil —— */
+#masterLayout .profil-dost-dusman {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+#masterLayout .profil-liste-kolon label {
+  display: block;
+  margin-bottom: 6px;
+  color: #b8942a;
+  font-weight: 600;
+}
+
+#masterLayout .profil-isim-listesi {
+  list-style: none;
+  min-height: 48px;
+  padding: 8px 10px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid #333;
+  border-radius: 3px;
+}
+
+#masterLayout .profil-isim-listesi li {
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  color: #e8e8e8;
+}
+
+#masterLayout .profil-isim-listesi li:last-child {
+  border-bottom: none;
+}
+
+/* —— Kart görselleri (koruma, silah, iş, mekan) —— */
+#masterLayout .is-yapi {
+  align-items: flex-start;
+}
+
+#masterLayout .vesikalik-resim,
+#masterLayout .luks-resim {
+  width: 96px;
+  height: 96px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+/* —— Medya / sohbet / mafya evi banner —— */
+#masterLayout .medya-hero {
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto 14px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(184, 148, 42, 0.4);
+  background: #0a0806;
+  line-height: 0;
+}
+
+#masterLayout .medya-hero img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: none;
+  object-fit: contain;
+  object-position: center top;
+}
+
+#masterLayout .sohbet-ust-gorsel {
+  text-align: center;
+  max-width: 720px;
+  margin: 0 auto 14px;
+  overflow: hidden;
+  border: 1px solid rgba(184, 148, 42, 0.35);
+  border-radius: 6px;
+}
+
+#masterLayout .sohbet-ust-baslik {
+  text-align: center;
+  max-width: 720px;
+  margin: 0 auto 16px;
+}
+
+#masterLayout .sohbet-ust-baslik h2 {
+  margin: 0 0 6px;
+}
+
+#masterLayout .sohbet-ust-baslik p {
+  margin: 0;
+  color: #aaa;
+}
+
+#masterLayout .sohbet-ust-gorsel img {
+  display: block;
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+  object-position: center;
+}
+
+#masterLayout .mafya-evi-sahne {
+  max-width: 720px;
+  margin: 0 auto 14px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid rgba(184, 148, 42, 0.4);
+}
+
+#masterLayout .mafya-evi-sahne img {
+  display: block;
+  width: 100%;
+  max-height: 280px;
+  object-fit: cover;
+  object-position: center;
+}
+
+#masterLayout .mafya-evi-alt {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+/* —— Tablolar (kara liste, mafya üyeleri) —— */
+#masterLayout .tablo-container {
+  background: rgba(12, 12, 12, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-top: 14px;
+  max-width: 100%;
+}
+
+#masterLayout .tablo-izgara {
+  display: grid;
+  padding: 10px 14px;
+  border-bottom: 1px solid #181818;
+  font-size: 13px;
+  align-items: center;
+  gap: 8px;
+}
+
+#masterLayout .tablo-izgara:hover {
+  background: rgba(20, 20, 20, 0.6);
+}
+
+#masterLayout .tablo-baslik-satir {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  color: #b8942a;
+  border-bottom: 2px solid #b8942a !important;
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+
+#masterLayout .mafya-uyeler-tablo .tablo-izgara {
+  grid-template-columns: 1fr 120px 100px auto auto;
+}
+
+/* —— Düşmana çök —— */
+#masterLayout .dusman-ust {
+  text-align: center;
+  margin-bottom: 18px;
+  max-width: 560px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#masterLayout .dusman-ust img {
+  display: block;
+  width: 100%;
+  max-width: 480px;
+  height: 180px;
+  margin: 0 auto;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 8px;
+  border: 2px solid #8b2020;
+}
+
+#masterLayout .dusman-form {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  margin-top: 14px;
+}
+
+#masterLayout .dusman-kural-uyari {
+  margin-top: 14px;
+  padding: 12px 14px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-size: 12px;
+  color: #ccc;
+}
+
+#masterLayout .saldiri-sonuc {
+  white-space: pre-line;
+  line-height: 1.55;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 14px;
+  border: 1px solid #444;
+  margin-top: 12px;
+  font-size: 13px;
+}
+
+/* —— Baba / liman —— */
+#masterLayout .baba-hero {
+  width: 100%;
+  max-width: 680px;
+  margin: 0 auto 14px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(184, 148, 42, 0.35);
+}
+
+#masterLayout .baba-hero img {
+  display: block;
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  object-position: center;
+}
+
+#masterLayout .baba-kart-icerik {
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+#masterLayout .baba-makam-kart {
+  padding: 18px 20px 22px;
+  background: linear-gradient(180deg, rgba(36, 28, 20, 0.96), rgba(14, 10, 7, 0.98));
+  border: 1px solid rgba(184, 148, 42, 0.45);
+  border-radius: 0 0 6px 6px;
+  box-shadow: inset 0 1px 0 rgba(255, 220, 140, 0.06);
+}
+
+#masterLayout .baba-makam-kart h3 {
+  margin: 0 0 12px;
+  font-family: "Cinzel", serif;
+  font-size: clamp(17px, 2.2vw, 21px);
+  font-weight: 700;
+  color: #e8c86a;
+  letter-spacing: 0.04em;
+}
+
+#masterLayout .baba-metin-blok {
+  color: #ccc;
+  line-height: 1.65;
+  font-size: 14px;
+  margin: 10px 0;
+}
+
+#masterLayout .baba-metin-blok p {
+  margin-bottom: 10px;
+}
+
+#masterLayout .baba-derki-goster {
+  margin-top: 8px;
+  color: #e8e8e8;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+#masterLayout .baba-derki-kutu {
+  margin-top: 16px;
+  padding: 14px 16px;
+  background: rgba(0, 0, 0, 0.42);
+  border: 1px solid rgba(184, 148, 42, 0.35);
+  border-radius: 4px;
+}
+
+#masterLayout .baba-derki-baslik {
+  display: block;
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: #c5a059;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+#masterLayout .baba-derki-kaydet {
+  margin-top: 10px;
+}
+
+#masterLayout .baba-makam-btn {
+  display: block;
+  width: 100%;
+  margin-top: 16px;
+  text-align: center;
+}
+
+#masterLayout .baba-derki-kutu textarea {
+  width: 100%;
+  min-height: 72px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: #0a0705;
+  border: 1px solid rgba(184, 148, 42, 0.28);
+  border-radius: 4px;
+  color: #e8dcc8;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 15px;
+  line-height: 1.45;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+#masterLayout .liman-gelir-notu {
+  color: #3ecf6e;
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+
+/* —— Devlet ilişkisi —— */
+#masterLayout .devlet-yapi {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+#masterLayout .devlet-resim-kutu {
+  flex-shrink: 0;
+  text-align: center;
+}
+
+#masterLayout .devlet-resim-kutu img {
+  width: 120px;
+  height: 150px;
+  object-fit: cover;
+  border: 2px solid rgba(197, 160, 89, 0.4);
+  border-radius: 4px;
+}
+
+/* —— Mesaj / sohbet —— */
+#masterLayout .mesaj-kutu-item {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid #333;
+  padding: 12px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+}
+
+#masterLayout .mesaj-kutu-item.mesaj-mafya {
+  border-left: 3px solid #b8942a;
+}
+
+#masterLayout .mesaj-kutu-item.mesaj-alarm {
+  border: 2px solid #cc0000;
+  background: rgba(80, 0, 0, 0.15);
+}
+
+#masterLayout .mesaj-icerik-kutu {
+  background: rgba(0, 0, 0, 0.35);
+  padding: 10px;
+  margin: 8px 0;
+  border: 1px solid #442222;
+  color: #f0e0e0;
+  line-height: 1.5;
+}
+
+#masterLayout .sohbet-satir {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 8px;
+  padding: 8px 10px;
+  background: rgba(0, 0, 0, 0.35);
+  border-left: 3px solid #b8942a;
+}
+
+#masterLayout .sohbet-satir .isim {
+  min-width: 90px;
+  color: #b8942a;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+#masterLayout .sohbet-satir .metin {
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
+}
+
+#masterLayout .sohbet-satir .tarih {
+  font-size: 10px;
+  color: #666;
+  flex-shrink: 0;
+}
+
+#masterLayout .oyuncu-link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  color: #ffd700;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+#masterLayout .oyuncu-link-btn:hover {
+  color: #fff;
+}
+
+/* Gazete stilleri: gazete.css */
+
+#masterLayout .mafya-savas-hero {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto 18px;
+  padding: 0 4px;
+  overflow: hidden;
+  border-radius: 10px;
+  border: 1px solid rgba(184, 148, 42, 0.45);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.55);
+  background: #0a0806;
+}
+
+#masterLayout .mafya-savas-banner {
+  display: block;
+  width: 100%;
+  max-width: 760px;
+  height: auto;
+  max-height: 300px;
+  object-fit: cover;
+  object-position: center center;
+  vertical-align: middle;
+}
+
+/* —— Mafya Grubu ekranları —— */
+#masterLayout .mafya-alt-icerik {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 4px 8px 24px;
+}
+
+#masterLayout .mafya-gurubum-wrap,
+#masterLayout .mafya-isler-wrap {
+  text-align: center;
+}
+
+#masterLayout .mafya-grup-ust {
+  text-align: center;
+  padding: 22px 18px 18px;
+  margin-bottom: 4px;
+}
+
+#masterLayout .mafya-grup-isim-btn {
+  font-size: clamp(16px, 2.4vw, 20px) !important;
+  padding: 8px 20px !important;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+#masterLayout .mafya-grup-aciklama-alan {
+  margin: 16px auto 0;
+  max-width: 580px;
+  text-align: center;
+}
+
+#masterLayout .mafya-grup-aciklama-baslik {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #b8942a;
+}
+
+#masterLayout .mafya-grup-aciklama-kutu {
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(184, 148, 42, 0.45);
+  border-radius: 6px;
+  padding: 14px 16px;
+  min-height: 48px;
+}
+
+#masterLayout .mafya-grup-aciklama {
+  color: #f2ebe0;
+  font-size: 15px;
+  line-height: 1.65;
+  margin: 0;
+  font-weight: 500;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+#masterLayout .mafya-grup-aciklama-bos {
+  color: #9a9080;
+  font-style: italic;
+}
+
+#masterLayout .mafya-grup-profil-ev {
+  margin-top: 18px;
+}
+
+#masterLayout .mafya-bolum {
+  text-align: center;
+  padding: 20px 16px;
+  margin-top: 18px;
+}
+
+#masterLayout .mafya-bolum .bolum-baslik,
+#masterLayout .mafya-isler-wrap > h2,
+#masterLayout .mafya-grup-liste > .bolum-baslik {
+  text-align: center;
+  font-size: clamp(15px, 2vw, 18px);
+  color: #ffd76a;
+  margin: 0 0 12px;
+  letter-spacing: 0.06em;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.28);
+}
+
+#masterLayout .mafya-metin {
+  color: #ece6dc;
+  font-size: 14px;
+  line-height: 1.65;
+  margin: 8px auto;
+  max-width: 560px;
+}
+
+#masterLayout .mafya-metin-dim {
+  color: #c9bfb0;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+#masterLayout .mafya-evi-alt h3 {
+  color: #ffd76a;
+  font-size: 17px;
+  margin: 0 0 10px;
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.22);
+}
+
+#masterLayout .mafya-stat {
+  color: #fff;
+  font-size: 15px;
+  line-height: 1.7;
+  margin: 5px 0;
+}
+
+#masterLayout .mafya-stat b {
+  color: #ffd76a;
+  font-weight: 700;
+}
+
+#masterLayout .mafya-stat-altin b {
+  color: #e8c86a;
+}
+
+#masterLayout .mafya-btn-satir {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+#masterLayout .mafya-hibe-alan {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(184, 148, 42, 0.38);
+}
+
+#masterLayout .mafya-hibe-alan .bolum-baslik {
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+#masterLayout .mafya-hibe-alan .dusman-input,
+#masterLayout .mafya-savas-ilan-alan .dusman-input {
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto 12px;
+  display: block;
+  text-align: center;
+  font-size: 15px;
+  padding: 10px 12px;
+}
+
+#masterLayout .mafya-savas-ilan-alan {
+  padding: 10px 0 16px;
+}
+
+#masterLayout .mafya-savas-kart {
+  text-align: center;
+  padding: 16px 14px;
+  margin: 0 auto 12px;
+  max-width: 620px;
+  background: rgba(0, 0, 0, 0.38);
+  border: 1px solid rgba(184, 148, 42, 0.35);
+  border-radius: 6px;
+}
+
+#masterLayout .mafya-savas-kart p {
+  color: #ece6dc;
+  font-size: 14px;
+  line-height: 1.65;
+  margin: 6px 0;
+}
+
+#masterLayout .mafya-savas-kart b {
+  color: #ffd76a;
+}
+
+#masterLayout .mafya-savas-kart .mafya-metin-dim b {
+  color: #e8dcc0;
+}
+
+#masterLayout .mafya-uyeler-tablo {
+  margin-top: 20px !important;
+  text-align: left;
+}
+
+#masterLayout .mafya-uyeler-tablo > .bolum-baslik {
+  text-align: center;
+  margin-bottom: 12px !important;
+}
+
+#masterLayout .mafya-uyeler-tablo .uye-isim {
+  color: #f5f0e8;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+#masterLayout .mafya-uyeler-tablo .uye-rutbe {
+  color: #e8d4a0;
+  font-size: 13px;
+}
+
+#masterLayout .mafya-uyeler-tablo .uye-puan {
+  color: #ffd76a;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+#masterLayout .mafya-basvurular {
+  text-align: center;
+  margin-top: 22px;
+}
+
+#masterLayout .mafya-basvuru-satir {
+  color: #f0ebe3;
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+#masterLayout .mafya-alt-aksiyon {
+  text-align: center;
+  margin-top: 22px;
+}
+
+#masterLayout .mafya-form {
+  max-width: 520px;
+  margin: 0 auto;
+  text-align: center;
+  padding: 22px 18px;
+}
+
+#masterLayout .mafya-form .bolum-baslik {
+  text-align: center;
+  margin-bottom: 14px;
+}
+
+#masterLayout .mafya-form input,
+#masterLayout .mafya-form textarea {
+  width: 100%;
+  max-width: 400px;
+  margin: 10px auto;
+  display: block;
+  font-size: 14px;
+  padding: 10px 12px;
+}
+
+#masterLayout .mafya-form label {
+  display: block;
+  color: #e8e0d4;
+  font-size: 13px;
+  margin-top: 12px;
+}
+
+#masterLayout .mafya-grup-liste .is-kart {
+  text-align: center;
+  padding: 16px;
+  max-width: 640px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#masterLayout .mafya-grup-liste .is-kart > b {
+  display: block;
+  margin-bottom: 6px;
+}
+
+#masterLayout .mafya-grup-liste .is-kart p {
+  color: #ddd4c8;
+  font-size: 14px;
+  line-height: 1.55;
+  margin: 10px 0 12px;
+}
+
+#masterLayout .mafya-isler-wrap > p {
+  color: #e0d8cc;
+  font-size: 14px;
+  max-width: 600px;
+  margin: 0 auto 16px;
+  line-height: 1.6;
+}
+
+#masterLayout .mafya-isler-ozet {
+  max-width: 720px;
+  margin: 0 auto 16px;
+  padding: 14px 16px;
+  text-align: center;
+}
+
+#masterLayout .mafya-isler-ozet p {
+  color: #f0ebe3;
+  font-size: 15px;
+  margin: 6px 0;
+}
+
+#masterLayout .mafya-isler-ozet b {
+  color: #ffd76a;
+}
+
+#masterLayout .mafya-hibe-tablo {
+  text-align: center;
+}
+
+#masterLayout .mafya-hibe-tablo .tablo-izgara span {
+  color: #ece6dc;
+  font-size: 13px;
+}
+
+#masterLayout .mafya-hibe-tablo .tablo-izgara span:last-child {
+  color: #e8c86a;
+  font-weight: 700;
+}
+
+#masterLayout .mafya-yukleniyor,
+#masterLayout .mafya-bos-metin {
+  text-align: center;
+  color: #d4ccc0;
+  font-size: 15px;
+  padding: 24px 12px;
+}
+
+/* Elit x2 fiyat gösterimi */
+#masterLayout .elit-fiyat-wrap {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+#masterLayout .elit-fiyat-normal {
+  color: #9a9088;
+  text-decoration: line-through;
+  font-size: 13px;
+}
+
+#masterLayout .elit-fiyat-x2-deger {
+  color: #ffd76a;
+  font-size: 15px;
+}
+
+#masterLayout .elit-fiyat-badge {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(255, 80, 60, 0.25);
+  border: 1px solid rgba(255, 120, 80, 0.55);
+  color: #ffb4a0;
+  font-family: 'Oswald', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  vertical-align: middle;
+}
+
+#masterLayout .elit-fiyat-uyari {
+  color: #fff;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 12px 0 16px;
+  padding: 12px 14px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 120, 80, 0.45);
+  background: rgba(80, 20, 10, 0.35);
+  text-align: center;
+  max-width: 640px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#masterLayout .elit-fiyat-uyari b {
+  color: #ffd76a;
+}
+
+@media (max-width: 768px) {
+  #masterLayout .profil-dost-dusman {
+    grid-template-columns: 1fr;
+  }
+
+  #masterLayout .mafya-uyeler-tablo {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #masterLayout .mafya-uyeler-tablo .tablo-izgara {
+    grid-template-columns: 1.2fr 1fr 0.8fr auto auto;
+    min-width: 520px;
+    font-size: 12px;
+  }
+
+  #masterLayout .mafya-btn-satir .btn-is {
+    width: 100%;
+    max-width: 100%;
+  }
+}

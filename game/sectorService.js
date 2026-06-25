@@ -1,6 +1,7 @@
 const { run, get, all } = require("../db/database");
 const { mekanTanim, sonrakiFiyat } = require("./sectorsCatalog");
 const { logStatHareket } = require("./statService");
+const { elitFiyatCarpani } = require("./elitFiyatService");
 
 function turkeyHourStamp() {
   const parts = new Intl.DateTimeFormat("en-CA", {
@@ -84,7 +85,7 @@ async function mekanAl(db, userId, player, sektor, mekanKey, kalanAdet = 1) {
   const m = mekanTanim(sektor, mekanKey);
   if (!m) return { ok: false, error: "Geçersiz mekan." };
 
-  const satinAlinacakAdet = Math.min(kalanAdet, 999);
+  const satinAlinacakAdet = Math.min(999, Math.max(1, parseInt(kalanAdet, 10) || 1));
   if (satinAlinacakAdet < 1) {
     return { ok: false, error: "Geçerli bir adet gir." };
   }
@@ -102,6 +103,9 @@ async function mekanAl(db, userId, player, sektor, mekanKey, kalanAdet = 1) {
     const fiyat = sonrakiFiyat(m.fiyat, oncekiAdet + i);
     toplamMaliyet += fiyat;
   }
+
+  const fiyatCarpani = await elitFiyatCarpani(db, userId);
+  toplamMaliyet = Math.floor(toplamMaliyet * fiyatCarpani);
 
   if (player.kasa < toplamMaliyet) {
     return {

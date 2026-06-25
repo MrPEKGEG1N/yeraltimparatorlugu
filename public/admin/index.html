@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yönetim Masası — Yeraltı İmparatorluğu</title>
+  <link rel="stylesheet" href="/admin/admin.css?v=3">
+</head>
+<body>
+  <div id="yetkisiz">
+    <div class="kutu">
+      <h1>⏳ Yönetim Masası</h1>
+      <p id="yetkisizMetin">Yetki kontrol ediliyor…</p>
+      <div id="yetkisizAksiyon">
+        <a href="/">← Oyuna Dön / Giriş Yap</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="app" class="hidden">
+    <div class="admin-layout">
+      <aside class="admin-sidebar">
+        <div class="admin-sidebar-head">
+          <p class="ust">Yeraltı İmparatorluğu</p>
+          <h1>Yönetim Masası</h1>
+          <p id="adminEtiket" class="etiket"></p>
+        </div>
+        <nav class="admin-nav">
+          <button type="button" data-tab="dashboard" class="nav-btn aktif">📊 Özet</button>
+          <button type="button" data-tab="oyuncular" class="nav-btn">👤 Oyuncular</button>
+          <button type="button" data-tab="multi" class="nav-btn">🕵️ Şüpheli Hesaplar</button>
+          <button type="button" data-tab="mesajlar" class="nav-btn">💬 Sohbet Kontrol</button>
+          <button type="button" data-tab="guvenlik" class="nav-btn">🛡️ Güvenlik Günlüğü</button>
+        </nav>
+        <div class="admin-sidebar-foot">
+          <a href="/">← Oyuna Dön</a>
+        </div>
+      </aside>
+
+      <main class="admin-main">
+        <header class="admin-header">
+          <h2 id="sayfaBaslik">Özet</h2>
+          <span id="toast" class="hidden"></span>
+        </header>
+
+        <div class="admin-content">
+          <section id="tab-dashboard" class="tab-panel">
+            <div id="statGrid" class="stat-grid"></div>
+          </section>
+
+          <section id="tab-oyuncular" class="tab-panel hidden">
+            <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px">
+              <input id="oyuncuAra" type="search" placeholder="Ara… (boş bırakınca tüm oyuncular)" class="admin-input" style="flex:1;min-width:200px">
+              <button type="button" id="oyuncuAraBtn" class="admin-btn admin-btn-kirmizi">Ara</button>
+            </div>
+            <div class="admin-tablo-wrap">
+              <table class="admin-tablo">
+                <thead>
+                  <tr>
+                    <th>ID</th><th>Reis</th><th>Kullanıcı</th><th>Güç</th><th>Saygınlık</th><th>Durum</th><th></th>
+                  </tr>
+                </thead>
+                <tbody id="oyuncuTablo"></tbody>
+              </table>
+            </div>
+            <div id="oyuncuDetay" class="detay-kutu hidden"></div>
+          </section>
+
+          <section id="tab-multi" class="tab-panel hidden">
+            <p class="baslik-altin">Aynı Parmak İzi (visitorId)</p>
+            <div id="multiVisitor" class="kart-liste" style="margin-bottom:24px"></div>
+            <p class="baslik-altin">Aynı IP</p>
+            <div id="multiIp" class="kart-liste" style="margin-bottom:24px"></div>
+            <p class="baslik-altin">Engellenen Yan Hesap Etkileşimleri</p>
+            <div id="multiBlocks" class="kart-liste"></div>
+          </section>
+
+          <section id="tab-mesajlar" class="tab-panel hidden">
+            <div class="msg-tabs">
+              <button type="button" data-msg="kutu" class="msg-tab admin-btn admin-btn-kirmizi">Mesaj Kutusu</button>
+              <button type="button" data-msg="sohbet" class="msg-tab admin-btn admin-btn-gri">Mafya Sohbetleri</button>
+              <button type="button" data-msg="grup" class="msg-tab admin-btn admin-btn-gri">Grup Mesajları</button>
+            </div>
+            <input id="mesajAra" type="search" placeholder="Mesaj ara…" class="admin-input hidden" style="margin-bottom:16px">
+            <div id="mesajListe" class="kart-liste" style="max-height:65vh;overflow-y:auto"></div>
+          </section>
+
+          <section id="tab-guvenlik" class="tab-panel hidden">
+            <div id="guvenlikListe" class="kart-liste" style="max-height:75vh;overflow-y:auto"></div>
+          </section>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="/admin/admin.js?v=6"></script>
+</body>
+</html>

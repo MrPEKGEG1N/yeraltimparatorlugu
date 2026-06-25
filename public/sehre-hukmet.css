@@ -1,0 +1,275 @@
+/* Şehre Hükmet — makam hub */
+#masterLayout #anaIcerik .sh-hub {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 14px 32px;
+}
+
+#masterLayout #anaIcerik .sh-ust-uyari {
+  width: min(920px, 100%);
+  margin: 0 0 12px;
+  padding: 10px 16px;
+  text-align: center;
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgba(235, 225, 205, 0.92);
+  background: rgba(80, 50, 20, 0.28);
+  border: 1px solid rgba(184, 148, 42, 0.38);
+  border-radius: 4px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+  box-sizing: border-box;
+}
+
+#masterLayout #anaIcerik .sh-cerceve {
+  position: relative;
+  width: min(920px, 100%);
+  padding: 0 0 26px;
+  border: 2px solid rgba(184, 148, 42, 0.52);
+  border-radius: 6px;
+  background: linear-gradient(175deg, rgba(24, 18, 12, 0.98) 0%, rgba(8, 6, 4, 0.99) 100%);
+  box-shadow:
+    0 22px 60px rgba(0, 0, 0, 0.72),
+    inset 0 0 90px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 220, 140, 0.07);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+#masterLayout #anaIcerik .sh-cerceve::before {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  border: 1px solid rgba(184, 148, 42, 0.2);
+  border-radius: 3px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+#masterLayout #anaIcerik .sh-banner {
+  position: relative;
+  height: clamp(150px, 28vw, 200px);
+  overflow: hidden;
+}
+
+#masterLayout #anaIcerik .sh-banner img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 35%;
+  filter: saturate(0.8) contrast(1.08);
+}
+
+#masterLayout #anaIcerik .sh-banner-ortu {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(20, 12, 8, 0.1) 0%,
+    rgba(20, 12, 8, 0.55) 50%,
+    rgba(10, 7, 5, 0.98) 100%
+  );
+}
+
+#masterLayout #anaIcerik .sh-baslik-wrap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  padding: 18px 22px 20px;
+  text-align: center;
+}
+
+#masterLayout #anaIcerik .sh-krone {
+  display: block;
+  font-size: 32px;
+  line-height: 1;
+  margin-bottom: 6px;
+  filter: drop-shadow(0 3px 10px rgba(0, 0, 0, 0.75));
+}
+
+#masterLayout #anaIcerik .sh-baslik-wrap h2 {
+  margin: 0 0 6px;
+  font-family: "Cinzel", Georgia, serif;
+  font-size: clamp(22px, 3.5vw, 32px);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: #f0d878;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.85);
+}
+
+#masterLayout #anaIcerik .sh-baslik-alt {
+  margin: 0;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(14px, 2vw, 17px);
+  font-style: italic;
+  color: rgba(228, 215, 190, 0.9);
+}
+
+#masterLayout #anaIcerik .sh-kartlar {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  padding: 22px 20px 0;
+}
+
+#masterLayout #anaIcerik .sh-kart {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin: 0;
+  padding: 22px 16px 18px;
+  border: 1px solid rgba(184, 148, 42, 0.35);
+  border-radius: 5px;
+  background: linear-gradient(180deg, rgba(32, 24, 16, 0.95), rgba(12, 9, 6, 0.98));
+  box-shadow:
+    0 8px 28px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 220, 140, 0.06);
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.25s ease;
+}
+
+#masterLayout #anaIcerik .sh-kart:hover {
+  transform: translateY(-3px);
+  border-color: rgba(232, 200, 106, 0.55);
+  box-shadow:
+    0 14px 36px rgba(0, 0, 0, 0.55),
+    0 0 28px rgba(184, 148, 42, 0.12),
+    inset 0 1px 0 rgba(255, 220, 140, 0.1);
+}
+
+#masterLayout #anaIcerik .sh-kart:active {
+  transform: translateY(-1px);
+}
+
+#masterLayout #anaIcerik .sh-kart--soz:hover {
+  border-color: rgba(200, 170, 120, 0.55);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.55), 0 0 24px rgba(180, 140, 80, 0.15);
+}
+
+#masterLayout #anaIcerik .sh-kart--sadakat:hover {
+  border-color: rgba(100, 190, 115, 0.5);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.55), 0 0 24px rgba(60, 150, 80, 0.15);
+}
+
+#masterLayout #anaIcerik .sh-kart--liman:hover {
+  border-color: rgba(90, 150, 210, 0.5);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.55), 0 0 24px rgba(60, 120, 200, 0.15);
+}
+
+#masterLayout #anaIcerik .sh-kart-ikon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 12px;
+  font-size: 28px;
+  line-height: 1;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(184, 148, 42, 0.3);
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+#masterLayout #anaIcerik .sh-kart h3 {
+  margin: 0 0 8px;
+  font-family: "Cinzel", serif;
+  font-size: clamp(13px, 1.8vw, 15px);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #e8c86a;
+}
+
+#masterLayout #anaIcerik .sh-kart-aciklama {
+  margin: 0 0 14px;
+  flex: 1;
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 12px;
+  line-height: 1.45;
+  color: rgba(190, 180, 165, 0.88);
+}
+
+#masterLayout #anaIcerik .sh-kart-sahip {
+  display: inline-block;
+  margin-top: auto;
+  padding: 5px 12px;
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #c8c0b0;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+}
+
+#masterLayout #anaIcerik .sh-kart-sahip--benim {
+  color: #f0d878;
+  background: rgba(184, 148, 42, 0.18);
+  border-color: rgba(184, 148, 42, 0.4);
+}
+
+#masterLayout #anaIcerik .sh-kart-sahip--bos {
+  color: #888;
+  font-style: italic;
+  font-weight: 400;
+}
+
+#masterLayout #anaIcerik .sh-alt-not {
+  position: relative;
+  z-index: 1;
+  margin: 18px 20px 0;
+  padding: 12px 16px;
+  text-align: center;
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgba(200, 190, 175, 0.85);
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(184, 148, 42, 0.22);
+  border-radius: 4px;
+}
+
+@media (max-width: 768px) {
+  #masterLayout #anaIcerik .sh-kartlar {
+    grid-template-columns: 1fr;
+    padding: 18px 14px 0;
+  }
+
+  #masterLayout #anaIcerik .sh-kart {
+    flex-direction: row;
+    text-align: left;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px;
+  }
+
+  #masterLayout #anaIcerik .sh-kart-ikon {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 0;
+    font-size: 24px;
+  }
+
+  #masterLayout #anaIcerik .sh-kart-icerik {
+    flex: 1;
+    min-width: 0;
+  }
+
+  #masterLayout #anaIcerik .sh-kart h3,
+  #masterLayout #anaIcerik .sh-kart-aciklama {
+    text-align: left;
+  }
+
+  #masterLayout #anaIcerik .sh-kart-sahip {
+    margin-top: 8px;
+  }
+}

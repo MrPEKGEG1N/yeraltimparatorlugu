@@ -1,0 +1,428 @@
+/* ═══════════════════════════════════════════════════════════
+   Yeraltı İmparatorluğu — Mobil uyum katmanı (≤768px)
+   Masaüstü stillere dokunmaz; son yüklenen dosya olarak override eder.
+   ═══════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+
+  /* —— Genel sayfa akışı —— */
+  html,
+  body {
+    height: auto;
+    min-height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body:has(#masterLayout:not(.gizli)) {
+    overflow: hidden;
+    height: 100%;
+  }
+
+  #masterLayout {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 40px minmax(120px, 34vh) 1fr;
+    grid-template-areas:
+      "hdr"
+      "ribbon"
+      "side"
+      "main";
+    width: 100%;
+    max-width: 100vw;
+    height: 100dvh;
+    height: 100vh;
+    overflow: hidden;
+    font-size: 14px;
+  }
+
+  #masterLayout .ml-header {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 6px 8px;
+    min-height: 46px;
+  }
+
+  #masterLayout .stats-bar {
+    order: 2;
+    width: 100%;
+    flex: 1 1 100%;
+    gap: 5px;
+    padding-bottom: 2px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #masterLayout .ml-btn-red {
+    flex-shrink: 0;
+    min-height: 40px;
+    padding: 8px 12px;
+    font-size: 10px;
+  }
+
+  #masterLayout .ml-header-right {
+    order: 1;
+    width: 100%;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 4px 6px;
+  }
+
+  #masterLayout #saygiDuvariKutu {
+    display: none;
+  }
+
+  #masterLayout .ml-header-right button {
+    min-height: 38px;
+    padding: 6px 10px;
+    font-size: 10px;
+  }
+
+  #masterLayout .ml-top-ribbon {
+    height: 40px;
+    min-height: 40px;
+  }
+
+  #masterLayout .ml-top-ribbon-img {
+    height: 40px;
+  }
+
+  #masterLayout .ml-top-ribbon-txt {
+    width: min(72vw, 320px);
+    font-size: 9px;
+    letter-spacing: 0.8px;
+  }
+
+  /* —— Yan menü: üstte, kaydırılabilir —— */
+  #masterLayout .ml-sidebar {
+    grid-area: side;
+    min-height: 0;
+    max-height: 34vh;
+    padding: 0 4px 4px;
+    overflow: hidden;
+  }
+
+  #masterLayout .g2-frame--menu .g2-body,
+  #masterLayout .mafya-sidebar-panel {
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    max-height: calc(34vh - 8px);
+  }
+
+  #masterLayout .ml-menu-item,
+  #masterLayout .menu-list > li > button.ml-menu-item {
+    min-height: 42px;
+    height: auto;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    font-size: 11px;
+  }
+
+  #masterLayout .ml-alt-menu .ml-menu-item,
+  #masterLayout .ml-alt-menu button {
+    min-height: 38px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    font-size: 11px;
+  }
+
+  /* —— Ana içerik —— */
+  #masterLayout .ml-main-content {
+    grid-area: main;
+    min-height: 0;
+    min-width: 0;
+  }
+
+  #masterLayout .g2-frame--panel .g2-body,
+  #masterLayout .ui-frame-inner {
+    padding: 8px 10px 12px;
+    overflow: hidden;
+  }
+
+  #masterLayout #oyunEkran {
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #masterLayout #anaIcerik {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  /* Görseller taşmasın */
+  #masterLayout #anaIcerik img,
+  #masterLayout .modal-resim,
+  #authEkran img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  #masterLayout .vesikalik-resim,
+  #masterLayout .luks-resim {
+    width: 100%;
+    max-width: 112px;
+    height: auto;
+    aspect-ratio: 1;
+  }
+
+  /* —— İş / ürün kartları: dikey —— */
+  #masterLayout .is-yapi {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  #masterLayout .is-kart {
+    padding: 12px;
+    margin-bottom: 10px;
+  }
+
+  #masterLayout .is-detay h3 {
+    font-size: 15px;
+  }
+
+  #masterLayout .is-detay p {
+    font-size: 13px;
+  }
+
+  #masterLayout .adet-satir {
+    flex-wrap: wrap;
+    font-size: 12px;
+  }
+
+  #masterLayout .adet-input {
+    width: 56px;
+    min-height: 36px;
+    font-size: 14px;
+  }
+
+  /* —— Butonlar: dokunmatik —— */
+  #masterLayout .btn-is,
+  #masterLayout .btn-savas,
+  #masterLayout .ml-btn-red,
+  #masterLayout .auth-btn,
+  #masterLayout .lt-side-tab,
+  #masterLayout input[type="submit"],
+  #masterLayout #anaIcerik .banka-btn-yatir,
+  #masterLayout #anaIcerik .banka-btn-cek {
+    min-height: 44px;
+    padding: 10px 16px;
+    font-size: 12px;
+    touch-action: manipulation;
+  }
+
+  #masterLayout .is-detay .btn-is,
+  #masterLayout .mafya-btn-satir .btn-is,
+  #masterLayout #anaIcerik .dusman-hedef-aksiyon .btn-is,
+  #masterLayout .dusman-form button,
+  #masterLayout .profil-form button {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    margin: 6px 0;
+  }
+
+  #masterLayout .mafya-btn-satir {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  #masterLayout .dusman-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  #masterLayout .dusman-form input,
+  #masterLayout .dusman-input {
+    width: 100%;
+    min-height: 44px;
+    font-size: 16px;
+  }
+
+  #masterLayout #anaIcerik .dusman-hedef-aksiyon,
+  #masterLayout #anaIcerik .dusman-rakip-satir {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  #masterLayout #anaIcerik .dusman-rakip-satir .btn-is {
+    width: 100%;
+  }
+
+  /* —— İki sütunlu gridler → tek sütun —— */
+  #masterLayout .profil-dost-dusman,
+  #masterLayout #anaIcerik .sy-listeler,
+  #masterLayout #anaIcerik .sy-oylar,
+  #masterLayout #anaIcerik .sh-kartlar,
+  #masterLayout #anaIcerik .md-paneller,
+  #masterLayout .profil-form-ikili,
+  #masterLayout .profil-ust,
+  #masterLayout #anaIcerik .banka-islem-ust,
+  #masterLayout .devlet-yapi {
+    grid-template-columns: 1fr !important;
+    flex-direction: column;
+  }
+
+  #masterLayout .devlet-yapi {
+    align-items: center;
+  }
+
+  #masterLayout .profil-ozet-bar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* —— Tablolar: yatay kaydırma —— */
+  #masterLayout .tablo-container,
+  #masterLayout .mafya-uyeler-tablo,
+  #masterLayout .mafya-hibe-tablo,
+  #masterLayout .lt-panel-wrap {
+    overflow-x: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+  }
+
+  #masterLayout .tablo-container .tablo-izgara,
+  #masterLayout .mafya-uyeler-tablo .tablo-izgara {
+    min-width: 520px;
+  }
+
+  #masterLayout .mafya-uyeler-tablo .tablo-izgara {
+    grid-template-columns: 1.2fr 1fr 0.8fr auto auto;
+  }
+
+  #masterLayout .lt-panel {
+    min-width: 680px;
+  }
+
+  #masterLayout .g2-frame--panel .g2-body:has(.lt-panel),
+  #masterLayout .ui-frame-inner:has(.lt-panel),
+  #masterLayout #oyunEkran:has(.lt-panel) {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* —— Liderlik mobil —— */
+  #masterLayout .lt-side-tabs {
+    position: static;
+    transform: none;
+    justify-content: center;
+    margin: 8px 12px 0;
+    flex-wrap: wrap;
+  }
+
+  #masterLayout .lt-tab-floating {
+    position: static;
+    transform: none;
+    display: block;
+    width: fit-content;
+    margin: 10px auto 0;
+    font-size: 11px;
+    padding: 9px 18px;
+  }
+
+  #masterLayout .lt-carved-bar {
+    height: auto;
+    min-height: 36px;
+    padding-bottom: 8px;
+  }
+
+  #masterLayout .lt-head {
+    padding: 14px 16px 10px;
+  }
+
+  #masterLayout .lt-list {
+    padding: 0 12px 18px;
+  }
+
+  /* —— Gazete: gazete.css içindeki kurallar 768px'te —— */
+
+  /* —— Banka —— */
+  #masterLayout #anaIcerik .banka-ozet-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* —— Sohbet satırları —— */
+  #masterLayout #anaIcerik .sb-sohbet-ust-satir {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  /* —— Modallar —— */
+  .modal-pencere {
+    width: min(96vw, 420px);
+    max-height: 92vh;
+    overflow-y: auto;
+  }
+
+  .auth-kutu {
+    width: min(420px, 94vw);
+    padding: 24px 18px 20px;
+  }
+
+  .auth-alan input,
+  .auth-alan select {
+    min-height: 44px;
+    font-size: 16px;
+  }
+
+  .auth-btn {
+    min-height: 48px;
+  }
+
+  /* —— Ses kontrolü —— */
+  .ses-kontrol {
+    bottom: max(10px, env(safe-area-inset-bottom));
+    right: max(8px, env(safe-area-inset-right));
+    padding: 8px 10px;
+  }
+
+  .ses-slider {
+    width: 72px;
+  }
+
+  /* —— Görsel menü hub —— */
+  #masterLayout #anaIcerik .vizuel-menu-hub {
+    min-height: auto;
+    padding: 8px 6px 16px;
+  }
+
+  #masterLayout #anaIcerik .vizuel-menu-wrap {
+    width: 100%;
+  }
+}
+
+/* Çok dar ekranlar */
+@media (max-width: 480px) {
+  #masterLayout {
+    grid-template-rows: auto 36px minmax(100px, 30vh) 1fr;
+  }
+
+  #masterLayout .ml-stat-chip {
+    padding: 5px 6px;
+    font-size: 10px;
+  }
+
+  #masterLayout .ml-stat-label {
+    display: none;
+  }
+
+  #masterLayout .profil-ozet-bar {
+    grid-template-columns: 1fr;
+  }
+
+  #masterLayout .lt-head-title {
+    font-size: 15px;
+  }
+
+  #masterLayout .sidebar-title .sm-title-txt {
+    font-size: 8.5px;
+    letter-spacing: 1.4px;
+  }
+}

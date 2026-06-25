@@ -36,9 +36,15 @@ async function ensureSaygiTables(db) {
   } catch (_) {}
 }
 
+/** Hüküm günü: başladığı gün 1, her 24 saatte +1 */
+function hukumGunSayisi(baslangic, bitis) {
+  const son = bitis ?? Math.floor(Date.now() / 1000);
+  const saniye = Math.max(0, son - baslangic);
+  return Math.max(1, Math.floor(saniye / 86400) + 1);
+}
+
 function gunFarki(baslangic, bitis) {
-  const saniye = Math.max(0, bitis - baslangic);
-  return Math.max(1, Math.floor(saniye / 86400));
+  return hukumGunSayisi(baslangic, bitis);
 }
 
 function trTarih(ts) {
@@ -51,6 +57,61 @@ function trTarih(ts) {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+async function temizleHukumranlikKopyalari(db) {
+  const coklu = await all(
+    db,
+    `SELECT user_id
+     FROM sehir_hukumranlik
+     WHERE bitis IS NULL
+     GROUP BY user_id
+     HAVING COUNT(*) > 1`
+  );
+  for (const row of coklu) {
+    const aktifler = await all(
+      db,
+      `SELECT id, baslangic FROM sehir_hukumranlik
+       WHERE user_id = ? AND bitis IS NULL
+       ORDER BY baslangic ASC, id ASC`,
+      [row.user_id]
+    );
+    const keeper = aktifler[0];
+    for (let i = 1; i < aktifler.length; i++) {
+      await run(db, `DELETE FROM sehir_hukumranlik WHERE id = ?`, [aktifler[i].id]);
+    }
+    if (keeper) {
+      await run(
+        db,
+        `UPDATE players SET aktif_hukumranlik_id = ? WHERE user_id = ?`,
+        [keeper.id, row.user_id]
+      );
+    }
+  }
+}
+
+async function aktifHukumdarKaydi(db) {
+  let row = await get(
+    db,
+    `SELECT u.reis_adi AS hukumdar_adi, h.baslangic, h.onceki_user_id, h.id
+     FROM players p
+     JOIN users u ON u.id = p.user_id
+     JOIN sehir_hukumranlik h ON h.user_id = p.user_id AND h.bitis IS NULL
+     WHERE p.kara_listede = 1
+     ORDER BY h.baslangic ASC, h.id ASC
+     LIMIT 1`
+  );
+  if (row) return row;
+
+  return get(
+    db,
+    `SELECT u.reis_adi AS hukumdar_adi, h.baslangic, h.onceki_user_id, h.id
+     FROM sehir_hukumranlik h
+     JOIN users u ON u.id = h.user_id
+     WHERE h.bitis IS NULL
+     ORDER BY h.baslangic ASC, h.id ASC
+     LIMIT 1`
+  );
 }
 
 async function hukumranlikKapat(db, userId, kaybedenId, yeniId) {
@@ -90,6 +151,13 @@ async function hukumranlikKapat(db, userId, kaybedenId, yeniId) {
 }
 
 async function hukumranlikBaslat(db, userId, oncekiUserId) {
+  const aktif = await get(
+    db,
+    `SELECT id FROM sehir_hukumranlik WHERE user_id = ? AND bitis IS NULL ORDER BY id DESC LIMIT 1`,
+    [userId]
+  );
+  if (aktif) return;
+
   const now = Math.floor(Date.now() / 1000);
   const ins = await run(
     db,
@@ -117,33 +185,48 @@ async function hukumdarligiBitir(db, userId) {
 
 async function saygiDuvariniGetir(db) {
   await ensureSaygiTables(db);
+  await temizleHukumranlikKopyalari(db);
   const now = Math.floor(Date.now() / 1000);
   const rows = await all(
     db,
-    `SELECT u.id AS user_id, u.reis_adi, p.puan, p.sehir_efsane,
+    `SELECT u.id AS user_id, u.reis_adi, p.puan, p.sehir_efsane, p.kara_listede,
             COALESCE(SUM(
               CASE WHEN h.bitis IS NOT NULL THEN h.bitis - h.baslangic
                    ELSE ? - h.baslangic END
-            ), 0) AS toplam_saniye
-     FROM sehir_hukumranlik h
-     JOIN users u ON u.id = h.user_id
+            ), 0) AS toplam_saniye,
+            (SELECT h2.baslangic FROM sehir_hukumranlik h2
+             WHERE h2.user_id = u.id AND h2.bitis IS NULL
+             ORDER BY h2.baslangic DESC LIMIT 1) AS aktif_baslangic
+     FROM users u
      JOIN players p ON p.user_id = u.id
-     GROUP BY h.user_id
+     LEFT JOIN sehir_hukumranlik h ON h.user_id = u.id
+     GROUP BY u.id
+     HAVING toplam_saniye > 0
      ORDER BY toplam_saniye DESC, p.puan DESC
      LIMIT 8`,
     [now]
   );
-  return rows.map((r) => ({
-    userId: r.user_id,
-    reisAdi: r.reis_adi,
-    puan: r.puan,
-    efsane: !!r.sehir_efsane,
-    gun: Math.max(1, Math.floor((r.toplam_saniye || 0) / 86400)),
-  }));
+  return rows.map((r) => {
+    let gun;
+    if (r.kara_listede && r.aktif_baslangic) {
+      gun = hukumGunSayisi(r.aktif_baslangic, now);
+    } else {
+      gun = Math.max(1, Math.floor((r.toplam_saniye || 0) / 86400) + 1);
+    }
+    return {
+      userId: r.user_id,
+      reisAdi: r.reis_adi,
+      puan: r.puan,
+      efsane: !!r.sehir_efsane,
+      gun,
+      hukumdar: !!r.kara_listede,
+    };
+  });
 }
 
 async function sehirTarihiniGetir(db) {
   await ensureSaygiTables(db);
+  await temizleHukumranlikKopyalari(db);
   const now = Math.floor(Date.now() / 1000);
   const gecmis = await all(
     db,
@@ -152,32 +235,25 @@ async function sehirTarihiniGetir(db) {
      ORDER BY baslangic DESC
      LIMIT 50`
   );
-  const aktif = await all(
-    db,
-    `SELECT u.reis_adi AS hukumdar_adi, h.baslangic, h.onceki_user_id
-     FROM sehir_hukumranlik h
-     JOIN users u ON u.id = h.user_id
-     WHERE h.bitis IS NULL
-     ORDER BY h.id DESC
-     LIMIT 1`
-  );
+  const aktifRow = await aktifHukumdarKaydi(db);
   const liste = [];
-  if (aktif.length) {
-    const a = aktif[0];
+  if (aktifRow) {
     let oncekiAdi = null;
-    if (a.onceki_user_id) {
-      const o = await get(db, `SELECT reis_adi FROM users WHERE id = ?`, [a.onceki_user_id]);
+    if (aktifRow.onceki_user_id) {
+      const o = await get(db, `SELECT reis_adi FROM users WHERE id = ?`, [aktifRow.onceki_user_id]);
       oncekiAdi = o?.reis_adi || null;
     }
+    const gunSayisi = gunFarki(aktifRow.baslangic, now);
     liste.push({
-      hukumdarAdi: a.hukumdar_adi,
-      baslangic: a.baslangic,
+      hukumdarAdi: aktifRow.hukumdar_adi,
+      baslangic: aktifRow.baslangic,
       bitis: null,
-      gunSayisi: gunFarki(a.baslangic, now),
+      gunSayisi: gunSayisi,
       oncekiReisAdi: oncekiAdi,
       kaybedenReisAdi: null,
       aktif: true,
-      baslangicMetin: trTarih(a.baslangic),
+      baslangicMetin: trTarih(aktifRow.baslangic),
+      bitisMetin: null,
     });
   }
   gecmis.forEach((g) => {
@@ -199,8 +275,10 @@ async function sehirTarihiniGetir(db) {
 module.exports = {
   ZAYIF_HAMLE_MSG,
   ensureSaygiTables,
+  temizleHukumranlikKopyalari,
   yeniHukumdarRejimBaslat,
   hukumdarligiBitir,
+  hukumGunSayisi,
   saygiDuvariniGetir,
   sehirTarihiniGetir,
 };

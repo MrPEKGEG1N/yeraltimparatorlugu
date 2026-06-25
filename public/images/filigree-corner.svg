@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="140" height="140" viewBox="0 0 140 140">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f0d878"/>
+      <stop offset="40%" stop-color="#c5a059"/>
+      <stop offset="100%" stop-color="#7a5a22"/>
+    </linearGradient>
+  </defs>
+  <path d="M8 70 C8 30 30 8 70 8" stroke="url(#g)" stroke-width="2.2" fill="none"/>
+  <path d="M4 55 C12 18 45 4 78 6" stroke="#b8942a" stroke-width="1.4" fill="none" opacity="0.9"/>
+  <path d="M18 8 C28 4 38 12 32 22 C26 32 14 28 18 18" stroke="url(#g)" stroke-width="1.2" fill="none"/>
+  <path d="M8 18 C4 28 12 38 22 32 C32 26 28 14 18 18" stroke="url(#g)" stroke-width="1.2" fill="none"/>
+  <circle cx="22" cy="22" r="4" stroke="url(#g)" stroke-width="1.3" fill="none"/>
+  <circle cx="22" cy="22" r="1.5" fill="#d4af37"/>
+  <path d="M36 6 L42 14 L48 6 M58 4 L64 12 L70 4" stroke="#c5a059" stroke-width="1.1" fill="none"/>
+  <path d="M6 36 L14 42 L6 48 M4 58 L12 64 L4 70" stroke="#c5a059" stroke-width="1.1" fill="none"/>
+  <path d="M24 14 Q34 8 44 16 Q36 24 26 20" stroke="#e8c96a" stroke-width="0.9" fill="none" opacity="0.75"/>
+</svg>

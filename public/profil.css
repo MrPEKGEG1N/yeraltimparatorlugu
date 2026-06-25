@@ -1,0 +1,611 @@
+/* Profilim — KARAKTER mockup */
+#masterLayout .profil-wrap {
+  width: 100%;
+  max-width: 980px;
+  margin: 0 auto 16px;
+  color: #ece4d4;
+}
+
+#masterLayout .profil-sekmeler {
+  display: flex;
+  gap: 0;
+  margin-bottom: 0;
+}
+
+#masterLayout .profil-sekme {
+  font-family: 'Oswald', sans-serif;
+  font-size: 13px;
+  letter-spacing: 1.5px;
+  padding: 10px 22px;
+  border: 1px solid #5a4a32;
+  border-bottom: none;
+  background: linear-gradient(180deg, #8b1010 0%, #5c0808 100%);
+  color: #f5e8d0;
+  border-color: #a01818;
+  text-transform: uppercase;
+  display: inline-block;
+}
+
+#masterLayout .profil-kart {
+  border: 2px solid #8a7348;
+  background: linear-gradient(165deg, #1c1612 0%, #120e0c 42%, #0a0806 100%);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+  padding: 18px 20px 20px;
+}
+
+#masterLayout .profil-ust {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 18px 22px;
+  align-items: start;
+}
+
+#masterLayout .profil-sol {
+  text-align: center;
+}
+
+#masterLayout .profil-isim-script {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+  font-weight: 600;
+  font-size: clamp(26px, 4vw, 34px);
+  color: #d4af37;
+  margin: 0 0 10px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+  line-height: 1.1;
+  word-break: break-word;
+}
+
+#masterLayout .profil-isim-script.isim-efsane {
+  color: #f0d878;
+  text-shadow: 0 0 12px rgba(212, 175, 55, 0.45);
+}
+
+#masterLayout .profil-avatar-kutu {
+  width: 100%;
+  max-width: 200px;
+  margin: 0 auto 12px;
+  aspect-ratio: 3 / 4;
+  border: 2px solid #8a7348;
+  background: #120e0c;
+  overflow: hidden;
+  box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.65);
+}
+
+#masterLayout .profil-avatar-kutu img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  display: block;
+}
+
+#masterLayout .profil-resim-btn {
+  display: block;
+  width: 100%;
+  max-width: 200px;
+  margin: 0 auto;
+  font-family: 'Oswald', sans-serif;
+  font-size: 12px;
+  letter-spacing: 1px;
+  padding: 10px 12px;
+  border: 1px solid #a01818;
+  background: linear-gradient(180deg, #9e1414 0%, #6e0a0a 100%);
+  color: #fff;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+#masterLayout .profil-resim-btn:hover {
+  filter: brightness(1.08);
+}
+
+#masterLayout .profil-sag {
+  min-width: 0;
+}
+
+#masterLayout .profil-meta-ust {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  align-items: center;
+  font-size: 12px;
+  color: #c8bca8;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(138, 115, 72, 0.35);
+}
+
+#masterLayout .profil-rozet {
+  font-size: 12px;
+}
+
+#masterLayout .profil-rozet.efsane {
+  color: #d4af37;
+}
+
+#masterLayout .profil-rozet.kara {
+  color: #f0ece4;
+}
+
+#masterLayout .profil-ozet-bar {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  border: 1px solid rgba(138, 115, 72, 0.45);
+  background: rgba(0, 0, 0, 0.35);
+}
+
+#masterLayout .profil-ozet-hucre {
+  min-width: 0;
+  font-size: 11px;
+  color: #a89880;
+  line-height: 1.35;
+}
+
+#masterLayout .profil-ozet-hucre strong {
+  display: block;
+  margin-top: 3px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #f0e6d4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#masterLayout .profil-ozet-hucre strong.yesil {
+  color: #6fdc8a;
+}
+
+#masterLayout .profil-detay-liste {
+  margin: 0 auto;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: min(100%, 400px);
+  max-width: 400px;
+}
+
+#masterLayout .profil-detay-satir {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  font-size: 13px;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  width: 100%;
+}
+
+#masterLayout .profil-detay-satir dt {
+  margin: 0;
+  color: #b8a890;
+  font-weight: 400;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+#masterLayout .profil-detay-satir dd {
+  margin: 0;
+  color: #f0e8dc;
+  font-weight: 600;
+  text-align: right;
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+#masterLayout .profil-form {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(138, 115, 72, 0.35);
+}
+
+#masterLayout .profil-form label {
+  display: block;
+  font-family: 'Oswald', sans-serif;
+  font-size: 11px;
+  letter-spacing: 1.2px;
+  color: #c5a059;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+#masterLayout .profil-form textarea,
+#masterLayout .profil-form input[type="text"] {
+  width: 100%;
+  box-sizing: border-box;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid #4a3c2a;
+  color: #ece4d4;
+  padding: 10px 12px;
+  font-family: 'Roboto Condensed', sans-serif;
+  font-size: 14px;
+  margin-bottom: 14px;
+}
+
+#masterLayout .profil-form textarea {
+  min-height: 72px;
+  resize: vertical;
+}
+
+#masterLayout .profil-form-ikili {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+#masterLayout .profil-aciklama-metin {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid #4a3c2a;
+  color: #ddd4c4;
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 48px;
+}
+
+#masterLayout .profil-aciklama-html p {
+  margin: 0 0 8px;
+}
+
+#masterLayout .profil-aciklama-html p:last-child {
+  margin-bottom: 0;
+}
+
+/* Quill zengin metin editörü */
+#masterLayout .profil-quill-wrap {
+  margin-bottom: 14px;
+  border: 1px solid #800000;
+  background: rgba(12, 4, 4, 0.92);
+}
+
+#masterLayout .profil-quill-wrap .ql-toolbar.ql-snow {
+  border: none;
+  border-bottom: 1px solid #800000;
+  background: rgba(18, 6, 6, 0.98);
+  padding: 8px 10px;
+  font-family: 'Roboto Condensed', sans-serif;
+}
+
+#masterLayout .profil-quill-wrap .ql-container.ql-snow {
+  border: none;
+  background: rgba(0, 0, 0, 0.5);
+  min-height: 120px;
+  height: auto;
+  font-family: 'Roboto Condensed', sans-serif;
+  font-size: 14px;
+  color: #ece4d4;
+}
+
+#masterLayout .profil-quill-wrap #profilAciklamaEditor {
+  min-height: 120px;
+}
+
+#masterLayout .profil-quill-wrap .ql-editor {
+  min-height: 110px;
+  padding: 12px 14px;
+}
+
+#masterLayout .profil-quill-wrap .ql-editor.ql-blank::before {
+  color: #8a7060;
+  font-style: italic;
+}
+
+#masterLayout .profil-quill-wrap .ql-snow .ql-stroke {
+  stroke: #c5a059;
+}
+
+#masterLayout .profil-quill-wrap .ql-snow .ql-fill {
+  fill: #c5a059;
+}
+
+#masterLayout .profil-quill-wrap .ql-snow .ql-picker {
+  color: #d8ccb8;
+}
+
+#masterLayout .profil-quill-wrap .ql-snow .ql-picker-label {
+  border: 1px solid #800000;
+}
+
+#masterLayout .profil-quill-wrap .ql-snow .ql-picker-options {
+  background: #1a0a0a;
+  border: 1px solid #800000;
+}
+
+#masterLayout .profil-quill-wrap .ql-snow button {
+  border: 1px solid #800000;
+  border-radius: 2px;
+}
+
+#masterLayout .profil-quill-wrap .ql-snow button:hover,
+#masterLayout .profil-quill-wrap .ql-snow .ql-picker-label:hover {
+  background: rgba(128, 0, 0, 0.25);
+}
+
+#masterLayout .profil-quill-wrap .ql-snow button.ql-active {
+  background: rgba(128, 0, 0, 0.45);
+}
+
+#masterLayout .profil-quill-wrap .ql-undo::before {
+  content: '↶';
+  font-size: 16px;
+  line-height: 1;
+  color: #c5a059;
+}
+
+#masterLayout .profil-quill-wrap .ql-font .ql-picker-label[data-label]::before,
+#masterLayout .profil-quill-wrap .ql-font .ql-picker-item[data-label]::before {
+  font-family: inherit;
+}
+
+#masterLayout .profil-aciklama-html .ql-font-roboto,
+#masterLayout .profil-quill-wrap .ql-font-roboto {
+  font-family: 'Roboto Condensed', sans-serif;
+}
+
+#masterLayout .profil-aciklama-html .ql-font-oswald,
+#masterLayout .profil-quill-wrap .ql-font-oswald {
+  font-family: 'Oswald', sans-serif;
+}
+
+#masterLayout .profil-aciklama-html .ql-font-cinzel,
+#masterLayout .profil-quill-wrap .ql-font-cinzel {
+  font-family: 'Cinzel', serif;
+}
+
+#masterLayout .profil-aciklama-html .ql-font-serif,
+#masterLayout .profil-quill-wrap .ql-font-serif {
+  font-family: Georgia, 'Times New Roman', serif;
+}
+
+#masterLayout .profil-aciklama-html .ql-font-monospace,
+#masterLayout .profil-quill-wrap .ql-font-monospace {
+  font-family: Consolas, Monaco, monospace;
+}
+
+#masterLayout .profil-ziyaretler {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(138, 115, 72, 0.35);
+}
+
+#masterLayout .profil-ziyaretler-baslik {
+  font-family: 'Oswald', sans-serif;
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  color: #c5a059;
+  margin: 0 0 10px;
+  text-transform: uppercase;
+}
+
+#masterLayout .profil-ziyaret-liste {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+#masterLayout .profil-ziyaret-liste li {
+  font-size: 14px;
+  color: #e8dcc8;
+}
+
+#masterLayout .profil-ziyaret-liste .bos {
+  color: #777;
+  font-style: italic;
+}
+
+#masterLayout .profil-alt-butonlar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(138, 115, 72, 0.35);
+}
+
+#masterLayout .profil-alt-btn {
+  font-family: 'Oswald', sans-serif;
+  font-size: 12px;
+  letter-spacing: 1px;
+  padding: 11px 18px;
+  border: 1px solid #5a4a32;
+  cursor: pointer;
+  text-transform: uppercase;
+  min-width: 150px;
+}
+
+#masterLayout .profil-alt-btn.kirmizi {
+  background: linear-gradient(180deg, #9e1414 0%, #6e0a0a 100%);
+  border-color: #a01818;
+  color: #fff;
+}
+
+#masterLayout .profil-alt-btn.koyu {
+  background: linear-gradient(180deg, #2a2218 0%, #1a1410 100%);
+  color: #d8ccb8;
+}
+
+#masterLayout .profil-alt-btn:hover {
+  filter: brightness(1.08);
+}
+
+#masterLayout .profil-sifre-kutu {
+  max-width: 420px;
+  margin: 16px auto 0;
+  padding: 14px;
+  border: 1px solid #5a4a32;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+#masterLayout .profil-sifre-kutu label {
+  display: block;
+  font-size: 12px;
+  color: #b8a890;
+  margin: 8px 0 4px;
+}
+
+#masterLayout .profil-sifre-kutu input {
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 8px;
+}
+
+/* Resim seçim modalı */
+#profilResimModal {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  background: rgba(0, 0, 0, 0.78);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+#profilResimModal.gizli {
+  display: none !important;
+}
+
+#profilResimModal .profil-resim-modal-ic {
+  width: 100%;
+  max-width: 720px;
+  max-height: min(90vh, 780px);
+  overflow-y: auto;
+  border: 2px solid #8a7348;
+  background: #120e0c;
+  padding: 18px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.65);
+}
+
+#profilResimModal h3 {
+  font-family: 'Oswald', sans-serif;
+  color: #d4af37;
+  margin: 0 0 12px;
+  letter-spacing: 1px;
+}
+
+#profilResimModal p {
+  color: #a89880;
+  font-size: 13px;
+  margin: 0 0 14px;
+  line-height: 1.45;
+}
+
+#profilResimModal .profil-resim-sekmeler {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+#profilResimModal .profil-resim-sekme {
+  flex: 1;
+  font-family: 'Oswald', sans-serif;
+  padding: 10px 12px;
+  border: 1px solid #5a4a32;
+  background: #1a1410;
+  color: #a89880;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+}
+
+#profilResimModal .profil-resim-sekme:hover {
+  border-color: #8a7348;
+  color: #d8ccb8;
+}
+
+#profilResimModal .profil-resim-sekme.aktif {
+  border-color: #d4af37;
+  background: #2a2218;
+  color: #d4af37;
+}
+
+#profilResimModal .profil-resim-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+#profilResimModal .profil-resim-grid.gizli {
+  display: none !important;
+}
+
+#profilResimModal .profil-resim-secenek {
+  aspect-ratio: 3 / 4;
+  border: 2px solid #4a3c2a;
+  background: #1a1410;
+  cursor: pointer;
+  overflow: hidden;
+  padding: 0;
+}
+
+#profilResimModal .profil-resim-secenek:hover,
+#profilResimModal .profil-resim-secenek.secili {
+  border-color: #d4af37;
+}
+
+#profilResimModal .profil-resim-secenek img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+#profilResimModal .profil-resim-modal-kapat {
+  font-family: 'Oswald', sans-serif;
+  padding: 8px 16px;
+  border: 1px solid #5a4a32;
+  background: #2a2218;
+  color: #d8ccb8;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  #masterLayout .profil-ust {
+    grid-template-columns: 1fr;
+  }
+
+  #masterLayout .profil-ozet-bar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  #masterLayout .profil-form-ikili {
+    grid-template-columns: 1fr;
+  }
+
+  #masterLayout .profil-detay-liste {
+    width: 100%;
+    max-width: none;
+  }
+
+  #masterLayout .profil-detay-satir {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+
+  #masterLayout .profil-detay-satir dd {
+    text-align: right;
+  }
+
+  #profilResimModal .profil-resim-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  #masterLayout .profil-form button {
+    width: 100%;
+    min-height: 44px;
+  }
+}

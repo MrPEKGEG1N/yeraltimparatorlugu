@@ -1,0 +1,418 @@
+/* Günlük Görevler — ortalanmış kart, 10 satır kaydırmasız */
+#masterLayout #anaIcerik .gunluk-gorevler-sayfa {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 16px 20px 28px;
+}
+
+#masterLayout #anaIcerik .gunluk-gorevler-kart {
+  position: relative;
+  width: 100%;
+  max-width: 740px;
+  border-radius: 14px;
+  border: 1px solid rgba(184, 148, 42, 0.38);
+  background:
+    radial-gradient(ellipse 120% 80% at 50% -20%, rgba(80, 55, 20, 0.22) 0%, transparent 55%),
+    linear-gradient(165deg, rgba(28, 22, 16, 0.97) 0%, rgba(14, 11, 8, 0.99) 100%);
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(255, 220, 160, 0.04) inset,
+    0 1px 0 rgba(255, 220, 160, 0.08) inset;
+  overflow: hidden;
+}
+
+#masterLayout #anaIcerik .gunluk-gorevler-kart::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 8%;
+  right: 8%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.85), transparent);
+  pointer-events: none;
+}
+
+#masterLayout #anaIcerik .gunluk-gorevler-kart-baslik {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px 20px;
+  padding: 16px 18px 14px;
+  border-bottom: 1px solid rgba(184, 148, 42, 0.18);
+}
+
+#masterLayout #anaIcerik .gg-kart-baslik-sol {
+  flex: 1;
+  min-width: 0;
+}
+
+#masterLayout #anaIcerik .gg-kart-baslik {
+  margin: 0 0 4px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  color: #e8c56a;
+  text-transform: uppercase;
+}
+
+#masterLayout #anaIcerik .gunluk-gorevler-aciklama {
+  margin: 0;
+  color: #8f877c;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+#masterLayout #anaIcerik .gunluk-gorevler-aciklama b {
+  color: #c9a84c;
+  font-weight: 600;
+}
+
+#masterLayout #anaIcerik .gunluk-gorevler-ozet {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 88px;
+  padding: 8px 14px;
+  border: 1px solid rgba(184, 148, 42, 0.35);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.28);
+}
+
+#masterLayout #anaIcerik .gg-ozet-etiket {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+  color: #6e665c;
+}
+
+#masterLayout #anaIcerik .gg-ozet-sayi {
+  font-family: 'Oswald', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: #f0d878;
+  line-height: 1;
+}
+
+#masterLayout #anaIcerik .gunluk-gorevler-tablo {
+  display: flex;
+  flex-direction: column;
+}
+
+#masterLayout #anaIcerik .gunluk-gorevler-govde {
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+}
+
+#masterLayout #anaIcerik .gunluk-gorev-satir {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1.5fr) 72px minmax(0, 1.1fr) 76px 94px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px;
+  min-height: 37px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.035);
+  transition: background 0.15s ease;
+}
+
+#masterLayout #anaIcerik .gunluk-gorevler-govde .gunluk-gorev-satir:last-child {
+  border-bottom: none;
+}
+
+#masterLayout #anaIcerik .gunluk-gorevler-govde .gunluk-gorev-satir:nth-child(even) {
+  background: rgba(255, 255, 255, 0.012);
+}
+
+#masterLayout #anaIcerik .gunluk-gorevler-govde .gunluk-gorev-satir:hover {
+  background: rgba(184, 148, 42, 0.055);
+}
+
+#masterLayout #anaIcerik .gunluk-gorev-satir--baslik {
+  min-height: 32px;
+  background: rgba(0, 0, 0, 0.22);
+  border-bottom: 1px solid rgba(184, 148, 42, 0.22);
+}
+
+#masterLayout #anaIcerik .gunluk-gorev-satir--baslik .gg-hucre {
+  font-family: 'Oswald', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #b8942a;
+}
+
+#masterLayout #anaIcerik .gg-hucre {
+  min-width: 0;
+}
+
+#masterLayout #anaIcerik .gg-no {
+  display: flex;
+  justify-content: center;
+}
+
+#masterLayout #anaIcerik .gg-no-rozet {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: 1px solid rgba(184, 148, 42, 0.3);
+  background: linear-gradient(145deg, rgba(50, 38, 22, 0.9), rgba(22, 18, 12, 0.95));
+  font-family: 'Oswald', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: #dcc070;
+}
+
+#masterLayout #anaIcerik .gg-gorev {
+  color: #ebe4d8;
+  font-size: 12px;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+#masterLayout #anaIcerik .gg-adet {
+  text-align: center;
+}
+
+#masterLayout #anaIcerik .gg-adet-val {
+  font-family: 'Oswald', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: #c8c0b4;
+  white-space: nowrap;
+}
+
+#masterLayout #anaIcerik .gg-adet-ayrac {
+  margin: 0 1px;
+  color: #5a544c;
+}
+
+#masterLayout #anaIcerik .gg-ilerleme--satir {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+#masterLayout #anaIcerik .gg-ilerleme-cubuk {
+  flex: 1;
+  max-width: 34px;
+  height: 3px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.07);
+  overflow: hidden;
+}
+
+#masterLayout #anaIcerik .gg-ilerleme-dolgu {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #7a5c14, #d4af37);
+}
+
+#masterLayout #anaIcerik .gg-odul {
+  text-align: center;
+  color: #c9a84c;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.28;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+#masterLayout #anaIcerik .gg-sure {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: #8aa0b4;
+  white-space: nowrap;
+}
+
+#masterLayout #anaIcerik .gg-sure--onizleme-sureli {
+  color: #e8a86a;
+}
+
+#masterLayout #anaIcerik .gg-sure--onizleme-gunsonu {
+  color: #8ab4d8;
+}
+
+#masterLayout #anaIcerik .gg-sure--onizleme-suresiz {
+  color: #7dc49a;
+}
+
+#masterLayout #anaIcerik .gg-satir--odul-bekliyor {
+  background: rgba(55, 90, 45, 0.14) !important;
+  box-shadow: inset 3px 0 0 #6fcf97;
+}
+
+@keyframes gorev-sayfa-pulse {
+  0%, 100% {
+    box-shadow:
+      0 20px 50px rgba(0, 0, 0, 0.45),
+      0 0 0 0 rgba(255, 215, 0, 0);
+    border-color: rgba(184, 148, 42, 0.38);
+  }
+  50% {
+    box-shadow:
+      0 20px 50px rgba(0, 0, 0, 0.45),
+      0 0 22px rgba(255, 215, 0, 0.35);
+    border-color: rgba(255, 215, 0, 0.72);
+  }
+}
+
+#masterLayout #anaIcerik .gunluk-gorevler-kart.gorev-sayfa-yanip {
+  animation: gorev-sayfa-pulse 1.1s ease-in-out infinite;
+}
+
+#masterLayout #anaIcerik .gg-aksiyon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#masterLayout #anaIcerik .gg-satir--aktif {
+  box-shadow: inset 3px 0 0 #5a8fc4;
+}
+
+#masterLayout #anaIcerik .gg-satir--tamamlandi {
+  box-shadow: inset 3px 0 0 #5a9e6e;
+  background: rgba(40, 75, 50, 0.12) !important;
+}
+
+#masterLayout #anaIcerik .gg-satir--teslim_edildi {
+  opacity: 0.62;
+  box-shadow: inset 3px 0 0 #4a7a58;
+}
+
+#masterLayout #anaIcerik .gg-satir--basarisiz {
+  opacity: 0.48;
+  box-shadow: inset 3px 0 0 #8a3a3a;
+}
+
+#masterLayout #anaIcerik .gg-satir--iptal {
+  opacity: 0.36;
+}
+
+#masterLayout #anaIcerik .gg-durum {
+  font-size: 10px;
+  font-weight: 600;
+  text-align: center;
+}
+
+#masterLayout #anaIcerik .gg-durum--aktif { color: #7eb0dc; }
+#masterLayout #anaIcerik .gg-durum--teslim { color: #6fcf97; }
+#masterLayout #anaIcerik .gg-durum--basarisiz { color: #c87878; }
+#masterLayout #anaIcerik .gg-durum--iptal { color: #504c46; }
+
+#masterLayout #anaIcerik .gunluk-gorev-yukleniyor,
+#masterLayout #anaIcerik .gunluk-gorev-bos {
+  padding: 24px 16px;
+  text-align: center;
+  color: #6e665c;
+  font-size: 13px;
+}
+
+#masterLayout #anaIcerik .gunluk-gorev-kabul,
+#masterLayout #anaIcerik .gunluk-gorev-odul {
+  width: 100%;
+  max-width: 86px;
+  padding: 5px 8px;
+  border-radius: 5px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.15s ease, transform 0.12s ease;
+}
+
+#masterLayout #anaIcerik .gunluk-gorev-kabul {
+  border: 1px solid rgba(150, 50, 50, 0.55);
+  background: linear-gradient(180deg, #6a1515, #420909);
+  color: #f8ead8;
+}
+
+#masterLayout #anaIcerik .gunluk-gorev-kabul:hover {
+  border-color: #c9a84c;
+  transform: translateY(-1px);
+}
+
+#masterLayout #anaIcerik .gunluk-gorev-odul {
+  border: 1px solid rgba(184, 148, 42, 0.6);
+  background: linear-gradient(180deg, #3a2c0a, #241c05);
+  color: #f2e6c8;
+}
+
+#masterLayout #anaIcerik .gunluk-gorev-odul:hover {
+  border-color: #e0c060;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 780px) {
+  #masterLayout #anaIcerik .gunluk-gorevler-sayfa {
+    padding: 12px 10px 20px;
+  }
+
+  #masterLayout #anaIcerik .gunluk-gorevler-kart {
+    max-width: 100%;
+    border-radius: 10px;
+  }
+
+  #masterLayout #anaIcerik .gunluk-gorevler-kart-baslik {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 14px 12px 12px;
+  }
+
+  #masterLayout #anaIcerik .gunluk-gorevler-ozet {
+    flex-direction: row;
+    justify-content: center;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  #masterLayout #anaIcerik .gunluk-gorev-satir {
+    grid-template-columns: 28px minmax(0, 1.35fr) 58px minmax(0, 1fr) 52px 78px;
+    gap: 5px;
+    padding: 0 8px;
+    min-height: 35px;
+  }
+
+  #masterLayout #anaIcerik .gg-gorev,
+  #masterLayout #anaIcerik .gg-odul {
+    font-size: 10px;
+  }
+}
+
+@media (max-height: 720px) {
+  #masterLayout #anaIcerik .gunluk-gorev-satir {
+    min-height: 34px;
+  }
+
+  #masterLayout #anaIcerik .gg-gorev,
+  #masterLayout #anaIcerik .gg-odul {
+    -webkit-line-clamp: 1;
+  }
+
+  #masterLayout #anaIcerik .gunluk-gorevler-kart-baslik {
+    padding: 12px 14px 10px;
+  }
+
+  #masterLayout #anaIcerik .gg-kart-baslik {
+    font-size: 17px;
+  }
+}

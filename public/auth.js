@@ -4,8 +4,14 @@ var aktifKullanici = null;
 
 function apiOpts(method, body) {
   var opts = { method: method, credentials: "include", headers: {} };
+  if (typeof guvenlikMeta !== "undefined") {
+    Object.assign(opts.headers, guvenlikMeta.securityHeaders());
+  }
   if (body) {
     opts.headers["Content-Type"] = "application/json";
+    if (typeof guvenlikMeta !== "undefined" && guvenlikMeta.getVisitorId()) {
+      body.visitorId = guvenlikMeta.getVisitorId();
+    }
     opts.body = JSON.stringify(body);
   }
   return opts;
@@ -33,10 +39,30 @@ function authSekmeDegistir(mod) {
   authHataGoster("");
 }
 
+function yukleniyorGoster(mesaj) {
+  var yuk = document.getElementById("yukleniyor");
+  if (!yuk) return;
+  yuk.innerHTML = mesaj || "⏳ İMPARATORLUK YÜKLENİYOR...";
+  yuk.classList.remove("gizli");
+}
+
+function yukleniyorGizle() {
+  var yuk = document.getElementById("yukleniyor");
+  if (yuk) yuk.classList.add("gizli");
+}
+
+function authUrlTemizle() {
+  if (!window.location.search) return;
+  try {
+    window.history.replaceState({}, "", window.location.pathname);
+  } catch (_) {}
+}
+
 function oyunuGoster(user) {
   aktifKullanici = user;
   document.getElementById("authEkran").classList.add("gizli");
-  document.getElementById("oyunEkran").classList.remove("gizli");
+  document.getElementById("masterLayout").classList.remove("gizli");
+  yukleniyorGoster("⏳ İMPARATORLUK YÜKLENİYOR...");
   var etiket = document.getElementById("reisEtiket");
   if (etiket) etiket.textContent = "🕶️ " + (user.reisAdi || user.username);
   if (typeof oyunuBaslat === "function") oyunuBaslat();
@@ -44,13 +70,17 @@ function oyunuGoster(user) {
 
 function authEkraniniGoster() {
   aktifKullanici = null;
-  document.getElementById("oyunEkran").classList.add("gizli");
+  document.getElementById("masterLayout").classList.add("gizli");
   document.getElementById("authEkran").classList.remove("gizli");
+  yukleniyorGizle();
 }
 
 async function oturumKontrol() {
   try {
-    var res = await fetch("/api/auth/me", apiOpts("GET"));
+    var ctrl = new AbortController();
+    var timer = setTimeout(function () { ctrl.abort(); }, 12000);
+    var res = await fetch("/api/auth/me", Object.assign(apiOpts("GET"), { signal: ctrl.signal }));
+    clearTimeout(timer);
     if (!res.ok) return false;
     var data = await res.json();
     if (!data.ok) return false;
@@ -62,11 +92,68 @@ async function oturumKontrol() {
   }
 }
 
+async function urlParamGirisDene() {
+  var params = new URLSearchParams(window.location.search);
+  var username = (params.get("username") || "").trim();
+  var password = params.get("password") || "";
+  if (!username || !password) return false;
+
+  authUrlTemizle();
+  var reisAdi = (params.get("reisAdi") || "").trim();
+  var kayit = !!reisAdi;
+  if (kayit) authSekmeDegistir("kayit");
+
+  var userEl = document.getElementById("username");
+  var passEl = document.getElementById("password");
+  if (userEl) userEl.value = username;
+  if (passEl) passEl.value = password;
+  if (kayit) {
+    var reisEl = document.getElementById("reisAdi");
+    var lakapEl = document.getElementById("lakap");
+    if (reisEl) reisEl.value = reisAdi;
+    if (lakapEl && params.get("lakap")) lakapEl.value = params.get("lakap");
+  }
+
+  yukleniyorGoster("⏳ GİRİŞ YAPILIYOR...");
+
+  if (typeof guvenlikMeta !== "undefined") {
+    try { await guvenlikMeta.getVisitorIdAsync(); } catch (_) {}
+  }
+
+  var body = {
+    username: username,
+    password: password,
+    website: params.get("website") || "",
+  };
+  if (kayit) {
+    body.reisAdi = reisAdi;
+    body.lakap = params.get("lakap") || "Mafya";
+  }
+
+  try {
+    var url = kayit ? "/api/auth/register" : "/api/auth/login";
+    var res = await fetch(url, apiOpts("POST", body));
+    var data = await res.json();
+    if (!data.ok) {
+      authEkraniniGoster();
+      authHataGoster(data.error || "Giriş başarısız.");
+      return false;
+    }
+    oyunuGoster(data.user);
+    return true;
+  } catch {
+    authEkraniniGoster();
+    authHataGoster("Sunucuya bağlanılamadı. Terminalde npm start çalıştırın.");
+    return false;
+  }
+}
+
 async function cikisYap() {
   try {
     await fetch("/api/auth/logout", apiOpts("POST"));
   } catch (_) {}
   if (typeof hosgeldinBuOturum !== "undefined") hosgeldinBuOturum = false;
+  if (typeof muzikDurdur === "function") muzikDurdur();
   authEkraniniGoster();
   authSekmeDegistir("giris");
   document.getElementById("authForm").reset();
@@ -84,10 +171,16 @@ document.getElementById("authForm").addEventListener("submit", async function (e
   authHataGoster("");
   var btn = document.getElementById("authGonder");
   btn.disabled = true;
+  yukleniyorGoster("⏳ GİRİŞ YAPILIYOR...");
+
+  if (typeof guvenlikMeta !== "undefined") {
+    try { await guvenlikMeta.getVisitorIdAsync(); } catch (_) {}
+  }
 
   var body = {
     username: document.getElementById("username").value.trim(),
     password: document.getElementById("password").value,
+    website: document.getElementById("authHoneypot")?.value || "",
   };
   if (authModu === "kayit") {
     body.reisAdi = document.getElementById("reisAdi").value.trim();
@@ -100,18 +193,28 @@ document.getElementById("authForm").addEventListener("submit", async function (e
     var res = await fetch(url, apiOpts("POST", body));
     var data = await res.json();
     if (!data.ok) {
+      yukleniyorGizle();
       authHataGoster(data.error || "İşlem başarısız.");
       return;
     }
+    authUrlTemizle();
     oyunuGoster(data.user);
   } catch {
-    authHataGoster("Sunucuya bağlanılamadı. npm start çalışıyor mu?");
+    yukleniyorGizle();
+    authHataGoster("Sunucuya bağlanılamadı. Terminalde npm start çalıştırın.");
   } finally {
     btn.disabled = false;
   }
 });
 
 (async function authBaslat() {
-  var yuklendi = await oturumKontrol();
-  if (!yuklendi) authEkraniniGoster();
+  yukleniyorGoster("⏳ İMPARATORLUK YÜKLENİYOR...");
+  try {
+    if (await urlParamGirisDene()) return;
+    var yuklendi = await oturumKontrol();
+    if (!yuklendi) authEkraniniGoster();
+  } catch {
+    authEkraniniGoster();
+    authHataGoster("Bağlantı hatası. Sunucunun çalıştığından emin olun.");
+  }
 })();

@@ -1,0 +1,321 @@
+/* Yönetim Masası — Tailwind CDN yüklenmese de çalışır */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  min-height: 100%;
+  background: #0a080c;
+  color: #e5e7eb;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.hidden { display: none !important; }
+
+#yetkisiz {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+}
+
+#yetkisiz .kutu {
+  max-width: 420px;
+  padding: 28px 24px;
+  background: #12101a;
+  border: 1px solid #2d2640;
+  border-radius: 12px;
+}
+
+#yetkisiz h1 {
+  margin: 0 0 8px;
+  font-size: 20px;
+  color: #c5a059;
+}
+
+#yetkisiz p { margin: 0 0 16px; color: #9ca3af; }
+
+#yetkisiz a {
+  display: inline-block;
+  margin: 4px 8px;
+  padding: 12px 20px;
+  min-height: 44px;
+  background: #8b1e1e;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+#yetkisiz a.ikincil {
+  background: #1a1624;
+  border: 1px solid #2d2640;
+  color: #c5a059;
+}
+
+#app { min-height: 100vh; }
+
+.admin-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.admin-sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  background: #12101a;
+  border-right: 1px solid #2d2640;
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-sidebar-head {
+  padding: 20px;
+  border-bottom: 1px solid #2d2640;
+}
+
+.admin-sidebar-head .ust {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #c5a059;
+  font-weight: 700;
+}
+
+.admin-sidebar-head h1 {
+  margin: 6px 0 0;
+  font-size: 18px;
+  color: #fff;
+}
+
+.admin-sidebar-head .etiket {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.admin-nav {
+  flex: 1;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nav-btn {
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  min-height: 44px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #d1d5db;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.nav-btn:hover { background: #1a1624; }
+.nav-btn.aktif { background: #8b1e1e; color: #fff; }
+
+.admin-sidebar-foot {
+  padding: 16px;
+  border-top: 1px solid #2d2640;
+}
+
+.admin-sidebar-foot a {
+  display: block;
+  text-align: center;
+  color: #c5a059;
+  text-decoration: none;
+  padding: 10px;
+}
+
+.admin-main {
+  flex: 1;
+  min-width: 0;
+  overflow: auto;
+}
+
+.admin-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding: 16px 24px;
+  background: rgba(10, 8, 12, 0.95);
+  border-bottom: 1px solid #2d2640;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.admin-header h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #fff;
+}
+
+#toast {
+  font-size: 13px;
+  padding: 6px 12px;
+  border-radius: 6px;
+}
+
+#toast.ok {
+  background: rgba(20, 80, 40, 0.5);
+  border: 1px solid #166534;
+  color: #bbf7d0;
+}
+
+#toast.hata {
+  background: rgba(120, 20, 20, 0.4);
+  border: 1px solid #991b1b;
+  color: #fecaca;
+}
+
+.admin-content { padding: 24px; max-width: 1100px; }
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-kart {
+  background: #1a1624;
+  border: 1px solid #2d2640;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.stat-kart .etiket {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #9ca3af;
+}
+
+.stat-kart .deger {
+  margin-top: 8px;
+  font-size: 24px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.admin-input {
+  width: 100%;
+  padding: 10px 14px;
+  min-height: 44px;
+  background: #1a1624;
+  border: 1px solid #2d2640;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 16px;
+}
+
+.admin-input:focus {
+  outline: none;
+  border-color: #c5a059;
+}
+
+.admin-btn {
+  padding: 10px 18px;
+  min-height: 44px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.admin-btn-kirmizi { background: #8b1e1e; color: #fff; }
+.admin-btn-kirmizi:hover { background: #6e1818; }
+.admin-btn-altin { background: rgba(197, 160, 89, 0.2); border: 1px solid #c5a059; color: #c5a059; }
+.admin-btn-gri { background: #1a1624; border: 1px solid #2d2640; color: #d1d5db; }
+
+.admin-tablo-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid #2d2640;
+  border-radius: 10px;
+}
+
+.admin-tablo {
+  width: 100%;
+  min-width: 640px;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.admin-tablo th {
+  text-align: left;
+  padding: 12px;
+  background: #1a1624;
+  color: #9ca3af;
+  font-weight: 600;
+}
+
+.admin-tablo td {
+  padding: 12px;
+  border-top: 1px solid #2d2640;
+}
+
+.admin-tablo tr:hover td { background: rgba(26, 22, 36, 0.6); }
+
+.kart-liste { display: flex; flex-direction: column; gap: 8px; }
+
+.kart {
+  background: #1a1624;
+  border: 1px solid #2d2640;
+  border-radius: 10px;
+  padding: 14px;
+}
+
+.kart.sari { border-color: rgba(180, 120, 40, 0.5); }
+
+.detay-kutu {
+  margin-top: 20px;
+  padding: 20px;
+  background: #1a1624;
+  border: 1px solid #2d2640;
+  border-radius: 12px;
+}
+
+.detay-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+  margin: 16px 0;
+}
+
+.detay-item {
+  background: #0a080c;
+  border: 1px solid #2d2640;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 13px;
+}
+
+.detay-item span { display: block; font-size: 11px; color: #6b7280; }
+
+.aksiyon-satir {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.msg-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+
+.msg-tab { min-height: 40px; }
+
+.baslik-altin { color: #c5a059; font-weight: 600; margin: 16px 0 8px; }
+
+@media (max-width: 768px) {
+  .admin-layout { flex-direction: column; }
+  .admin-sidebar { width: 100%; max-height: 40vh; overflow-y: auto; }
+}

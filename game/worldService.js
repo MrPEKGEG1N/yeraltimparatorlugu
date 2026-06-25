@@ -1,16 +1,31 @@
 const { get, all, run } = require("../db/database");
+const { enforceNoAltAccount } = require("./securityService");
 const { saldiriMesajiEkle } = require("./messagingService");
-const { devletDusur, hapisKontrol } = require("./devletService");
+const { devletDusur, hapisKontrol, rastgeleAvukatDususu } = require("./devletService");
 const { sehreHukmetGuncelle, kaybedenHukumdariKontrol } = require("./karaListeService");
 const { ZAYIF_HAMLE_MSG } = require("./saygiDuvariService");
 const { limanHaberEkle, makamHaberEkle } = require("./sehirGazeteService");
 const { logStatHareket } = require("./statService");
+const { temizGrupAdi } = require("./grupAdi");
 const {
   LIMAN_IDS,
   BABA_MAKAMLAR,
   LIMAN_SAATLIK,
   LIMAN_UC_BONUS,
 } = require("./worldConstants");
+
+const SALDIRI_PARA_ORAN = 0.1;
+const SALDIRI_SAYGINLIK_ORAN = 0.01;
+const SALDIRI_SAYGINLIK_MIN_KASA = 50000;
+
+function saldiriOdulHesapla(hedefKasa, hedefPuan) {
+  const paraKazanc = Math.floor(Math.max(0, hedefKasa) * SALDIRI_PARA_ORAN);
+  const sayginlikAlinabilir = hedefKasa >= SALDIRI_SAYGINLIK_MIN_KASA;
+  const puanKazanc = sayginlikAlinabilir
+    ? Math.floor(Math.max(0, hedefPuan) * SALDIRI_SAYGINLIK_ORAN)
+    : 0;
+  return { paraKazanc, puanKazanc, sayginlikAlinabilir };
+}
 
 function turkeyHourStamp() {
   const parts = new Intl.DateTimeFormat("en-CA", {
@@ -172,7 +187,15 @@ async function processLimanIncome(db, userId, player) {
   return player;
 }
 
-async function limanCok(db, attackerId, attacker, limanId) {
+async function limanSahipSavunmaGucu(db, ownerId) {
+  if (!ownerId) return 0;
+  const row = await get(db, `SELECT guc, kara_listede FROM players WHERE user_id = ?`, [ownerId]);
+  let guc = row?.guc || 0;
+  if (row?.kara_listede) guc = Math.floor(guc * 0.5);
+  return guc;
+}
+
+async function limanCok(db, attackerId, attacker, limanId, securityMeta = {}) {
   if (!LIMAN_IDS.includes(limanId)) {
     return { ok: false, error: "Geçersiz liman." };
   }
@@ -194,7 +217,17 @@ async function limanCok(db, attackerId, attacker, limanId) {
   if (liman.owner_user_id === attackerId) {
     return { ok: false, error: "Bu liman zaten sizin!" };
   }
-  const sahipGuc = liman.sahip_guc || 0;
+  if (liman.owner_user_id) {
+    const altCheck = await enforceNoAltAccount(
+      db,
+      attackerId,
+      liman.owner_user_id,
+      "liman_cok",
+      securityMeta
+    );
+    if (!altCheck.ok) return altCheck;
+  }
+  const sahipGuc = await limanSahipSavunmaGucu(db, liman.owner_user_id);
   if (liman.owner_user_id && attacker.guc <= sahipGuc) {
     return { ok: false, error: ZAYIF_HAMLE_MSG };
   }
@@ -231,7 +264,7 @@ function fmtGuc(n) {
   return Number(n).toLocaleString("tr-TR");
 }
 
-async function babaCok(db, attackerId, attacker, makam) {
+async function babaCok(db, attackerId, attacker, makam, securityMeta = {}) {
   if (!BABA_MAKAMLAR.includes(makam)) {
     return { ok: false, error: "Geçersiz makam." };
   }
@@ -253,7 +286,17 @@ async function babaCok(db, attackerId, attacker, makam) {
   if (row.owner_user_id === attackerId) {
     return { ok: false, error: "Bu makam zaten sizin!" };
   }
-  const sahipGuc = row.sahip_guc || 0;
+  if (row.owner_user_id) {
+    const altCheck = await enforceNoAltAccount(
+      db,
+      attackerId,
+      row.owner_user_id,
+      "baba_cok",
+      securityMeta
+    );
+    if (!altCheck.ok) return altCheck;
+  }
+  const sahipGuc = await limanSahipSavunmaGucu(db, row.owner_user_id);
   if (row.owner_user_id && attacker.guc <= sahipGuc) {
     return { ok: false, error: ZAYIF_HAMLE_MSG };
   }
@@ -308,7 +351,7 @@ async function sadakatOy(db, userId, oy) {
   return { ok: true };
 }
 
-async function dusmanaCok(db, attackerId, attacker, hedefAd) {
+async function dusmanaCok(db, attackerId, attacker, hedefAd, securityMeta = {}) {
   const hapis = await hapisKontrol(db, attackerId);
   if (!hapis.ok) return hapis;
   if (attacker.icraat < 1) {
@@ -324,6 +367,9 @@ async function dusmanaCok(db, attackerId, attacker, hedefAd) {
   );
   if (!hedef) return { ok: false, error: "Oyuncu bulunamadı. Reis adını doğru yaz." };
   if (hedef.id === attackerId) return { ok: false, error: "Kendine saldıramazsın Reis!" };
+
+  const altCheck = await enforceNoAltAccount(db, attackerId, hedef.id, "dusmana_cok", securityMeta);
+  if (!altCheck.ok) return altCheck;
   
   if (attacker.guc < hedef.guc * 0.1) {
     return { ok: false, error: ZAYIF_HAMLE_MSG };
@@ -339,11 +385,14 @@ async function dusmanaCok(db, attackerId, attacker, hedefAd) {
   const oncekiGuc = attacker.guc;
 
   attacker.icraat -= 1;
-  await devletDusur(db, attackerId, 3);
+  const devletDusus = rastgeleAvukatDususu(5, 10);
+  const yeniDevletIliski = await devletDusur(db, attackerId, devletDusus);
 
   if (attacker.guc > hedef.guc) {
-    const paraKazanc = Math.floor(hedef.kasa * 0.1);
-    const puanKazanc = Math.floor(hedef.puan * 0.1);
+    const { paraKazanc, puanKazanc, sayginlikAlinabilir } = saldiriOdulHesapla(
+      hedef.kasa,
+      hedef.puan
+    );
     const gucDususSald = Math.floor(attacker.guc * 0.1);
     const gucDususHedef = Math.floor(hedef.guc * 0.1);
 
@@ -378,19 +427,31 @@ async function dusmanaCok(db, attackerId, attacker, hedefAd) {
       puanKazanc
     );
 
-    await logStatHareket(db, attackerId, "sayginlik", puanKazanc);
-    await logStatHareket(db, hedef.id, "sayginlik", -puanKazanc);
+    if (puanKazanc > 0) {
+      await logStatHareket(db, attackerId, "sayginlik", puanKazanc);
+      await logStatHareket(db, hedef.id, "sayginlik", -puanKazanc);
+    }
+
+    const sayginlikMetin = puanKazanc > 0
+      ? ` ve ${puanKazanc} Saygınlık kazandık`
+      : sayginlikAlinabilir
+        ? ""
+        : " (rakibin kasası 50.000 TL altında olduğu için saygınlık alınamadı)";
 
     const detay =
       `Emrinle çatışma başladı! Biz daha güçlü olduğumuz için onları indirdik!\n` +
-      `Çatışma sonucunda düşmandan ${paraKazanc.toLocaleString("tr-TR")} TL hasılat ve ${puanKazanc} Saygınlık kazandık.\n` +
+      `Çatışma sonucunda düşmandan ${paraKazanc.toLocaleString("tr-TR")} TL hasılat${sayginlikMetin}.\n` +
+      `Avukat ilişkin ${devletDusus} puan düştü (${yeniDevletIliski}).\n` +
       `Saldırı sonunda ${oncekiPuan.toLocaleString("tr-TR")} olan Saygınlığın ${attacker.puan.toLocaleString("tr-TR")} oldu.\n` +
       `Saldırı sonunda ${oncekiGuc.toLocaleString("tr-TR")} olan Gücün ${attacker.guc.toLocaleString("tr-TR")} oldu.`;
 
     return {
       ok: true,
       kazandi: true,
+      hedefUserId: hedef.id,
       mesaj: detay,
+      devletDusus,
+      yeniDevletIliski,
       effect: {
         paraKazanc,
         puanKazanc,
@@ -417,6 +478,7 @@ async function dusmanaCok(db, attackerId, attacker, hedefAd) {
 
   const detayKayip =
     `Emrinle çatışma başladı! ${hedef.reis_adi} seni ezip geçti!\n` +
+    `Avukat ilişkin ${devletDusus} puan düştü (${yeniDevletIliski}).\n` +
     `Saldırı sonunda ${oncekiPuan.toLocaleString("tr-TR")} olan Saygınlığın ${attacker.puan.toLocaleString("tr-TR")} oldu.\n` +
     `Saldırı sonunda ${oncekiGuc.toLocaleString("tr-TR")} olan Gücün ${attacker.guc.toLocaleString("tr-TR")} oldu.`;
 
@@ -424,6 +486,8 @@ async function dusmanaCok(db, attackerId, attacker, hedefAd) {
     ok: true,
     kazandi: false,
     mesaj: detayKayip,
+    devletDusus,
+    yeniDevletIliski,
     effect: {
       oncekiPuan,
       yeniPuan: attacker.puan,
@@ -432,6 +496,35 @@ async function dusmanaCok(db, attackerId, attacker, hedefAd) {
       hedefAdi: hedef.reis_adi,
     },
   };
+}
+
+async function rakipListele(db, userId, limit = 5) {
+  const row = await get(db, `SELECT guc FROM players WHERE user_id = ?`, [userId]);
+  const guc = row?.guc || 0;
+  if (guc <= 0) return [];
+
+  // Saldırı motoru: en az %10 güç, en fazla %150 güç farkı (dusmanaCok ile uyumlu)
+  const minGuc = Math.max(1, Math.floor(guc * 0.1));
+  const maxGuc = Math.ceil(guc * 1.5);
+  const rows = await all(
+    db,
+    `SELECT u.id AS user_id, u.reis_adi, u.lakap, u.grup, p.puan
+     FROM players p
+     JOIN users u ON u.id = p.user_id
+     WHERE u.id != ?
+       AND p.guc >= ? AND p.guc <= ?
+     ORDER BY RANDOM()
+     LIMIT ?`,
+    [userId, minGuc, maxGuc, limit]
+  );
+
+  return rows.map((r) => ({
+    userId: r.user_id,
+    reisAdi: r.reis_adi,
+    lakap: r.lakap || "Mafya",
+    grup: temizGrupAdi(r.grup),
+    puan: r.puan || 0,
+  }));
 }
 
 module.exports = {
@@ -449,4 +542,6 @@ module.exports = {
   babaDerkiKaydet,
   sadakatOy,
   dusmanaCok,
+  rakipListele,
+  saldiriOdulHesapla,
 };

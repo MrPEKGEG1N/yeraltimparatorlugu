@@ -5,6 +5,11 @@ var oyuncuKasa = 10000;
 var oyuncuGuc = 500;
 var oyuncuPuan = 1500;
 var oyuncuIcraat = 25;
+var oyuncuLastIcraatAt = 0;
+var oyuncuIcraatRegenSec = 3600;
+var oyuncuIcraatSaatlikBonus = 25;
+var oyuncuProfilResmi = '';
+var ICRAAT_GOSTERIM_MAX = 25;
 var limanlar = { istanbul: false, izmir: false, hatay: false };
 var sunucuBagli = false;
 var aksiyonBekliyor = false;
@@ -20,55 +25,104 @@ var sehirEfsane = false;
 var ZAYIF_HAMLE_MSG = 'Zayıf hamle, büyük rezillik. Geri dur!';
 var sektorSahiplik = {};
 var rusvetBilgi = { min: 10, max: 50, onerilen: 30 };
+var AVUKAT_ILISKI_MAX = 600;
+var RUSVET_ARTIS_MAX = 50;
 var mekanTanimlari = {};
 var aktifEkran = '';
 var aktifLakap = 'Mafya';
 var istihbaratEleman = 0;
+var istihbaratBirimMaliyet = 50000;
 var bankaBakiye = 0;
+var bankaHakki = 20;
+var kiralamaEnvanter = {};
+var elitFiyatX2 = false;
+var onlineSayisi = 0;
 var sehirBannerState = { tip: 'belirsiz', reisAdi: null };
 var yeniProfilZiyaret = 0;
+var dusmanBulunanHedef = null;
+var dusmanRakipListesi = [];
+var bankaCalcAktif = 'yatir';
 var sesAyar = {
   acik: localStorage.getItem('sesAcik') !== '0',
   seviye: parseFloat(localStorage.getItem('sesSeviye') || '0.7', 10)
 };
 var sesAudioCtx = null;
 var sesCache = {};
+var arkaPlanMuzik = null;
+var muzikDinleyiciEklendi = false;
+var muzikPlayToken = 0;
+var muzikAutoplayHandler = null;
+var muzikJsOrphanlari = [];
 var SES_DOSYALARI = {
   para: '/sounds/para-sesi.wav?v=22',
-  saldiri: '/sounds/saldiri-sesi.wav?v=22'
+  saldiri: '/sounds/saldiri-sesi.wav?v=22',
+  muzik: '/sounds/oyun-muzigi.mpeg?v=1'
 };
+var MUZIK_SEVIYE_ORANI = 0.38;
 var liderlikModu = 'oyuncu';
 var hosgeldinBuOturum = false;
 var yeniGazeteHaber = false;
+var gunlukGorevBildirim = false;
 
 function hosgeldinGoster(w) {
   if (!w || w.hours < 1 || hosgeldinBuOturum) return;
   var modal = document.getElementById('hosgeldinModal');
   var saatEl = document.getElementById('raconSaat');
-  var saatlikEl = document.getElementById('raconSaatlik');
   var kazancEl = document.getElementById('raconKazanc');
   if (!modal || !saatEl || !kazancEl) return;
   hosgeldinBuOturum = true;
-  var saat = w.hours || 0;
-  var gelir = w.income || 0;
-  var saatlikGelir = w.saatlik || 0;
-  saatEl.textContent = String(saat) + ' Saat';
-  if (saatlikEl) saatlikEl.textContent = fmt(saatlikGelir) + ' TL/saat';
-  kazancEl.textContent = fmt(gelir) + ' TL';
+  saatEl.textContent = String(w.hours || 0);
+  kazancEl.textContent = fmt(w.income || 0);
+  document.documentElement.classList.add('racon-modal-acik');
   modal.classList.remove('gizli');
-  if (gelir > 0) sesCal('para');
+  var devam = document.getElementById('raconDevamBtn');
+  if (devam) {
+    try {
+      devam.focus({ preventScroll: true });
+    } catch (_) {
+      devam.focus();
+    }
+  }
+  if ((w.income || 0) > 0) sesCal('para');
 }
 
 function hosgeldinKapat() {
   var modal = document.getElementById('hosgeldinModal');
+  document.documentElement.classList.remove('racon-modal-acik');
   if (modal) modal.classList.add('gizli');
 }
+
+(function bindHosgeldinModal() {
+  var modal = document.getElementById('hosgeldinModal');
+  if (!modal) return;
+  modal.addEventListener('click', function (e) {
+    if (e.target === modal) hosgeldinKapat();
+  });
+  var kart = modal.querySelector('.racon-kart');
+  if (kart) {
+    kart.addEventListener('click', function (e) {
+      e.stopPropagation();
+    });
+  }
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && modal && !modal.classList.contains('gizli')) {
+      hosgeldinKapat();
+    }
+  });
+})();
 
 function apiFetch(url, opts) {
   var o = opts || {};
   o.credentials = 'include';
+  o.headers = Object.assign({}, o.headers || {});
+  if (typeof guvenlikMeta !== "undefined") {
+    Object.assign(o.headers, guvenlikMeta.securityHeaders());
+  }
   if (o.body && typeof o.body === 'object' && !(o.headers && o.headers['Content-Type'])) {
-    o.headers = Object.assign({}, o.headers, { 'Content-Type': 'application/json' });
+    o.headers['Content-Type'] = 'application/json';
+    if (typeof guvenlikMeta !== "undefined" && guvenlikMeta.getVisitorId()) {
+      o.body.visitorId = guvenlikMeta.getVisitorId();
+    }
     o.body = JSON.stringify(o.body);
   }
   return fetch(url, o);
@@ -81,20 +135,29 @@ function oyuncuUygula(p, secenekler) {
   oyuncuGuc = p.guc;
   oyuncuPuan = p.puan;
   oyuncuIcraat = p.icraat;
+  if (p.lastIcraatAt != null) oyuncuLastIcraatAt = p.lastIcraatAt;
+  if (p.icraatRegenSec != null) oyuncuIcraatRegenSec = p.icraatRegenSec;
+  if (p.icraatSaatlikBonus != null) oyuncuIcraatSaatlikBonus = p.icraatSaatlikBonus;
+  if (p.profilResmi != null) oyuncuProfilResmi = p.profilResmi;
   limanlar = p.limanlar || { istanbul: false, izmir: false, hatay: false };
   if (p.reisAdi) aktifReisAdi = p.reisAdi;
   if (p.lakap) aktifLakap = p.lakap;
   if (p.dunya) dunyaState = p.dunya;
   mafyaBildirim = !!p.mafyaBildirim;
   okunmamisMesaj = !!p.okunmamisMesaj;
-  oyuncuDevlet = p.devletIliskisi != null ? p.devletIliskisi : 100;
+  oyuncuDevlet = Math.min(AVUKAT_ILISKI_MAX, p.devletIliskisi != null ? p.devletIliskisi : 100);
   oyuncuSms = p.smsHakki != null ? p.smsHakki : 50;
   saatlikKazanc = p.saatlikKazanc || 0;
   sektorSahiplik = p.sektorSahiplik || {};
   rusvetBilgi = p.rusvet || rusvetBilgi;
   mekanTanimlari = p.mekanlar || {};
   istihbaratEleman = p.istihbaratEleman || 0;
+  istihbaratBirimMaliyet = p.istihbaratBirimMaliyet || istihbaratBirimMaliyetHesap(istihbaratEleman);
   bankaBakiye = p.bankaBakiye || 0;
+  bankaHakki = p.bankaHakki != null ? p.bankaHakki : bankaHakki;
+  kiralamaEnvanter = p.kiralamaEnvanter || {};
+  elitFiyatX2 = !!(p.elitFiyatX2 || Number(p.fiyatCarpani) >= 2 || p.sehreHukmeden || p.enYuksekSayginlik || p.karaListede);
+  onlineSayisi = p.onlineSayisi != null ? p.onlineSayisi : onlineSayisi;
   karaListede = !!p.karaListede;
   sehirEfsane = !!p.sehirEfsane;
   if (p.sehirBanner) sehirBannerState = p.sehirBanner;
@@ -103,21 +166,31 @@ function oyuncuUygula(p, secenekler) {
     hosgeldinGoster(p.offlineWelcome);
   }
   yeniGazeteHaber = !!p.yeniGazeteHaber;
+  gunlukGorevBildirim = !!p.gunlukGorevBildirim;
   mafyaMenuYanip();
   profilMenuYanip();
   gazeteMenuYanip();
+  gunlukGorevBildirimGuncelle();
   sehirBannerGuncelle();
   mesajMenuYanip();
   arayuzGuncelle();
   // ÖNEMLİ: Otomatik ekran yeniden çizimi, kullanıcı ekranını bozuyordu
   // (Düşmana Çök sonucu kaybolması, Mafya ekranlarının kendi kendine değişmesi vb.)
   // Bu yüzden aktif ekranı kendiliğinden yeniden çizme.
-  if (aktifEkran === 'liderlik') {
-    var ic = document.getElementById('anaIcerik');
-    if (ic) liderlikTablosuCiz(ic);
-  }
+  // Liderlik ekranı kullanıcı tab/sekme değiştirmedikçe yeniden çizilmez.
   guncelleBgIsim();
   saygiDuvariYukle();
+}
+
+async function elitFiyatDurumSenkronize() {
+  if (!sunucuBagli) return;
+  try {
+    var res = await apiFetch('/api/player');
+    if (!res.ok) return;
+    var p = await res.json();
+    elitFiyatX2 = !!(p.elitFiyatX2 || Number(p.fiyatCarpani) >= 2 || p.sehreHukmeden || p.enYuksekSayginlik || p.karaListede);
+    karaListede = !!p.karaListede;
+  } catch (_) {}
 }
 
 function isimListesiParse(metin) {
@@ -133,12 +206,16 @@ function isimListesiHTML(liste, bosMetin) {
 function sehirBannerGuncelle() {
   var el = document.getElementById('sehirBanner');
   if (!el) return;
+  if (aktifEkran === 'liderlik') {
+    el.classList.add('gizli');
+    return;
+  }
   if (sehirBannerState.tip === 'tek' && sehirBannerState.reisAdi) {
-    el.className = 'sehir-banner tek';
+    el.className = 'ml-sehir-banner tek';
     el.textContent = "ŞEHİR ŞU AN '" + sehirBannerState.reisAdi + "' TARAFINDAN YÖNETİLİYOR";
     el.classList.remove('gizli');
   } else {
-    el.className = 'sehir-banner belirsiz';
+    el.className = 'ml-sehir-banner belirsiz';
     el.textContent = 'ŞEHRİN SAHİBİ HENÜZ BELLİ DEĞİL';
     el.classList.remove('gizli');
   }
@@ -183,7 +260,8 @@ async function saygiDuvariYukle() {
     }
     ul.innerHTML = data.liste.map(function(o) {
       var cls = o.efsane ? ' class="isim-efsane"' : '';
-      return '<li' + cls + ' onclick="oyuncuProfilGoster(' + o.userId + ')">' + o.reisAdi + ' <span style="color:#888;">(' + o.gun + ' gün)</span></li>';
+      var gunTxt = (o.gun > 0 ? o.gun : 1) + ' gün';
+      return '<li' + cls + ' onclick="oyuncuProfilGoster(' + o.userId + ')">' + o.reisAdi + ' <span style="color:#888;">(' + gunTxt + ')</span></li>';
     }).join('');
   } catch (_) {
     ul.innerHTML = '<li style="color:#888;">—</li>';
@@ -212,6 +290,11 @@ async function sunucuAksiyon(action, key, adet, extra) {
         if (extra[k] !== undefined) payload[k] = extra[k];
       });
     }
+    if (typeof guvenlikMeta !== "undefined") {
+      var meta = guvenlikMeta.actionMeta();
+      payload.clientTs = meta.clientTs;
+      if (meta.visitorId) payload.visitorId = meta.visitorId;
+    }
     var res = await apiFetch('/api/action', { method: 'POST', body: payload });
     if (res.status === 401) { cikisYap(); return null; }
     var data = await res.json().catch(function() { return {}; });
@@ -226,7 +309,24 @@ async function sunucuAksiyon(action, key, adet, extra) {
       return null;
     }
     if (data.player) oyuncuUygula(data.player);
+    if (data.effect && data.effect.yeniDevletIliski != null) {
+      oyuncuDevlet = Math.min(AVUKAT_ILISKI_MAX, data.effect.yeniDevletIliski);
+      arayuzGuncelle();
+    }
     if (data.player && data.player.kasa < oncekiKasa) sesCal('para');
+    if (data.effect && data.effect.devletDusus && aktifEkran === 'devletIliskisi') {
+      var icDevlet = document.getElementById('icerik');
+      if (icDevlet) icDevlet.innerHTML = avukatHTML();
+    }
+    gunlukGorevMenuYanip();
+    if (aktifEkran === 'gunlukGorevler') await gunlukGorevlerYukle();
+    if (aktifEkran === 'guvenliYer' && data.effect && data.effect.panel) {
+      guvenliYerPanel = data.effect.panel;
+      guvenliYerOnizlemeSeviye = null;
+      guvenliYerTumunuCiz();
+    } else if (aktifEkran === 'guvenliYer') {
+      await guvenliYerYukle();
+    }
     return data.effect;
   } catch (e) {
     toast('Sunucuya bağlanılamadı. Terminalde: npm start', 'hata');
@@ -239,9 +339,56 @@ async function sunucuAksiyon(action, key, adet, extra) {
 // ========================
 // GÖRSELLER — yerel (/public/images)
 // ========================
-var GORSEL_VERSIYON = '13';
+var GORSEL_VERSIYON = '124';
+
+function temizGrupAdi(grup) {
+  if (!grup) return '—';
+  var s = String(grup).trim();
+  if (s === 'Bağımsız Reis') return s;
+  return s.replace(/\s+Mafya+a*\s+G[uü]?rubu$/i, '').trim() || '—';
+}
+
+function ltMedalClass(i) {
+  if (i === 0) return 'r1';
+  if (i === 1) return 'r2';
+  if (i === 2) return 'r3';
+  return '';
+}
+
+function ltTab(mod, label, on) {
+  var c = 'lt-side-tab' + (on ? ' lt-side-tab--on' : '');
+  return '<button type="button" class="' + c + '" onclick="liderlikModDegistir(\'' + mod + '\')">' + label + '</button>';
+}
+
+function ltIsimHtml(r) {
+  var tag = r.benim ? '<span class="lt-tag">sen</span>' : '';
+  if (r.bot || !r.userId) {
+    return '<span class="lt-name-txt">' + escHtml(r.isim) + tag + '</span>';
+  }
+  return '<button type="button" class="oyuncu-link lt-name-txt" onclick="oyuncuProfilGoster(' + r.userId + ')">' + escHtml(r.isim) + tag + '</button>';
+}
+
+function ltGrupIsimHtml(r) {
+  if (!r.grupId) {
+    return '<span class="lt-name-txt">' + escHtml(r.isim) + '</span>';
+  }
+  return '<button type="button" class="oyuncu-link lt-name-txt" onclick="mafyaGrupGoster(' + r.grupId + ')">' + escHtml(r.isim) + '</button>';
+}
+
+function ltGrupLinkHtml(isim, grupId, grupMap) {
+  var ad = temizGrupAdi(isim);
+  var gid = grupId;
+  if (!gid && grupMap && ad) {
+    gid = grupMap[ad.toLowerCase()] || grupMap[String(isim || '').trim().toLowerCase()];
+  }
+  if (!gid || !ad || ad === '—' || ad === 'Bağımsız Reis') {
+    return '<span class="lt-group-txt">' + escHtml(ad) + '</span>';
+  }
+  return '<button type="button" class="oyuncu-link lt-group-txt" onclick="mafyaGrupGoster(' + gid + ')">' + escHtml(ad) + '</button>';
+}
 var MEDYA_BANNER = '/images/is/medya_banner.png?v=' + GORSEL_VERSIYON;
-var ARKA_PLAN_GORSEL = '/images/bg-masa.png?v=' + GORSEL_VERSIYON;
+var GAZETE_SAYFA_GORSEL = '/images/gazete/gazete-sayfa.png?v=' + GORSEL_VERSIYON;
+  var ARKA_PLAN_GORSEL = '/images/bg-masa.png?v=' + GORSEL_VERSIYON;
 
 function yerelGorsel(klasor, dosya) {
   return '/images/' + klasor + '/' + dosya + '.jpg?v=' + GORSEL_VERSIYON;
@@ -324,12 +471,27 @@ var mafyaEviGorseller = {
 };
 
 var sohbetGorseller = {
-  mafyaMasa: '/images/sohbet/mafya_masa.png?v=' + GORSEL_VERSIYON
+  mesajKutu: yerelGorselPng('sohbet', 'mesaj_kutusu'),
+  mafyaMasa: yerelGorselPng('sohbet', 'mafya_masa')
 };
 
 var profilGorseller = {
-  takimElbise: yerelGorsel('profil', 'takim_elbise')
+  varsayilanPortre: yerelGorselPng('profil/portre', 'kadin-02')
 };
+var profilIcraatTimer = null;
+var profilQuill = null;
+var profilQuillHazir = false;
+var profilResimAktifSekme = 'kadin';
+var KADIN_PORTRE_ANAHTARLARI = [
+  'kadin-01', 'kadin-02', 'kadin-03', 'kadin-04', 'kadin-05', 'kadin-06',
+  'kadin-07', 'kadin-08', 'kadin-09', 'kadin-10', 'kadin-11'
+];
+var ERKEK_PORTRE_ANAHTARLARI = [
+  'erkek-01', 'erkek-02', 'erkek-03', 'erkek-04', 'erkek-05', 'erkek-06',
+  'erkek-07', 'erkek-08', 'erkek-09', 'erkek-10', 'erkek-11', 'erkek-12',
+  'erkek-13', 'erkek-14', 'erkek-15', 'erkek-16', 'erkek-17', 'erkek-18',
+  'erkek-19', 'erkek-20', 'erkek-21', 'erkek-22'
+];
 
 var devletGorseller = {
   yetkili: yerelGorsel('devlet', 'yetkili')
@@ -366,20 +528,76 @@ var LIMAN_META = {
 // ========================
 function fmt(sayi) { return sayi.toLocaleString('tr-TR'); }
 
-function arayuzGuncelle() {
-  document.getElementById('kasa').innerText = fmt(oyuncuKasa) + ' TL';
-  document.getElementById('guc').innerText = fmt(oyuncuGuc);
-  document.getElementById('puan').innerText = fmt(oyuncuPuan);
-  var icraatEl = document.getElementById('icraat');
-  icraatEl.innerText = oyuncuIcraat;
-  icraatEl.title = 'Saatte +25 hak kazanılır. (İş yaparken harcarsın)';
-  var smsEl = document.getElementById('smsHakki');
-  var devEl = document.getElementById('devletIliskisi');
-  if (smsEl) smsEl.innerText = oyuncuSms;
-  if (devEl) {
-    devEl.innerText = oyuncuDevlet;
-    devEl.style.color = oyuncuDevlet < 5 ? '#cc0000' : '#fff';
+function statTooltipKonumla(chip, tip) {
+  var r = chip.getBoundingClientRect();
+  tip.classList.remove('gizli');
+  var tipW = tip.offsetWidth;
+  var tipH = tip.offsetHeight;
+  var left = r.left + r.width / 2;
+  var top = r.bottom + 8;
+  if (top + tipH > window.innerHeight - 8) top = r.top - tipH - 8;
+  if (left - tipW / 2 < 8) left = tipW / 2 + 8;
+  if (left + tipW / 2 > window.innerWidth - 8) left = window.innerWidth - tipW / 2 - 8;
+  tip.style.left = left + 'px';
+  tip.style.top = top + 'px';
+}
+
+function statTooltipBagla() {
+  var tip = document.getElementById('statTooltipFloat');
+  if (!tip) {
+    tip = document.createElement('div');
+    tip.id = 'statTooltipFloat';
+    tip.className = 'ml-stat-tooltip-float gizli';
+    tip.setAttribute('role', 'tooltip');
+    document.body.appendChild(tip);
   }
+  document.querySelectorAll('#masterLayout .ml-stat-chip--tip').forEach(function(chip) {
+    if (chip._tipBound) return;
+    chip._tipBound = true;
+    chip.addEventListener('mouseenter', function() {
+      var text = chip.getAttribute('data-tip');
+      if (!text) return;
+      tip.textContent = text;
+      statTooltipKonumla(chip, tip);
+    });
+    chip.addEventListener('mouseleave', function() {
+      tip.classList.add('gizli');
+    });
+  });
+}
+
+function arayuzGuncelle() {
+  var kasaEl = document.getElementById('kasa');
+  if (kasaEl) kasaEl.innerText = fmt(oyuncuKasa) + ' TL';
+  var gucEl = document.getElementById('guc');
+  if (gucEl) gucEl.innerText = fmt(oyuncuGuc);
+  var puanEl = document.getElementById('puan');
+  if (puanEl) puanEl.innerText = fmt(oyuncuPuan);
+  var icraatEl = document.getElementById('icraat');
+  if (icraatEl) {
+    icraatEl.innerText = fmt(oyuncuIcraat);
+  }
+  var chipIcraat = document.getElementById('chipIcraat');
+  if (chipIcraat) {
+    chipIcraat.setAttribute('data-tip', 'Saatlik +' + oyuncuIcraatSaatlikBonus + ' hak kazanılır');
+  }
+  var smsEl = document.getElementById('smsHakki');
+  if (smsEl) smsEl.innerText = fmt(oyuncuSms);
+  var devEl = document.getElementById('devletIliskisi');
+  if (devEl) {
+    devEl.innerText = fmt(oyuncuDevlet);
+    devEl.style.color = oyuncuDevlet < 5 ? '#ff6666' : '#ffffff';
+  }
+  var puanEl2 = document.getElementById('puan');
+  if (puanEl2) puanEl2.style.color = '#ffffff';
+  var gucEl2 = document.getElementById('guc');
+  if (gucEl2) gucEl2.style.color = '#ffffff';
+  var kasaEl2 = document.getElementById('kasa');
+  if (kasaEl2) kasaEl2.style.color = '#ffffff';
+  var bankaEl = document.getElementById('bankaUst');
+  if (bankaEl) bankaEl.innerText = fmt(bankaBakiye) + ' TL';
+  var onlineEl = document.getElementById('onlineSayisi');
+  if (onlineEl) onlineEl.innerText = String(onlineSayisi);
 }
 
 function mafyaMenuYanip() {
@@ -394,9 +612,53 @@ function mesajMenuYanip() {
   if (sohbet) sohbet.classList.toggle('mesaj-yanip', okunmamisMesaj);
 }
 
+function sohbetMenuAc() {
+  var menu = document.getElementById('sohbetMenu');
+  var btn = document.getElementById('sohbetMenuBtn');
+  if (menu) menu.classList.add('acik');
+  if (btn) btn.classList.add('aktif-menu');
+}
+
+function mesajGonderenBaslik(m) {
+  if (m.gonderenEtiketi) return 'Gönderen: ' + m.gonderenEtiketi;
+  if (m.tip === 'mafya_grup') {
+    return 'Gönderen: Mafya Grubu - ' + (m.gonderenAdi || m.konu || '?');
+  }
+  if (m.tip === 'saldiri') {
+    return 'Gönderen: Sistem' + (m.konu ? ' — ' + m.konu : '');
+  }
+  return 'Gönderen: ' + (m.gonderenAdi || m.konu || 'Sistem');
+}
+
 function gazeteMenuYanip() {
   var btn = document.getElementById('gazeteMenuBtn');
   if (btn) btn.classList.toggle('gazete-yanip', yeniGazeteHaber);
+}
+
+function gunlukGorevMenuYanip() {
+  var btn = document.getElementById('gunlukGorevlerMenuBtn');
+  if (btn) btn.classList.toggle('gorev-yanip', gunlukGorevBildirim);
+}
+
+function gunlukGorevBildirimGuncelle() {
+  gunlukGorevMenuYanip();
+  var plaque = document.getElementById('masterFramePlaque');
+  if (plaque) {
+    plaque.classList.toggle('gorev-plaque-yanip', gunlukGorevBildirim && aktifEkran === 'gunlukGorevler');
+  }
+  var kart = document.querySelector('.gunluk-gorevler-kart');
+  if (kart) kart.classList.toggle('gorev-sayfa-yanip', gunlukGorevBildirim && aktifEkran === 'gunlukGorevler');
+}
+
+function gunlukGorevSureSinifi(metin, kabulEdildi) {
+  var cls = 'gg-hucre gg-sure';
+  if (!metin || metin === '—') return cls;
+  if (!kabulEdildi) {
+    if (metin.indexOf('dk') >= 0) cls += ' gg-sure--onizleme-sureli';
+    else if (metin === 'Süresiz') cls += ' gg-sure--onizleme-suresiz';
+    else if (metin === 'Gün sonu') cls += ' gg-sure--onizleme-gunsonu';
+  }
+  return cls;
 }
 
 function toggleMenu(id, btn) {
@@ -450,13 +712,25 @@ function toast(mesaj, tip) {
   }, 3200);
 }
 
-function pencereAc(isAdi, netKazanc, icraat, gorselUrl) {
+function pencereAc(isAdi, netKazanc, icraat, gorselUrl, devletDusus, yeniDevletIliski) {
   sesCal('saldiri');
   document.getElementById('modalResim').src = gorselUrl || isGorselleri.varsayilan;
   document.getElementById('modalTebrik').innerHTML =
     aktifReisAdi + ' Reis! <span style="color:#b8942a;">' + isAdi + '</span> başarıyla tamamlandı.';
   document.getElementById('modalPara').innerText = '+' + fmt(netKazanc) + ' TL';
   document.getElementById('modalIcraat').innerText = icraat > 0 ? '-' + icraat + ' Hak' : '—';
+  var devSatir = document.getElementById('modalDevletSatir');
+  var devEl = document.getElementById('modalDevlet');
+  if (devSatir && devEl) {
+    if (devletDusus) {
+      devSatir.style.display = '';
+      var yeni = yeniDevletIliski != null ? yeniDevletIliski : oyuncuDevlet;
+      devEl.innerText = '-' + devletDusus + ' (yeni: ' + fmt(yeni) + ')';
+    } else {
+      devSatir.style.display = 'none';
+      devEl.innerText = '';
+    }
+  }
   document.getElementById('soygunModal').classList.add('acik');
 }
 
@@ -470,16 +744,1000 @@ function imgFallback(el) {
   if (el && el.src !== FALLBACK) el.src = FALLBACK;
 }
 
-function guclenKartHTML(key, img, imgCls, baslik, alinti, maliyet, guc, gucRenk, btnLabel, btnCls) {
+function sadakatIsimListesiHTML(isimler) {
+  if (!isimler || !isimler.length) return '<p class="sy-liste-bos">Henüz kimse yok</p>';
+  if (isimler.length === 1) return '<p>' + escHtml(isimler[0]) + '</p>';
+  var html = '<ul class="sy-isim-listesi">';
+  for (var i = 0; i < isimler.length; i++) {
+    html += '<li>' + escHtml(isimler[i]) + '</li>';
+  }
+  return html + '</ul>';
+}
+
+function babaMakamSayfaHTML(opts) {
+  var makam = opts.makam;
+  var m = makamBul(makam);
+  var babaAd = m.sahipAdi;
+  var benim = !!(babaAd && babaAd === aktifReisAdi);
+  var modCls = opts.mod ? ' sy-cerceve--' + opts.mod : '';
+
+  var html = '<div class="sy-sayfa">'
+    + '<p class="sy-ust-uyari">' + escHtml(HUKUM_SAVUNMA_METIN) + '</p>'
+    + '<div class="sy-cerceve' + modCls + '">'
+    + '<div class="sy-banner">'
+    + '<img src="' + ARKA_PLAN_GORSEL + '" alt="" onerror="imgFallback(this)">'
+    + '<div class="sy-banner-ortu" aria-hidden="true"></div>'
+    + '<div class="sy-baslik-wrap">'
+    + '<span class="sy-baslik-ikon" aria-hidden="true">' + (opts.ikon || '🦅') + '</span>'
+    + '<h2>' + escHtml(opts.baslik || '') + '</h2>'
+    + '<p class="sy-motto">' + escHtml(opts.motto || '') + '</p>'
+    + '</div></div>'
+    + '<div class="sy-govde">'
+    + '<div class="sy-baba-satir"><span class="sy-etiket">Babanız</span>';
+
+  if (babaAd) {
+    html += '<span class="sy-baba-ad">' + escHtml(babaAd) + '</span>';
+  } else {
+    html += '<span class="sy-baba-ad sy-baba-ad--bos">Henüz baba yok</span>';
+  }
+
+  html += '</div>';
+
+  var metinler = opts.metinler || [];
+  for (var i = 0; i < metinler.length; i++) {
+    html += '<p class="sy-cagri">' + metinler[i] + '</p>';
+  }
+
+  html += '<div class="sy-ayrac" aria-hidden="true"><span>✦</span></div>'
+    + '<div class="sy-derki-blok"><span class="sy-derki-etiket">Babanız derki</span>';
+
+  if (benim) {
+    html += '<textarea id="babaDerki-' + makam + '" placeholder="Sözünü yaz..." maxlength="500">'
+      + escHtml(m.babaDerki || '') + '</textarea>'
+      + '<button type="button" class="btn-is mavi-btn sy-yazdir-btn" onclick="babaDerkiKaydet(\'' + makam + '\')">[ ✍️ YAZDIR ]</button>';
+  } else {
+    html += '<p class="sy-derki-metin">' + (m.babaDerki ? escHtml(m.babaDerki) : '—') + '</p>';
+  }
+
+  html += '</div>'
+    + '<button type="button" class="sy-makam-btn" onclick="babaCok(\'' + makam + '\')">[ 👑 MAKAMA ÇÖK — 1 İCRAAT ]</button>';
+
+  if (opts.altIcerik) html += opts.altIcerik;
+
+  return html + '</div></div></div>';
+}
+
+function sadakatYeminiHTML() {
+  var sad = (dunyaState.baba && dunyaState.baba.sadakat) || { taniyanlar: [], tanimayanlar: [] };
+  var taniyanHtml = sadakatIsimListesiHTML(sad.taniyanlar);
+  var tanimayanHtml = sadakatIsimListesiHTML(sad.tanimayanlar);
+  var taniyanSayi = sad.taniyanlar.length;
+  var tanimayanSayi = sad.tanimayanlar.length;
+
+  var altIcerik = '<div class="sy-oylar">'
+    + '<button type="button" class="sy-oy-btn sy-oy-btn--tani" onclick="sadakatOy(\'tani\')">[ 🤝 TANI ]</button>'
+    + '<button type="button" class="sy-oy-btn sy-oy-btn--red" onclick="sadakatOy(\'red\')">[ ❌ REDDET ]</button>'
+    + '</div>'
+    + '<div class="sy-listeler">'
+    + '<div class="sy-liste-kart sy-liste-kart--tani">'
+    + '<div class="sy-liste-baslik"><h4>TANIYANLAR</h4><span class="sy-liste-sayi">' + taniyanSayi + '</span></div>'
+    + taniyanHtml
+    + '</div>'
+    + '<div class="sy-liste-kart sy-liste-kart--red">'
+    + '<div class="sy-liste-baslik"><h4>TANIMAYANLAR</h4><span class="sy-liste-sayi">' + tanimayanSayi + '</span></div>'
+    + tanimayanHtml
+    + '</div></div>';
+
+  return babaMakamSayfaHTML({
+    makam: 'sadakat_yemini',
+    mod: 'sadakat',
+    ikon: '🦅',
+    baslik: 'SADAKAT YEMİNİ',
+    motto: 'Kılıcımız değil, sözümüz keskindir; biat eden asla yarı yolda kalmaz.',
+    metinler: ['Babanıza Sadakat Yemini edin, rahat edin. Söz sahibi babanın sözü aşağıdadır.'],
+    altIcerik: altIcerik
+  });
+}
+
+function sozunuGecirHTML() {
+  return babaMakamSayfaHTML({
+    makam: 'sozunu_gecir',
+    mod: 'soz',
+    ikon: '📿',
+    baslik: 'SÖZÜNÜ GEÇİR',
+    motto: 'Söz bitince, icraat başlar. Şimdi herkes ayağını denk alsın.',
+    metinler: [
+      'Bu alemde en büyük söz sahibi babadır. Hepiniz sözünü dinleyeceksiniz!'
+    ]
+  });
+}
+
+function sehreHukmetSahipEtiket(m) {
+  if (m.sahipAdi) {
+    var benim = m.sahipAdi === aktifReisAdi;
+    return '<span class="sh-kart-sahip' + (benim ? ' sh-kart-sahip--benim' : '') + '">👑 ' + escHtml(m.sahipAdi) + '</span>';
+  }
+  return '<span class="sh-kart-sahip sh-kart-sahip--bos">Boş makam</span>';
+}
+
+function sehreHukmetLimanOzet() {
+  var ids = ['istanbul', 'izmir', 'hatay'];
+  var benim = 0;
+  var dolu = 0;
+  for (var i = 0; i < ids.length; i++) {
+    var l = limanBul(ids[i]);
+    if (l.sahipAdi) dolu++;
+    if (l.sahipAdi === aktifReisAdi) benim++;
+  }
+  if (benim > 0) {
+    return '<span class="sh-kart-sahip sh-kart-sahip--benim">👑 ' + benim + '/3 liman sizde</span>';
+  }
+  if (dolu > 0) {
+    return '<span class="sh-kart-sahip">' + dolu + '/3 liman dolu</span>';
+  }
+  return '<span class="sh-kart-sahip sh-kart-sahip--bos">3 liman müsait</span>';
+}
+
+function sehreHukmetHubHTML() {
+  var soz = makamBul('sozunu_gecir');
+  var sadakat = makamBul('sadakat_yemini');
+
+  return '<div class="sh-hub">'
+    + '<p class="sh-ust-uyari">' + escHtml(HUKUM_SAVUNMA_METIN) + '</p>'
+    + '<div class="sh-cerceve">'
+    + '<div class="sh-banner">'
+    + '<img src="' + ARKA_PLAN_GORSEL + '" alt="" onerror="imgFallback(this)">'
+    + '<div class="sh-banner-ortu" aria-hidden="true"></div>'
+    + '<div class="sh-baslik-wrap">'
+    + '<span class="sh-krone" aria-hidden="true">👑</span>'
+    + '<h2>ŞEHRE HÜKMET</h2>'
+    + '<p class="sh-baslik-alt">Tahtın üç kapısı — söz, sadakat ve liman.</p>'
+    + '</div></div>'
+    + '<div class="sh-kartlar">'
+    + '<button type="button" class="sh-kart sh-kart--soz" onclick="ekranDegistir(\'baba_soz\')">'
+    + '<span class="sh-kart-ikon" aria-hidden="true">📿</span>'
+    + '<div class="sh-kart-icerik"><h3>SÖZÜNÜ GEÇİR</h3>'
+    + '<p class="sh-kart-aciklama">Alemde en büyük söz burada konur; herkes dinler.</p>'
+    + sehreHukmetSahipEtiket(soz)
+    + '</div></button>'
+    + '<button type="button" class="sh-kart sh-kart--sadakat" onclick="ekranDegistir(\'baba_sadakat\')">'
+    + '<span class="sh-kart-ikon" aria-hidden="true">⚔️</span>'
+    + '<div class="sh-kart-icerik"><h3>SADAKAT YEMİNİ</h3>'
+    + '<p class="sh-kart-aciklama">Babaya biat eden asla yarı yolda kalmaz.</p>'
+    + sehreHukmetSahipEtiket(sadakat)
+    + '</div></button>'
+    + '<button type="button" class="sh-kart sh-kart--liman" onclick="ekranDegistir(\'liman\')">'
+    + '<span class="sh-kart-ikon" aria-hidden="true">🚢</span>'
+    + '<div class="sh-kart-icerik"><h3>LİMAN İŞLETMELERİ</h3>'
+    + '<p class="sh-kart-aciklama">İstanbul, İzmir ve Hatay — saatlik dev gelir.</p>'
+    + sehreHukmetLimanOzet()
+    + '</div></button>'
+    + '</div>'
+    + '<p class="sh-alt-not">Makam veya liman ele geçirmek için 1 İcraat gerekir. Kazanan rakibin saygınlığının %5\'ini alır.</p>'
+    + '</div></div>';
+}
+
+function vizuelMenuHubHTML(mod, imgSrc, alt, zones) {
+  var html = '<div class="vizuel-menu-hub vizuel-menu--' + mod + '">'
+    + '<div class="vizuel-menu-wrap">'
+    + '<img class="vizuel-menu-img" src="' + imgSrc + '" alt="' + escHtml(alt) + '">';
+  for (var i = 0; i < zones.length; i++) {
+    var z = zones[i];
+    html += '<button type="button" class="vizuel-menu-zone vizuel-menu-zone--' + z.key + '"'
+      + ' onclick="ekranDegistir(\'' + z.tip + '\')" aria-label="' + escHtml(z.label) + '"></button>';
+  }
+  return html + '</div></div>';
+}
+
+function guclenHubHTML() {
+  return vizuelMenuHubHTML('guclen', '/images/guclen/guclen-menu.png?v=101', 'Güçlen — sokak dükkanları', [
+    { key: 'ekip', tip: 'korumaEkibi', label: 'Ekip Kirala' },
+    { key: 'silah', tip: 'silahlan', label: 'Silahlan' },
+    { key: 'luks', tip: 'luksYasam', label: 'Lüks Yaşam' }
+  ]);
+}
+
+function buyumeHubHTML() {
+  return vizuelMenuHubHTML('buyume', '/images/buyume/buyume-menu.png?v=101', 'Büyüme Adımları — yol ayrımı', [
+    { key: 'mahalle', tip: 'mahalle', label: 'Mahalle İşleri' },
+    { key: 'semt', tip: 'semt', label: 'Semt İşleri' },
+    { key: 'sehir', tip: 'sehir', label: 'Şehir İşleri' }
+  ]);
+}
+
+function mekanHubHTML() {
+  return vizuelMenuHubHTML('mekan', '/images/mekan/mekan-menu.png?v=101', 'Mekan Sahibi — yeraltı sektörleri', [
+    { key: 'yeralti', tip: 'sektor_yeralti', label: 'Yeraltı Sektörü' },
+    { key: 'silah', tip: 'sektor_silah', label: 'Silah Sektörü' },
+    { key: 'paket', tip: 'sektor_paket', label: 'Paket Sektörü' }
+  ]);
+}
+
+var gunlukGorevPanel = null;
+
+function gunlukGorevlerHTML() {
+  return '<div class="gunluk-gorevler-sayfa">' +
+    '<div class="gunluk-gorevler-kart">' +
+    '<div class="gunluk-gorevler-kart-baslik">' +
+    '<div class="gg-kart-baslik-sol">' +
+    '<h3 class="gg-kart-baslik">Görev Panosu</h3>' +
+    '<p class="gunluk-gorevler-aciklama">Günde <b>10 görev</b> sunulur · En fazla <b>3</b> tanesini kabul edebilirsin</p>' +
+    '</div>' +
+    '<div class="gunluk-gorevler-ozet" id="gunlukGorevOzet">Yükleniyor…</div>' +
+    '</div>' +
+    '<div class="gunluk-gorevler-tablo" id="gunlukGorevlerTablo">' +
+    '<div class="gunluk-gorev-satir gunluk-gorev-satir--baslik">' +
+    '<span class="gg-hucre gg-no">#</span>' +
+    '<span class="gg-hucre gg-gorev">Görev</span>' +
+    '<span class="gg-hucre gg-adet">Adet</span>' +
+    '<span class="gg-hucre gg-odul">Ödül</span>' +
+    '<span class="gg-hucre gg-sure">Süre</span>' +
+    '<span class="gg-hucre gg-aksiyon">Aksiyon</span>' +
+    '</div>' +
+    '<div class="gunluk-gorevler-govde" id="gunlukGorevSatirlari">' +
+    '<p class="gunluk-gorev-yukleniyor">Görevler yükleniyor…</p>' +
+    '</div></div></div></div>';
+}
+
+function gunlukGorevAdetHTML(g) {
+  if (!g.kabulEdildi) {
+    return '<span class="gg-adet-val">' + g.hedefAdet + '</span>';
+  }
+  var pct = g.hedefAdet > 0 ? Math.min(100, Math.round((g.ilerleme / g.hedefAdet) * 100)) : 0;
+  return '<div class="gg-ilerleme gg-ilerleme--satir">' +
+    '<span class="gg-adet-val">' + g.ilerleme + '<span class="gg-adet-ayrac">/</span>' + g.hedefAdet + '</span>' +
+    '<span class="gg-ilerleme-cubuk" aria-hidden="true"><span class="gg-ilerleme-dolgu" style="width:' + pct + '%"></span></span>' +
+    '</div>';
+}
+
+function gunlukGorevAksiyonHTML(g) {
+  if (g.durum === 'tamamlandi') {
+    return '<button type="button" class="gunluk-gorev-odul" data-slot="' + g.slot + '" onclick="gunlukGorevOdulAl(' + g.slot + ')">Ödülü Al</button>';
+  }
+  if (g.durum === 'teslim_edildi') {
+    return '<span class="gg-durum gg-durum--teslim">Teslim edildi</span>';
+  }
+  if (g.durum === 'basarisiz') {
+    return '<span class="gg-durum gg-durum--basarisiz">Başarısız</span>';
+  }
+  if (g.durum === 'iptal') {
+    return '<span class="gg-durum gg-durum--iptal">—</span>';
+  }
+  if (g.kabulEdildi) {
+    return '<span class="gg-durum gg-durum--aktif">Devam</span>';
+  }
+  if (gunlukGorevPanel && gunlukGorevPanel.kabulSayisi >= gunlukGorevPanel.kabulLimit) {
+    return '<span class="gg-durum gg-durum--iptal">Kota doldu</span>';
+  }
+  return '<button type="button" class="gunluk-gorev-kabul" data-slot="' + g.slot + '" onclick="gunlukGorevKabul(' + g.slot + ')">Kabul Et</button>';
+}
+
+function gunlukGorevlerCiz() {
+  var ic = document.getElementById('gunlukGorevSatirlari');
+  var ozet = document.getElementById('gunlukGorevOzet');
+  if (!ic || !gunlukGorevPanel) return;
+  if (ozet) {
+    ozet.innerHTML = '<span class="gg-ozet-etiket">Kabul edilen</span> ' +
+      '<span class="gg-ozet-sayi">' + gunlukGorevPanel.kabulSayisi + ' / ' + gunlukGorevPanel.kabulLimit + '</span>';
+  }
+  if (!gunlukGorevPanel.gorevler || !gunlukGorevPanel.gorevler.length) {
+    ic.innerHTML = '<p class="gunluk-gorev-bos">Bugün için görev bulunamadı.</p>';
+    return;
+  }
+  var html = '';
+  gunlukGorevPanel.gorevler.forEach(function (g) {
+    html +=
+      '<div class="gunluk-gorev-satir gg-satir--' + g.durum + (g.kabulEdildi ? ' gg-satir--kabul' : '') + (g.durum === 'tamamlandi' ? ' gg-satir--odul-bekliyor' : '') + '" data-slot="' + g.slot + '">' +
+      '<span class="gg-hucre gg-no"><span class="gg-no-rozet">' + g.slot + '</span></span>' +
+      '<span class="gg-hucre gg-gorev" title="' + escHtml(g.ad) + '">' + escHtml(g.ad) + '</span>' +
+      '<span class="gg-hucre gg-adet">' + gunlukGorevAdetHTML(g) + '</span>' +
+      '<span class="gg-hucre gg-odul">' + escHtml(g.odulMetni) + '</span>' +
+      '<span class="' + gunlukGorevSureSinifi(g.sureMetni, g.kabulEdildi) + '">' + escHtml(g.sureMetni) + '</span>' +
+      '<span class="gg-hucre gg-aksiyon">' + gunlukGorevAksiyonHTML(g) + '</span>' +
+      '</div>';
+  });
+  ic.innerHTML = html;
+  gunlukGorevBildirimGuncelle();
+}
+
+async function gunlukGorevlerYukle() {
+  var ic = document.getElementById('gunlukGorevSatirlari');
+  if (ic) ic.innerHTML = '<p class="gunluk-gorev-yukleniyor">Görevler yükleniyor…</p>';
+  try {
+    var res = await apiFetch('/api/gorevler');
+    var data = await res.json().catch(function () { return {}; });
+    if (!res.ok || !data.ok) {
+      if (ic) ic.innerHTML = '<p class="gunluk-gorev-bos">' + escHtml(data.error || 'Görevler yüklenemedi.') + '</p>';
+      return;
+    }
+    gunlukGorevPanel = data;
+    gunlukGorevBildirim = !!data.gunlukGorevBildirim;
+    gunlukGorevlerCiz();
+  } catch (_) {
+    if (ic) ic.innerHTML = '<p class="gunluk-gorev-bos">Sunucuya bağlanılamadı.</p>';
+  }
+}
+
+async function gunlukGorevKabul(slot) {
+  var ef = await sunucuAksiyon('gorev_kabul', slot);
+  if (!ef) return;
+  toast('Görev kabul edildi. Süre: ' + (ef.gorev && ef.gorev.sureMetni ? ef.gorev.sureMetni : '—'), 'basari');
+  await gunlukGorevlerYukle();
+}
+
+async function gunlukGorevOdulAl(slot) {
+  var ef = await sunucuAksiyon('gorev_odul_al', slot);
+  if (!ef) return;
+  toast('Ödül alındı: ' + (ef.odulMetni || ''), 'basari');
+  await gunlukGorevlerYukle();
+}
+
+// ========================
+// GÜVENLİ YER — premium dashboard
+// ========================
+var guvenliYerPanel = null;
+var guvenliYerOnizlemeSeviye = null;
+var guvenliYerAsamaGenis = false;
+
+var GY_KISA_AD = {
+  bos_arazi: 'Boş Arazi',
+  malikane_cit: 'Ahşap Çit',
+  tas_duvar: 'Taş Duvar',
+  bahce: 'Bahçe',
+  guclendirme_5: 'Giriş Kulesi',
+  enerji_duvari: 'Enerji Duvarı',
+  guclendirme_7: 'Savunma Hattı',
+  yeralti_hazirlik: 'Yeraltı Sığınağı',
+  gizli_duzenler: 'Gizli Düzenler',
+  keskin_nisanci: 'Nişancı Kulesi',
+  guclendirme_11: 'Yeraltı Ağı',
+  guclendirme_12: 'Lojistik Alanı',
+  helikopter_pisti: 'Havaalanı',
+  stratejik_bunker: 'Stratejik Bunker',
+  bunker_girisi: 'Bunker Girişi'
+};
+
+function gyGorselYolu(seviye) {
+  var n = Math.max(1, Math.min(15, parseInt(seviye, 10) || 1));
+  return '/images/guvenli-yer/levels/seviye-' + String(n).padStart(2, '0') + '.png';
+}
+
+function gyKisaAd(modul) {
+  if (!modul) return '';
+  return GY_KISA_AD[modul.id] || modul.ad || '';
+}
+
+function guvenliYerHTML() {
+  return '<div class="gy-dashboard">'
+    + '<div class="gy-dash-grid">'
+    + '<aside class="gy-asama-panel">'
+    + '<h3 class="gy-asama-baslik">GELİŞİM AŞAMALARI</h3>'
+    + '<div class="gy-asama-liste" id="guvenliYerAsamalar"><p class="gy-yukleniyor">…</p></div>'
+    + '<button type="button" class="gy-asama-tumunu" id="guvenliYerAsamaToggle" onclick="guvenliYerAsamaToggle()">TÜM AŞAMALARI GÖR</button>'
+    + '</aside>'
+    + '<main class="gy-hero">'
+    + '<div class="gy-hero-frame" id="guvenliYerKanvasWrap">'
+    + '<div class="gy-katman-sahne" id="guvenliYerSahne"></div>'
+    + '<div class="gy-hero-overlay">'
+    + '<div class="gy-hero-seviye" id="guvenliYerHeroSeviye">ÜS SEVİYESİ —</div>'
+    + '</div></div></main>'
+    + '<aside class="gy-durum-panel" id="guvenliYerPanel"><p class="gy-yukleniyor">Yükleniyor…</p></aside>'
+    + '</div>'
+    + '<section class="gy-onizleme-bar">'
+    + '<h4 class="gy-onizleme-baslik">SEVİYE ÖNİZLEME</h4>'
+    + '<div class="gy-onizleme-track" id="guvenliYerOnizleme"></div>'
+    + '</section>'
+    + '<footer class="gy-footer-perks">'
+    + '<div class="gy-perk"><div class="gy-perk-ikon-wrap" aria-hidden="true">🛡️</div>'
+    + '<span class="gy-perk-baslik">DAHA GÜÇLÜ</span><span class="gy-perk-alt">SAVUNMA</span></div>'
+    + '<div class="gy-perk"><div class="gy-perk-ikon-wrap" aria-hidden="true">💪</div>'
+    + '<span class="gy-perk-baslik">GÜÇ</span><span class="gy-perk-alt">ARTIŞI</span></div>'
+    + '<div class="gy-perk"><div class="gy-perk-ikon-wrap" aria-hidden="true">⭐</div>'
+    + '<span class="gy-perk-baslik">PRESTİJ</span><span class="gy-perk-alt">KAZANCI</span></div>'
+    + '<div class="gy-perk"><div class="gy-perk-ikon-wrap" aria-hidden="true">🔓</div>'
+    + '<span class="gy-perk-baslik">YENİ</span><span class="gy-perk-alt">ÖZELLİKLER</span></div>'
+    + '</footer></div>';
+}
+
+function guvenliYerAsamaToggle() {
+  guvenliYerAsamaGenis = !guvenliYerAsamaGenis;
+  var btn = document.getElementById('guvenliYerAsamaToggle');
+  if (btn) btn.textContent = guvenliYerAsamaGenis ? 'DAHA AZ GÖSTER' : 'TÜM AŞAMALARI GÖR';
+  guvenliYerAsamalarCiz();
+}
+
+function guvenliYerOnizlemeSec(seviye) {
+  if (!guvenliYerPanel) return;
+  var s = parseInt(seviye, 10);
+  var mevcut = guvenliYerPanel.base.baseSeviye || 1;
+  if (s > mevcut + 1) return;
+  guvenliYerOnizlemeSeviye = (s === mevcut) ? null : s;
+  renderBase();
+  guvenliYerOnizlemeCiz();
+}
+
+function renderBase() {
+  var sahn = document.getElementById('guvenliYerSahne');
+  var heroSev = document.getElementById('guvenliYerHeroSeviye');
+  if (!sahn || !guvenliYerPanel) return;
+
+  var mevcut = guvenliYerPanel.base.baseSeviye || 1;
+  var goster = guvenliYerOnizlemeSeviye || mevcut;
+  var src = gyGorselYolu(goster);
+
+  sahn.innerHTML = '';
+  var img = document.createElement('img');
+  img.className = 'gy-katman';
+  img.src = src + '?v=' + GORSEL_VERSIYON;
+  img.alt = 'Güvenli Yer — Seviye ' + goster;
+  img.draggable = false;
+  sahn.appendChild(img);
+
+  if (heroSev) {
+    heroSev.textContent = 'ÜS SEVİYESİ ' + mevcut + ' / 15';
+  }
+}
+
+function guvenliYerAsamalarCiz() {
+  var el = document.getElementById('guvenliYerAsamalar');
+  if (!el || !guvenliYerPanel) return;
+  var mevcut = guvenliYerPanel.base.baseSeviye || 1;
+  var sonrakiSev = guvenliYerPanel.sonraki ? guvenliYerPanel.sonraki.seviye : null;
+  var moduller = (guvenliYerPanel.moduller || []).filter(function (m) { return m.seviye > 1; });
+  var limit = guvenliYerAsamaGenis ? moduller.length : 5;
+  var html = '';
+
+  moduller.slice(0, limit).forEach(function (m, idx) {
+    var cls = 'gy-asama-item';
+    var no = '';
+    if (m.acik && m.seviye < mevcut) {
+      cls += ' gy-asama-item--tamam';
+      no = '✓';
+    } else if (m.seviye === sonrakiSev || (m.seviye === mevcut && !sonrakiSev)) {
+      cls += ' gy-asama-item--aktif';
+      no = String(idx + 1);
+    } else if (!m.acik) {
+      cls += ' gy-asama-item--kilit';
+      no = String(m.seviye);
+    } else {
+      cls += ' gy-asama-item--tamam';
+      no = '✓';
+    }
+    html += '<div class="' + cls + '">'
+      + '<span class="gy-asama-no">' + no + '</span>'
+      + '<div class="gy-asama-metin"><strong>' + escHtml(gyKisaAd(m)) + '</strong>'
+      + '<span>' + escHtml(m.aciklama) + '</span></div>'
+      + (cls.indexOf('kilit') !== -1 ? '<span class="gy-asama-kilit">🔒</span>' : '')
+      + '</div>';
+  });
+  el.innerHTML = html || '<p class="gy-yukleniyor">Aşama yok</p>';
+}
+
+function guvenliYerOnizlemeCiz() {
+  var el = document.getElementById('guvenliYerOnizleme');
+  if (!el || !guvenliYerPanel) return;
+  var mevcut = guvenliYerPanel.base.baseSeviye || 1;
+  var html = '';
+  (guvenliYerPanel.moduller || []).forEach(function (m) {
+    var cls = 'gy-onizleme-thumb';
+    var rozet = String(m.seviye);
+    if (m.seviye <= mevcut) {
+      cls += ' gy-onizleme-thumb--tamam';
+      rozet = '✓';
+    } else if (m.seviye === mevcut + 1) {
+      cls += ' gy-onizleme-thumb--mevcut';
+    } else {
+      cls += ' gy-onizleme-thumb--kilit';
+      rozet = '🔒';
+    }
+    if (guvenliYerOnizlemeSeviye === m.seviye) cls += ' gy-onizleme-thumb--onizleme';
+    var src = m.gorselSrc || gyGorselYolu(m.seviye);
+    var tikla = m.seviye <= mevcut + 1 ? ' onclick="guvenliYerOnizlemeSec(' + m.seviye + ')"' : '';
+    html += '<button type="button" class="' + cls + '"' + tikla + '>'
+      + '<img src="' + src + '?v=' + GORSEL_VERSIYON + '" alt="' + escHtml(gyKisaAd(m)) + '">'
+      + '<span>' + escHtml(gyKisaAd(m)) + '</span>'
+      + '<span class="gy-onizleme-rozet">' + rozet + '</span>'
+      + '</button>';
+  });
+  el.innerHTML = html;
+}
+
+function guvenliYerPanelCiz() {
+  var panel = document.getElementById('guvenliYerPanel');
+  if (!panel || !guvenliYerPanel) return;
+  var b = guvenliYerPanel.base || {};
+  var sonraki = guvenliYerPanel.sonraki;
+  var mevcutGuc = oyuncuGuc;
+  var bonus = b.gucBonus || 0;
+
+  var html = '<h3 class="gy-durum-baslik">ÜS DURUMU</h3>'
+    + '<div class="gy-stat-kart"><span class="gy-stat-ikon">🏠</span><div class="gy-stat-metin">'
+    + '<small>Seviye</small><b>' + (b.baseSeviye || 1) + ' / 15</b></div></div>'
+    + '<div class="gy-stat-kart"><span class="gy-stat-ikon">🛡️</span><div class="gy-stat-metin">'
+    + '<small>Toplam Güç</small><b>' + fmt(mevcutGuc) + '</b></div></div>'
+    + '<div class="gy-stat-kart"><span class="gy-stat-ikon">💵</span><div class="gy-stat-metin">'
+    + '<small>Kasadaki Nakit</small><b class="gy-yesil">' + fmt(oyuncuKasa) + ' TL</b></div></div>';
+
+  if (sonraki) {
+    var disabled = !sonraki.yeterliPara ? ' disabled' : '';
+    var sonrakiGuc = mevcutGuc + (sonraki.gucBonus || 0);
+    html += '<div class="gy-yukselt-kart">'
+      + '<h4>Sonraki: ' + escHtml(gyKisaAd(sonraki)) + '</h4>'
+      + '<p style="margin:0 0 8px;color:#888;font-size:12px;">' + escHtml(sonraki.aciklama) + '</p>'
+      + '<div class="gy-yukselt-satir"><span>Güç Kazancı</span><b class="gy-arti">+' + fmt(sonraki.gucBonus || 0) + '</b></div>'
+      + '<div class="gy-yukselt-satir"><span>Maliyet</span><b>' + fmt(sonraki.maliyet) + ' TL</b></div>'
+      + '<div class="gy-guc-karsilastir">'
+      + '<span>MEVCUT <b>' + fmt(mevcutGuc) + '</b></span>'
+      + '<span class="gy-ok">→</span>'
+      + '<span>SONRAKİ <b>' + fmt(sonrakiGuc) + '</b></span>'
+      + '</div>'
+      + '<button type="button" class="gy-gelistir-btn" id="guvenliYerGelistirBtn"' + disabled
+      + ' onclick="guvenliYerGelistir()">ÜSSÜ GELİŞTİR</button>'
+      + '</div>';
+  } else {
+    html += '<div class="gy-tamamlandi">Üssün tam kapasiteye ulaştı.</div>';
+  }
+  panel.innerHTML = html;
+}
+
+function guvenliYerTumunuCiz() {
+  guvenliYerPanelCiz();
+  guvenliYerAsamalarCiz();
+  guvenliYerOnizlemeCiz();
+  renderBase();
+}
+
+async function guvenliYerYukle() {
+  var panel = document.getElementById('guvenliYerPanel');
+  if (panel) panel.innerHTML = '<p class="gy-yukleniyor">Yükleniyor…</p>';
+  try {
+    var res = await apiFetch('/api/guvenli-yer');
+    var data = await res.json().catch(function () { return {}; });
+    if (!res.ok || !data.ok) {
+      if (panel) panel.innerHTML = '<p style="color:#c66;">' + escHtml(data.error || 'Yüklenemedi.') + '</p>';
+      return;
+    }
+    guvenliYerPanel = data;
+    guvenliYerOnizlemeSeviye = null;
+    guvenliYerTumunuCiz();
+  } catch (_) {
+    if (panel) panel.innerHTML = '<p style="color:#c66;">Sunucuya bağlanılamadı.</p>';
+  }
+}
+
+async function guvenliYerGelistir() {
+  var btn = document.getElementById('guvenliYerGelistirBtn');
+  if (btn) btn.disabled = true;
+  var ef = await sunucuAksiyon('guvenli_yer_gelistir');
+  if (btn && guvenliYerPanel && guvenliYerPanel.sonraki) btn.disabled = !guvenliYerPanel.sonraki.yeterliPara;
+  if (!ef) return;
+  toast(ef.mesaj || 'Üs geliştirildi.', 'basari');
+  guvenliYerOnizlemeSeviye = null;
+  if (ef.panel) {
+    guvenliYerPanel = ef.panel;
+    guvenliYerTumunuCiz();
+  } else {
+    await guvenliYerYukle();
+  }
+}
+
+function guvenliYerResizeBagla() {}
+
+var ISTIHBARAT_ELEMAN_MALIYET = 50000;
+var ISTIHBARAT_ELEMAN_GUC = 100;
+var ISTIHBARAT_ELEMAN_ZAM = 0.05;
+
+function istihbaratBirimMaliyetHesap(sayi) {
+  var n = Math.max(0, parseInt(sayi, 10) || 0);
+  return Math.floor(ISTIHBARAT_ELEMAN_MALIYET * Math.pow(1 + ISTIHBARAT_ELEMAN_ZAM, n));
+}
+
+function istihbaratPanelHTML() {
+  return '<div class="istih-sayfa">'
+    + '<div class="istih-cerceve">'
+    + '<header class="istih-baslik">'
+    + '<div class="istih-baslik-ikon" aria-hidden="true">🕵️</div>'
+    + '<h2>İSTİHBARAT</h2>'
+    + '<p class="istih-baslik-alt">"Bilgi güçtür. Rakiplerinin gücünü öğrenmek için istihbarat elemanları al!"</p>'
+    + '</header>'
+    + '<section class="istih-kart">'
+    + '<div class="istih-kart-sekme">İstihbarat Elemanları</div>'
+    + '<div class="istih-eleman-govde">'
+    + '<div class="istih-ajan-portre"><img src="/images/istihbarat/istihbarat-ajan.png?v=102" alt="İstihbarat elemanı"></div>'
+    + '<div class="istih-eleman-icerik">'
+    + '<h3>İstihbarat Elemanları</h3>'
+    + '<ul class="istih-stat-list">'
+    + '<li>🕵️ Mevcut Eleman: <b id="istihbaratElemanSayi">' + istihbaratEleman + '</b></li>'
+    + '<li>💵 Birim Maliyeti: <b id="istihbaratBirimMaliyet">' + fmt(istihbaratBirimMaliyetHesap(istihbaratEleman)) + ' TL</b></li>'
+    + '<li class="istih-zam-not">Her alımda birim fiyat %5 artar.</li>'
+    + '<li>⚔️ Birim Güç: <b>+' + ISTIHBARAT_ELEMAN_GUC + '</b></li>'
+    + '</ul>'
+    + '<div class="istih-adet-satir"><label for="adet-istihbarat">Adet</label>'
+    + '<input type="number" id="adet-istihbarat" class="istih-adet-input" value="1" min="1" max="100"></div>'
+    + '<button type="button" class="istih-btn istih-btn--yesil" onclick="istihbaratAl()">🕵️ [ ELEMAN AL ]</button>'
+    + '</div></div></section>'
+    + '<section class="istih-kart">'
+    + '<div class="istih-kart-sekme">Rakip İstihbarat</div>'
+    + '<p class="istih-rakip-aciklama">Rakip oyuncunun gücünü öğrenmek için adını yaz.</p>'
+    + '<div class="istih-rakip-satir">'
+    + '<input type="text" id="istihbaratHedef" class="istih-hedef-input" placeholder="Rakip reis adı..." maxlength="24" autocomplete="off">'
+    + '<button type="button" class="istih-btn istih-btn--mavi" onclick="istihbaratSpy()">🔍 [ GÜCÜ ÖĞREN ]</button>'
+    + '</div></section>'
+    + '<div id="istihbaratSonuc" class="istih-sonuc gizli"></div>'
+    + '</div></div>';
+}
+
+function istihbaratEkranBagla() {
+  var input = document.getElementById('istihbaratHedef');
+  if (!input) return;
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      istihbaratSpy();
+    }
+  });
+}
+
+function istihbaratSonucGoster(html, tip) {
+  var sonucDiv = document.getElementById('istihbaratSonuc');
+  if (!sonucDiv) return;
+  sonucDiv.className = 'istih-sonuc istih-sonuc--' + (tip || 'uyari');
+  sonucDiv.innerHTML = html;
+}
+
+function dusmanPanelHTML() {
+  return '<div class="dusman-hub">'
+    + '<div class="dusman-panel">'
+    + '<img class="dusman-panel-img" src="/images/dusman/dusman-panel.png?v=' + GORSEL_VERSIYON + '" alt="Düşmana Çök">'
+    + '<div class="dusman-panel-input-ortu" aria-hidden="true"></div>'
+    + '<input type="text" id="dusmanHedef" class="dusman-panel-input" placeholder="Düşman Adını Yaz..." maxlength="24" autocomplete="off">'
+    + '<button type="button" id="dusmanAraBtn" class="dusman-panel-btn" onclick="dusmanAra()" aria-label="Düşman Ara"></button>'
+    + '</div>'
+    + '<div id="dusmanSonuc" class="dusman-sonuc-alt"></div>'
+    + '<div class="dusman-guc-alan is-kart">'
+    + '<h3 class="bolum-baslik">⚔️ Güç Değeri</h3>'
+    + '<p class="dusman-guc-aciklama">Gücünün %10\'u ile %150\'si arasındaki rakipleri bul. Rakip güçleri gizlidir.</p>'
+    + '<button type="button" class="btn-is mavi-btn" onclick="dusmanRakipAra()">[ 🔍 RAKİP ARA ]</button>'
+    + '</div>'
+    + '<div id="dusmanRakipKutu" class="gizli dusman-rakip-kutu"></div>'
+    + '</div>';
+}
+
+function dusmanEkranBagla() {
+  var input = document.getElementById('dusmanHedef');
+  if (!input) return;
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      dusmanAra();
+    }
+  });
+  setTimeout(function() { input.focus(); }, 60);
+}
+
+function dusmanHedefKartHTML(o) {
+  return '<div class="dusman-hedef-kart">'
+    + '<h3>' + escHtml(o.reisAdi) + '</h3>'
+    + '<p>🏷️ ' + escHtml(o.lakap || 'Mafya') + ' &nbsp;|&nbsp; 🕶️ Saygınlık: <b>' + fmt(o.puan || 0) + '</b></p>'
+    + (o.grup ? '<p>🕶️ Grup: ' + escHtml(o.grup) + '</p>' : '')
+    + '<div class="dusman-hedef-aksiyon">'
+    + '<button type="button" class="btn-is kirmizi-btn" onclick="dusmanaSaldir()">[ ⚔️ SALDIR ]</button>'
+    + '<button type="button" class="btn-is mavi-btn" onclick="oyuncuProfilGoster(' + o.userId + ')">[ 👤 PROFİL ]</button>'
+    + '</div></div>';
+}
+
+async function dusmanRakipAra() {
+  var kutu = document.getElementById('dusmanRakipKutu');
+  if (!kutu) return;
+  kutu.classList.remove('gizli');
+  kutu.innerHTML = '<p style="color:#888;text-align:center;padding:12px;">Rakipler aranıyor...</p>';
+  try {
+    var res = await apiFetch('/api/oyuncu/rakipler');
+    var data = await res.json().catch(function() { return {}; });
+    if (!res.ok || !data.ok) {
+      kutu.innerHTML = '<div class="dusman-rakip-kart"><p style="color:#c66;text-align:center;">' + escHtml(data.error || 'Rakip bulunamadı.') + '</p></div>';
+      return;
+    }
+    dusmanRakipListesi = data.liste || [];
+    dusmanRakipKutuCiz();
+  } catch (_) {
+    kutu.innerHTML = '<div class="dusman-rakip-kart"><p style="color:#c66;text-align:center;">Bağlantı hatası.</p></div>';
+  }
+}
+
+function dusmanRakipKutuCiz() {
+  var kutu = document.getElementById('dusmanRakipKutu');
+  if (!kutu) return;
+  if (!dusmanRakipListesi.length) {
+    kutu.innerHTML = '<div class="dusman-rakip-kart">'
+      + '<p style="color:#888;text-align:center;">Bu güç aralığında uygun rakip bulunamadı.</p>'
+      + '<div class="dusman-hedef-aksiyon">'
+      + '<button type="button" class="btn-is" onclick="dusmanRakipAra()">[ 🔄 DEĞİŞTİR ]</button>'
+      + '<button type="button" class="btn-is koyu-btn" onclick="dusmanRakipKapat()">[ ✕ KAPAT ]</button>'
+      + '</div></div>';
+    return;
+  }
+  var html = '<div class="dusman-rakip-kart">'
+    + '<h3 class="bolum-baslik">Uygun Rakipler</h3>'
+    + '<p class="dusman-guc-aciklama">Güç değerleri gizli — sadece isim ve saygınlık görünür.</p>';
+  dusmanRakipListesi.forEach(function(o) {
+    html += '<div class="dusman-rakip-satir">'
+      + '<div class="dusman-rakip-bilgi"><b>' + escHtml(o.reisAdi) + '</b>'
+      + '<span class="dusman-rakip-meta">🏷️ ' + escHtml(o.lakap || 'Mafya')
+      + (o.grup ? ' · 🕶️ ' + escHtml(o.grup) : '')
+      + ' · ' + fmt(o.puan || 0) + ' saygınlık</span></div>'
+      + '<button type="button" class="btn-is kirmizi-btn" onclick="dusmanaSaldirId(' + o.userId + ')">[ ⚔️ SALDIR ]</button>'
+      + '</div>';
+  });
+  html += '<div class="dusman-hedef-aksiyon">'
+    + '<button type="button" class="btn-is" onclick="dusmanRakipAra()">[ 🔄 DEĞİŞTİR ]</button>'
+    + '<button type="button" class="btn-is koyu-btn" onclick="dusmanRakipKapat()">[ ✕ KAPAT ]</button>'
+    + '</div></div>';
+  kutu.innerHTML = html;
+}
+
+function dusmanRakipKapat() {
+  var kutu = document.getElementById('dusmanRakipKutu');
+  if (kutu) kutu.classList.add('gizli');
+  dusmanRakipListesi = [];
+}
+
+function dusmanaSaldirId(userId) {
+  var ad = '';
+  for (var i = 0; i < dusmanRakipListesi.length; i++) {
+    if (dusmanRakipListesi[i].userId === userId) {
+      ad = dusmanRakipListesi[i].reisAdi;
+      break;
+    }
+  }
+  if (!ad && dusmanBulunanHedef && dusmanBulunanHedef.userId === userId) {
+    ad = dusmanBulunanHedef.reisAdi;
+  }
+  dusmanaSaldir(ad);
+}
+
+async function dusmanAra() {
+  var input = document.getElementById('dusmanHedef');
+  var btn = document.getElementById('dusmanAraBtn');
+  var sonuc = document.getElementById('dusmanSonuc');
+  if (!input || !sonuc) return;
+  var ad = input.value.trim();
+  if (!ad) {
+    toast('Düşman adını yaz!', 'hata');
+    input.focus();
+    return;
+  }
+  if (btn) btn.disabled = true;
+  sonuc.innerHTML = '<p style="color:#888;text-align:center;padding:12px;">Aranıyor...</p>';
+  try {
+    var res = await apiFetch('/api/oyuncu/ara?q=' + encodeURIComponent(ad));
+    var data = await res.json().catch(function() { return {}; });
+    if (!res.ok || !data.ok || !data.oyuncu) {
+      dusmanBulunanHedef = null;
+      sonuc.innerHTML = '<div class="saldiri-sonuc" style="color:#c66;">❌ ' + escHtml(data.error || 'Oyuncu bulunamadı.') + '</div>';
+      return;
+    }
+    dusmanBulunanHedef = data.oyuncu;
+    input.value = data.oyuncu.reisAdi;
+    sonuc.innerHTML = dusmanHedefKartHTML(data.oyuncu);
+  } catch (_) {
+    dusmanBulunanHedef = null;
+    sonuc.innerHTML = '<div class="saldiri-sonuc" style="color:#c66;">Bağlantı hatası.</div>';
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+function bankaPanelHTML() {
+  var yatirVars = oyuncuKasa > 0 ? String(Math.floor(oyuncuKasa / 2)) : '';
+  var cekVars = bankaBakiye > 0 ? String(Math.floor(bankaBakiye / 2)) : '';
+  var calcTuslar = [
+    { k: '1', l: '1' }, { k: '2', l: '2' }, { k: '3', l: '3' },
+    { k: '4', l: '4' }, { k: '5', l: '5' }, { k: '6', l: '6' },
+    { k: '7', l: '7' }, { k: '8', l: '8' }, { k: '9', l: '9' },
+    { k: '.', l: '.' }, { k: '0', l: '0' }, { k: 'sil', l: '⌫' }
+  ];
+  var calcHtml = '';
+  for (var i = 0; i < calcTuslar.length; i++) {
+    var t = calcTuslar[i];
+    var cls = 'banka-calc-tus' + (t.k === 'sil' ? ' banka-calc-tus--sil' : '');
+    calcHtml += '<button type="button" class="' + cls + '" onclick="bankaCalcTus(\'' + t.k + '\')">' + t.l + '</button>';
+  }
+  return '<div class="banka-sayfa">'
+    + '<div class="banka-bakiye-kart">'
+    + '<span class="banka-bakiye-etiket">Banka Hesabı</span>'
+    + '<span class="banka-bakiye-tutar" id="bankaBakiyeGoster">💰 ' + fmt(bankaBakiye) + ' TL</span>'
+    + '<span class="banka-kasa-not">Kasandaki nakit: <b>' + fmt(oyuncuKasa) + ' TL</b></span>'
+    + '<span class="banka-kasa-not">Banka hakkı: <b style="color:#ffd76a;">' + fmt(bankaHakki) + '</b> <span style="color:#777;">(Her 24 saatte +20)</span></span>'
+    + '</div>'
+    + '<div class="banka-bilgi-kart">'
+    + '<p>Saat <b>18:00</b>\'a kadar bankaya yatırılan para faiz işler. Ertesi gün saat <b>10:00</b>\'da miktarın <b>%1</b>\'i kadar faiz kazanırsın. Paranı dilediğin zaman çekebilirsin.</p>'
+    + '<p style="margin-top:8px;color:#888;">Günlük para yatırma ve çekme limiti banka hakkınla sınırlıdır (her işlem 1 hak).</p>'
+    + '</div>'
+    + '<div class="banka-islem-ust">'
+    + '<div class="banka-kart banka-kart--yatir">'
+    + '<h3>Para Yatır</h3>'
+    + '<p>Kazanmak için cesaretini yatır. Kasandaki paran bankaya aktarılır.</p>'
+    + '<label for="bankaYatirMiktar">Yatırılacak miktar (TL)</label>'
+    + '<input type="text" id="bankaYatirMiktar" class="banka-miktar-input" inputmode="numeric" autocomplete="off" placeholder="0" value="' + yatirVars + '">'
+    + '<button type="button" id="bankaYatirBtn" class="banka-btn-yatir" onclick="bankaYatir()">✓ YATIR</button>'
+    + '</div>'
+    + '<div class="banka-hesap-makinesi">'
+    + '<div class="banka-calc-ekran" id="bankaCalcEkran">0</div>'
+    + '<div class="banka-calc-grid">' + calcHtml + '</div>'
+    + '</div></div>'
+    + '<div class="banka-kart banka-kart--cek">'
+    + '<h3>Para Çek</h3>'
+    + '<p>Sahip olduğun gücü kontrol et. Bankadaki paran kasana geçer.</p>'
+    + '<label for="bankaCekMiktar">Çekilecek miktar (TL)</label>'
+    + '<input type="text" id="bankaCekMiktar" class="banka-miktar-input" inputmode="numeric" autocomplete="off" placeholder="0" value="' + cekVars + '">'
+    + '<button type="button" id="bankaCekBtn" class="banka-btn-cek" onclick="bankaCek()">✕ ÇEK</button>'
+    + '</div></div>';
+}
+
+function bankaEkranBagla() {
+  bankaCalcAktif = 'yatir';
+  var yatir = document.getElementById('bankaYatirMiktar');
+  var cek = document.getElementById('bankaCekMiktar');
+  if (!yatir || !cek) return;
+  function odak(tip) {
+    bankaCalcAktif = tip;
+    bankaCalcEkranGuncelle();
+  }
+  yatir.addEventListener('focus', function() { odak('yatir'); });
+  cek.addEventListener('focus', function() { odak('cek'); });
+  yatir.addEventListener('input', function() {
+    yatir.value = yatir.value.replace(/\D/g, '');
+    bankaCalcEkranGuncelle();
+  });
+  cek.addEventListener('input', function() {
+    cek.value = cek.value.replace(/\D/g, '');
+    bankaCalcEkranGuncelle();
+  });
+  odak('yatir');
+}
+
+function bankaCalcEkranGuncelle() {
+  var input = document.getElementById(bankaCalcAktif === 'yatir' ? 'bankaYatirMiktar' : 'bankaCekMiktar');
+  var ekran = document.getElementById('bankaCalcEkran');
+  if (!input || !ekran) return;
+  ekran.textContent = input.value || '0';
+}
+
+function bankaCalcTus(tus) {
+  var input = document.getElementById(bankaCalcAktif === 'yatir' ? 'bankaYatirMiktar' : 'bankaCekMiktar');
+  if (!input) return;
+  input.focus();
+  var v = String(input.value || '');
+  if (tus === 'sil') {
+    v = v.slice(0, -1);
+  } else if (tus === '.') {
+    return;
+  } else {
+    v = (v === '0' ? '' : v) + tus;
+  }
+  input.value = v;
+  bankaCalcEkranGuncelle();
+}
+
+function bankaMiktarOku(id) {
+  var el = document.getElementById(id);
+  if (!el) return 0;
+  return parseInt(String(el.value || '').replace(/\D/g, ''), 10) || 0;
+}
+
+function elitFiyatUygula(bazFiyat) {
+  var f = Math.floor(bazFiyat || 0);
+  return elitFiyatX2 ? Math.floor(f * 2) : f;
+}
+
+function elitFiyatGosterHtml(bazFiyat) {
+  var baz = Math.floor(bazFiyat || 0);
+  if (!elitFiyatX2) return '<b>' + fmt(baz) + ' TL</b>';
+  var uygulanmis = elitFiyatUygula(baz);
+  return '<span class="elit-fiyat-wrap">'
+    + '<span class="elit-fiyat-normal">' + fmt(baz) + ' TL</span> '
+    + '<b class="elit-fiyat-x2-deger">' + fmt(uygulanmis) + ' TL</b> '
+    + '<span class="elit-fiyat-badge">x2</span></span>';
+}
+
+function elitFiyatNotuHTML() {
+  if (elitFiyatX2) {
+    return '<p class="elit-fiyat-uyari">⚠️ Şehre Hükmeden veya en yüksek saygınlıklı oyuncu olduğun için alım fiyatların <b>x2</b> uygulanıyor (aşağıdaki fiyatlarda gösterilir).</p>';
+  }
+  return ELIT_FIYAT_NOTU;
+}
+
+function elitFiyatEkranTazele() {
+  var ic = document.getElementById('anaIcerik');
+  if (!ic || !aktifEkran) return;
+  if (aktifEkran === 'sektor_yeralti') sektorEkranCiz(ic, 'yeralti', 'YERALTI SEKTÖRÜ');
+  else if (aktifEkran === 'sektor_silah') sektorEkranCiz(ic, 'silah', 'SİLAH SEKTÖRÜ');
+  else if (aktifEkran === 'sektor_paket') sektorEkranCiz(ic, 'paket', 'PAKET SEKTÖRÜ');
+  else if (aktifEkran === 'korumaEkibi') guclenAltEkranCiz('korumaEkibi', ic);
+  else if (aktifEkran === 'silahlan') guclenAltEkranCiz('silahlan', ic);
+  else if (aktifEkran === 'luksYasam') guclenAltEkranCiz('luksYasam', ic);
+}
+
+async function guclenAltEkranCiz(tip, ic) {
+  ic.innerHTML = '<p style="color:#888;">Yükleniyor...</p>';
+  await elitFiyatDurumSenkronize();
+  if (aktifEkran !== tip) return;
+  if (tip === 'korumaEkibi') {
+    ic.innerHTML = '<h2>👥 KORUMA EKİBİ VE TETİKÇİLER</h2><p>"Arkanı sağlama al Reis."</p>'
+      + elitFiyatNotuHTML()
+      + guclenKartlariCiz(['delikanli', 'bodyguard', 'profesyonel', 'harekat'], koruyucuGorseller, 'vesikalik-resim', '#28a745', '🪙 ADAMI KİRALA');
+    return;
+  }
+  if (tip === 'silahlan') {
+    ic.innerHTML = '<h2>🔫 CEPHANELİK VE SİLAHLANMA</h2><p>"Sözün bittiği yerde silahlar konuşur."</p>'
+      + elitFiyatNotuHTML()
+      + guclenKartlariCiz(['tabanca', 'pompali', 'ak47', 'agir_silah', 'sniper'], silahGorseller, 'vesikalik-resim', '#00e5ff', '🔫 SİLAHI SATIN AL', 'mavi-btn');
+    return;
+  }
+  if (tip === 'luksYasam') {
+    ic.innerHTML = '<h2>💎 LÜKS YAŞAM</h2><p>"Lüks harcamalar ağırlığını artırır."</p>'
+      + elitFiyatNotuHTML()
+      + guclenKartlariCiz(['saat', 'motorsiklet', 'araba', 'yat', 'helikopter', 'jet'], luksGorseller, 'luks-resim', '#b8942a', '💎 SATIN AL', 'kirmizi-btn');
+  }
+}
+
+function guclenKartHTML(key, img, imgCls, baslik, alinti, bazMaliyet, guc, gucRenk, btnLabel, btnCls) {
+  var sahip = kiralamaEnvanter[key] || 0;
+  var maliyetTxt = typeof bazMaliyet === 'number' ? elitFiyatGosterHtml(bazMaliyet) : bazMaliyet;
   return '<div class="is-kart"><div class="is-yapi">'
     + '<img src="' + img + '" class="' + imgCls + '" alt="" loading="lazy" onerror="imgFallback(this)">'
     + '<div class="is-detay"><h3>' + baslik + '</h3><p>💬 ' + alinti + '</p>'
-    + '<p>💵 Birim: <b>' + maliyet + '</b> &nbsp;|&nbsp; ⚔️ Birim güç: <b style="color:' + gucRenk + ';">' + guc + '</b></p>'
+    + '<p>📦 Sahip: <b style="color:#ffd700;">' + sahip + ' adet</b></p>'
+    + '<p>💵 Birim: ' + maliyetTxt + ' &nbsp;|&nbsp; ⚔️ Birim güç: <b style="color:' + gucRenk + ';">' + guc + '</b></p>'
     + '<div class="adet-satir"><label for="adet-' + key + '">📦 Adet</label>'
     + '<input type="number" id="adet-' + key + '" class="adet-input" value="1" min="1" max="999"></div>'
     + '<button type="button" class="btn-is ' + (btnCls || '') + '" onclick="adamKirala(\'' + key + '\')">[ ' + btnLabel + ' ]</button>'
     + '</div></div></div>';
 }
+
+function guclenBazBirimFiyat(baz, sahip) {
+  return Math.floor(baz * Math.pow(1.01, sahip || 0));
+}
+
+function guclenBirimFiyat(baz, sahip) {
+  return elitFiyatUygula(guclenBazBirimFiyat(baz, sahip));
+}
+
+var ELIT_FIYAT_NOTU = '<p style="color:#fff;font-size:13px;margin:12px 0 16px;">Şehre Hükmet en oyuncuya ve en çok saygınlığı olan oyuncuya sektör ve güç alımlarında x2 fiyat uygulanır!</p>';
+var HUKUM_SAVUNMA_METIN = 'Şehre Hükmeden oyuncu saldırı aldığında gücü %50 düşük hesaplanır.';
+var HUKUM_SAVUNMA_NOTU = '<p style="color:#fff;font-size:13px;margin:12px 0 16px;">' + HUKUM_SAVUNMA_METIN + '</p>';
+
+function guclenKartlariCiz(keys, gorseller, imgCls, gucRenk, btnLabel, btnCls) {
+  var html = '';
+  for (var i = 0; i < keys.length; i++) {
+    var k = keys[i];
+    var info = HIRE_BILGI[k];
+    if (!info) continue;
+    var sahip = kiralamaEnvanter[k] || 0;
+    var bazFiyat = guclenBazBirimFiyat(info.maliyet, sahip);
+    html += guclenKartHTML(k, gorseller[k], imgCls, info.baslik, info.alinti, bazFiyat, '+' + fmt(info.guc), gucRenk, btnLabel, btnCls);
+  }
+  return html;
+}
+
+var HIRE_BILGI = {
+  delikanli: { maliyet: 500, guc: 50, baslik: '🪖 Mahalle Delikanlısı', alinti: '"Sokağın gözü kulağı."' },
+  bodyguard: { maliyet: 2000, guc: 250, baslik: '💪 BodyGuard Tut', alinti: '"Giriş çıkışları tutan duvar."' },
+  profesyonel: { maliyet: 8000, guc: 1100, baslik: '🕶️ Profesyonel Koruma', alinti: '"Takım elbiseli yakın koruma."' },
+  harekat: { maliyet: 30000, guc: 4500, baslik: '🦅 Özel Harekat Emeklisi', alinti: '"Operasyonların gizli beyni."' },
+  tabanca: { maliyet: 1200, guc: 100, baslik: '🔫 Baretta Tabanca', alinti: '"Yakın mesafe vazgeçilmezi."' },
+  pompali: { maliyet: 4500, guc: 450, baslik: '💥 Taktik Pompalı Tüfek', alinti: '"Barikatları dağıtan gürültü."' },
+  ak47: { maliyet: 15000, guc: 1800, baslik: '🔥 Gaddar Keleş (AK-47)', alinti: '"Yeraltının simgesi."' },
+  agir_silah: { maliyet: 45000, guc: 6000, baslik: '⚡ Görünmez Gölge', alinti: '"Ağır silah kasası."' },
+  sniper: { maliyet: 55000, guc: 7500, baslik: '🎯 AWM Keskin Nişancı', alinti: '"Uzun menzil hakimiyeti."' },
+  saat: { maliyet: 15000, guc: 2500, baslik: '⌚ Lüks Kol Saati', alinti: '"Prestij abidesi."' },
+  motorsiklet: { maliyet: 75000, guc: 15000, baslik: '🏍️ Klasik Özel Motorsiklet', alinti: '"Sokağın hakimine yakışan hız."' },
+  araba: { maliyet: 350000, guc: 80000, baslik: '🏎️ İtalyan Spor Araba', alinti: '"Prestij ve hız."' },
+  yat: { maliyet: 2500000, guc: 600000, baslik: '🛥️ Süper Lüks Yat', alinti: '"Deniz sarayı."' },
+  helikopter: { maliyet: 8000000, guc: 2000000, baslik: '🚁 Özel Taktik Helikopter', alinti: '"Havadan operasyon."' },
+  jet: { maliyet: 45000000, guc: 10000000, baslik: '🛩️ Özel Jet', alinti: '"Dünyanın her yerine ulaşım."' }
+};
 
 function isKartHTML(img, baslik, kazanc, icraat, guc, onclick) {
   return '<div class="is-kart"><div class="is-yapi">'
@@ -510,121 +1768,640 @@ function limanKartHTML(id) {
     + '</div></div></div>';
 }
 
-function babaMakamEkran(makam, baslik, govdeMetin) {
-  var m = makamBul(makam);
-  var babaAd = m.sahipAdi;
-  var benim = !!(babaAd && babaAd === aktifReisAdi);
-  var isimParca = babaAd
-    ? '<b style="color:#b8942a;">' + babaAd + '</b>'
-    : '<span style="color:#888;">Henüz baba yok</span>';
-  var metin = govdeMetin.replace(/\[BABA\]/g, isimParca);
-
-  var html = '<div class="baba-hero"><img src="' + ARKA_PLAN_GORSEL + '" alt="" onerror="imgFallback(this)"></div>'
-    + '<div class="is-kart baba-kart-icerik"><h3>' + baslik + '</h3>'
-    + '<div class="baba-metin-blok">' + metin + '</div>'
-    + '<div class="baba-derki-kutu"><b>Babanız derki;</b>';
-  if (benim) {
-    html += '<textarea id="babaDerki-' + makam + '" placeholder="Sözünü yaz...">' + (m.babaDerki || '') + '</textarea>'
-      + '<button class="btn-is mavi-btn" style="margin-top:8px;" onclick="babaDerkiKaydet(\'' + makam + '\')">[ ✍️ YAZDIR ]</button>';
-  } else {
-    html += '<p class="baba-derki-goster">' + (m.babaDerki ? m.babaDerki : '—') + '</p>';
-  }
-  html += '</div>';
-  if (makamBos(m) || !benim) {
-    html += '<button class="btn-savas" style="margin-top:14px;" onclick="babaCok(\'' + makam + '\')">[ 👑 MAKAMA ÇÖK — 1 İCRAAT ]</button>';
-  } else {
-    html += '<p style="margin-top:14px;color:#b8942a;font-weight:600;">👑 Bu makamın sahibi sensin Reis.</p>';
-  }
-  html += '</div>';
-  return html;
+function mekanDevriMekanSayisi() {
+  var n = 0;
+  Object.keys(sektorSahiplik || {}).forEach(function(sk) {
+    var s = sektorSahiplik[sk];
+    if (s && s.adet) n += s.adet;
+  });
+  return n;
 }
 
-function mekanDevriSecenekleri() {
-  var html = '<option value="">— Mekan seç —</option>';
+function mekanDevriMekanMeta(sk) {
+  var parts = sk.split(':');
+  if (parts.length < 2) return null;
+  var sektor = parts[0];
+  var key = parts[1];
+  var m = (mekanTanimlari[sektor] && mekanTanimlari[sektor][key]) || null;
+  if (!m && typeof MEKANLAR_VERI !== 'undefined' && MEKANLAR_VERI[sektor]) {
+    m = MEKANLAR_VERI[sektor][key];
+  }
+  return m;
+}
+
+function mekanDevriMekanGridHTML() {
+  var items = [];
   Object.keys(sektorSahiplik || {}).forEach(function(sk) {
     var s = sektorSahiplik[sk];
     if (!s || !s.adet) return;
-    var parts = sk.split(':');
-    if (parts.length < 2) return;
-    var sektor = parts[0];
-    var key = parts[1];
-    var m = (mekanTanimlari[sektor] && mekanTanimlari[sektor][key]) || null;
-    if (!m && typeof MEKANLAR_VERI !== 'undefined' && MEKANLAR_VERI[sektor]) {
-      m = MEKANLAR_VERI[sektor][key];
-    }
-    var ad = m ? m.ad : sk;
-    html += '<option value="' + sk + '">' + ad + ' (' + s.adet + ' adet)</option>';
+    items.push({ sk: sk, adet: s.adet, m: mekanDevriMekanMeta(sk) });
   });
+  if (!items.length) return '';
+
+  var html = '<div class="md-mekan-secim">'
+    + '<span class="md-mekan-secim-etiket">Devredilecek mekan</span>'
+    + '<input type="hidden" id="mekanDevriMekan" value="">'
+    + '<div class="md-mekan-grid">';
+
+  items.forEach(function(it) {
+    var ad = it.m ? it.m.ad : it.sk;
+    var img = (it.m && it.m.gorsel && mekanGorseller[it.m.gorsel]) ? mekanGorseller[it.m.gorsel] : FALLBACK;
+    html += '<button type="button" class="md-mekan-kart" data-sk="' + escHtml(it.sk) + '" data-adet="' + it.adet + '" onclick="mekanDevriMekanSec(this)">'
+      + '<span class="md-mekan-kart-img"><img src="' + img + '" alt="" loading="lazy" onerror="imgFallback(this)"></span>'
+      + '<span class="md-mekan-kart-ad">' + escHtml(ad) + '</span>'
+      + '<span class="md-mekan-kart-adet">' + it.adet + ' adet</span>'
+      + '</button>';
+  });
+
+  return html + '</div></div>';
+}
+
+function mekanDevriMekanSec(btn) {
+  if (!btn) return;
+  var sk = btn.getAttribute('data-sk') || '';
+  var adet = parseInt(btn.getAttribute('data-adet'), 10) || 1;
+  var hidden = document.getElementById('mekanDevriMekan');
+  if (hidden) hidden.value = sk;
+  var kartlar = document.querySelectorAll('#masterLayout .md-mekan-kart');
+  for (var i = 0; i < kartlar.length; i++) {
+    kartlar[i].classList.toggle('md-mekan-kart--secili', kartlar[i] === btn);
+  }
+  var adetInput = document.getElementById('mekanDevriAdet');
+  if (adetInput) {
+    adetInput.max = adet;
+    if (parseInt(adetInput.value, 10) > adet) adetInput.value = adet;
+  }
+}
+
+function mekanDevriEkranBagla() {
+  var ilk = document.querySelector('#masterLayout .md-mekan-kart');
+  if (ilk) mekanDevriMekanSec(ilk);
+}
+
+function medyaZamanGoster(ts) {
+  if (!ts) return '';
+  var now = Math.floor(Date.now() / 1000);
+  var diff = now - ts;
+  if (diff < 60) return 'Az önce';
+  if (diff < 3600) return Math.floor(diff / 60) + ' dk önce';
+  if (diff < 86400) return Math.floor(diff / 3600) + ' sa önce';
+  return new Date(ts * 1000).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
+}
+
+function avukatHTML() {
+  var r = rusvetBilgi || { min: 10, max: 50, onerilen: 30 };
+  var iliski = Math.min(AVUKAT_ILISKI_MAX, oyuncuDevlet != null ? oyuncuDevlet : 100);
+  var iliskiYuzde = Math.min(100, Math.round((iliski / AVUKAT_ILISKI_MAX) * 100));
+  var dolguCls = iliski < 50 ? ' av-iliski-dolgu--dusuk' : (iliski >= AVUKAT_ILISKI_MAX ? ' av-iliski-dolgu--max' : '');
+  var onerilen = r.onerilen || r.min || 10;
+  var maksimumda = iliski >= AVUKAT_ILISKI_MAX;
+  var rusvetPanel = '<div class="av-panel av-panel--rusvet">'
+    + '<div class="av-panel-baslik"><span class="av-panel-ikon" aria-hidden="true">💵</span><h3>RÜŞVET VER</h3></div>';
+  if (maksimumda) {
+    rusvetPanel += '<p class="av-rusvet-max">Avukat ilişkin maksimum seviyede (' + AVUKAT_ILISKI_MAX + '). Daha fazla rüşvet veremezsin.</p>';
+  } else {
+    rusvetPanel += '<div class="av-rusvet-oneri"><span class="av-rusvet-oneri-etiket">Önerilen miktar</span>'
+      + '<span class="av-rusvet-oneri-tutar">' + fmt(onerilen) + ' TL</span></div>'
+      + '<p class="av-rusvet-aralik">Aralık (saygınlığa göre): ' + fmt(r.min) + ' – ' + fmt(r.max) + ' TL · Her rüşvette max +' + RUSVET_ARTIS_MAX + ' ilişki</p>'
+      + '<div class="av-alan"><label for="rusvetMiktar">Rüşvet miktarı (TL)</label>'
+      + '<input type="number" id="rusvetMiktar" class="av-input" value="' + onerilen + '" min="' + r.min + '" max="' + r.max + '"></div>'
+      + '<button type="button" class="av-btn" onclick="rusvetVer()">[ 💵 RÜŞVET VER ]</button>';
+  }
+  rusvetPanel += '</div>';
+
+  return '<div class="av-sayfa"><div class="av-cerceve">'
+    + '<div class="av-banner">'
+    + '<img src="' + devletGorseller.yetkili + '" alt="Avukat" onerror="imgFallback(this)">'
+    + '<div class="av-banner-ortu"></div>'
+    + '<div class="av-baslik-wrap">'
+    + '<h2>AVUKAT</h2>'
+    + '<p class="av-motto">"Adalet sisteminde doğru avukat, işlerini yürütmen için çok önemli."</p>'
+    + '</div></div>'
+    + '<div class="av-govde">'
+    + '<p class="av-giris">Avukatınla aranı iyi tut — icraat yapabilmek için ilişkinin sağlam kalması gerekir.</p>'
+    + '<div class="av-uyari">Avukatınla olan ilişkin <strong>5</strong>\'in altına düşerse hapse girer ve icraata çıkamazsın. Her rüşvette ilişki en fazla <strong>+' + RUSVET_ARTIS_MAX + '</strong> artar; tavan <strong>' + AVUKAT_ILISKI_MAX + '</strong>.</div>'
+    + '<div class="av-iliski-kutu">'
+    + '<div class="av-iliski-ust">'
+    + '<span class="av-iliski-etiket">Mevcut Avukat İlişkisi</span>'
+    + '<span class="av-iliski-deger">' + iliski + ' <span>/ ' + AVUKAT_ILISKI_MAX + '</span></span>'
+    + '</div>'
+    + '<div class="av-iliski-cubuk"><div class="av-iliski-dolgu' + dolguCls + '" style="width:' + iliskiYuzde + '%"></div></div>'
+    + '</div>'
+    + '<div class="av-paneller">'
+    + '<div class="av-panel av-panel--avukat">'
+    + '<div class="av-panel-baslik"><span class="av-panel-ikon" aria-hidden="true">⚖️</span><h3>SENİN AVUKATIN</h3></div>'
+    + '<div class="av-portre"><img src="' + devletGorseller.yetkili + '" alt="" onerror="imgFallback(this)"></div>'
+    + '<p class="av-portre-ad">Avukatın</p>'
+    + '<p class="av-portre-aciklama">Dosyalarını kapatır, savcılara ulaşır, seni sokaklarda tutar.</p>'
+    + '</div>'
+    + rusvetPanel
+    + '</div></div></div></div>';
+}
+
+function medyaHTML() {
+  return '<div class="med-sayfa"><div class="med-cerceve">'
+    + '<div class="med-banner">'
+    + '<img src="' + MEDYA_BANNER + '" alt="Medya Merkezi" onerror="imgFallback(this)">'
+    + '<div class="med-banner-ortu"></div>'
+    + '<div class="med-baslik-wrap">'
+    + '<span class="med-baslik-ikon" aria-hidden="true">📰</span>'
+    + '<h2>MEDYA</h2>'
+    + '<p class="med-motto">"Haberleri kontrol et, propaganda yap, rakiplerini aşağıla."</p>'
+    + '</div></div>'
+    + '<div class="med-govde">'
+    + '<p class="med-giris">Yeraltı manşetlerine haber düşür — gazetede 24 saat boyunca görünür.</p>'
+    + '<div class="med-paneller">'
+    + '<div class="med-panel med-panel--yayin">'
+    + '<div class="med-panel-baslik"><span class="med-panel-ikon" aria-hidden="true">📢</span><h3>HABER YAYINLA</h3></div>'
+    + '<div class="med-meta">'
+    + '<span class="med-meta-etiket">💵 Maliyet</span><strong>100.000 TL</strong>'
+    + '<span class="med-meta-etiket">⏱ Süre</span><span>24 saat görünür</span>'
+    + '</div>'
+    + '<div class="med-alan"><label for="medyaHaber">Haber metni</label>'
+    + '<textarea id="medyaHaber" class="med-textarea" rows="4" placeholder="Manşete düşecek haberi yaz..." maxlength="200"></textarea></div>'
+    + '<button type="button" class="med-btn" onclick="medyaHaberYayinla()">[ 📰 HABER YAYINLA ]</button>'
+    + '<div id="medyaSonuc" class="med-sonuc gizli"></div>'
+    + '</div>'
+    + '<div class="med-panel med-panel--haberler">'
+    + '<div class="med-panel-baslik"><span class="med-panel-ikon" aria-hidden="true">📋</span><h3>SON HABERLER</h3></div>'
+    + '<div id="medyaHaberlerListesi" class="med-haber-liste"></div>'
+    + '</div></div></div></div></div>';
+}
+
+function mekanDevriHTML() {
+  var mekanSay = mekanDevriMekanSayisi();
+  var mekanGrid = mekanDevriMekanGridHTML();
+  var altMetin = mekanSay > 0
+    ? 'Portföyünde ' + mekanSay + ' mekan var — görselden seç, dostuna devret.'
+    : 'Mekanların yoksa yalnızca para gönderebilirsin.';
+
+  var mekanPanel = '<div class="md-panel md-panel--mekan">'
+    + '<div class="md-panel-baslik"><span class="md-panel-ikon" aria-hidden="true">🔄</span><h3>MEKAN DEVRET</h3></div>';
+
+  if (mekanSay < 1) {
+    mekanPanel += '<p class="md-bos-uyari">Devredebileceğin mekan bulunmuyor.</p>';
+  }
+
+  mekanPanel += '<div class="md-alan"><label for="mekanDevriHedef">Dost reis adı</label>'
+    + '<input type="text" id="mekanDevriHedef" placeholder="Dost reis adı..." maxlength="24"' + (mekanSay < 1 ? ' disabled' : '') + '></div>';
+
+  if (mekanGrid) {
+    mekanPanel += mekanGrid;
+  }
+
+  mekanPanel += '<div class="md-alan md-alan--adet"><label for="mekanDevriAdet">Adet</label>'
+    + '<input type="number" id="mekanDevriAdet" value="1" min="1" max="999"' + (mekanSay < 1 ? ' disabled' : '') + '></div>'
+    + '<button type="button" class="md-btn md-btn--mavi"' + (mekanSay < 1 ? ' disabled' : ' onclick="mekanDevret()"') + '>[ 🔄 DEVRET ]</button>'
+    + '<div id="mekanDevriSonuc" class="md-sonuc gizli"></div></div>';
+
+  return '<div class="md-sayfa"><div class="md-cerceve">'
+    + '<div class="md-banner">'
+    + '<img src="' + ARKA_PLAN_GORSEL + '" alt="" onerror="imgFallback(this)">'
+    + '<div class="md-banner-ortu" aria-hidden="true"></div>'
+    + '<div class="md-baslik-wrap">'
+    + '<span class="md-baslik-ikon" aria-hidden="true">🔄</span>'
+    + '<h2>MEKAN DEVRİ</h2>'
+    + '<p class="md-baslik-alt">Elindeki mekanları devret, kasandan para gönder.</p>'
+    + '</div></div>'
+    + '<div class="md-govde">'
+    + '<p class="md-giris">' + escHtml(altMetin) + '</p>'
+    + '<div class="md-paneller">'
+    + mekanPanel
+    + '<div class="md-panel md-panel--para">'
+    + '<div class="md-panel-baslik"><span class="md-panel-ikon" aria-hidden="true">💸</span><h3>PARA GÖNDER</h3></div>'
+    + '<div class="md-alan"><label for="paraGonderHedef">Alıcı reis adı</label>'
+    + '<input type="text" id="paraGonderHedef" placeholder="Alıcı reis adı..." maxlength="24"></div>'
+    + '<div class="md-alan"><label for="paraGonderMiktar">Gönderilecek miktar (TL)</label>'
+    + '<input type="number" id="paraGonderMiktar" value="100000" min="1" max="999999999"></div>'
+    + '<button type="button" class="md-btn md-btn--yesil" onclick="paraGonder()">[ 💸 PARA GÖNDER ]</button>'
+    + '<div id="paraGonderSonuc" class="md-sonuc gizli"></div>'
+    + '</div></div></div></div></div>';
+}
+
+function profilPortreKeyNormalize(key) {
+  var k = String(key || '').trim();
+  var eski = k.match(/^portre-(\d{2})$/);
+  if (eski) return 'kadin-' + eski[1];
+  return k;
+}
+
+function profilPortreUrlFromKey(key) {
+  key = profilPortreKeyNormalize(key);
+  if (!key) return profilGorseller.varsayilanPortre;
+  return yerelGorselPng('profil/portre', key);
+}
+
+function profilPortreSekmesi(key) {
+  key = profilPortreKeyNormalize(key);
+  if (key.indexOf('erkek-') === 0) return 'erkek';
+  return 'kadin';
+}
+
+function profilResmiUrl(userId, profilResmiKey) {
+  var key = profilResmiKey || '';
+  if (!key && (String(userId) === String(window.__benimUserId) || userId === 'me')) {
+    key = oyuncuProfilResmi;
+  }
+  return profilPortreUrlFromKey(key);
+}
+
+function profilResmiOzelMi(url) {
+  return !!(url && url.indexOf('/profil/portre/') >= 0);
+}
+
+function profilSonrakiSaatKalanSn(lastAt, regenSec) {
+  regenSec = regenSec || oyuncuIcraatRegenSec || 3600;
+  var now = Math.floor(Date.now() / 1000);
+  if (lastAt == null || lastAt <= 0) lastAt = now;
+  var elapsed = Math.max(0, now - lastAt);
+  var mod = elapsed % regenSec;
+  if (mod === 0) return elapsed === 0 ? regenSec : 0;
+  return regenSec - mod;
+}
+
+/** Profilde gösterilecek icraat yenilenme süresi (sn) */
+function profilIcraatKalanSn(icraat, lastAt, regenSec, saatlikBonus) {
+  regenSec = regenSec || oyuncuIcraatRegenSec || 3600;
+  saatlikBonus = saatlikBonus || oyuncuIcraatSaatlikBonus || 25;
+  var max = ICRAAT_GOSTERIM_MAX;
+  var mevcut = Math.max(0, icraat || 0);
+  var sonrakiSaat = profilSonrakiSaatKalanSn(lastAt, regenSec);
+
+  if (mevcut < max) {
+    // 25'in altında: saatte 25 hak dolacak hızında 25'e ulaşmaya kalan süre
+    return Math.max(1, Math.ceil((max - mevcut) / max * regenSec));
+  }
+
+  // 25 ve üzeri: bir sonraki saatlik +25 yüklemesine kalan süre
+  return sonrakiSaat;
+}
+
+function profilSureFormat(sn) {
+  var s = Math.max(0, Math.floor(sn || 0));
+  var h = Math.floor(s / 3600);
+  var m = Math.floor((s % 3600) / 60);
+  var sec = s % 60;
+  return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
+}
+
+function profilIcraatTimerDurdur() {
+  if (profilIcraatTimer) {
+    clearInterval(profilIcraatTimer);
+    profilIcraatTimer = null;
+  }
+}
+
+function profilIcraatTimerBaslat(icraat, lastAt, regenSec, saatlikBonus) {
+  profilIcraatTimerDurdur();
+  var el = document.getElementById('profilIcraatKalan');
+  if (!el) return;
+  var sonPoll = 0;
+  function guncelle() {
+    var kalan = profilIcraatKalanSn(icraat, lastAt, regenSec, saatlikBonus);
+    el.textContent = kalan > 0 ? profilSureFormat(kalan) : '00:00:00';
+    if (kalan === 0 && sunucuBagli) {
+      var simdi = Date.now();
+      if (simdi - sonPoll > 4000) {
+        sonPoll = simdi;
+        sunucudanYukle({ poll: true }).then(function() {
+          if (aktifEkran === 'profilim') profilYukle();
+        }).catch(function() {});
+      }
+    }
+  }
+  guncelle();
+  profilIcraatTimer = setInterval(guncelle, 1000);
+}
+
+function profilIcraatTimerOyuncudan() {
+  profilIcraatTimerBaslat(
+    oyuncuIcraat,
+    oyuncuLastIcraatAt,
+    oyuncuIcraatRegenSec,
+    oyuncuIcraatSaatlikBonus
+  );
+}
+
+function profilQuillToolbarHtml() {
+  return '<div id="profilAciklamaToolbar">'
+    + '<span class="ql-formats">'
+    + '<button type="button" class="ql-bold" title="Kalın"></button>'
+    + '<button type="button" class="ql-italic" title="Eğik"></button>'
+    + '<button type="button" class="ql-undo" title="Geri Al"></button>'
+    + '</span>'
+    + '<span class="ql-formats"><select class="ql-color" title="Metin Rengi"></select></span>'
+    + '<span class="ql-formats"><select class="ql-size" title="Yazı tipi boyutu">'
+    + '<option value="10px">Küçük</option>'
+    + '<option value="14px" selected>Normal</option>'
+    + '<option value="18px">Büyük</option>'
+    + '<option value="24px">Çok Büyük</option>'
+    + '</select></span>'
+    + '<span class="ql-formats"><select class="ql-font" title="Yazı Tipi">'
+    + '<option selected>Sans</option>'
+    + '<option value="roboto">Roboto</option>'
+    + '<option value="oswald">Oswald</option>'
+    + '<option value="cinzel">Cinzel</option>'
+    + '<option value="serif">Serif</option>'
+    + '<option value="monospace">Monospace</option>'
+    + '</select></span>'
+    + '</div>'
+    + '<div id="profilAciklamaEditor"></div>';
+}
+
+function profilQuillDomSifirla() {
+  var wrap = document.getElementById('profilAciklamaWrap');
+  if (!wrap) return;
+  wrap.innerHTML = profilQuillToolbarHtml();
+}
+
+function profilQuillKayitlari() {
+  if (profilQuillHazir || typeof Quill === 'undefined') return;
+  var Font = Quill.import('formats/font');
+  Font.whitelist = ['roboto', 'oswald', 'cinzel', 'serif', 'monospace'];
+  Quill.register(Font, true);
+  var Size = Quill.import('attributors/style/size');
+  Size.whitelist = ['10px', '12px', '14px', '16px', '18px', '24px'];
+  Quill.register(Size, true);
+  profilQuillHazir = true;
+}
+
+function profilQuillYokEt() {
+  profilQuill = null;
+}
+
+function profilQuillBaslat() {
+  profilQuillKayitlari();
+  if (typeof Quill === 'undefined') return;
+  if (!document.getElementById('profilAciklamaWrap')) return;
+
+  profilQuill = null;
+  profilQuillDomSifirla();
+
+  if (!document.getElementById('profilAciklamaEditor')) return;
+
+  profilQuill = new Quill('#profilAciklamaEditor', {
+    theme: 'snow',
+    placeholder: 'Açıklama ekle...',
+    modules: {
+      toolbar: {
+        container: '#profilAciklamaToolbar',
+        handlers: {
+          undo: function() {
+            this.quill.history.undo();
+          }
+        }
+      },
+      history: {
+        delay: 400,
+        maxStack: 100,
+        userOnly: true
+      }
+    }
+  });
+}
+
+function profilAciklamaAl() {
+  if (!profilQuill) return '';
+  var html = profilQuill.root.innerHTML || '';
+  if (html === '<p><br></p>' || html === '<p></p>') return '';
   return html;
+}
+
+function profilAciklamaYaz(html) {
+  if (!profilQuill) return;
+  if (!html || !String(html).trim()) {
+    profilQuill.setText('');
+    return;
+  }
+  var s = String(html).trim();
+  if (s.indexOf('<') < 0) {
+    profilQuill.setText(s);
+    return;
+  }
+  profilQuill.root.innerHTML = s;
+}
+
+function profilAciklamaGosterUygula(html) {
+  var el = document.getElementById('profilAciklamaGoster');
+  if (!el) return;
+  if (!html || !String(html).trim()) {
+    el.textContent = '—';
+    return;
+  }
+  var s = String(html).trim();
+  if (s.indexOf('<') < 0) {
+    el.textContent = s;
+    return;
+  }
+  el.innerHTML = s;
 }
 
 function profilEkranSablonu(opts) {
   opts = opts || {};
   var ad = opts.oyuncuAdi || 'Reis';
-  var adBaslik = opts.sehirEfsane ? '<span class="isim-efsane">' + ad + '</span>' : ad;
-  var gucKart = opts.guc != null
-    ? '<div class="is-kart"><p>⚔️ Güç</p><h3>' + fmt(opts.guc) + '</h3></div>'
-    : '';
-  var saatlikKart = opts.saatlik != null
-    ? '<div class="is-kart"><p>⏱️ Saatlik Kazanç</p><h3 style="color:#28a745;">' + fmt(opts.saatlik) + ' TL</h3></div>'
-    : '';
-  var kara = opts.karaListede ? '<p style="color:#fff;"><b>💀 Kara Liste Ödülü:</b> 24 Saatlik Gelir</p>' : '';
-  var efsane = opts.sehirEfsane ? '<p style="color:#b8942a;">👑 Şehir tarihine işlenmiş efsane.</p>' : '';
+  var isimCls = 'profil-isim-script' + (opts.sehirEfsane ? ' isim-efsane' : '');
+  var userId = opts.userId || window.__benimUserId || 'me';
+  var avatarUrl = profilResmiUrl(userId, opts.profilResmi);
+  var avatarCls = profilResmiOzelMi(avatarUrl) ? ' profil-avatar-ozel' : '';
 
-  var dostlarBlok;
-  var dusmanlarBlok;
-  if (opts.duzenlenebilir) {
-    dostlarBlok = '<div class="profil-liste-kolon"><label>Dostlar</label>'
-      + '<input type="text" id="profilDostlar" class="dusman-input" placeholder="Virgülle ayır" style="width:100%;margin-bottom:8px;">'
-      + '<ul id="profilDostlarListe" class="profil-isim-listesi"></ul></div>';
-    dusmanlarBlok = '<div class="profil-liste-kolon"><label>Düşmanlar</label>'
-      + '<input type="text" id="profilDusmanlar" class="dusman-input" placeholder="Virgülle ayır" style="width:100%;margin-bottom:8px;">'
-      + '<ul id="profilDusmanlarListe" class="profil-isim-listesi"></ul></div>';
+  var metaHtml = '<span id="profilKayitTarihiWrap">Kayıt: <span id="profilKayitTarihi">' + escHtml(opts.kayitTarihi || '—') + '</span></span>';
+  if (opts.sehirEfsane) {
+    metaHtml += '<span class="profil-rozet efsane">👑 Şehir tarihine işlenmiş efsane.</span>';
+  }
+  if (opts.karaListede) {
+    metaHtml += '<span class="profil-rozet kara">💀 Kara Liste: Liman/makam alındığında rakibin saygınlığının %5\'i ödül</span>';
+  }
+
+  var ozetHtml = '<div class="profil-ozet-hucre"><span>👑 Oyuncu</span><strong id="profilOzOyuncu">' + escHtml(ad) + '</strong></div>'
+    + '<div class="profil-ozet-hucre"><span>🏷️ Lakap</span><strong id="profilOzLakap">' + escHtml(opts.lakap || 'Mafya') + '</strong></div>';
+  if (opts.guc != null) {
+    ozetHtml += '<div class="profil-ozet-hucre"><span>⚔️ Güç</span><strong id="profilOzGuc">' + fmt(opts.guc) + '</strong></div>';
   } else {
-    dostlarBlok = '<div class="profil-liste-kolon"><label>Dostlar</label>'
-      + '<ul class="profil-isim-listesi">' + isimListesiHTML(isimListesiParse(opts.dostlar), '—') + '</ul></div>';
-    dusmanlarBlok = '<div class="profil-liste-kolon"><label>Düşmanlar</label>'
-      + '<ul class="profil-isim-listesi">' + isimListesiHTML(isimListesiParse(opts.dusmanlar), '—') + '</ul></div>';
+    ozetHtml += '<div class="profil-ozet-hucre"><span>⚔️ Güç</span><strong id="profilOzGuc">—</strong></div>';
+  }
+  if (opts.saatlik != null) {
+    ozetHtml += '<div class="profil-ozet-hucre"><span>✦ Saatlik Kazanç</span><strong class="yesil" id="profilOzSaatlik">' + fmt(opts.saatlik) + ' TL</strong></div>';
+  } else {
+    ozetHtml += '<div class="profil-ozet-hucre"><span>✦ Saatlik Kazanç</span><strong class="yesil" id="profilOzSaatlik">—</strong></div>';
   }
 
-  var aciklama = opts.duzenlenebilir
-    ? '<p><label>Açıklama</label><textarea id="profilAciklama" class="dusman-input" rows="3" style="width:100%;"></textarea></p>'
-    : '<p><b>📝 Açıklama:</b> ' + (opts.aciklama || '—') + '</p>';
+  var detayHtml = '<dl class="profil-detay-liste">'
+    + '<div class="profil-detay-satir"><dt>Oyuncu İsmi</dt><dd id="profilOyuncuIsmiDetay">' + escHtml(opts.oyuncuAdi || ad) + '</dd></div>'
+    + '<div class="profil-detay-satir"><dt>Saygınlık</dt><dd id="profilPuanDetay">' + fmt(opts.puan || 0) + '</dd></div>'
+    + '<div class="profil-detay-satir"><dt>Sıralama</dt><dd id="profilSiraDetay">' + (opts.sira != null ? fmt(opts.sira) : '—') + '</dd></div>'
+    + '<div class="profil-detay-satir"><dt>Mafya Grubu Sıralaması</dt><dd id="profilGrupSiraDetay">' + (opts.grupSira != null ? fmt(opts.grupSira) : '—') + '</dd></div>'
+    + '<div class="profil-detay-satir"><dt>İcraat Hakkı Yenilenmesine</dt><dd id="profilIcraatKalan">' + (opts.icraatKalan || '—') + '</dd></div>'
+    + '</dl>';
 
-  var html = '<h2>' + (opts.baslik || '👤 PROFİL') + '</h2>'
-    + '<div class="profil-ozet" style="max-width:820px;margin:0 auto 20px;">'
-    + '<div class="is-kart"><p>🕶️ Oyuncu</p><h3>' + adBaslik + '</h3></div>'
-    + '<div class="is-kart"><p>🏷️ Lakap</p><h3>' + (opts.lakap || 'Mafya') + '</h3></div>'
-    + gucKart
-    + '<div class="is-kart"><p>🕶️ Saygınlık</p><h3>' + fmt(opts.puan || 0) + '</h3></div>'
-    + saatlikKart
-    + '</div>'
-    + '<div class="is-kart" style="max-width:820px;margin:0 auto;">'
-    + '<h3 class="bolum-baslik">Profil Bilgileri</h3>'
-    + '<p id="profilKayitTarihiWrap"><b>📅 Kayıt:</b> <span id="profilKayitTarihi">' + (opts.kayitTarihi || '—') + '</span></p>'
-    + efsane + kara + aciklama
-    + '<div class="profil-dost-dusman">' + dostlarBlok + dusmanlarBlok + '</div>';
+  var formHtml;
   if (opts.duzenlenebilir) {
-    html += '<button class="btn-is mavi-btn" style="margin-top:14px;" onclick="profilKaydet()">[ 👤 PROFİLİ KAYDET ]</button>'
-      + '<div style="text-align:center;margin:20px 0;">'
-      + '<button class="btn-is mavi-btn" onclick="sifreDegistirModal()">[ 🔐 ŞİFRE DEĞİŞTİR ]</button></div>'
-      + '<div id="sifreAlan" class="gizli is-kart" style="max-width:400px;margin:0 auto;">'
-      + '<p><label>Mevcut şifre</label><input type="password" id="eskiSifre" class="dusman-input" style="width:100%;margin:6px 0;"></p>'
-      + '<p><label>Yeni şifre</label><input type="password" id="yeniSifre" class="dusman-input" style="width:100%;margin:6px 0;"></p>'
-      + '<button class="btn-is" onclick="sifreKaydet()">[ KAYDET ]</button></div>'
-      + '<div id="profilZiyaretlerBox" class="is-kart" style="margin-top:14px;"></div>';
+    formHtml = '<div class="profil-form">'
+      + '<label>Açıklama Ekle</label>'
+      + '<div id="profilAciklamaWrap" class="profil-quill-wrap">'
+      + profilQuillToolbarHtml()
+      + '</div>'
+      + '<div class="profil-form-ikili">'
+      + '<div><label for="profilDostlar">Dostlar</label>'
+      + '<input type="text" id="profilDostlar" placeholder="Virgül ile ayır..."></div>'
+      + '<div><label for="profilDusmanlar">Düşmanlar</label>'
+      + '<input type="text" id="profilDusmanlar" placeholder="Ali, Veli, etc."></div>'
+      + '</div></div>';
+  } else {
+    formHtml = '<div class="profil-form">'
+      + '<label>Açıklama</label>'
+      + '<div id="profilAciklamaGoster" class="profil-aciklama-metin profil-aciklama-html">—</div>'
+      + '<div class="profil-form-ikili">'
+      + '<div><label>Dostlar</label><p class="profil-aciklama-metin">' + escHtml(opts.dostlar || '—') + '</p></div>'
+      + '<div><label>Düşmanlar</label><p class="profil-aciklama-metin">' + escHtml(opts.dusmanlar || '—') + '</p></div>'
+      + '</div></div>';
   }
-  html += '</div>';
-  return html;
+
+  var resimBtn = opts.duzenlenebilir
+    ? '<button type="button" class="profil-resim-btn" onclick="profilResmiSecModal()">Resmi Değiştir</button>'
+    : '';
+
+  var altBtn = '';
+  if (opts.duzenlenebilir) {
+    altBtn = '<div class="profil-alt-butonlar">'
+      + '<button type="button" class="profil-alt-btn kirmizi" onclick="profilKaydet()">👤 Profili Kaydet</button>'
+      + '<button type="button" class="profil-alt-btn koyu" onclick="sifreDegistirModal()">🔐 Şifre Değiştir</button>'
+      + '<button type="button" class="profil-alt-btn koyu" onclick="cikisYap()">↪ Oyundan Çık</button>'
+      + '</div>'
+      + '<div id="sifreAlan" class="gizli profil-sifre-kutu">'
+      + '<label for="eskiSifre">Mevcut şifre</label>'
+      + '<input type="password" id="eskiSifre" class="dusman-input">'
+      + '<label for="yeniSifre">Yeni şifre</label>'
+      + '<input type="password" id="yeniSifre" class="dusman-input">'
+      + '<button type="button" class="profil-alt-btn kirmizi" onclick="sifreKaydet()">Kaydet</button>'
+      + '</div>';
+  }
+
+  return '<div class="profil-wrap" data-profil-user="' + escHtml(String(userId)) + '" data-profil-resmi="' + escHtml(opts.profilResmi || '') + '">'
+    + '<div class="profil-sekmeler">'
+    + '<span class="profil-sekme aktif">Karakter</span>'
+    + '</div>'
+    + '<div class="profil-kart">'
+    + '<div class="profil-ust">'
+    + '<div class="profil-sol">'
+    + '<h2 class="' + isimCls + '" id="profilIsimBaslik">' + escHtml(ad) + '</h2>'
+    + '<div class="profil-avatar-kutu"><img id="profilAvatar" class="' + avatarCls.trim() + '" src="' + escHtml(avatarUrl) + '" alt="' + escHtml(ad) + '"></div>'
+    + resimBtn
+    + '</div>'
+    + '<div class="profil-sag">'
+    + '<div class="profil-meta-ust">' + metaHtml + '</div>'
+    + '<div class="profil-ozet-bar">' + ozetHtml + '</div>'
+    + detayHtml
+    + '</div></div>'
+    + formHtml
+    + '<div id="profilZiyaretlerBox" class="profil-ziyaretler"></div>'
+    + altBtn
+    + '</div></div>';
 }
 
-function profilListeleriGuncelle() {
-  var d = document.getElementById('profilDostlar');
-  var x = document.getElementById('profilDusmanlar');
-  var dl = document.getElementById('profilDostlarListe');
-  var xl = document.getElementById('profilDusmanlarListe');
-  if (dl && d) dl.innerHTML = isimListesiHTML(isimListesiParse(d.value), 'Henüz yok');
-  if (xl && x) xl.innerHTML = isimListesiHTML(isimListesiParse(x.value), 'Henüz yok');
+function profilResimSecenekleri(anahtarlar) {
+  return anahtarlar.map(function(key) {
+    return { id: key, key: key, url: profilPortreUrlFromKey(key) };
+  });
+}
+
+function profilResimGridHtml(anahtarlar, aktifKey) {
+  var normAktif = profilPortreKeyNormalize(aktifKey);
+  return profilResimSecenekleri(anahtarlar).map(function(s) {
+    var secili = normAktif === s.key;
+    return '<button type="button" class="profil-resim-secenek' + (secili ? ' secili' : '') + '" data-url="' + escHtml(s.url) + '" data-key="' + escHtml(s.key) + '" onclick="profilResmiUygula(this)">'
+      + '<img src="' + escHtml(s.url) + '" alt="Portre">'
+      + '</button>';
+  }).join('');
+}
+
+function profilResimSekmeDegistir(sekme) {
+  profilResimAktifSekme = sekme === 'erkek' ? 'erkek' : 'kadin';
+  var modal = document.getElementById('profilResimModal');
+  if (!modal) return;
+  modal.querySelectorAll('.profil-resim-sekme').forEach(function(btn) {
+    btn.classList.toggle('aktif', btn.getAttribute('data-sekme') === profilResimAktifSekme);
+  });
+  var kadinGrid = document.getElementById('profilResimGridKadin');
+  var erkekGrid = document.getElementById('profilResimGridErkek');
+  if (kadinGrid) kadinGrid.classList.toggle('gizli', profilResimAktifSekme !== 'kadin');
+  if (erkekGrid) erkekGrid.classList.toggle('gizli', profilResimAktifSekme !== 'erkek');
+}
+
+function profilResmiSecModal() {
+  var modal = document.getElementById('profilResimModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'profilResimModal';
+    modal.className = 'gizli';
+    modal.innerHTML = '<div class="profil-resim-modal-ic">'
+      + '<h3>Profil Resmi Seç</h3>'
+      + '<p id="profilResimModalAciklama">Portreni seç:</p>'
+      + '<div class="profil-resim-sekmeler">'
+      + '<button type="button" class="profil-resim-sekme aktif" data-sekme="kadin" onclick="profilResimSekmeDegistir(\'kadin\')">Kadın</button>'
+      + '<button type="button" class="profil-resim-sekme" data-sekme="erkek" onclick="profilResimSekmeDegistir(\'erkek\')">Erkek</button>'
+      + '</div>'
+      + '<div id="profilResimGridKadin" class="profil-resim-grid"></div>'
+      + '<div id="profilResimGridErkek" class="profil-resim-grid gizli"></div>'
+      + '<button type="button" class="profil-resim-modal-kapat" onclick="profilResmiModalKapat()">Kapat</button>'
+      + '</div>';
+    document.body.appendChild(modal);
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal) profilResmiModalKapat();
+    });
+  }
+
+  var wrap = document.querySelector('.profil-wrap');
+  var userId = wrap ? wrap.getAttribute('data-profil-user') : (window.__benimUserId || 'me');
+  var aktifKey = optsProfilResmiKey(userId);
+  var kadinGrid = document.getElementById('profilResimGridKadin');
+  var erkekGrid = document.getElementById('profilResimGridErkek');
+  if (kadinGrid) kadinGrid.innerHTML = profilResimGridHtml(KADIN_PORTRE_ANAHTARLARI, aktifKey);
+  if (erkekGrid) erkekGrid.innerHTML = profilResimGridHtml(ERKEK_PORTRE_ANAHTARLARI, aktifKey);
+  profilResimSekmeDegistir(profilPortreSekmesi(aktifKey));
+  modal.classList.remove('gizli');
+}
+
+function optsProfilResmiKey(userId) {
+  if (String(userId) === String(window.__benimUserId) || userId === 'me') return oyuncuProfilResmi;
+  var wrap = document.querySelector('.profil-wrap');
+  return wrap ? wrap.getAttribute('data-profil-resmi') || '' : '';
+}
+
+function profilResmiModalKapat() {
+  var modal = document.getElementById('profilResimModal');
+  if (modal) modal.classList.add('gizli');
+}
+
+async function profilResmiUygula(btn) {
+  if (!btn) return;
+  var key = btn.getAttribute('data-key');
+  if (!key) return;
+  var kayitliKey = key;
+  try {
+    var res = await apiFetch('/api/profile', {
+      method: 'POST',
+      body: { profilResmi: key }
+    });
+    var data = await res.json().catch(function() { return {}; });
+    if (!res.ok || !data.ok) {
+      toast(data.error || 'Profil resmi kaydedilemedi.', 'hata');
+      return;
+    }
+    oyuncuUygula(data.player);
+    kayitliKey = (data.player && data.player.profilResmi) || key;
+  } catch (_) {
+    toast('Profil resmi kaydı sırasında bağlantı hatası.', 'hata');
+    return;
+  }
+  var img = document.getElementById('profilAvatar');
+  if (img) {
+    img.src = profilPortreUrlFromKey(kayitliKey);
+    img.classList.add('profil-avatar-ozel');
+  }
+  var wrap = document.querySelector('.profil-wrap');
+  if (wrap) wrap.setAttribute('data-profil-resmi', kayitliKey);
+  profilResmiModalKapat();
+  toast('Profil resmi güncellendi.', 'basari');
 }
 
 function escHtml(s) {
@@ -683,6 +2460,20 @@ function gazeteOyuncuListesi(data) {
   return Object.keys(map).map(function(k) { return map[k]; }).filter(function(o) { return o.userId; });
 }
 
+function gazeteLiderSatir(r, i) {
+  var crown = i === 0 ? '<span class="gazete-kral">👑</span>' : '';
+  var artis = r.fallback
+    ? fmt(r.miktar || 0) + ' Saygınlık'
+    : '+ ' + fmt(r.miktar || 0);
+  var avatarUrl = profilResmiUrl(r.userId, r.profilResmi);
+  var avatarCls = profilResmiOzelMi(avatarUrl) ? ' gazete-avatar-img--ozel' : '';
+  return '<div class="gazete-lider-satir' + (i === 0 ? ' gazete-lider-satir--bir' : '') + '">'
+    + '<span class="gazete-sira">' + crown + (i + 1) + '</span>'
+    + '<span class="gazete-avatar"><img class="gazete-avatar-img' + avatarCls + '" src="' + escHtml(avatarUrl) + '" alt="" loading="lazy" onerror="imgFallback(this)"></span>'
+    + '<span class="gazete-isim">' + oyuncuLink(r.userId, r.isim) + '</span>'
+    + '<span class="gazete-artis">' + artis + ' <span class="gazete-yukari">▲</span></span></div>';
+}
+
 async function gazeteEkranCiz(ic) {
   ic.innerHTML = '<div class="gazete-wrap"><p class="gazete-yukleniyor">Gazete yükleniyor...</p></div>';
   try {
@@ -704,13 +2495,7 @@ async function gazeteEkranCiz(ic) {
 
     var liderHtml = '';
     (data.sayginlikLiderleri || []).forEach(function(r, i) {
-      var artis = r.fallback
-        ? fmt(r.miktar || 0) + ' Saygınlık'
-        : '▲ +' + fmt(r.miktar || 0);
-      liderHtml += '<div class="gazete-lider-satir">'
-        + '<span class="gazete-sira">' + (i + 1) + '</span>'
-        + '<span class="gazete-isim">' + oyuncuLink(r.userId, r.isim) + '</span>'
-        + '<span class="gazete-artis">' + artis + '</span></div>';
+      liderHtml += gazeteLiderSatir(r, i);
     });
     if (!liderHtml) liderHtml = '<p class="gazete-bos">Henüz veri yok.</p>';
 
@@ -771,25 +2556,32 @@ async function gazeteEkranCiz(ic) {
         + metindeIsimLinkleri(manset.baslik2, oyuncular) + '</h2>';
     }
 
+    if (aktifEkran !== 'gazete') return;
     ic.innerHTML = '<div class="gazete-wrap">'
-      + '<div class="gazete-hero" style="background-image:url(\'/images/gazete-sayfa-bg.png?v=23\')">'
+      + '<div class="gazete-hero">'
       + '<div class="gazete-hero-ic">'
       + '<div class="gazete-hero-ust">'
       + '<div class="gazete-tarih gazete-tarih-sol">' + escHtml(data.tarihUst || '') + '</div>'
+      + '<p class="gazete-alinti-ust"><em>"Bu şehirde adalet değil, güç konuşur."</em></p>'
+      + '</div>'
       + '<div class="gazete-hero-orta">'
       + '<h1 class="gazete-ana-baslik">MEDYA HABER</h1>'
       + '<p class="gazete-alt-baslik">YERALTI DÜNYASININ GAZETESİ</p>'
-      + '<p class="gazete-alinti"><em>"Bu şehirde adalet değil, güç konuşur."</em></p>'
-      + '</div></div></div></div>'
-      + '<div class="gazete-ticker">' + ticker + '</div>'
+      + '</div></div></div>'
+      + '<div class="gazete-ticker">'
+      + '<span class="gazete-ticker-etiket">SON DAKİKA</span>'
+      + '<div class="gazete-ticker-kaydir">' + ticker + '</div></div>'
       + '<div class="gazete-govde">'
       + '<article class="gazete-manset">'
+      + '<div class="gazete-manset-sol">'
       + '<span class="gazete-etiket">ŞU MAFYANIN MANŞETİ</span>'
       + mansetBaslikHtml
-      + '<img src="' + mansetImg + '" class="gazete-manset-img" alt="Liman" onerror="imgFallback(this)">'
       + '<p class="gazete-manset-metin">' + mansetOzet + '</p>'
       + '<span class="gazete-devam">HABERİN DEVAMI &gt;</span>'
-      + '</article>'
+      + '</div>'
+      + '<div class="gazete-manset-sag">'
+      + '<img src="' + mansetImg + '" class="gazete-manset-img" alt="Manşet" onerror="imgFallback(this)">'
+      + '</div></article>'
       + '<aside class="gazete-yan">'
       + '<h3 class="gazete-yan-baslik">EN ÇOK SAYGINLIK KAZANANLAR</h3>'
       + liderHtml
@@ -798,9 +2590,13 @@ async function gazeteEkranCiz(ic) {
       + '<div class="gazete-kutu"><h4>ŞEHRİN HAKİMİYETİ</h4>' + hakimiyetHtml + '</div>'
       + '<div class="gazete-kutu gazete-kutu-kirmizi"><h4>YERALTI MANŞETLERİ <small>(Özel İlanlar)</small></h4>' + manseHtml + '</div>'
       + '<div class="gazete-kutu"><h4>SON 24 SAATİN EFSANELERİ</h4>' + efsaneHtml + '</div>'
-      + '</div></div>';
+      + '</div>'
+      + '<div class="gazete-dekor" aria-hidden="true"></div>'
+      + '</div>';
   } catch (e) {
-    ic.innerHTML = '<h2>📰 GAZETE</h2><p style="color:#c00;">' + (e.message || 'Yüklenemedi') + '</p>';
+    if (aktifEkran === 'gazete') {
+      ic.innerHTML = '<h2>📰 GAZETE</h2><p style="color:#c00;">' + (e.message || 'Yüklenemedi') + '</p>';
+    }
   }
 }
 
@@ -815,28 +2611,284 @@ function sesCal(tip) {
   a.play().catch(function() {});
 }
 
+function muzikHtmlEl() {
+  return document.getElementById('arkaPlanMuzik');
+}
+
+function muzikOrphanKaydet(a) {
+  if (a && muzikJsOrphanlari.indexOf(a) < 0) muzikJsOrphanlari.push(a);
+}
+
+function tumMuzikKaynaklariniDurdur() {
+  muzikPlayToken++;
+  muzikAutoplayDinleyiciyiKaldir();
+
+  var htmlEl = muzikHtmlEl();
+  if (htmlEl) {
+    try {
+      htmlEl.pause();
+      htmlEl.currentTime = 0;
+      htmlEl.removeAttribute('src');
+      htmlEl.load();
+    } catch (_) {}
+  }
+
+  if (arkaPlanMuzik && arkaPlanMuzik !== htmlEl) {
+    try {
+      arkaPlanMuzik.pause();
+      arkaPlanMuzik.currentTime = 0;
+      arkaPlanMuzik.removeAttribute('src');
+      arkaPlanMuzik.load();
+    } catch (_) {}
+  }
+
+  muzikJsOrphanlari.forEach(function (a) {
+    try {
+      a.pause();
+      a.currentTime = 0;
+      a.removeAttribute('src');
+      a.load();
+    } catch (_) {}
+  });
+  muzikJsOrphanlari = [];
+  arkaPlanMuzik = null;
+}
+
+function muzikAutoplayDinleyiciyiKaldir() {
+  if (muzikAutoplayHandler) {
+    document.removeEventListener('click', muzikAutoplayHandler);
+    muzikAutoplayHandler = null;
+  }
+  muzikDinleyiciEklendi = false;
+}
+
+function muzikSeviyeGuncelle() {
+  var el = arkaPlanMuzik || muzikHtmlEl();
+  if (!el) return;
+  if (!sesAyar.acik) {
+    el.volume = 0;
+    el.muted = true;
+    return;
+  }
+  el.muted = false;
+  el.volume = Math.max(0, Math.min(1, sesAyar.seviye * MUZIK_SEVIYE_ORANI));
+}
+
+function muzikBaslat() {
+  if (!sesAyar.acik) {
+    tumMuzikKaynaklariniDurdur();
+    return;
+  }
+
+  var el = muzikHtmlEl();
+  if (!el) return;
+  arkaPlanMuzik = el;
+
+  if (!el.getAttribute('src')) {
+    el.src = SES_DOSYALARI.muzik;
+    el.loop = true;
+    el.preload = 'auto';
+  }
+
+  muzikSeviyeGuncelle();
+  if (!el.paused && !el.ended) return;
+
+  var token = muzikPlayToken;
+  var playPromise = el.play();
+  if (!playPromise || !playPromise.then) return;
+
+  playPromise.then(function () {
+    if (!sesAyar.acik || token !== muzikPlayToken) {
+      tumMuzikKaynaklariniDurdur();
+    }
+  }).catch(function () {
+    if (!sesAyar.acik || token !== muzikPlayToken) return;
+    if (muzikDinleyiciEklendi) return;
+    muzikDinleyiciEklendi = true;
+    muzikAutoplayHandler = function (e) {
+      muzikAutoplayHandler = null;
+      muzikDinleyiciEklendi = false;
+      if (e && e.target && e.target.closest && e.target.closest('#sesKontrol')) return;
+      muzikBaslat();
+    };
+    document.addEventListener('click', muzikAutoplayHandler, { once: true });
+  });
+}
+
+function muzikDurdur() {
+  tumMuzikKaynaklariniDurdur();
+}
+
+function sesUiGuncelle() {
+  var btn = document.getElementById('sesAcKapa');
+  var sl = document.getElementById('sesSeviye');
+  if (btn) btn.textContent = sesAyar.acik ? '🔊' : '🔇';
+  if (sl) sl.value = Math.round(sesAyar.seviye * 100);
+}
+
 function sesToggle() {
   sesAyar.acik = !sesAyar.acik;
   localStorage.setItem('sesAcik', sesAyar.acik ? '1' : '0');
-  var btn = document.getElementById('sesAcKapa');
-  if (btn) btn.textContent = sesAyar.acik ? '🔊' : '🔇';
+  sesUiGuncelle();
+  if (sesAyar.acik) {
+    muzikBaslat();
+  } else {
+    muzikDurdur();
+  }
 }
 
 function sesSeviyeDegistir(val) {
   sesAyar.seviye = Math.max(0, Math.min(1, val / 100));
   localStorage.setItem('sesSeviye', String(sesAyar.seviye));
+  muzikSeviyeGuncelle();
+}
+
+function sesKontroluBagla() {
+  var kutu = document.getElementById('sesKontrol');
+  var btn = document.getElementById('sesAcKapa');
+  var sl = document.getElementById('sesSeviye');
+  if (!btn || btn.dataset.bound === '1') return;
+  btn.dataset.bound = '1';
+
+  if (kutu) {
+    kutu.addEventListener('mousedown', function (e) { e.stopPropagation(); });
+    kutu.addEventListener('click', function (e) { e.stopPropagation(); });
+  }
+  btn.addEventListener('click', function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    sesToggle();
+  });
+  if (sl) {
+    sl.addEventListener('input', function (e) {
+      e.stopPropagation();
+      sesSeviyeDegistir(this.value);
+    });
+  }
+  sesUiGuncelle();
+  if (!sesAyar.acik) muzikDurdur();
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', sesKontroluBagla);
+} else {
+  sesKontroluBagla();
 }
 
 // ========================
 // EKRAN DEĞİŞTİR
 // ========================
-function ekranDegistir(tip) {
-  aktifEkran = tip;
-  var ic = document.getElementById('anaIcerik');
+var ML_EKRAN_BASLIKLARI = {
+  liderlik: 'LİDERLİK TABLOSU',
+  profilim: 'PROFİLİM',
+  guvenliYer: 'GÜVENLİ YER',
+  gunlukGorevler: 'GÜNLÜK GÖREVLER',
+  guclen: 'GÜÇLEN',
+  korumaEkibi: 'KORUMA EKİBİ',
+  silahlan: 'SİLAHANLANMA',
+  luksYasam: 'LÜKS YAŞAM',
+  buyume: 'BÜYÜME ADIMLARI',
+  mekan: 'MEKAN SAHİBİ',
+  mahalle: 'MAHALLE İŞLERİ',
+  semt: 'SEMT İŞLERİ',
+  sehir: 'ŞEHİR İŞLERİ',
+  sektor_yeralti: 'YERALTI SEKTÖRÜ',
+  sektor_silah: 'SİLAH SEKTÖRÜ',
+  sektor_paket: 'PAKET SEKTÖRÜ',
+  mekan_devri: 'MEKAN DEVRİ',
+  istihbarat: 'İSTİHBARAT',
+  banka: 'BANKA',
+  medya: 'MEDYA',
+  gazete: 'GAZETE',
+  sehreHukmet: 'ŞEHRE HÜKMET',
+  baba_soz: 'SÖZÜNÜ GEÇİR',
+  baba_sadakat: 'SADAKAT YEMİNİ',
+  liman: 'LİMAN İŞLETMELERİ',
+  mesajKutusu: 'MESAJ KUTUSU',
+  mafyaSohbet: 'MAFYA SOHBETLERİ',
+  dusmanaCok: 'DÜŞMANA ÇÖK',
+  karaListe: 'KARA LİSTE',
+  devletIliskisi: 'AVUKAT',
+  sehirTarihi: 'ŞEHİR TARİHİ'
+};
 
+var ML_MAFYA_BASLIKLARI = {
+  olustur: 'MAFYA GRUBU OLUŞTUR',
+  katil: 'MAFYAYA KATIL',
+  gurubum: 'MAFYA GRUBUM',
+  savaslar: 'MAFYA SAVAŞLARI',
+  isler: 'MAFYA İŞLERİ',
+  evi: 'MAFYA EVİ'
+};
+
+function masterFramePlaqueGuncelle(tip, altBaslik) {
+  var el = document.getElementById('masterFramePlaque');
+  if (!el) return;
+  if (tip === 'baba_sadakat') {
+    el.textContent = ML_EKRAN_BASLIKLARI[tip] || 'SADAKAT YEMİNİ';
+    return;
+  }
+  if (altBaslik) {
+    el.textContent = altBaslik;
+    return;
+  }
   if (tip === 'liderlik') {
-    ic.innerHTML = '<h2>🏆 SÖZÜ GEÇENLER — LİDERLİK TABLOSU</h2>'
-      + '<p>"Yeraltı dünyasında her şey saygınlık ile ölçülür."</p><p style="color:#888;">Yükleniyor...</p>';
+    el.textContent = 'LİDERLİK TABLOSU';
+    return;
+  }
+  el.textContent = ML_EKRAN_BASLIKLARI[tip]
+    || String(tip).replace(/_/g, ' ').toUpperCase();
+}
+
+function sidebarMenuAktif(tip) {
+  var kok = document.getElementById('sidebarMenu');
+  if (!kok) return;
+  var btns = kok.querySelectorAll('.ml-menu-item');
+  for (var i = 0; i < btns.length; i++) btns[i].classList.remove('aktif-menu');
+  var hedef = null;
+  for (var j = 0; j < btns.length; j++) {
+    var oc = btns[j].getAttribute('onclick') || '';
+    if (oc.indexOf("ekranDegistir('" + tip + "'") !== -1 || oc.indexOf('mafyaMenuSec(') !== -1 && tip === 'mafya') {
+      hedef = btns[j];
+      break;
+    }
+  }
+  if (!hedef) {
+    var altMap = {
+      guclen: 'guclenMenuBtn',
+      korumaEkibi: 'guclenMenuBtn', silahlan: 'guclenMenuBtn', luksYasam: 'guclenMenuBtn',
+      buyume: 'buyumeMenuBtn',
+      mahalle: 'buyumeMenuBtn', semt: 'buyumeMenuBtn', sehir: 'buyumeMenuBtn',
+      mekan: 'mekanMenuBtn',
+      sektor_yeralti: 'mekanMenuBtn', sektor_silah: 'mekanMenuBtn', sektor_paket: 'mekanMenuBtn',
+      mekan_devri: 'mekanDevriMenuBtn',
+      sehreHukmet: 'babaMenuBtn',
+      baba_soz: 'babaMenuBtn', baba_sadakat: 'babaMenuBtn', liman: 'babaMenuBtn',
+      mesajKutusu: 'sohbetMenu', mafyaSohbet: 'sohbetMenu'
+    };
+    var menuId = altMap[tip];
+    if (menuId) {
+      var altBtn = document.getElementById(menuId);
+      if (altBtn) hedef = altBtn;
+      else {
+        var alt = document.getElementById(menuId);
+        if (alt && alt.previousElementSibling) hedef = alt.previousElementSibling;
+      }
+    }
+  }
+  if (hedef) hedef.classList.add('aktif-menu');
+}
+
+function ekranDegistir(tip) {
+  if (tip !== 'profilim' && tip !== 'profil_ziyaret') profilIcraatTimerDurdur();
+  if (tip !== 'profilim') profilQuillYokEt();
+  aktifEkran = tip;
+  masterFramePlaqueGuncelle(tip);
+  sehirBannerGuncelle();
+  sidebarMenuAktif(tip);
+  var ic = document.getElementById('anaIcerik');
+  if (tip === 'liderlik') {
+    ic.innerHTML = '<p style="color:#888;text-align:center;">Yükleniyor...</p>';
     liderlikTablosuCiz(ic);
     return;
   }
@@ -844,35 +2896,45 @@ function ekranDegistir(tip) {
   if (tip === 'profilim') {
     profilZiyaretOkundu();
     ic.innerHTML = profilEkranSablonu({
-      baslik: '👤 PROFİLİM',
       duzenlenebilir: true,
+      userId: window.__benimUserId || 'me',
+      profilResmi: oyuncuProfilResmi,
       oyuncuAdi: aktifReisAdi,
       lakap: aktifLakap,
       guc: oyuncuGuc,
       puan: oyuncuPuan,
       saatlik: saatlikKazanc,
       karaListede: karaListede,
-      sehirEfsane: sehirEfsane
+      sehirEfsane: sehirEfsane,
+      icraatKalan: profilSureFormat(profilIcraatKalanSn(
+        oyuncuIcraat,
+        oyuncuLastIcraatAt,
+        oyuncuIcraatRegenSec,
+        oyuncuIcraatSaatlikBonus
+      ))
     });
+    profilIcraatTimerOyuncudan();
+    profilQuillBaslat();
     profilYukle();
     return;
   }
 
+  if (tip === 'guvenliYer') {
+    ic.innerHTML = guvenliYerHTML();
+    guvenliYerResizeBagla();
+    guvenliYerYukle();
+    return;
+  }
+
+  if (tip === 'gunlukGorevler') {
+    ic.innerHTML = gunlukGorevlerHTML();
+    gunlukGorevlerYukle();
+    gunlukGorevBildirimGuncelle();
+    return;
+  }
+
   if (tip === 'devletIliskisi') {
-    var r = rusvetBilgi;
-    ic.innerHTML = '<h2>🏛️ DEVLET İLİŞKİSİ</h2>'
-      + '<p>Devletle olan ilişkin <b>5</b>\'in altına düşerse hapse girer ve İcraata çıkamazsın. İcraat yapabilmen için devletle aranı iyi tutmalısın. Vereceğin rüşvet Saygınlığın arttıkça yükselir.</p>'
-      + '<p style="color:#b8942a;">Mevcut Devlet İlişkin: <b>' + oyuncuDevlet + '</b>/600</p>'
-      + '<div class="devlet-yapi">'
-      + '<div class="devlet-resim-kutu"><img src="' + devletGorseller.yetkili + '" alt="" onerror="imgFallback(this)">'
-      + '<p style="margin-top:8px;"><b>Devlet Yetkilisi</b></p>'
-      + '<p style="color:#888;font-size:13px;">Devlet adamlarının rüşvet alması hoş olmasa da senin işlerini yürütmen için devlet ilişkilerin çok önemli.</p></div>'
-      + '<div class="is-kart" style="flex:1;min-width:240px;">'
-      + '<p>Rüşvet miktarı (TL):</p>'
-      + '<p style="font-size:22px;color:#b8942a;font-weight:700;">' + fmt(r.onerilen || r.min) + ' TL</p>'
-      + '<p style="color:#666;font-size:12px;">Aralık (Saygınlığa göre): ' + fmt(r.min) + ' – ' + fmt(r.max) + ' TL</p>'
-      + '<input type="number" id="rusvetMiktar" class="dusman-input" value="' + (r.onerilen || r.min) + '" min="' + r.min + '" max="' + r.max + '">'
-      + '<button class="btn-is kirmizi-btn" style="margin-top:10px;" onclick="rusvetVer()">[ 💵 RÜŞVET VER ]</button></div></div>';
+    ic.innerHTML = avukatHTML();
     return;
   }
 
@@ -890,35 +2952,29 @@ function ekranDegistir(tip) {
   if (tip === 'sektor_silah') { sektorEkranCiz(ic, 'silah', 'SİLAH SEKTÖRÜ'); return; }
   if (tip === 'sektor_paket') { sektorEkranCiz(ic, 'paket', 'PAKET SEKTÖRÜ'); return; }
 
-  if (tip === 'korumaEkibi') {
-    ic.innerHTML = '<h2>👥 KORUMA EKİBİ VE TETİKÇİLER</h2><p>"Arkanı sağlama al Reis."</p>'
-      + guclenKartHTML('delikanli', koruyucuGorseller.delikanli, 'vesikalik-resim', '🪖 Mahalle Delikanlısı', '"Sokağın gözü kulağı."', '500 TL', '+50', '#28a745', '🪙 ADAMI KİRALA')
-      + guclenKartHTML('bodyguard', koruyucuGorseller.bodyguard, 'vesikalik-resim', '💪 BodyGuard Tut', '"Giriş çıkışları tutan duvar."', '2.000 TL', '+250', '#28a745', '🪙 ADAMI KİRALA')
-      + guclenKartHTML('profesyonel', koruyucuGorseller.profesyonel, 'vesikalik-resim', '🕶️ Profesyonel Koruma', '"Takım elbiseli yakın koruma."', '8.000 TL', '+1.100', '#28a745', '🪙 ADAMI KİRALA')
-      + guclenKartHTML('harekat', koruyucuGorseller.harekat, 'vesikalik-resim', '🦅 Özel Harekat Emeklisi', '"Operasyonların gizli beyni."', '30.000 TL', '+4.500', '#28a745', '🪙 ADAMI KİRALA');
+  if (tip === 'guclen') {
+    ic.innerHTML = guclenHubHTML();
     return;
   }
 
-  if (tip === 'silahlan') {
-    ic.innerHTML = '<h2>🔫 CEPHANELİK VE SİLAHLANMA</h2><p>"Sözün bittiği yerde silahlar konuşur."</p>'
-      + guclenKartHTML('tabanca', silahGorseller.tabanca, 'vesikalik-resim', '🔫 Baretta Tabanca', '"Yakın mesafe vazgeçilmezi."', '1.200 TL', '+100', '#00e5ff', '🔫 SİLAHI SATIN AL', 'mavi-btn')
-      + guclenKartHTML('pompali', silahGorseller.pompali, 'vesikalik-resim', '💥 Taktik Pompalı Tüfek', '"Barikatları dağıtan gürültü."', '4.500 TL', '+450', '#00e5ff', '🔫 SİLAHI SATIN AL', 'mavi-btn')
-      + guclenKartHTML('ak47', silahGorseller.ak47, 'vesikalik-resim', '🔥 Gaddar Keleş (AK-47)', '"Yeraltının simgesi."', '15.000 TL', '+1.800', '#00e5ff', '🔫 SİLAHI SATIN AL', 'mavi-btn')
-      + guclenKartHTML('agir_silah', silahGorseller.agir_silah, 'vesikalik-resim', '⚡ Görünmez Gölge', '"Ağır silah kasası."', '45.000 TL', '+6.000', '#00e5ff', '🔫 SİLAHI SATIN AL', 'mavi-btn')
-      + guclenKartHTML('sniper', silahGorseller.sniper, 'vesikalik-resim', '🎯 AWM Keskin Nişancı', '"Uzun menzil hakimiyeti."', '55.000 TL', '+7.500', '#00e5ff', '🔫 SİLAHI SATIN AL', 'mavi-btn');
+  if (tip === 'buyume') {
+    ic.innerHTML = buyumeHubHTML();
     return;
   }
 
-  if (tip === 'luksYasam') {
-    ic.innerHTML = '<h2>💎 LÜKS YAŞAM</h2><p>"Lüks harcamalar ağırlığını artırır."</p>'
-      + guclenKartHTML('saat', luksGorseller.saat, 'luks-resim', '⌚ Lüks Kol Saati', '"Prestij abidesi."', '15.000 TL', '+2.500', '#b8942a', '💎 SATIN AL', 'kirmizi-btn')
-      + guclenKartHTML('motorsiklet', luksGorseller.motorsiklet, 'luks-resim', '🏍️ Klasik Özel Motorsiklet', '"Sokağın hakimine yakışan hız."', '75.000 TL', '+15.000', '#b8942a', '💎 SATIN AL', 'kirmizi-btn')
-      + guclenKartHTML('araba', luksGorseller.araba, 'luks-resim', '🏎️ İtalyan Spor Araba', '"Prestij ve hız."', '350.000 TL', '+80.000', '#b8942a', '💎 SATIN AL', 'kirmizi-btn')
-      + guclenKartHTML('yat', luksGorseller.yat, 'luks-resim', '🛥️ Süper Lüks Yat', '"Deniz sarayı."', '2.500.000 TL', '+600.000', '#b8942a', '💎 SATIN AL', 'kirmizi-btn')
-      + guclenKartHTML('helikopter', luksGorseller.helikopter, 'luks-resim', '🚁 Özel Taktik Helikopter', '"Havadan operasyon."', '8.000.000 TL', '+2.000.000', '#b8942a', '💎 SATIN AL', 'kirmizi-btn')
-      + guclenKartHTML('jet', luksGorseller.jet, 'luks-resim', '🛩️ Özel Jet', '"Dünyanın her yerine ulaşım."', '45.000.000 TL', '+10.000.000', '#b8942a', '💎 SATIN AL', 'kirmizi-btn');
+  if (tip === 'mekan') {
+    ic.innerHTML = mekanHubHTML();
     return;
   }
+
+  if (tip === 'sehreHukmet') {
+    ic.innerHTML = sehreHukmetHubHTML();
+    return;
+  }
+
+  if (tip === 'korumaEkibi') { guclenAltEkranCiz('korumaEkibi', ic); return; }
+  if (tip === 'silahlan') { guclenAltEkranCiz('silahlan', ic); return; }
+  if (tip === 'luksYasam') { guclenAltEkranCiz('luksYasam', ic); return; }
 
   if (tip === 'mahalle') {
     ic.innerHTML = '<h2>🏡 MAHALLE İŞLERİ</h2><p>"Küçük işlerle sermaye yap."</p>'
@@ -950,6 +3006,7 @@ function ekranDegistir(tip) {
   if (tip === 'liman') {
     ic.innerHTML = '<h2>🚢 LİMAN İŞLETMELERİ</h2>'
       + '<p>"Boğazdan Akdeniz\'e — güçlü olan limanı alır. Saatlik gelir sahibine otomatik işler."</p>'
+      + HUKUM_SAVUNMA_NOTU
       + '<p class="liman-gelir-notu">⏱️ Türkiye saatiyle her saat başı liman başına <b>10.000.000 TL</b> kazanırsın. '
       + '<b>Üç limanı birden elinde tutarsan saatlik 50.000.000 TL kazanırsın!</b></p>'
       + limanKartHTML('istanbul') + limanKartHTML('izmir') + limanKartHTML('hatay');
@@ -957,76 +3014,32 @@ function ekranDegistir(tip) {
   }
 
   if (tip === 'baba_soz') {
-    ic.innerHTML = '<h2>📿 SÖZÜNÜ GEÇİR</h2>'
-      + babaMakamEkran('sozunu_gecir', '📿 Sözünü Geçir',
-        '<p>Söz bitince, icraat başlar. Şimdi herkes ayağını denk alsın.</p>'
-        + '<p>Bu alemde en büyük söz sahibi [BABA] babadır. Hepiniz sözünü dinleyeceksiniz!</p>'
-        + '<p><b>Babanız derki;</b> (aşağıda)</p>');
+    ic.innerHTML = sozunuGecirHTML();
     return;
   }
 
   if (tip === 'baba_sadakat') {
-    var sad = (dunyaState.baba && dunyaState.baba.sadakat) || { taniyanlar: [], tanimayanlar: [] };
-    ic.innerHTML = '<h2>⚔️ SADAKAT YEMİNİ</h2>'
-      + babaMakamEkran('sadakat_yemini', '⚔️ Sadakat Yemini',
-        '<p>Kılıcımız değil, sözümüz keskindir; biat eden asla yarı yolda kalmaz.</p>'
-        + '<p>Babanız [BABA]. Babanıza Sadakat Yemini edin rahat edin.</p>'
-        + '<p><b>Babanız derki;</b> (aşağıda)</p>')
-      + '<div style="margin-top:16px;text-align:center;">'
-      + '<button class="btn-is" onclick="sadakatOy(\'tani\')">[ ✅ BABANI TANI ]</button> '
-      + '<button class="btn-is kirmizi-btn" onclick="sadakatOy(\'red\')">[ ❌ BABANI REDDET ]</button></div>'
-      + '<div class="sadakat-listeler"><div class="sadakat-kolon"><h4>TANIYANLAR</h4><p>'
-      + (sad.taniyanlar.length ? sad.taniyanlar.join(', ') : '—') + '</p></div>'
-      + '<div class="sadakat-kolon"><h4>TANIMAYANLAR</h4><p>'
-      + (sad.tanimayanlar.length ? sad.tanimayanlar.join(', ') : '—') + '</p></div></div>';
+    ic.innerHTML = sadakatYeminiHTML();
     return;
   }
 
   if (tip === 'dusmanaCok') {
-    ic.innerHTML = '<div class="dusman-ust">'
-      + '<img src="' + ozelGorseller.catisma + '" alt="Çatışma" onerror="imgFallback(this)">'
-      + '<p style="margin-top:16px;font-size:17px;font-weight:600;">Düşmanın adını yaz ve ona kim olduğunu göster..!</p>'
-      + '<div class="dusman-form">'
-      + '<input type="text" id="dusmanHedef" class="dusman-input" placeholder="Düşman Adını Yaz.." maxlength="24">'
-      + '<button class="btn-is kirmizi-btn" onclick="dusmanaSaldir()">[ ⚔️ SALDIR ]</button></div>'
-      + '<p class="dusman-kural-uyari">1 İcraat harcanır. Rakibin gücünü bilmiyorsan önce istihbarat gönder. Güçlüysen kazanırsın.</p>'
-      + '<div id="saldiriSonuc" class="saldiri-sonuc gizli"></div>'
-      + '</div>';
+    dusmanBulunanHedef = null;
+    dusmanRakipListesi = [];
+    ic.innerHTML = dusmanPanelHTML();
+    dusmanEkranBagla();
     return;
   }
 
   if (tip === 'istihbarat') {
-    ic.innerHTML = '<h2>🕵️ İSTİHBARAT</h2>'
-      + '<p>"Bilgi güçtür. Rakiplerinin gücünü öğrenmek için istihbarat elemanları al."</p>'
-      + '<div class="is-kart"><h3 class="bolum-baslik">İstihbarat Elemanları</h3>'
-      + '<p>🕵️ Mevcut Eleman: <b style="color:#b8942a;">' + istihbaratEleman + '</b></p>'
-      + '<p>💵 Birim Maliyet: <b>50.000 TL</b> | ⚔️ Birim Güç: <b>+100</b></p>'
-      + '<div class="adet-satir"><label for="adet-istihbarat">📦 Adet</label>'
-      + '<input type="number" id="adet-istihbarat" class="adet-input" value="1" min="1" max="100"></div>'
-      + '<button class="btn-is" onclick="istihbaratAl()">[ 🕵️ ELEMAN AL ]</button></div>'
-      + '<div class="is-kart" style="margin-top:16px;"><h3 class="bolum-baslik">Rakip İstihbaratı</h3>'
-      + '<p>Rakip oyuncunun gücünü öğrenmek için adını yaz.</p>'
-      + '<input type="text" id="istihbaratHedef" class="dusman-input" placeholder="Rakip reis adı..." maxlength="24" style="width:100%;margin:8px 0;">'
-      + '<button class="btn-is mavi-btn" onclick="istihbaratSpy()">[ 🔍 GÜCÜ ÖĞREN ]</button></div>'
-      + '<div id="istihbaratSonuc" class="saldiri-sonuc gizli"></div>';
+    ic.innerHTML = istihbaratPanelHTML();
+    istihbaratEkranBagla();
     return;
   }
 
   if (tip === 'banka') {
-    ic.innerHTML = '<h2>🏦 BANKA</h2>'
-      + '<p>"Paranı güvene al. İstediğin miktarı yatırıp istediğin miktarı çekebilirsin."</p>'
-      + '<div class="is-kart" style="text-align:center;max-width:520px;margin:0 auto 14px;"><h3 class="bolum-baslik">Banka Hesabı</h3>'
-      + '<p style="font-size:24px;color:#ffd700;margin:16px 0;">💰 ' + fmt(bankaBakiye) + ' TL</p></div>'
-      + '<div class="is-kart" style="max-width:520px;margin:0 auto;"><h3 class="bolum-baslik">Para Yatır</h3>'
-      + '<p>Kasandaki parasını istediğin miktarda yatırabilirsin.</p>'
-      + '<label>Yatırılacak Miktar (TL):</label>'
-      + '<input type="number" id="bankaYatirMiktar" min="1" max="' + oyuncuKasa + '" value="' + Math.floor(oyuncuKasa / 2) + '" style="width:100%;margin:8px 0;">'
-      + '<button class="btn-is" onclick="bankaYatir()">[ 💰 YATIR ]</button></div>'
-      + '<div class="is-kart" style="max-width:520px;margin:16px auto 0;"><h3 class="bolum-baslik">Para Çek</h3>'
-      + '<p>Bankadaki parasını istediğin miktarda çekebilirsin.</p>'
-      + '<label>Çekilecek Miktar (TL):</label>'
-      + '<input type="number" id="bankaCekMiktar" min="1" max="' + bankaBakiye + '" value="' + Math.floor(bankaBakiye / 2) + '" style="width:100%;margin:8px 0;">'
-      + '<button class="btn-is kirmizi-btn" onclick="bankaCek()">[ 💸 ÇEK ]</button></div>';
+    ic.innerHTML = bankaPanelHTML();
+    bankaEkranBagla();
     return;
   }
 
@@ -1036,39 +3049,13 @@ function ekranDegistir(tip) {
   }
 
   if (tip === 'mekan_devri') {
-    var mekanOpts = mekanDevriSecenekleri();
-    ic.innerHTML = '<h2>🔄 MEKAN DEVRİ & PARA GÖNDERME</h2>'
-      + '<p>"Mekanlarını dostlarına devret veya para gönder."</p>'
-      + '<div class="is-kart" style="max-width:560px;margin:0 auto;"><h3 class="bolum-baslik">Mekan Devret</h3>'
-      + '<p><label>Dost reis adı</label>'
-      + '<input type="text" id="mekanDevriHedef" class="dusman-input" placeholder="Dost reis adı..." maxlength="24" style="width:100%;margin:6px 0 12px;"></p>'
-      + '<p><label>Devredilecek mekan</label>'
-      + '<select id="mekanDevriMekan" class="dusman-input" style="width:100%;margin:6px 0 12px;">' + mekanOpts + '</select></p>'
-      + '<p><label>Adet</label>'
-      + '<input type="number" id="mekanDevriAdet" class="dusman-input" value="1" min="1" max="999" style="width:100%;margin:6px 0 12px;"></p>'
-      + '<button class="btn-is mavi-btn" onclick="mekanDevret()">[ 🔄 DEVRET ]</button>'
-      + '<div id="mekanDevriSonuc" class="saldiri-sonuc gizli" style="margin-top:12px;"></div></div>'
-      + '<div class="is-kart" style="max-width:560px;margin:16px auto 0;"><h3 class="bolum-baslik">Para Gönder</h3>'
-      + '<p><label>Alıcı reis adı</label>'
-      + '<input type="text" id="paraGonderHedef" class="dusman-input" placeholder="Alıcı reis adı..." maxlength="24" style="width:100%;margin:6px 0 12px;"></p>'
-      + '<p><label>Gönderilecek Miktar (TL)</label>'
-      + '<input type="number" id="paraGonderMiktar" class="dusman-input" value="100000" min="1" max="999999999" style="width:100%;margin:6px 0 12px;"></p>'
-      + '<button class="btn-is" onclick="paraGonder()">[ 💸 PARA GÖNDER ]</button>'
-      + '<div id="paraGonderSonuc" class="saldiri-sonuc gizli" style="margin-top:12px;"></div></div>';
+    ic.innerHTML = mekanDevriHTML();
+    mekanDevriEkranBagla();
     return;
   }
 
   if (tip === 'medya') {
-    ic.innerHTML = '<div class="medya-hero"><img src="' + MEDYA_BANNER + '" alt="Medya Merkezi" onerror="imgFallback(this)"></div>'
-      + '<h2>📰 MEDYA</h2>'
-      + '<p>"Haberleri kontrol et, propaganda yap, rakiplerini aşağıla."</p>'
-      + '<div class="is-kart"><h3 class="bolum-baslik">Haber Yayınla</h3>'
-      + '<p>💵 Maliyet: <b>100.000 TL</b> | Haber 24 saat görünür.</p>'
-      + '<textarea id="medyaHaber" class="dusman-input" rows="3" style="width:100%;margin:8px 0;" placeholder="Haber metni yaz..." maxlength="200"></textarea>'
-      + '<button class="btn-is" onclick="medyaHaberYayinla()">[ 📰 HABER YAYINLA ]</button></div>'
-      + '<div id="medyaSonuc" class="saldiri-sonuc gizli"></div>'
-      + '<div class="is-kart" style="margin-top:16px;"><h3 class="bolum-baslik">Son Haberler</h3>'
-      + '<div id="medyaHaberlerListesi" style="margin-top:12px;"></div></div>';
+    ic.innerHTML = medyaHTML();
     medyaHaberleriYukle();
     return;
   }
@@ -1087,6 +3074,27 @@ function ekranDegistir(tip) {
     sehirTarihiEkranCiz(ic);
     return;
   }
+}
+
+function profilTrTarih(ts) {
+  if (!ts) return '—';
+  var n = Number(ts);
+  if (!n) return '—';
+  return new Date(n * 1000).toLocaleString('tr-TR', {
+    timeZone: 'Europe/Istanbul',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
+function hukumGunSayisi(baslangic, bitis, aktif) {
+  var bas = Number(baslangic);
+  if (!bas) return 0;
+  var bit = bitis ? Number(bitis) : Math.floor(Date.now() / 1000);
+  return Math.max(1, Math.floor(Math.max(0, bit - bas) / 86400) + 1);
 }
 
 async function sehirTarihiEkranCiz(ic) {
@@ -1109,11 +3117,21 @@ async function sehirTarihiEkranCiz(ic) {
     }
     liste.forEach(function(k) {
       var adCls = k.aktif ? ' style="color:#ffd700;font-weight:700;"' : '';
+      var basTxt = k.baslangic ? profilTrTarih(k.baslangic) : (k.baslangicMetin || '—');
+      var bitTxt = k.bitis ? profilTrTarih(k.bitis) : (k.bitisMetin || '');
+      var gun = hukumGunSayisi(k.baslangic, k.bitis, k.aktif);
+      if (!gun && k.gunSayisi > 0) gun = k.gunSayisi;
+      var gunTxt = gun + ' gün';
       html += '<div class="is-kart" style="margin-bottom:12px;">'
-        + '<p><b' + adCls + '>👑 ' + k.hukumdarAdi + (k.aktif ? ' (Şu an)' : '') + '</b></p>'
-        + '<p>📅 Başlangıç: ' + (k.baslangicMetin || '—') + '</p>';
-      if (!k.aktif && k.bitisMetin) html += '<p>📅 Bitiş: ' + k.bitisMetin + '</p>';
-      html += '<p>⏳ Süre: <b>' + k.gunSayisi + ' gün</b></p>';
+        + '<p><b' + adCls + '>👑 ' + k.hukumdarAdi
+        + (k.aktif ? ' (Şu an · ' + gunTxt + ')' : ' · ' + gunTxt) + '</b></p>'
+        + '<p>📅 Başlangıç: ' + basTxt + '</p>';
+      if (k.aktif) {
+        html += '<p>📅 Bitiş: <b>Devam ediyor</b></p>';
+      } else if (bitTxt) {
+        html += '<p>📅 Bitiş: ' + bitTxt + '</p>';
+      }
+      html += '<p>⏳ Süre: <b>' + gunTxt + '</b></p>';
       if (k.oncekiReisAdi) html += '<p>🔄 Kimden aldı: <b>' + k.oncekiReisAdi + '</b></p>';
       if (k.kaybedenReisAdi && !k.aktif) html += '<p>💀 Kaybeden: <b>' + k.kaybedenReisAdi + '</b></p>';
       html += '</div>';
@@ -1124,10 +3142,49 @@ async function sehirTarihiEkranCiz(ic) {
   }
 }
 
+function karaListeSayfaHTML() {
+  return '<div class="kl-sayfa"><div class="kl-cerceve">'
+    + '<div class="kl-banner"><div class="kl-banner-ortu"></div>'
+    + '<div class="kl-baslik-wrap">'
+    + '<span class="kl-baslik-ikon" aria-hidden="true">💀</span>'
+    + '<h2>KARA LİSTE</h2>'
+    + '<p class="kl-motto">"Şehre hükmeden reis burada görünür."</p>'
+    + '</div></div>'
+    + '<div class="kl-govde">'
+    + '<div class="kl-hukumdar-kutu">'
+    + '<p class="kl-hukumdar-metin">Şehir şu an <span class="kl-hukumdar-isim" id="klHukumdarIsim">…</span> tarafından yönetiliyor!</p>'
+    + '</div>'
+    + '<p class="kl-aciklama">Şehre Hükmet sahibinden Liman, Söz veya Sadakat alındığında kazanan, rakibin saygınlığının %5\'ini ödül olarak alır.</p>'
+    + '<div class="kl-tablo-wrap">'
+    + '<div class="kl-tablo-baslik"><span>OYUNCU</span><span>MAFYA GRUBU</span><span>SAYGINLIK</span></div>'
+    + '<div id="klListe" class="kl-tablo-govde"><p class="kl-yukleniyor">Yükleniyor…</p></div>'
+    + '</div></div></div></div>';
+}
+
+function klGrupLinkHtml(grup, grupId) {
+  return ltGrupLinkHtml(grup, grupId, null);
+}
+
+function karaListeSatirlariHTML(liste) {
+  if (!liste.length) {
+    return '<p class="kl-bos">Şu an kara listede kimse yok.</p>';
+  }
+  return liste.map(function(r) {
+    return '<div class="kl-satir">'
+      + '<span class="kl-hucre kl-hucre--oyuncu">' + oyuncuLink(r.user_id, r.reis_adi) + '</span>'
+      + '<span class="kl-hucre kl-hucre--grup">' + klGrupLinkHtml(r.grup, r.grup_id) + '</span>'
+      + '<span class="kl-hucre kl-hucre--sayginlik">' + fmt(r.puan || 0) + '</span>'
+      + '</div>';
+  }).join('');
+}
+
 async function karaListeCiz(ic) {
-  ic.innerHTML = '<h2>💀 KARA LİSTE</h2><p>"Şehre hükmeden reis burada görünür."</p><p style="color:#888;">Yükleniyor...</p>';
+  ic.innerHTML = karaListeSayfaHTML();
   if (!sunucuBagli) {
-    ic.innerHTML = '<h2>💀 KARA LİSTE</h2><p style="color:#c00;">Sunucu kapalı.</p>';
+    var kapaliEl = document.getElementById('klListe');
+    var hukumdarKapali = document.getElementById('klHukumdarIsim');
+    if (hukumdarKapali) hukumdarKapali.textContent = '—';
+    if (kapaliEl) kapaliEl.innerHTML = '<p class="kl-hata">Sunucu kapalı.</p>';
     return;
   }
   try {
@@ -1135,21 +3192,19 @@ async function karaListeCiz(ic) {
     var data = await res.json().catch(function() { return {}; });
     if (!res.ok || !data.ok) throw new Error(data.error || ('HTTP ' + res.status));
     var liste = data.liste || [];
-    if (!liste.length) {
-      ic.innerHTML = '<h2>💀 KARA LİSTE</h2><p>Şu an kara listede kimse yok.</p>';
-      return;
+    var hukumdarEl = document.getElementById('klHukumdarIsim');
+    var listeEl = document.getElementById('klListe');
+    if (hukumdarEl) {
+      hukumdarEl.innerHTML = liste.length
+        ? oyuncuLink(liste[0].user_id, liste[0].reis_adi)
+        : '—';
     }
-    var html = '<h2>💀 KARA LİSTE</h2><p>"Şehre hükmeden reis burada görünür."</p>';
-    html += '<div class="tablo-container"><div class="tablo-izgara tablo-baslik-satir" style="grid-template-columns:60px 1fr 180px 180px;">'
-      + '<span>#</span><span>OYUNCU</span><span>MAFYA GRUBU</span><span>SAYGINLIK</span></div>';
-    liste.forEach(function(r, i) {
-      html += '<div class="tablo-izgara" style="grid-template-columns:60px 1fr 180px 180px;">'
-        + '<span>#' + (i + 1) + '</span><span>' + oyuncuLink(r.user_id, r.reis_adi) + '</span><span>' + (r.grup || '—') + '</span><span>' + fmt(r.puan || 0) + '</span></div>';
-    });
-    html += '</div>';
-    ic.innerHTML = html;
+    if (listeEl) listeEl.innerHTML = karaListeSatirlariHTML(liste);
   } catch (e) {
-    ic.innerHTML = '<h2>💀 KARA LİSTE</h2><p style="color:#c00;">' + (e.message || 'Yüklenemedi') + '</p>';
+    var hataEl = document.getElementById('klListe');
+    var hukumdarHata = document.getElementById('klHukumdarIsim');
+    if (hukumdarHata) hukumdarHata.textContent = '—';
+    if (hataEl) hataEl.innerHTML = '<p class="kl-hata">' + escHtml(e.message || 'Yüklenemedi') + '</p>';
   }
 }
 
@@ -1167,12 +3222,18 @@ async function adamKirala(key) {
   var ef = await sunucuAksiyon('hire', key, adetOku(key));
   if (!ef) return;
   toast('⚔️ ' + ef.unvan + (ef.adet > 1 ? ' x' + ef.adet : '') + ' — Güç +' + fmt(ef.guc), 'basari');
+  if (aktifEkran === 'korumaEkibi' || aktifEkran === 'silahlan' || aktifEkran === 'luksYasam') {
+    ekranDegistir(aktifEkran);
+  }
 }
 
 async function isYap(key) {
   var ef = await sunucuAksiyon('job', key);
   if (!ef) return;
-  pencereAc(ef.isAdi, ef.netKazanc, ef.icraat, isGorselleri[ef.gorselKey] || FALLBACK);
+  pencereAc(ef.isAdi, ef.netKazanc, ef.icraat, isGorselleri[ef.gorselKey] || FALLBACK, ef.devletDusus, ef.yeniDevletIliski);
+  if (ef.devletDusus) {
+    toast('Avukat ilişkin ' + ef.devletDusus + ' puan düştü.', 'uyari');
+  }
 }
 
 async function limanCok(id) {
@@ -1210,22 +3271,24 @@ async function sadakatOy(oy) {
   }
 }
 
-async function dusmanaSaldir() {
+async function dusmanaSaldir(hedefAdi) {
   var hedef = document.getElementById('dusmanHedef');
-  if (!hedef || !hedef.value.trim()) {
-    toast('Düşman adını yaz!', 'hata');
+  var ad = hedefAdi || (hedef && hedef.value.trim()) || (dusmanBulunanHedef && dusmanBulunanHedef.reisAdi) || '';
+  if (!ad) {
+    toast('Önce düşman ara!', 'hata');
     return;
   }
-  var ef = await sunucuAksiyon('dusmana_cok', null, null, { hedef: hedef.value.trim() });
+  var ef = await sunucuAksiyon('dusmana_cok', null, null, { hedef: ad });
   if (ef === null) return;
   sesCal('saldiri');
-  var box = document.getElementById('saldiriSonuc');
+  var box = document.getElementById('dusmanSonuc');
   if (box && ef.mesaj) {
-    box.classList.remove('gizli');
-    box.innerText = ef.mesaj;
+    box.innerHTML = '<div class="saldiri-sonuc"></div>';
+    box.firstChild.textContent = ef.mesaj;
   } else {
     toast(ef.mesaj || 'Saldırı tamamlandı.', ef.kazandi ? 'basari' : 'hata');
   }
+  dusmanBulunanHedef = null;
 }
 
 async function istihbaratAl() {
@@ -1233,7 +3296,11 @@ async function istihbaratAl() {
   if (ef === null) return;
   toast('🕵️ ' + ef.elemanSayisi + ' eleman alındı! — ' + fmt(ef.odenen) + ' TL', 'basari');
   istihbaratEleman = ef.elemanSayisi;
-  ekranDegistir('istihbarat');
+  istihbaratBirimMaliyet = ef.sonrakiBirimMaliyet || istihbaratBirimMaliyetHesap(istihbaratEleman);
+  var sayiEl = document.getElementById('istihbaratElemanSayi');
+  if (sayiEl) sayiEl.textContent = String(ef.elemanSayisi);
+  var maliyetEl = document.getElementById('istihbaratBirimMaliyet');
+  if (maliyetEl) maliyetEl.textContent = fmt(istihbaratBirimMaliyet) + ' TL';
 }
 
 async function istihbaratSpy() {
@@ -1244,44 +3311,49 @@ async function istihbaratSpy() {
   }
   var ef = await sunucuAksiyon('istihbarat_spy', null, null, { hedef });
   if (ef === null) return;
-  var sonucDiv = document.getElementById('istihbaratSonuc');
-  sonucDiv.classList.remove('gizli');
   if (ef.basari) {
     if (ef.guc !== null) {
-      sonucDiv.innerHTML = '<p style="color:#090;">✅ ' + ef.mesaj + '<br>Güç: ' + fmt(ef.guc) + '</p>';
+      istihbaratSonucGoster(
+        escHtml(ef.mesaj) + '<span class="istih-sonuc-guc">⚔️ Güç: ' + fmt(ef.guc) + '</span>',
+        'basari'
+      );
     } else {
-      sonucDiv.innerHTML = '<p style="color:#fa0;">⚠️ ' + ef.mesaj + '</p>';
+      istihbaratSonucGoster(escHtml(ef.mesaj), 'uyari');
     }
   } else {
-    sonucDiv.innerHTML = '<p style="color:#c00;">❌ ' + ef.mesaj + '</p>';
+    istihbaratSonucGoster(escHtml(ef.mesaj), 'hata');
   }
 }
 
 async function bankaYatir() {
-  var miktar = parseInt(document.getElementById('bankaYatirMiktar').value, 10) || 0;
+  var miktar = bankaMiktarOku('bankaYatirMiktar');
   if (miktar < 1) {
     toast('Geçerli bir miktar gir.', 'hata');
     return;
   }
+  var btn = document.getElementById('bankaYatirBtn');
+  if (btn) btn.disabled = true;
   var ef = await sunucuAksiyon('banka_yatir', null, null, { miktar: miktar });
+  if (btn) btn.disabled = false;
   if (ef === null) return;
   sesCal('para');
   toast('💰 ' + fmt(ef.yatirilan) + ' TL yatırıldı! — Toplam: ' + fmt(ef.toplam) + ' TL', 'basari');
-  bankaBakiye = ef.toplam;
   ekranDegistir('banka');
 }
 
 async function bankaCek() {
-  var miktar = parseInt(document.getElementById('bankaCekMiktar').value, 10) || 0;
+  var miktar = bankaMiktarOku('bankaCekMiktar');
   if (miktar < 1) {
     toast('Geçerli bir miktar gir.', 'hata');
     return;
   }
+  var btn = document.getElementById('bankaCekBtn');
+  if (btn) btn.disabled = true;
   var ef = await sunucuAksiyon('banka_cek', null, null, { miktar: miktar });
+  if (btn) btn.disabled = false;
   if (ef === null) return;
   sesCal('para');
   toast('💸 ' + fmt(ef.cekilen) + ' TL çekildi!', 'basari');
-  bankaBakiye = 0;
   ekranDegistir('banka');
 }
 
@@ -1302,7 +3374,8 @@ async function mekanDevret() {
   var sonucDiv = document.getElementById('mekanDevriSonuc');
   if (sonucDiv) {
     sonucDiv.classList.remove('gizli');
-    sonucDiv.innerHTML = '<p style="color:#090;">✅ ' + (ef.mesaj || 'Mekan devredildi.') + '</p>';
+    sonucDiv.className = 'md-sonuc md-sonuc--basari';
+    sonucDiv.innerHTML = '✅ ' + escHtml(ef.mesaj || 'Mekan devredildi.');
   }
   toast(ef.mesaj || 'Mekan devredildi.', 'basari');
 }
@@ -1320,7 +3393,8 @@ async function paraGonder() {
   var sonucDiv = document.getElementById('paraGonderSonuc');
   if (sonucDiv) {
     sonucDiv.classList.remove('gizli');
-    sonucDiv.innerHTML = '<p style="color:#090;">✅ ' + (ef.mesaj || fmt(miktar) + ' TL gönderildi.') + '</p>';
+    sonucDiv.className = 'md-sonuc md-sonuc--basari';
+    sonucDiv.innerHTML = '✅ ' + escHtml(ef.mesaj || fmt(miktar) + ' TL gönderildi.');
   }
   toast(ef.mesaj || fmt(miktar) + ' TL gönderildi.', 'basari');
 }
@@ -1334,14 +3408,12 @@ async function medyaHaberYayinla() {
   var ef = await sunucuAksiyon('medya_haber', null, null, { haber });
   if (ef === null) return;
   var sonucDiv = document.getElementById('medyaSonuc');
+  if (!sonucDiv) return;
   sonucDiv.classList.remove('gizli');
-  if (ef.ok) {
-    sonucDiv.innerHTML = '<p style="color:#090;">✅ ' + ef.mesaj + '</p>';
-    document.getElementById('medyaHaber').value = '';
-    medyaHaberleriYukle();
-  } else {
-    sonucDiv.innerHTML = '<p style="color:#c00;">❌ ' + ef.mesaj + '</p>';
-  }
+  sonucDiv.className = 'med-sonuc med-sonuc--basari';
+  sonucDiv.innerHTML = '✅ ' + escHtml(ef.mesaj || 'Haber yayınlandı.');
+  document.getElementById('medyaHaber').value = '';
+  medyaHaberleriYukle();
 }
 
 async function medyaHaberleriYukle() {
@@ -1350,13 +3422,24 @@ async function medyaHaberleriYukle() {
     var data = await res.json();
     var box = document.getElementById('medyaHaberlerListesi');
     if (!data.ok || !data.haberler || !data.haberler.length) {
-      if (box) box.innerHTML = '<p style="color:#888;">Henüz haber yok.</p>';
+      if (box) box.innerHTML = '<p class="med-haber-bos">Henüz aktif haber yok — ilk manşeti sen düşür.</p>';
       return;
     }
     var html = '';
     data.haberler.forEach(function(h) {
-      html += '<div class="is-kart" style="padding:12px;"><p style="color:#b8942a;font-weight:600;">' + h.reis_adi + '</p>'
-        + '<p style="color:#ddd;">' + h.haber + '</p></div>';
+      var zaman = medyaZamanGoster(h.created_at);
+      var avatarUrl = profilResmiUrl(h.user_id, h.profil_resmi);
+      var avatarCls = profilResmiOzelMi(avatarUrl) ? ' med-haber-avatar-img--ozel' : '';
+      html += '<article class="med-haber-kart">'
+        + '<div class="med-haber-ust">'
+        + '<div class="med-haber-kaynak"><span class="med-haber-avatar">'
+        + '<img class="med-haber-avatar-img' + avatarCls + '" src="' + escHtml(avatarUrl) + '" alt="" loading="lazy" onerror="imgFallback(this)">'
+        + '</span>'
+        + '<span class="med-haber-reis">' + escHtml(h.reis_adi || 'Anonim') + '</span></div>'
+        + (zaman ? '<span class="med-haber-zaman">' + escHtml(zaman) + '</span>' : '')
+        + '</div>'
+        + '<p class="med-haber-metin">' + escHtml(h.haber) + '</p>'
+        + '</article>';
     });
     if (box) box.innerHTML = html;
   } catch (e) {
@@ -1364,15 +3447,20 @@ async function medyaHaberleriYukle() {
   }
 }
 
-function mafyaMenuSec(mod) {
+async function mafyaMenuSec(mod) {
   aktifEkran = 'mafya';
+  masterFramePlaqueGuncelle('mafya', ML_MAFYA_BASLIKLARI[mod] || 'MAFYA GRUBU');
   var ic = document.getElementById('anaIcerik');
-  if (mod === 'gurubum') {
-    ic.innerHTML = '<div id="mafyaAltIcerik" class="mafya-alt-icerik"></div>';
-  } else {
-    ic.innerHTML = '<h2>🕶️ MAFYA GRUBU</h2><div id="mafyaAltIcerik" class="mafya-alt-icerik"></div>';
+  ic.innerHTML = '<div id="mafyaAltIcerik" class="mafya-alt-icerik"></div>';
+  var zatenUye = false;
+  if ((mod === 'olustur' || mod === 'katil') && sunucuBagli) {
+    try {
+      var chkRes = await apiFetch('/api/mafya');
+      var chkData = await chkRes.json().catch(function() { return {}; });
+      if (chkRes.ok && chkData.uyelik) zatenUye = true;
+    } catch (_) {}
   }
-  mafyaAltEkran(mod);
+  mafyaAltEkran(mod, zatenUye);
   mafyaBildirimKontrol();
 }
 
@@ -1398,64 +3486,65 @@ async function mafyaBildirimKontrol() {
   } catch (_) {}
 }
 
-function mafyaAltEkran(mod) {
+function mafyaAltEkran(mod, zatenUye) {
   var box = document.getElementById('mafyaAltIcerik');
   if (!box) return;
+  if ((mod === 'olustur' || mod === 'katil') && zatenUye) {
+    box.innerHTML = '<p class="mafya-uyelik-uyari">Zaten bir mafya gurubuna üyesin!</p>';
+    return;
+  }
   if (mod === 'olustur') {
     box.innerHTML = '<div class="mafya-form is-kart">'
       + '<h3 class="bolum-baslik">Mafya Grubu Oluştur</h3>'
+      + '<p class="mafya-metin-dim">Grubunu kur, üyelerini topla, şehirde söz sahibi ol.</p>'
       + '<input type="text" id="mafyaIsim" placeholder="Grup adı" maxlength="32">'
       + '<button type="button" class="btn-is" onclick="mafyaOlusturAdim1()">[ OLUŞTUR ]</button>'
       + '<div id="mafyaAciklamaAlan" class="gizli"><label>Açıklama:</label>'
       + '<textarea id="mafyaAciklama" rows="3" maxlength="200" placeholder="Grubun hakkında..."></textarea>'
       + '<button type="button" class="btn-is kirmizi-btn" onclick="mafyaOlusturAdim2()">[ GRUBU KUR ]</button></div></div>'
-      + '<div id="mafyaGurupListeEk" style="margin-top:16px;"></div>';
+      + '<div id="mafyaGurupListeEk" class="mafya-grup-liste" style="margin-top:16px;"></div>';
     mafyaTumGuruplariGoster('mafyaGurupListeEk');
     return;
   }
   if (mod === 'katil') {
     box.innerHTML = '<div class="mafya-form is-kart">'
       + '<h3 class="bolum-baslik">Mafya Grubuna Katıl</h3>'
+      + '<p class="mafya-metin-dim">Mevcut bir gruba başvur veya listeden seç.</p>'
       + '<input type="text" id="mafyaAra" placeholder="Grup adı yaz">'
       + '<button type="button" class="btn-is mavi-btn" onclick="mafyaAra()">[ ARA ]</button>'
       + '<div id="mafyaAraSonuc" style="margin-top:14px;"></div></div>'
-      + '<div id="mafyaGurupListeEk" style="margin-top:16px;"></div>';
+      + '<div id="mafyaGurupListeEk" class="mafya-grup-liste" style="margin-top:16px;"></div>';
     mafyaTumGuruplariGoster('mafyaGurupListeEk');
     return;
   }
-  if (mod === 'gurubum') {
+  if (mod === 'gurubum' || mod === 'evi' || mod === 'savaslar') {
     mafyaGurubumCiz(box);
-  }
-  if (mod === 'savaslar') {
-    mafyaSavaslarCiz(box);
+    return;
   }
   if (mod === 'isler') {
     mafyaIslerCiz(box);
   }
-  if (mod === 'evi') {
-    mafyaEviCiz(box);
-  }
 }
 
 async function mafyaIslerCiz(box) {
-  box.innerHTML = '<p style="color:#888;">Yükleniyor...</p>';
-  if (!sunucuBagli) { box.innerHTML = '<p style="color:#c00;">Sunucu kapalı.</p>'; return; }
+  box.innerHTML = '<p class="mafya-yukleniyor">Yükleniyor...</p>';
+  if (!sunucuBagli) { box.innerHTML = '<p class="mafya-bos-metin" style="color:#c00;">Sunucu kapalı.</p>'; return; }
   try {
     var res = await apiFetch('/api/mafya/isler');
     var data = await res.json().catch(function() { return {}; });
     if (!res.ok || !data.ok || !data.panel) throw new Error(data.error || 'Yüklenemedi');
     var panel = data.panel;
     if (!panel.grup) {
-      box.innerHTML = '<h2>💼 MAFYA İŞLERİ</h2><p style="color:#888;">Mafya grubuna üye olmadan bu işleri yapamazsın.</p>';
+      box.innerHTML = '<div class="mafya-isler-wrap"><h2>💼 MAFYA İŞLERİ</h2><p class="mafya-metin">Mafya grubuna üye olmadan bu işleri yapamazsın.</p></div>';
       return;
     }
     var aktif = panel.aktifIs;
     var aktifKey = aktif ? aktif.isTuru : null;
-    var html = '<h2>💼 MAFYA İŞLERİ</h2>'
+    var html = '<div class="mafya-isler-wrap"><h2>💼 MAFYA İŞLERİ</h2>'
       + '<p>"Online üyelerle birlikte soyguna hazırlan, şartlar tutunca soygunu gerçekleştir."</p>'
-      + '<div class="is-kart" style="padding:12px;max-width:720px;margin:0 auto 12px;">'
+      + '<div class="is-kart mafya-isler-ozet">'
       + '<p><b>Grup Online:</b> ' + panel.grup.onlineSayisi + ' / ' + panel.grup.uyeSayisi + '</p>'
-      + (aktif ? ('<p style="color:#b8942a;"><b>Aktif Hazırlık:</b> ' + aktif.isTuru + '</p>') : '<p style="color:#666;">Aktif hazırlık yok.</p>')
+      + (aktif ? ('<p><b>Aktif Hazırlık:</b> ' + aktif.isTuru + '</p>') : '<p class="mafya-metin-dim">Aktif hazırlık yok.</p>')
       + '</div>';
 
     (panel.isler || []).forEach(function(isDef) {
@@ -1474,15 +3563,16 @@ async function mafyaIslerCiz(box) {
 
       if (aktifMi) {
         var list = panel.katilanlar || [];
-        html += '<div style="margin-top:10px;color:#ddd;"><b>Katılanlar:</b> '
+        html += '<div class="mafya-metin" style="margin-top:10px;"><b>Katılanlar:</b> '
           + (list.length ? list.map(function(k) { return (k.online ? '🟢 ' : '⚫ ') + k.reisAdi; }).join(' , ') : 'Henüz yok.')
           + '</div>';
       }
       html += '</div>';
     });
+    html += '</div>';
     box.innerHTML = html;
   } catch (e) {
-    box.innerHTML = '<h2>💼 MAFYA İŞLERİ</h2><p style="color:#c00;">' + (e.message || 'Yüklenemedi') + '</p>';
+    box.innerHTML = '<div class="mafya-isler-wrap"><h2>💼 MAFYA İŞLERİ</h2><p class="mafya-bos-metin" style="color:#c00;">' + (e.message || 'Yüklenemedi') + '</p></div>';
   }
 }
 
@@ -1542,14 +3632,14 @@ async function mafyaEviHibe() {
   var ef = await sunucuAksiyon('mafya_evi_hibe', null, null, { miktar: miktar });
   if (ef === null) return;
   toast('Hibe yapıldı.', 'basari');
-  mafyaAltEkran('evi');
+  mafyaMenuSec('gurubum');
 }
 
 async function mafyaEviSeviye() {
   var ef = await sunucuAksiyon('mafya_evi_seviye');
   if (ef === null) return;
   toast('Seviye yükseltildi!', 'basari');
-  mafyaAltEkran('evi');
+  mafyaMenuSec('gurubum');
 }
 
 async function mafyaSavaslarCiz(box) {
@@ -1567,7 +3657,7 @@ async function mafyaSavaslarCiz(box) {
       box.innerHTML = '<p style="color:#fff;">Henüz savaş yok.</p>';
       return;
     }
-    var html = '<div style="text-align:center;margin-bottom:16px;"><img src="/images/mafya/savas-banner.png?v=24" alt="Mafya Savaşları" style="max-width:100%;max-height:260px;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.6);"></div>'
+    var html = '<div class="mafya-savas-hero"><img class="mafya-savas-banner" src="/images/mafya/savas-banner.png?v=' + GORSEL_VERSIYON + '" alt="Mafya Savaşları"></div>'
       + '<h3 class="bolum-baslik">Mafya Savaşları</h3>';
     if (mafyaData && mafyaData.uyelik && mafyaData.uyelik.benLiderim) {
       html += '<div class="is-kart" style="padding:14px;max-width:520px;margin:0 auto 14px;">'
@@ -1601,25 +3691,26 @@ async function mafyaSavasIlan() {
   var ef = await sunucuAksiyon('mafya_savas_ilan', null, null, { hedefGurupAdi: hedef });
   if (ef === null) return;
   toast((ef.mesaj || 'Savaş ilan edildi!'), 'basari');
-  mafyaAltEkran('savaslar');
+  mafyaMenuSec('gurubum');
 }
 
 async function mafyaSavasaKatil(savasId) {
   var ef = await sunucuAksiyon('mafya_savas_katil', null, null, { savasId: savasId });
   if (ef === null) return;
   toast(ef.mesaj || 'Savaşa katıldın!', 'basari');
-  mafyaAltEkran('savaslar');
+  mafyaMenuSec('gurubum');
 }
 
 function mafyaGurupListesiHTML(gruplar, basvuruModu) {
   if (!gruplar || !gruplar.length) {
-    return '<p style="color:#666;margin-top:12px;">Henüz kurulmuş Mafya Grubu yok. İlk sen kur Reis!</p>';
+    return '<p class="mafya-bos-metin">Henüz kurulmuş Mafya Grubu yok. İlk sen kur Reis!</p>';
   }
   var html = '<h3 class="bolum-baslik">Mevcut Mafya Grupları</h3>';
   gruplar.forEach(function(g) {
-    html += '<div class="is-kart" style="padding:14px;"><b><button class="btn-is mavi-btn" style="margin:0;padding:4px 8px;" onclick="mafyaGrupGoster(' + g.id + ')">' + g.isim + '</button></b>';
-    if (g.lider_adi) html += ' <span style="color:#888;">— Lider: ' + g.lider_adi + '</span>';
-    html += '<p style="color:#777;font-size:13px;margin:8px 0;">' + (g.aciklama || '—') + '</p>';
+    html += '<div class="is-kart"><b><button type="button" class="btn-is mavi-btn" style="margin:0;padding:4px 12px;" onclick="mafyaGrupGoster(' + g.id + ')">' + escHtml(g.isim) + '</button></b>';
+    if (g.lider_adi) html += '<p class="mafya-metin-dim" style="margin-top:8px;">Lider: <b style="color:#e8dcc0;">' + escHtml(g.lider_adi) + '</b></p>';
+    if (g.uye_sayisi != null) html += '<p class="mafya-metin-dim">' + g.uye_sayisi + ' üye</p>';
+    html += '<p>' + escHtml(g.aciklama || '—') + '</p>';
     if (basvuruModu) {
       html += '<button class="btn-is" onclick="mafyaBasvur(' + g.id + ')">[ BAŞVUR ]</button>';
     }
@@ -1629,14 +3720,23 @@ function mafyaGurupListesiHTML(gruplar, basvuruModu) {
 }
 
 async function mafyaGurubumCiz(box) {
-  box.innerHTML = '<p style="color:#888;">Yükleniyor...</p>';
+  box.innerHTML = '<p class="mafya-yukleniyor">Yükleniyor...</p>';
   if (!sunucuBagli) {
-    box.innerHTML = '<p style="color:#c00;">Sunucu kapalı. Terminalde <b>npm start</b> çalıştır, ardından <b>http://localhost:3000</b> aç.</p>';
+    box.innerHTML = '<p class="mafya-bos-metin" style="color:#c00;">Sunucu kapalı. Terminalde <b>npm start</b> çalıştır, ardından <b>http://localhost:3000</b> aç.</p>';
     return;
   }
   try {
-    var res = await apiFetch('/api/mafya');
+    var results = await Promise.all([
+      apiFetch('/api/mafya'),
+      apiFetch('/api/mafya/evi'),
+      apiFetch('/api/mafya/savaslar')
+    ]);
+    var res = results[0];
+    var evRes = results[1];
+    var savasRes = results[2];
     var data = await res.json().catch(function() { return {}; });
+    var evData = await evRes.json().catch(function() { return {}; });
+    var savasData = await savasRes.json().catch(function() { return {}; });
     if (!res.ok || data.ok === false) {
       throw new Error(data.error || ('HTTP ' + res.status));
     }
@@ -1644,13 +3744,33 @@ async function mafyaGurubumCiz(box) {
     mafyaMenuYanip();
 
     if (!data.uyelik) {
-      box.innerHTML = '<p style="color:#fff;font-weight:700;">Henüz Mafya Grubu Üyesi Değilsin!</p>';
+      box.innerHTML = '<p class="mafya-bos-metin" style="color:#fff;font-weight:700;">Henüz Mafya Grubu Üyesi Değilsin!</p>';
       return;
     }
 
-    var html = '<div class="is-kart"><h3 style="color:#ffd700;font-size:20px;text-shadow:0 0 8px rgba(255,215,0,0.4);">' + data.uyelik.isim + '</h3>'
-      + '<p style="color:#c9a961;">' + (data.uyelik.aciklama || '') + '</p></div>'
-      + '<div class="tablo-container mafya-uyeler-tablo" style="margin-top:16px;">'
+    var html = '<div class="mafya-gurubum-wrap">'
+      + '<div class="is-kart mafya-grup-ust">'
+      + '<button type="button" class="btn-is mavi-btn mafya-grup-isim-btn" onclick="mafyaGrupGoster(' + data.uyelik.id + ')">' + escHtml(data.uyelik.isim) + '</button>'
+      + '<div class="mafya-grup-aciklama-alan">'
+      + '<h4 class="mafya-grup-aciklama-baslik">📜 Grup Açıklaması</h4>'
+      + '<div class="mafya-grup-aciklama-kutu"><p class="mafya-grup-aciklama' + (data.uyelik.aciklama ? '' : ' mafya-grup-aciklama-bos') + '">' + escHtml(data.uyelik.aciklama || 'Henüz açıklama eklenmemiş.') + '</p></div>'
+      + '</div>';
+    if (data.uyelik.benLiderim) {
+      html += '<div class="mafya-btn-satir">'
+        + '<button type="button" class="btn-is" onclick="mafyaGrupIsimDegistir()">[ ✎ AD DEĞİŞTİR ]</button>'
+        + '<button type="button" class="btn-is" onclick="mafyaGrupAciklamaDegistir()">[ ✎ AÇIKLAMA DEĞİŞTİR ]</button>'
+        + '</div>';
+    }
+    html += '</div>';
+
+    if (evData.ok && evData.ev) {
+      html += mafyaEviBolumHTML(evData.ev, evData.grupAdi || data.uyelik.isim, !!evData.benLiderim);
+    }
+
+    html += mafyaSavasBolumHTML(data, savasData);
+
+    html += '<div class="tablo-container mafya-uyeler-tablo">'
+      + '<h3 class="bolum-baslik">👥 Üyeler</h3>'
       + '<div class="tablo-izgara tablo-baslik-satir"><span>İSİM</span><span>RÜTBE</span><span>SAYGINLIK</span><span>OFFLINE</span><span></span><span></span></div>';
     var now = Math.floor(Date.now() / 1000);
     (data.uyeler || []).forEach(function(u) {
@@ -1661,7 +3781,7 @@ async function mafyaGurubumCiz(box) {
       var offlineMinutes = Math.floor((offlineSeconds % 3600) / 60);
       var offlineStr = offlineHours > 0 ? (offlineHours + 'h ' + offlineMinutes + 'm') : (offlineMinutes + 'm');
       var offlineColor = offlineHours > 24 ? '#f08080' : (offlineHours > 1 ? '#ffa500' : '#90ee90');
-      html += '<div class="tablo-izgara"><span style="color:#e0e0e0;">' + u.reis_adi + '</span><span style="color:#c9a961;">' + u.rutbe + '</span><span style="color:#ffd700;">' + fmt(u.puan) + '</span><span style="color:' + offlineColor + ';">' + offlineStr + '</span><span>';
+      html += '<div class="tablo-izgara"><span class="uye-isim">' + u.reis_adi + '</span><span class="uye-rutbe">' + u.rutbe + '</span><span class="uye-puan">' + fmt(u.puan) + '</span><span style="color:' + offlineColor + ';">' + offlineStr + '</span><span>';
       if (liderSatir) {
         html += '<button type="button" class="btn-is" style="padding:4px 8px;font-size:11px;" onclick="mafyaRutbe(' + u.user_id + ')">✎ Rütbe</button> '
           + '<button type="button" class="btn-is mavi-btn" style="padding:4px 8px;font-size:11px;" onclick="mafyaDevret(' + u.user_id + ')">👑 Devret</button>';
@@ -1674,28 +3794,137 @@ async function mafyaGurubumCiz(box) {
     });
     html += '</div>';
     if (data.uyelik.benLiderim) {
-      html += '<div style="margin-top:20px;">';
+      html += '<div class="mafya-basvurular">';
       if (data.basvurular && data.basvurular.length) {
-        html += '<h3 class="bolum-baslik" style="color:#ffd700;">📩 Başvurular</h3>';
+        html += '<h3 class="bolum-baslik">📩 Başvurular</h3>';
         data.basvurular.forEach(function(b) {
-          html += '<p style="margin-bottom:8px;color:#e0e0e0;">' + b.reis_adi
+          html += '<p class="mafya-basvuru-satir">' + b.reis_adi
             + ' <button type="button" class="btn-is" onclick="mafyaKabul(' + b.id + ')">Kabul</button> '
             + '<button type="button" class="btn-is kirmizi-btn" onclick="mafyaRed(' + b.id + ')">Red</button></p>';
         });
       }
-      html += '<button type="button" class="btn-is kirmizi-btn" onclick="mafyaDagit()">[ 💥 MAFYA GURUBUNU DAĞIT ]</button></div>';
+      html += '<div class="mafya-alt-aksiyon"><button type="button" class="btn-is kirmizi-btn" onclick="mafyaDagit()">[ 💥 MAFYA GURUBUNU DAĞIT ]</button></div></div>';
     } else {
-      html += '<button type="button" class="btn-is kirmizi-btn" style="margin-top:20px;" onclick="mafyaCik()">[ 🚪 GRUPTAN ÇIK — 1.000.000 TL ]</button>';
+      html += '<div class="mafya-alt-aksiyon"><button type="button" class="btn-is kirmizi-btn" onclick="mafyaCik()">[ 🚪 GRUPTAN ÇIK — 1.000.000 TL ]</button></div>';
     }
+    html += '<div class="mafya-grup-mesaj-alan">'
+      + '<button type="button" class="btn-is mavi-btn mafya-grup-mesaj-btn" onclick="mafyaGrupMesajModal()">[ 📨 MAFYA GURUBUNA MESAJ GÖNDER ]</button>'
+      + '</div></div>';
     box.innerHTML = html;
   } catch (e) {
     var msg = e.message || 'Bağlantı hatası';
     if (msg.indexOf('404') >= 0) {
       msg = 'Mafya API bulunamadı (HTTP 404). Oyunu Live Server ile değil; npm start ile http://localhost:3000 üzerinden aç.';
     }
-    box.innerHTML = '<p style="color:#c00;">' + msg + '</p>'
-      + '<p style="color:#888;margin-top:8px;">Terminal: <b>npm start</b> → tarayıcı: <b>http://localhost:3000</b> → <b>Ctrl+F5</b></p>';
+    box.innerHTML = '<p class="mafya-bos-metin" style="color:#c00;">' + msg + '</p>'
+      + '<p class="mafya-metin-dim">Terminal: <b>npm start</b> → tarayıcı: <b>http://localhost:3000</b> → <b>Ctrl+F5</b></p>';
   }
+}
+
+function mafyaEviBolumHTML(ev, grupAdi, benLiderim) {
+  var s = ev.seviye || 1;
+  var img = mafyaEviGorseller['seviye' + Math.min(10, s)] || FALLBACK;
+  var html = '<div class="is-kart mafya-bolum">'
+    + '<h3 class="bolum-baslik">🏠 Mafya Evi</h3>'
+    + '<p class="mafya-metin-dim">Seviye yükseldikçe üye kapasitesi artar (her seviye +3).</p>'
+    + '<div class="mafya-evi-sahne"><img src="' + img + '" alt="Mafya Evi" onerror="imgFallback(this)"></div>'
+    + '<div class="mafya-evi-alt"><h3>' + escHtml(grupAdi) + ' — Seviye ' + s + '</h3>'
+    + '<p class="mafya-stat">👥 Kapasite: <b>' + ev.kapasite + '</b> üye</p>'
+    + '<p class="mafya-stat mafya-stat-altin">💰 Birikim: <b>' + fmt(ev.birikmisPara) + ' TL</b></p>'
+    + '<p class="mafya-stat">⬆️ Sonraki seviye: <b>' + fmt(ev.sonrakiMaliyet) + ' TL</b> <span class="mafya-metin-dim">(Kalan: ' + fmt(ev.kalan) + ' TL)</span></p>'
+    + '</div>'
+    + '<div class="mafya-hibe-alan">'
+    + '<h4 class="bolum-baslik">Hibe</h4>'
+    + '<input type="number" id="mafyaHibe" class="dusman-input" placeholder="Hibe miktarı">'
+    + '<div class="mafya-btn-satir">'
+    + '<button class="btn-is" onclick="mafyaEviHibe()">[ 💸 HİBE ET ]</button>';
+  if (benLiderim) {
+    html += '<button class="btn-is kirmizi-btn" onclick="mafyaEviSeviye()">[ ⬆️ SEVİYE YÜKSELT ]</button>';
+  }
+  html += '<button type="button" class="btn-is mavi-btn" onclick="mafyaHibeGecmisiGoster()">[ 📋 HİBE MİKTARI GÖRÜNTÜLE ]</button>'
+    + '</div>'
+    + '<div id="mafyaHibeGecmisi" class="gizli mafya-hibe-tablo" style="margin-top:12px;"></div>'
+    + '</div></div>';
+  return html;
+}
+
+function mafyaSavasBolumHTML(mafyaData, savasData) {
+  var html = '<div class="is-kart mafya-bolum">'
+    + '<div class="mafya-savas-hero"><img class="mafya-savas-banner" src="/images/mafya/savas-banner.png?v=' + GORSEL_VERSIYON + '" alt="Mafya Savaşı İlanı"></div>'
+    + '<h3 class="bolum-baslik">⚔️ Mafya Savaşı İlanı</h3>';
+  if (mafyaData && mafyaData.uyelik && mafyaData.uyelik.benLiderim) {
+    html += '<div class="mafya-savas-ilan-alan">'
+      + '<p class="mafya-metin-dim">Rakip mafya grubu adını yaz ve savaş ilan et.</p>'
+      + '<input type="text" id="mafyaSavasHedef" class="dusman-input" placeholder="Rakip Mafya Grubu Adı">'
+      + '<div class="mafya-btn-satir"><button class="btn-is kirmizi-btn" onclick="mafyaSavasIlan()">[ ⚔️ MAFYA SAVAŞI İLAN ET ]</button></div>'
+      + '</div>';
+  }
+  if (!savasData.ok || !savasData.savaslar || !savasData.savaslar.length) {
+    html += '<p class="mafya-metin-dim">Henüz savaş yok.</p></div>';
+    return html;
+  }
+  savasData.savaslar.forEach(function(s) {
+    var durum = s.durum === 'bekliyor' ? '⏳ Bekliyor' : s.durum === 'aktif' ? '⚔️ Aktif' : '✅ Tamamlandı';
+    var kalanSaat = Math.max(0, Math.ceil((s.savas_zamani - Date.now()) / (1000 * 60 * 60)));
+    html += '<div class="mafya-savas-kart"><p><b>' + durum + '</b></p>'
+      + '<p>Saldıran: <b>' + escHtml(s.saldiran_grup_adi || s.saldiran_grup_id) + '</b></p>'
+      + '<p>Hedef: <b>' + escHtml(s.hedef_grup_adi || s.hedef_grup_id) + '</b></p>'
+      + '<p>Katılımcılar: Saldıran <b>' + s.saldiran_katilim + '</b> | Hedef <b>' + s.hedef_katilim + '</b></p>';
+    if (s.durum === 'bekliyor') {
+      html += '<p class="mafya-metin-dim">Başlamasına kalan: <b>' + kalanSaat + '</b> saat</p>'
+        + '<button class="btn-is" onclick="mafyaSavasaKatil(' + s.id + ')">[ ⚔️ KATIL ]</button>';
+    }
+    html += '</div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+async function mafyaHibeGecmisiGoster() {
+  var box = document.getElementById('mafyaHibeGecmisi');
+  if (!box) return;
+  box.classList.remove('gizli');
+  box.innerHTML = '<p class="mafya-metin-dim">Yükleniyor...</p>';
+  try {
+    var res = await apiFetch('/api/mafya/evi/hibeler');
+    var data = await res.json().catch(function() { return {}; });
+    if (!res.ok || !data.ok) throw new Error(data.error || 'Yüklenemedi');
+    var liste = data.hibeler || [];
+    if (!liste.length) {
+      box.innerHTML = '<p class="mafya-metin-dim">Henüz hibe kaydı yok.</p>';
+      return;
+    }
+    var html = '<div class="tablo-container"><div class="tablo-izgara tablo-baslik-satir"><span>HİBE EDEN</span><span>TARİH</span><span>MİKTAR</span></div>';
+    liste.forEach(function(h) {
+      html += '<div class="tablo-izgara"><span>' + escHtml(h.reisAdi) + '</span><span>' + escHtml(h.tarih) + '</span><span>' + fmt(h.miktar) + ' TL</span></div>';
+    });
+    html += '</div>';
+    box.innerHTML = html;
+  } catch (e) {
+    box.innerHTML = '<p style="color:#c00;">' + (e.message || 'Yüklenemedi') + '</p>';
+  }
+}
+
+function mafyaGrupIsimDegistir() {
+  var yeni = prompt('Yeni Mafya Grubu adı:');
+  if (!yeni || !yeni.trim()) return;
+  sunucuAksiyon('mafya_grup_isim_degistir', null, null, { isim: yeni.trim() }).then(function(ef) {
+    if (ef !== null) {
+      toast('Grup adı güncellendi.', 'basari');
+      mafyaMenuSec('gurubum');
+    }
+  });
+}
+
+function mafyaGrupAciklamaDegistir() {
+  var yeni = prompt('Yeni Mafya Grubu açıklaması:');
+  if (yeni === null) return;
+  sunucuAksiyon('mafya_grup_aciklama_degistir', null, null, { aciklama: yeni.trim() }).then(function(ef) {
+    if (ef !== null) {
+      toast('Grup açıklaması güncellendi.', 'basari');
+      mafyaMenuSec('gurubum');
+    }
+  });
 }
 
 function mafyaOlusturAdim1() {
@@ -1722,13 +3951,14 @@ async function mafyaAra() {
   var data = await res.json();
   var box = document.getElementById('mafyaAraSonuc');
   if (!data.liste || !data.liste.length) {
-    box.innerHTML = '<p style="color:#888;">Sonuç yok.</p>';
+    box.innerHTML = '<p class="mafya-metin-dim">Sonuç yok.</p>';
     return;
   }
   var html = '';
   data.liste.forEach(function(g) {
-    html += '<div class="is-kart" style="padding:12px;"><b>' + g.isim + '</b> — ' + g.lider_adi
-      + '<p style="color:#666;font-size:12px;">' + g.aciklama + '</p>'
+    html += '<div class="is-kart" style="text-align:center;padding:14px;margin-top:10px;"><b><button type="button" class="btn-is mavi-btn" style="margin:0;padding:4px 12px;" onclick="mafyaGrupGoster(' + g.id + ')">' + escHtml(g.isim) + '</button></b>'
+      + '<p class="mafya-metin-dim" style="margin-top:8px;">Lider: <b style="color:#e8dcc0;">' + escHtml(g.lider_adi) + '</b></p>'
+      + '<p class="mafya-metin">' + escHtml(g.aciklama) + '</p>'
       + '<button class="btn-is" onclick="mafyaBasvur(' + g.id + ')">[ BAŞVUR ]</button></div>';
   });
   box.innerHTML = html;
@@ -1741,46 +3971,41 @@ async function mafyaBasvur(grupId) {
 }
 
 async function mafyaGrupGoster(grupId) {
-  var response = await fetch('/api/mafya/grup/' + grupId);
-  if (!response.ok) {
+  try {
+    var res = await apiFetch('/api/mafya/grup/' + grupId);
+    var data = await res.json().catch(function() { return {}; });
+    if (!res.ok || !data.ok || !data.grup) {
+      toast(data.error || 'Grup bilgileri alınamadı.', 'hata');
+      return;
+    }
+    var g = data.grup;
+    var evSeviye = g.evSeviye || 1;
+    var evImg = mafyaEviGorseller['seviye' + Math.min(10, evSeviye)] || FALLBACK;
+    var html = '<div class="mafya-gurubum-wrap"><div class="is-kart mafya-grup-ust" style="max-width:640px;margin:0 auto;">'
+      + '<h2 class="bolum-baslik" style="margin-bottom:12px;">' + escHtml(g.isim) + '</h2>'
+      + '<div class="mafya-grup-aciklama-alan">'
+      + '<h4 class="mafya-grup-aciklama-baslik">📜 Grup Açıklaması</h4>'
+      + '<div class="mafya-grup-aciklama-kutu"><p class="mafya-grup-aciklama' + (g.aciklama ? '' : ' mafya-grup-aciklama-bos') + '">' + escHtml(g.aciklama || 'Henüz açıklama eklenmemiş.') + '</p></div>'
+      + '</div>'
+      + '<div class="mafya-evi-sahne mafya-grup-profil-ev"><img src="' + evImg + '" alt="Mafya Evi" onerror="imgFallback(this)"></div>'
+      + '<p class="mafya-stat"><b>🏠 Mafya Evi:</b> Seviye ' + evSeviye + ' (Kapasite: ' + (g.evKapasite || '—') + ')</p>'
+      + '<p class="mafya-stat"><b>👥 Üye Sayısı:</b> ' + g.uyeSayisi + '</p>'
+      + '<p class="mafya-stat"><b>🕶️ Toplam Saygınlık:</b> <span class="uye-puan">' + fmt(g.toplamSayginlik) + '</span></p>'
+      + '<div class="mafya-alt-aksiyon"><button type="button" class="btn-is" onclick="mafyaMenuSec(\'gurubum\')">[ ← GERİ ]</button></div>'
+      + '</div></div>';
+    document.getElementById('anaIcerik').innerHTML = html;
+  } catch (_) {
     toast('Grup bilgileri alınamadı.', 'hata');
-    return;
   }
-  var data = await response.json();
-  if (!data.ok) {
-    toast(data.error || 'Hata', 'hata');
-    return;
+}
+
+async function mafyaGrupMesajModal() {
+  var metin = prompt('Mafya grubuna gönderilecek mesaj:');
+  if (!metin || !metin.trim()) return;
+  var ef = await sunucuAksiyon('mafya_grup_mesaj', null, null, { metin: metin.trim() });
+  if (ef !== null) {
+    toast('Grup mesajı gönderildi.', 'basari');
   }
-
-  var grup = data.grup;
-  var html = '<div style="padding:20px;">';
-  html += '<h2 style="color:#ffd700;margin-bottom:16px;">' + grup.isim + '</h2>';
-  
-  html += '<div style="margin-bottom:20px;">';
-  html += '<h3 style="color:#c9a961;">🏠 Mafya Evi</h3>';
-  html += '<p style="color:#ddd;margin:8px 0;"><strong>Seviye:</strong> ' + (grup.evi_seviyesi || 0) + '</p>';
-  html += '<p style="color:#ddd;margin:8px 0;"><strong>Kasasında:</strong> ₺ ' + (grup.kasa || 0).toLocaleString() + '</p>';
-  html += '</div>';
-
-  html += '<div style="margin-bottom:20px;">';
-  html += '<h3 style="color:#c9a961;">👥 Üyeler (' + (grup.uyeler ? grup.uyeler.length : 0) + ')</h3>';
-  if (grup.uyeler && grup.uyeler.length) {
-    html += '<div style="max-height:300px;overflow-y:auto;">';
-    grup.uyeler.forEach(function(u) {
-      html += '<div style="padding:8px;border-bottom:1px solid #333;color:#ddd;">';
-      html += '<strong>' + u.reis_adi + '</strong> <span style="color:#888;">(' + (u.rutbe || 'Üye') + ')</span>';
-      html += '<br/><span style="color:#777;font-size:12px;">Saygınlık: <span style="color:#ffd700;">' + (u.saygınlık || 0) + '</span></span>';
-      html += '</div>';
-    });
-    html += '</div>';
-  } else {
-    html += '<p style="color:#777;">Henüz üye yok.</p>';
-  }
-  html += '</div>';
-
-  html += '</div>';
-
-  document.getElementById('oyunEkrani').innerHTML = html;
 }
 
 
@@ -1828,9 +4053,23 @@ async function mafyaCik() {
 async function liderlikYukle(mod) {
   mod = mod || liderlikModu;
   var res = await apiFetch('/api/leaderboard?tip=' + encodeURIComponent(mod === 'grup' ? 'grup' : 'oyuncu'));
-  if (!res.ok) return { liste: [], tip: mod };
+  if (!res.ok) return { liste: [], tip: mod, grupMap: {} };
   var data = await res.json();
-  return { liste: data.liste || [], tip: data.tip || mod };
+  var out = { liste: data.liste || [], tip: data.tip || mod, grupMap: {} };
+  if (mod !== 'grup') {
+    try {
+      var gRes = await apiFetch('/api/leaderboard?tip=grup');
+      var gData = await gRes.json().catch(function() { return {}; });
+      (gData.liste || []).forEach(function(g) {
+        if (!g.grupId) return;
+        var raw = String(g.isim || '').trim().toLowerCase();
+        var clean = temizGrupAdi(g.isim).toLowerCase();
+        if (raw) out.grupMap[raw] = g.grupId;
+        if (clean) out.grupMap[clean] = g.grupId;
+      });
+    } catch (_) {}
+  }
+  return out;
 }
 
 function liderlikModDegistir(mod) {
@@ -1843,39 +4082,125 @@ function liderlikTablosuCiz(ic) {
   liderlikYukle(liderlikModu).then(function(data) {
     var liste = data.liste || [];
     var mod = data.tip || liderlikModu;
+    var grupMap = data.grupMap || {};
     var oyuncuAktif = mod !== 'grup';
-    var html = '<div class="liderlik-ust">'
-      + '<div><h2>🏆 SÖZÜ GEÇENLER — LİDERLİK TABLOSU</h2>'
-      + '<p>"Yeraltı dünyasında her şey saygınlık ile ölçülür."</p></div>'
-      + '<div class="liderlik-sekmeler">'
-      + '<button type="button" class="liderlik-sekme' + (oyuncuAktif ? ' aktif' : '') + '" onclick="liderlikModDegistir(\'oyuncu\')">👤 Kişiler</button>'
-      + '<button type="button" class="liderlik-sekme' + (!oyuncuAktif ? ' aktif' : '') + '" onclick="liderlikModDegistir(\'grup\')">🕶️ Mafya Grupları</button>'
-      + '</div></div><div class="tablo-container">';
+    var headIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="#b8924a" stroke-width="1.5"><circle cx="12" cy="8" r="3.2"/><path d="M5 20c0-4 3-6.5 7-6.5s7 2.5 7 6.5"/></svg>';
+    var html = '<div class="lt-panel" data-lt-ver="' + GORSEL_VERSIYON + '">'
+      + '<div class="lt-photo-bg"></div>'
+      + '<div class="lt-inner">'
+      + '<div class="lt-carved-bar">'
+      + '<div class="lt-tab-floating">Liderlik Tablosu</div>'
+      + '<div class="lt-side-tabs">'
+      + ltTab('oyuncu', 'Kişiler', oyuncuAktif)
+      + ltTab('grup', 'Gruplar', !oyuncuAktif)
+      + '</div></div>'
+      + '<div class="lt-head">'
+      + '<div class="lt-head-row"><div class="lt-head-icon">' + headIcon + '</div>'
+      + '<div class="lt-head-title">Sözü Geçenler — Liderlik Tablosu</div></div>'
+      + '<div class="lt-head-quote">"Sokaklar unutur, saygınlık unutmaz."</div>'
+      + '</div>';
 
     if (oyuncuAktif) {
-      html += '<div class="tablo-izgara tablo-baslik-satir"><span>SIRA</span><span>İSİM</span><span>MAFYA GRUBU</span><span>SAYGINLIK</span><span>ŞEHRE HÜKMET</span></div>';
-      liste.forEach(function(r, i) {
-        var cls = r.benim ? 'oyuncu-satir' : '';
-        var isimCell = r.bot || !r.userId
-          ? r.isim
-          : '<button class="btn-is mavi-btn" style="margin:0;padding:4px 8px;font-size:12px;" onclick="oyuncuProfilGoster(' + r.userId + ')">' + r.isim + '</button>';
-        html += '<div class="tablo-izgara ' + cls + '"><span>#' + (i + 1) + '</span><span>' + isimCell + '</span>'
-          + '<span>' + r.grup + '</span><span>' + fmt(r.puan) + ' Puan</span><span>' + (r.sehreHukmetSayisi || 0) + 'x</span></div>';
-      });
+      html += '<div class="lt-colbar"><span>Sıralama No</span><span>İsim</span><span>Grup</span><span>Saygınlık</span></div>'
+        + '<div class="lt-list">';
+      if (!liste.length) {
+        html += '<p class="lt-empty">Henüz sıralama verisi yok.</p>';
+      } else {
+        liste.forEach(function(r, i) {
+          var cls = 'lt-row' + (r.benim ? ' me' : '');
+          html += '<div class="' + cls + '">'
+            + '<div class="lt-medal-wrap"><div class="lt-medal ' + ltMedalClass(i) + '">' + (i + 1) + '</div></div>'
+            + '<div class="lt-cap"><span class="lt-icon pistol"></span>' + ltIsimHtml(r) + '</div>'
+            + '<div class="lt-cap center lt-group-cap">' + ltGrupLinkHtml(r.grup, r.grupId, grupMap) + '</div>'
+            + '<div class="lt-cap right lt-pts-cap"><span class="lt-icon coin"></span>'
+            + '<span class="lt-pts-txt">' + fmt(r.puan) + '<span class="lt-lbl">Puan</span></span></div>'
+            + '</div>';
+        });
+      }
+      html += '</div>';
     } else {
-      html += '<div class="tablo-izgara tablo-baslik-satir" style="grid-template-columns:50px 1.2fr 120px 80px 80px 100px;">'
-        + '<span>SIRA</span><span>MAFYA GRUBU</span><span>SAYGINLIK</span><span>EV SEV.</span><span>ÜYE</span><span>SAVAŞ</span></div>';
-      if (!liste.length) html += '<p style="padding:12px;color:#888;">Henüz mafya grubu yok.</p>';
-      liste.forEach(function(r, i) {
-        html += '<div class="tablo-izgara" style="grid-template-columns:50px 1.2fr 120px 80px 80px 100px;">'
-          + '<span>#' + (i + 1) + '</span><span><b style="color:#b8942a;">' + r.isim + '</b></span>'
-          + '<span>' + fmt(r.toplamPuan || 0) + '</span><span>' + (r.evSeviye || 1) + '</span>'
-          + '<span>' + (r.uyeSayisi || 0) + '</span><span>' + (r.kazanilanSavas || 0) + '</span></div>';
-      });
+      html += '<div class="lt-colbar lt-colbar--grup"><span>Sıralama No</span><span>Grup</span><span>Toplam Saygınlık</span><span>Bilgi</span></div>'
+        + '<div class="lt-list">';
+      if (!liste.length) {
+        html += '<p class="lt-empty">Henüz grup sıralaması yok.</p>';
+      } else {
+        liste.forEach(function(r, i) {
+          var statTxt = 'Ev ' + (r.evSeviye || 1) + ' · ' + (r.uyeSayisi || 0) + ' üye · ' + (r.kazanilanSavas || 0) + ' savaş';
+          html += '<div class="lt-row lt-row--grup' + (i === 0 ? ' me' : '') + '">'
+            + '<div class="lt-medal-wrap"><div class="lt-medal ' + ltMedalClass(i) + '">' + (i + 1) + '</div></div>'
+            + '<div class="lt-cap"><span class="lt-icon pistol"></span>' + ltGrupIsimHtml(r) + '</div>'
+            + '<div class="lt-cap right lt-pts-cap"><span class="lt-icon coin"></span>'
+            + '<span class="lt-pts-txt">' + fmt(r.toplamPuan || 0) + '<span class="lt-lbl">Puan</span></span></div>'
+            + '<div class="lt-cap center lt-group-cap"><span class="lt-stat-txt">' + statTxt + '</span></div>'
+            + '</div>';
+        });
+      }
+      html += '</div>';
     }
-    html += '</div>';
-    if (ic) ic.innerHTML = html;
+
+    html += '<div class="lt-foot">Sıralama her saldırı ve mekan sonucunda anlık güncellenir.</div>'
+      + '</div></div>';
+    if (ic && aktifEkran === 'liderlik') ic.innerHTML = html;
   });
+}
+
+function profilZiyaretleriHTML(ziyaretler) {
+  var zHtml = '<h3 class="profil-ziyaretler-baslik">Profil Ziyaretleri</h3><ul class="profil-ziyaret-liste">';
+  if (ziyaretler && ziyaretler.length) {
+    ziyaretler.forEach(function(n) { zHtml += '<li>' + escHtml(n) + '</li>'; });
+  } else {
+    zHtml += '<li class="bos">Henüz ziyaret yok.</li>';
+  }
+  zHtml += '</ul>';
+  return zHtml;
+}
+
+function profilAlanGuncelle(id, text) {
+  var el = document.getElementById(id);
+  if (el) el.textContent = text;
+}
+
+async function profilSiralamaYedek(p) {
+  var sira = p.sira;
+  var grupSira = p.grupSira;
+  try {
+    if (sira == null) {
+      var oRes = await apiFetch('/api/leaderboard?tip=oyuncu');
+      var oData = await oRes.json().catch(function() { return {}; });
+      if (oRes.ok && oData.ok && oData.liste) {
+        var uid = p.userId || window.__benimUserId;
+        for (var i = 0; i < oData.liste.length; i++) {
+          if (oData.liste[i].userId === uid) {
+            sira = i + 1;
+            break;
+          }
+        }
+      }
+    }
+    if (grupSira == null && p.grup) {
+      var gRes = await apiFetch('/api/leaderboard?tip=grup');
+      var gData = await gRes.json().catch(function() { return {}; });
+      if (gRes.ok && gData.ok && gData.liste) {
+        var grupAdi = temizGrupAdi(p.grup);
+        for (var j = 0; j < gData.liste.length; j++) {
+          if (temizGrupAdi(gData.liste[j].isim) === grupAdi) {
+            grupSira = j + 1;
+            break;
+          }
+        }
+      }
+    }
+  } catch (_) {}
+  return { sira: sira, grupSira: grupSira };
+}
+
+async function profilSiralamaAlanlariGuncelle(p) {
+  var yedek = await profilSiralamaYedek(p);
+  if (p.sira == null) p.sira = yedek.sira;
+  if (p.grupSira == null) p.grupSira = yedek.grupSira;
+  profilAlanGuncelle('profilPuanDetay', fmt(p.puan || 0));
+  profilAlanGuncelle('profilSiraDetay', p.sira != null ? fmt(p.sira) : '—');
+  profilAlanGuncelle('profilGrupSiraDetay', p.grupSira != null ? fmt(p.grupSira) : '—');
 }
 
 async function profilYukle() {
@@ -1885,43 +4210,59 @@ async function profilYukle() {
     var data = await res.json();
     if (!data.ok || !data.profil) return;
     var p = data.profil;
-    var a = document.getElementById('profilAciklama');
+    await profilSiralamaAlanlariGuncelle(p);
+
     var d = document.getElementById('profilDostlar');
     var x = document.getElementById('profilDusmanlar');
-    if (a) a.value = p.aciklama || '';
-    if (d) {
-      d.value = p.dostlar || '';
-      d.oninput = profilListeleriGuncelle;
+    profilAciklamaYaz(p.aciklama || '');
+    if (d) d.value = p.dostlar || '';
+    if (x) x.value = p.dusmanlar || '';
+
+    profilAlanGuncelle('profilKayitTarihi', p.kayitTarihi || '—');
+    profilAlanGuncelle('profilOzOyuncu', p.oyuncuAdi || aktifReisAdi);
+    profilAlanGuncelle('profilOzLakap', p.lakap || 'Mafya');
+    profilAlanGuncelle('profilOyuncuIsmiDetay', p.oyuncuAdi || aktifReisAdi);
+    if (p.guc != null) profilAlanGuncelle('profilOzGuc', fmt(p.guc));
+    if (p.saatlikKazanc != null) profilAlanGuncelle('profilOzSaatlik', fmt(p.saatlikKazanc) + ' TL');
+
+    var avatar = document.getElementById('profilAvatar');
+    if (avatar) {
+      var url = profilResmiUrl(p.userId, p.profilResmi);
+      avatar.src = url;
+      avatar.classList.toggle('profil-avatar-ozel', profilResmiOzelMi(url));
     }
-    if (x) {
-      x.value = p.dusmanlar || '';
-      x.oninput = profilListeleriGuncelle;
-    }
-    profilListeleriGuncelle();
-    var kt = document.getElementById('profilKayitTarihi');
-    if (kt) kt.textContent = p.kayitTarihi || '—';
+    if (p.profilResmi) oyuncuProfilResmi = profilPortreKeyNormalize(p.profilResmi);
+    var wrap = document.querySelector('.profil-wrap');
+    if (wrap && p.profilResmi) wrap.setAttribute('data-profil-resmi', p.profilResmi);
+
     var z = document.getElementById('profilZiyaretlerBox');
-    if (z) {
-      var zHtml = '<h3 class="bolum-baslik">Profil Ziyaretleri</h3><ul class="profil-isim-listesi">';
-      if (p.ziyaretler && p.ziyaretler.length) {
-        p.ziyaretler.forEach(function(n) { zHtml += '<li>' + n + '</li>'; });
-      } else {
-        zHtml += '<li style="color:#666;">Henüz ziyaret yok.</li>';
-      }
-      zHtml += '</ul>';
-      z.innerHTML = zHtml;
-    }
+    if (z) z.innerHTML = profilZiyaretleriHTML(p.ziyaretler);
+
+    if (p.lastIcraatAt != null) oyuncuLastIcraatAt = p.lastIcraatAt;
+    if (p.icraat != null) oyuncuIcraat = p.icraat;
+    if (p.icraatRegenSec != null) oyuncuIcraatRegenSec = p.icraatRegenSec;
+    if (p.icraatSaatlikBonus != null) oyuncuIcraatSaatlikBonus = p.icraatSaatlikBonus;
+    profilIcraatTimerBaslat(
+      p.icraat != null ? p.icraat : oyuncuIcraat,
+      p.lastIcraatAt != null ? p.lastIcraatAt : oyuncuLastIcraatAt,
+      p.icraatRegenSec || oyuncuIcraatRegenSec,
+      p.icraatSaatlikBonus || oyuncuIcraatSaatlikBonus
+    );
   } catch (_) {}
 }
 
 async function profilKaydet() {
-  var aciklama = (document.getElementById('profilAciklama') || {}).value || '';
+  var aciklama = profilAciklamaAl();
   var dostlar = (document.getElementById('profilDostlar') || {}).value || '';
   var dusmanlar = (document.getElementById('profilDusmanlar') || {}).value || '';
+  var wrap = document.querySelector('.profil-wrap');
+  var profilResmi = oyuncuProfilResmi || (wrap ? wrap.getAttribute('data-profil-resmi') : '') || '';
   try {
+    var body = { aciklama: aciklama, dostlar: dostlar, dusmanlar: dusmanlar };
+    if (profilResmi) body.profilResmi = profilPortreKeyNormalize(profilResmi);
     var res = await apiFetch('/api/profile', {
       method: 'POST',
-      body: { aciklama: aciklama, dostlar: dostlar, dusmanlar: dusmanlar }
+      body: body
     });
     var data = await res.json().catch(function() { return {}; });
     if (!res.ok || !data.ok) {
@@ -1929,6 +4270,12 @@ async function profilKaydet() {
       return;
     }
     oyuncuUygula(data.player);
+    var avatar = document.getElementById('profilAvatar');
+    if (avatar && oyuncuProfilResmi) {
+      avatar.src = profilPortreUrlFromKey(oyuncuProfilResmi);
+      avatar.classList.add('profil-avatar-ozel');
+    }
+    if (wrap && oyuncuProfilResmi) wrap.setAttribute('data-profil-resmi', oyuncuProfilResmi);
     toast('Profil bilgileri kaydedildi.', 'basari');
   } catch (_) {
     toast('Profil kaydı sırasında bağlantı hatası.', 'hata');
@@ -1936,29 +4283,40 @@ async function profilKaydet() {
 }
 
 async function oyuncuProfilGoster(userId) {
+  profilIcraatTimerDurdur();
+  profilQuillYokEt();
   aktifEkran = 'profil_ziyaret';
+  masterFramePlaqueGuncelle('profilim', 'PROFİL');
   var ic = document.getElementById('anaIcerik');
-  ic.innerHTML = '<h2>👤 PROFİL</h2><p style="color:#888;">Yükleniyor...</p>';
+  ic.innerHTML = '<div class="profil-wrap"><p style="color:#888;padding:24px;text-align:center;">Yükleniyor...</p></div>';
   try {
     var res = await apiFetch('/api/profile/' + encodeURIComponent(String(userId)));
     var data = await res.json().catch(function() { return {}; });
     if (!res.ok || !data.ok || !data.profil) throw new Error(data.error || 'Profil alınamadı.');
     var p = data.profil;
     ic.innerHTML = profilEkranSablonu({
-      baslik: '👤 ' + p.oyuncuAdi,
       duzenlenebilir: false,
+      userId: p.userId,
+      profilResmi: p.profilResmi,
       oyuncuAdi: p.oyuncuAdi,
       lakap: p.lakap,
       guc: p.guc,
       puan: p.puan,
+      sira: p.sira,
+      grupSira: p.grupSira,
       aciklama: p.aciklama,
       dostlar: p.dostlar,
       dusmanlar: p.dusmanlar,
       kayitTarihi: p.kayitTarihi,
-      sehirEfsane: p.sehirEfsane
+      sehirEfsane: p.sehirEfsane,
+      karaListede: p.karaListede
     });
+    await profilSiralamaAlanlariGuncelle(p);
+    profilAciklamaGosterUygula(p.aciklama);
+    var z = document.getElementById('profilZiyaretlerBox');
+    if (z) z.innerHTML = profilZiyaretleriHTML(p.ziyaretler);
   } catch (e) {
-    ic.innerHTML = '<h2>👤 PROFİL</h2><p style="color:#c00;">' + (e.message || 'Profil yüklenemedi.') + '</p>';
+    ic.innerHTML = '<div class="profil-wrap"><p style="color:#c00;padding:24px;">' + escHtml(e.message || 'Profil yüklenemedi.') + '</p></div>';
   }
 }
 
@@ -1966,10 +4324,9 @@ setInterval(function() {
   if (!sunucuBagli) return;
   sunucudanYukle({ poll: true }).then(function() {
     var ic = document.getElementById('anaIcerik');
-    if (ic && ic.innerHTML.includes('SÖZÜ GEÇENLER')) liderlikTablosuCiz(ic);
     if (ic && aktifEkran === 'gazete' && yeniGazeteHaber) gazeteEkranCiz(ic);
   }).catch(function() {});
-}, 15000);
+}, 5000);
 
 function sektorMekanlar(sektor) {
   var m = mekanTanimlari[sektor];
@@ -1979,12 +4336,20 @@ function sektorMekanlar(sektor) {
 }
 
 function sektorEkranCiz(ic, sektor, baslik) {
+  ic.innerHTML = '<h2>🏢 ' + baslik + '</h2><p style="color:#888;">Yükleniyor...</p>';
+  elitFiyatDurumSenkronize().then(function() {
+    if (aktifEkran !== 'sektor_' + sektor) return;
+    sektorEkranCizIcerik(ic, sektor, baslik);
+  });
+}
+
+function sektorEkranCizIcerik(ic, sektor, baslik) {
   var mekanlar = sektorMekanlar(sektor);
-  var html = '<h2>🏢 ' + baslik + '</h2><p>"Her alımda fiyat %5 artar; saatlik getiri sabit kalır."</p>';
+  var html = '<h2>🏢 ' + baslik + '</h2><p>"Her alımda fiyat %5 artar; saatlik getiri sabit kalır."</p>' + elitFiyatNotuHTML();
   if (!Object.keys(mekanlar).length) {
     ic.innerHTML = html + '<p style="color:#888;">Sektör yükleniyor...</p>';
     sunucudanYukle().then(function() {
-      if (aktifEkran === 'sektor_' + sektor) sektorEkranCiz(ic, sektor, baslik);
+      if (aktifEkran === 'sektor_' + sektor) sektorEkranCizIcerik(ic, sektor, baslik);
     }).catch(function() {
       ic.innerHTML = html + '<p style="color:#c00;">Mekan listesi alınamadı. <b>npm start</b> ile sunucuyu çalıştırıp yeniden giriş yap.</p>';
     });
@@ -1995,12 +4360,12 @@ function sektorEkranCiz(ic, sektor, baslik) {
     var sk = sektor + ':' + key;
     var sahip = sektorSahiplik[sk] || { adet: 0 };
     var adet = sahip.adet || 0;
-    var fiyat = Math.floor(m.fiyat * Math.pow(1.05, adet));
+    var bazFiyat = Math.floor(m.fiyat * Math.pow(1.05, adet));
     var img = mekanGorseller[m.gorsel] || FALLBACK;
     html += '<div class="is-kart"><div class="is-yapi">'
       + '<img src="' + img + '" class="vesikalik-resim" onerror="imgFallback(this)">'
       + '<div class="is-detay"><h3>' + m.ad + '</h3><p style="color:#888;">' + m.aciklama + '</p>'
-      + '<p>💵 Alış: <b>' + fmt(fiyat) + ' TL</b> &nbsp;|&nbsp; Sahip: <b>' + adet + '</b> adet</p>'
+      + '<p>💵 Alış: ' + elitFiyatGosterHtml(bazFiyat) + ' &nbsp;|&nbsp; Sahip: <b>' + adet + '</b> adet</p>'
       + '<p>⏱️ Saatlik Getiri: <b style="color:#28a745;">' + fmt(m.saatlik) + ' TL</b> (adet başı)</p>'
       + '<p>🕶️ Saygınlık: <b>+' + m.sayginlik + '</b> (sabit)</p>'
       + '<div style="margin-top:8px;">'
@@ -2013,16 +4378,16 @@ function sektorEkranCiz(ic, sektor, baslik) {
 }
 
 async function mekanAl(sektor, key) {
-  const idStr = 'mekanAdetGir_' + sektor + '_' + key;
-  const adetInput = document.getElementById(idStr);
+  var idStr = 'mekanAdetGir_' + sektor + '_' + key;
+  var adetInput = document.getElementById(idStr);
   if (!adetInput) {
-    console.error('Input element not found:', idStr);
     toast('Adet giriş alanı bulunamadı. Sayfayı yenile.', 'hata');
     return;
   }
-  const adet = parseInt(adetInput.value, 10) || 1;
-  console.log('mekanAl:', { sektor, key, adet });
-  var ef = await sunucuAksiyon('mekan_al', sektor + ':' + key, null, { adet });
+  var adet = parseInt(String(adetInput.value || '').trim(), 10);
+  if (!adet || adet < 1) adet = 1;
+  if (adet > 999) adet = 999;
+  var ef = await sunucuAksiyon('mekan_al', sektor + ':' + key, adet, { adet: adet });
   if (ef) toast(ef.mesaj || 'Mekan alındı!', 'basari');
   ekranDegistir('sektor_' + sektor);
 }
@@ -2060,10 +4425,133 @@ async function sifreKaydet() {
   }
 }
 
+function sbSayfaKabuk(banner, ikon, baslik, motto, govdeIcerik) {
+  return '<div class="sb-sayfa"><div class="sb-cerceve">'
+    + '<div class="sb-banner">'
+    + '<img src="' + banner + '" alt="" onerror="imgFallback(this)">'
+    + '<div class="sb-banner-ortu"></div>'
+    + '<div class="sb-baslik-wrap">'
+    + (ikon ? '<span class="sb-baslik-ikon" aria-hidden="true">' + ikon + '</span>' : '')
+    + '<h2>' + baslik + '</h2>'
+    + '<p class="sb-motto">' + motto + '</p>'
+    + '</div></div>'
+    + '<div class="sb-govde">' + govdeIcerik + '</div>'
+    + '</div></div>';
+}
+
+function sbMesajAvatarFromMesaj(m) {
+  if (m.tip === 'saldiri') {
+    var saldiriUid = m.gonderenUserId || m.gonderen_user_id || null;
+    var saldiriPr = m.profilResmi || m.profil_resmi || '';
+    if (saldiriUid || saldiriPr) {
+      var saldiriUrl = profilResmiUrl(saldiriUid, saldiriPr);
+      var saldiriCls = profilResmiOzelMi(saldiriUrl) ? ' sb-avatar-img--ozel' : '';
+      return '<span class="sb-mesaj-avatar sb-mesaj-avatar--saldiri"><img class="sb-avatar-img' + saldiriCls + '" src="' + escHtml(saldiriUrl) + '" alt="" loading="lazy" onerror="imgFallback(this)"></span>';
+    }
+    return '<span class="sb-mesaj-avatar sb-mesaj-avatar--sistem" aria-hidden="true">⚠️</span>';
+  }
+  var uid = m.gonderenUserId || m.gonderen_user_id || null;
+  var pr = m.profilResmi || m.profil_resmi || '';
+  var url = profilResmiUrl(uid, pr);
+  var cls = profilResmiOzelMi(url) ? ' sb-avatar-img--ozel' : '';
+  return '<span class="sb-mesaj-avatar"><img class="sb-avatar-img' + cls + '" src="' + escHtml(url) + '" alt="" loading="lazy" onerror="imgFallback(this)"></span>';
+}
+
+function sbMesajEtiket(tip) {
+  if (tip === 'saldiri') return '<span class="sb-mesaj-etiket sb-mesaj-etiket--alarm">ALARM</span>';
+  if (tip === 'mafya_grup') return '<span class="sb-mesaj-etiket">GRUP</span>';
+  return '<span class="sb-mesaj-etiket">ÖZEL</span>';
+}
+
+function sbMesajKartHTML(m) {
+  var tipCls = m.tip === 'saldiri' ? ' sb-mesaj-kart--saldiri' : (m.tip === 'mafya_grup' ? ' sb-mesaj-kart--mafya' : '');
+  var baslik = mesajGonderenBaslik(m);
+  var html = '<article class="sb-mesaj-kart' + tipCls + '">'
+    + '<div class="sb-mesaj-ust">'
+    + sbMesajAvatarFromMesaj(m)
+    + '<div class="sb-mesaj-meta"><span class="sb-mesaj-gonderen">' + escHtml(baslik) + '</span>'
+    + '<span class="sb-mesaj-tarih">' + escHtml(m.tarih || '') + '</span></div>'
+    + sbMesajEtiket(m.tip)
+    + '</div>'
+    + '<div class="sb-mesaj-icerik">' + escHtml(m.icerik) + '</div>'
+    + '<div class="sb-mesaj-aksiyonlar">';
+  if (m.tip === 'ozel' && m.gonderenAdi !== 'Sistem') {
+    html += '<button type="button" class="sb-btn sb-btn--gri sb-btn-kucuk" onclick="mesajCevapla(' + m.id + ', \'' + String(m.gonderenAdi || '').replace(/'/g, "\\'") + '\')">Cevapla</button>';
+  }
+  if (m.tip === 'mafya_grup') {
+    html += '<button type="button" class="sb-btn sb-btn--gri sb-btn-kucuk" onclick="mesajCevapla(' + m.id + ', \'Mafya Grubu\')">Cevapla</button>';
+  }
+  html += '<button type="button" class="sb-btn sb-btn--kirmizi sb-btn-kucuk" onclick="mesajSil(' + m.id + ')">Sil</button>'
+    + '</div></article>';
+  return html;
+}
+
+function mesajKutusuGovdeHTML(liste) {
+  var listeHtml = '';
+  if (!liste || !liste.length) {
+    listeHtml = '<p class="sb-mesaj-bos">Henüz mesaj yok — dostlarına ilk mesajı sen gönder.</p>';
+  } else {
+    liste.forEach(function(m) { listeHtml += sbMesajKartHTML(m); });
+  }
+  return '<p class="sb-giris">Özel mesajlar, saldırı alarmları ve mafya grubu yazışmaları burada toplanır.</p>'
+    + '<div class="sb-paneller">'
+    + '<div class="sb-panel sb-panel--gonder">'
+    + '<div class="sb-panel-baslik"><span class="sb-panel-ikon" aria-hidden="true">📤</span><h3>MESAJ GÖNDER</h3></div>'
+    + '<div class="sb-alan"><label for="mesajHedef">Alıcı reis adı</label>'
+    + '<input type="text" id="mesajHedef" class="sb-input" placeholder="Oyuncu adı..." maxlength="24"></div>'
+    + '<div class="sb-alan"><label for="mesajMetin">Mesajın</label>'
+    + '<textarea id="mesajMetin" class="sb-textarea" rows="3" placeholder="Mesajını yaz..." maxlength="500"></textarea></div>'
+    + '<button type="button" class="sb-btn sb-btn--mavi" onclick="mesajGonder()">[ 📤 MESAJI GÖNDER ]</button>'
+    + '</div>'
+    + '<div class="sb-panel sb-panel--liste">'
+    + '<div class="sb-panel-baslik"><span class="sb-panel-ikon" aria-hidden="true">📥</span><h3>GELEN MESAJLAR</h3></div>'
+    + '<div class="sb-mesaj-liste">' + listeHtml + '</div>'
+    + '</div></div>';
+}
+
+function mafyaSohbetSatirHTML(s) {
+  var avatarUrl = profilResmiUrl(s.userId, s.profilResmi);
+  var avatarCls = profilResmiOzelMi(avatarUrl) ? ' sb-avatar-img--ozel' : '';
+  return '<div class="sb-sohbet-satir">'
+    + '<span class="sb-sohbet-avatar"><img class="sb-avatar-img' + avatarCls + '" src="' + escHtml(avatarUrl) + '" alt="" loading="lazy" onerror="imgFallback(this)"></span>'
+    + '<div class="sb-sohbet-govde"><div class="sb-sohbet-ust-satir">'
+    + '<span class="sb-sohbet-isim">' + escHtml(s.reisAdi || 'Anonim') + '</span>'
+    + '<span class="sb-sohbet-zaman">' + escHtml(s.tarih || '') + '</span>'
+    + '</div><p class="sb-sohbet-metin">' + escHtml(s.mesaj) + '</p></div></div>';
+}
+
+function mafyaSohbetGovdeHTML(liste) {
+  var satirlar = '';
+  (liste || []).forEach(function(s) { satirlar += mafyaSohbetSatirHTML(s); });
+  if (!satirlar) satirlar = '<p class="sb-mesaj-bos">Salon sessiz — ilk sözü sen söyle.</p>';
+  return '<p class="sb-giris">Genel yeraltı salonu — herkes görür. Her mesaj <strong>1 SMS</strong> hakkı harcar.</p>'
+    + '<div class="sb-meta-bar"><span>📱 Kalan SMS:</span><strong id="sbSmsGoster">' + fmt(oyuncuSms || 0) + '</strong></div>'
+    + '<div class="sb-sohbet-liste" id="sohbetListe">' + satirlar + '</div>'
+    + '<div class="sb-panel sb-panel--yaz">'
+    + '<div class="sb-panel-baslik"><span class="sb-panel-ikon" aria-hidden="true">✍️</span><h3>SALONA YAZ</h3></div>'
+    + '<div class="sb-alan"><label for="mafyaSohbetMetin">Mesajın</label>'
+    + '<textarea id="mafyaSohbetMetin" class="sb-textarea" rows="3" placeholder="Mafyayla sohbet et..." maxlength="400"></textarea></div>'
+    + '<button type="button" class="sb-btn sb-btn--yesil" onclick="mafyaSohbetGonder()">[ 💬 GÖNDER ]</button>'
+    + '</div>';
+}
+
 async function mesajKutusuCiz(ic) {
-  ic.innerHTML = '<h2>📬 MESAJ KUTUSU</h2><p style="color:#888;">Yükleniyor...</p>';
+  ic.innerHTML = sbSayfaKabuk(
+    sohbetGorseller.mesajKutu,
+    '📬',
+    'MESAJ KUTUSU',
+    '"Gizli yazışmalar, alarmlar ve grup mesajları burada."',
+    '<p class="sb-durum">Yükleniyor...</p>'
+  );
   if (!sunucuBagli) {
-    ic.innerHTML = '<h2>📬 MESAJ KUTUSU</h2><p style="color:#c00;">Sunucu kapalı. Terminalde <b>npm start</b> çalıştır, ardından <b>http://localhost:3000</b> adresinden gir.</p>';
+    if (aktifEkran !== 'mesajKutusu') return;
+    ic.innerHTML = sbSayfaKabuk(
+      sohbetGorseller.mesajKutu,
+      '📬',
+      'MESAJ KUTUSU',
+      '"Gizli yazışmalar, alarmlar ve grup mesajları burada."',
+      '<p class="sb-durum sb-durum--hata">Sunucu kapalı. Terminalde <b>npm start</b> çalıştır, ardından <b>http://localhost:3000</b> adresinden gir.</p>'
+    );
     return;
   }
   try {
@@ -2071,31 +4559,26 @@ async function mesajKutusuCiz(ic) {
     if (res.status === 401) { cikisYap(); return; }
     var data = await res.json().catch(function() { return {}; });
     if (!res.ok || data.ok === false) throw new Error(data.error || ('HTTP ' + res.status));
+    if (aktifEkran !== 'mesajKutusu') return;
     okunmamisMesaj = false;
     mesajMenuYanip();
-    var html = '<h2>📬 MESAJ KUTUSU</h2>'
-      + '<div class="is-kart" style="margin:0 auto 16px;max-width:520px;">'
-      + '<h3 class="bolum-baslik">Mesaj Gönder</h3>'
-      + '<input type="text" id="mesajHedef" class="dusman-input" placeholder="Oyuncu adı" style="width:100%;margin-bottom:8px;">'
-      + '<textarea id="mesajMetin" class="dusman-input" rows="3" placeholder="Mesajın..." style="width:100%;"></textarea>'
-      + '<button class="btn-is mavi-btn" style="margin-top:8px;" onclick="mesajGonder()">[ 📤 MESAJI GÖNDER ]</button></div>';
-    if (!data.liste || !data.liste.length) {
-      html += '<p style="color:#666;">Henüz mesaj yok.</p>';
-    } else {
-      data.liste.forEach(function(m) {
-        var alarmCls = m.tip === 'saldiri' ? ' mesaj-alarm' : '';
-        html += '<div class="mesaj-kutu-item' + alarmCls + '"><p><b>' + (m.gonderenAdi || 'Sistem') + '</b> — <span style="color:#666;font-size:12px;">' + m.tarih + '</span></p>'
-          + '<div class="mesaj-icerik-kutu">' + m.icerik + '</div>';
-        if (m.tip === 'ozel' && m.gonderenAdi !== 'Sistem') {
-          html += '<button class="btn-is" onclick="mesajCevapla(' + m.id + ', \'' + m.gonderenAdi.replace(/'/g, '') + '\')">Cevapla</button> ';
-        }
-        html += '<button class="btn-is kirmizi-btn" onclick="mesajSil(' + m.id + ')">Sil</button></div>';
-      });
-    }
-    ic.innerHTML = html;
+    ic.innerHTML = sbSayfaKabuk(
+      sohbetGorseller.mesajKutu,
+      '📬',
+      'MESAJ KUTUSU',
+      '"Gizli yazışmalar, alarmlar ve grup mesajları burada."',
+      mesajKutusuGovdeHTML(data.liste)
+    );
   } catch (e) {
-    ic.innerHTML = '<h2>📬 MESAJ KUTUSU</h2><p style="color:#c00;">Mesajlar yüklenemedi: ' + (e.message || 'Bağlantı hatası') + '</p>'
-      + '<p style="color:#888;margin-top:8px;">Proje klasöründe <b>npm start</b> çalışıyor olmalı; adres <b>http://localhost:3000</b> olmalı (dosyayı doğrudan açma).</p>';
+    if (aktifEkran !== 'mesajKutusu') return;
+    ic.innerHTML = sbSayfaKabuk(
+      sohbetGorseller.mesajKutu,
+      '📬',
+      'MESAJ KUTUSU',
+      '"Gizli yazışmalar, alarmlar ve grup mesajları burada."',
+      '<p class="sb-durum sb-durum--hata">Mesajlar yüklenemedi: ' + escHtml(e.message || 'Bağlantı hatası') + '</p>'
+      + '<p class="sb-durum" style="margin-top:10px;">Proje klasöründe <b>npm start</b> çalışıyor olmalı; adres <b>http://localhost:3000</b> olmalı.</p>'
+    );
   }
 }
 
@@ -2106,6 +4589,7 @@ async function mesajGonder() {
   var ef = await sunucuAksiyon('mesaj_gonder', null, null, { hedef: hedef, metin: metin });
   if (ef !== null) {
     toast('Mesaj gönderildi.', 'basari');
+    sohbetMenuAc();
     ekranDegistir('mesajKutusu');
   }
 }
@@ -2124,9 +4608,21 @@ function mesajCevapla(id, ad) {
 }
 
 async function mafyaSohbetCiz(ic) {
-  ic.innerHTML = '<p style="color:#888;">Sohbet yükleniyor...</p>';
+  ic.innerHTML = sbSayfaKabuk(
+    sohbetGorseller.mafyaMasa,
+    '',
+    'MAFYA SOHBETLERİ',
+    '"Sokakların genel salonu — herkes duyar."',
+    '<p class="sb-durum">Sohbet yükleniyor...</p>'
+  );
   if (!sunucuBagli) {
-    ic.innerHTML = '<h2>🕶️ MAFYA SOHBETLERİ</h2><p style="color:#c00;">Sunucu kapalı. <b>npm start</b> sonra <b>http://localhost:3000</b></p>';
+    ic.innerHTML = sbSayfaKabuk(
+      sohbetGorseller.mafyaMasa,
+      '',
+      'MAFYA SOHBETLERİ',
+      '"Sokakların genel salonu — herkes duyar."',
+      '<p class="sb-durum sb-durum--hata">Sunucu kapalı. <b>npm start</b> sonra <b>http://localhost:3000</b></p>'
+    );
     return;
   }
   try {
@@ -2134,21 +4630,24 @@ async function mafyaSohbetCiz(ic) {
     if (res.status === 401) { cikisYap(); return; }
     var data = await res.json().catch(function() { return {}; });
     if (!res.ok || data.ok === false) throw new Error(data.error || ('HTTP ' + res.status));
-    var html = '<div class="sohbet-ust-gorsel"><img src="' + sohbetGorseller.mafyaMasa + '" alt="Mafya"></div>'
-      + '<h2>🕶️ MAFYA SOHBETLERİ</h2><p>Genel salon — herkes görür. Her mesaj 1 SMS hakkı harcar.</p>'
-      + '<div id="sohbetListe" style="max-height:360px;overflow-y:auto;margin:16px 0;">';
-    (data.liste || []).forEach(function(s) {
-      html += '<div class="sohbet-satir"><span class="isim">' + s.reisAdi + '</span>'
-        + '<span class="metin">' + s.mesaj + '</span><span class="tarih">' + s.tarih + '</span></div>';
-    });
-    html += '</div><div class="is-kart"><textarea id="mafyaSohbetMetin" rows="2" class="dusman-input" style="width:100%;" placeholder="Mafyayla Sohbet..."></textarea>'
-      + '<button class="btn-is" style="margin-top:8px;" onclick="mafyaSohbetGonder()">[ GÖNDER ]</button></div>';
-    ic.innerHTML = html;
+    ic.innerHTML = sbSayfaKabuk(
+      sohbetGorseller.mafyaMasa,
+      '',
+      'MAFYA SOHBETLERİ',
+      '"Sokakların genel salonu — herkes duyar."',
+      mafyaSohbetGovdeHTML(data.liste)
+    );
     var liste = document.getElementById('sohbetListe');
     if (liste) liste.scrollTop = liste.scrollHeight;
   } catch (e) {
-    ic.innerHTML = '<h2>🕶️ MAFYA SOHBETLERİ</h2><p style="color:#c00;">Sohbet yüklenemedi: ' + (e.message || 'Bağlantı hatası') + '</p>'
-      + '<p style="color:#888;margin-top:8px;"><b>npm start</b> ile sunucuyu başlat; oyunu tarayıcıda <b>http://localhost:3000</b> üzerinden aç.</p>';
+    ic.innerHTML = sbSayfaKabuk(
+      sohbetGorseller.mafyaMasa,
+      '',
+      'MAFYA SOHBETLERİ',
+      '"Sokakların genel salonu — herkes duyar."',
+      '<p class="sb-durum sb-durum--hata">Sohbet yüklenemedi: ' + escHtml(e.message || 'Bağlantı hatası') + '</p>'
+      + '<p class="sb-durum" style="margin-top:10px;"><b>npm start</b> ile sunucuyu başlat; oyunu <b>http://localhost:3000</b> üzerinden aç.</p>'
+    );
   }
 }
 
@@ -2160,22 +4659,53 @@ async function mafyaSohbetGonder() {
   if (ef !== null) ekranDegistir('mafyaSohbet');
 }
 
+function egitimAc() {
+  if (!window.TutorialEngine) return;
+  if (TutorialEngine.isComplete()) TutorialEngine.reset();
+  TutorialEngine.open({ force: true });
+}
+
 async function oyunuBaslat() {
+  var yuk = document.getElementById('yukleniyor');
+  if (yuk) {
+    yuk.classList.remove('gizli');
+    yuk.innerHTML = '⏳ İMPARATORLUK YÜKLENİYOR...';
+  }
+  var yukTimeout = setTimeout(function () {
+    if (yuk && !yuk.classList.contains('gizli')) {
+      sunucuBagli = false;
+      yuk.innerHTML =
+        '❌ Sunucu yanıt vermiyor.<br><br>Terminalde <b>npm start</b> çalıştırıp sayfayı yenile (Ctrl+F5).'
+        + '<br><br><button type="button" onclick="location.reload()" style="margin-top:12px;padding:10px 18px;cursor:pointer;background:#8b1e1e;color:#fff;border:none;border-radius:6px;font-weight:600">Yenile</button>';
+    }
+  }, 15000);
   try {
     var health = await fetch('/api/health', { credentials: 'include' });
     if (!health.ok) throw new Error('API yanıt vermedi');
     await sunucudanYukle();
     sunucuBagli = true;
-    document.getElementById('yukleniyor').classList.add('gizli');
-    var sesBtn = document.getElementById('sesAcKapa');
-    var sesSl = document.getElementById('sesSeviye');
-    if (sesBtn) sesBtn.textContent = sesAyar.acik ? '🔊' : '🔇';
-    if (sesSl) sesSl.value = Math.round(sesAyar.seviye * 100);
+    clearTimeout(yukTimeout);
+    if (yuk) yuk.classList.add('gizli');
+    sesUiGuncelle();
+    if (sesAyar.acik) muzikBaslat();
+    else muzikDurdur();
     guncelleBgIsim();
-    ekranDegistir('profilim');
+    statTooltipBagla();
+    ekranDegistir('liderlik');
+    if (window.TutorialEngine && !TutorialEngine.isComplete()) {
+      setTimeout(function () {
+        TutorialEngine.open();
+      }, 500);
+    }
   } catch (e) {
+    clearTimeout(yukTimeout);
     sunucuBagli = false;
-    document.getElementById('yukleniyor').innerHTML =
-      '❌ Sunucu kapalı veya oturum geçersiz.<br><br>Proje klasöründe <b>npm start</b> çalıştır, ardından <b>http://localhost:3000</b> adresinden gir (dosyayı doğrudan açma).';
+    if (yuk) {
+      yuk.innerHTML =
+        '❌ Sunucu kapalı veya oturum geçersiz.<br><br>Proje klasöründe <b>npm start</b> çalıştır, ardından <b>http://localhost:3000</b> adresinden gir (dosyayı doğrudan açma).'
+        + '<br><br><button type="button" onclick="cikisYap()" style="margin-top:12px;padding:10px 18px;cursor:pointer;background:#1a1624;color:#c5a059;border:1px solid #c5a059;border-radius:6px;font-weight:600">Giriş Ekranına Dön</button>';
+    }
   }
 }
+
+window.ekranDegistir = ekranDegistir;

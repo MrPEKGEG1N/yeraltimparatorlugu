@@ -1,0 +1,318 @@
+/* İstihbarat — görsel panel */
+#masterLayout #anaIcerik .istih-sayfa {
+  display: flex;
+  justify-content: center;
+  padding: 10px 12px 28px;
+  min-height: min(78vh, 640px);
+}
+
+#masterLayout #anaIcerik .istih-cerceve {
+  position: relative;
+  width: min(720px, 100%);
+  padding: 18px 20px 22px;
+  border: 2px solid rgba(184, 148, 42, 0.55);
+  border-radius: 4px;
+  background: linear-gradient(180deg, rgba(10, 16, 12, 0.98) 0%, rgba(4, 8, 6, 0.99) 100%);
+  box-shadow:
+    0 18px 56px rgba(0, 0, 0, 0.75),
+    inset 0 0 80px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 220, 140, 0.06);
+  isolation: isolate;
+}
+
+#masterLayout #anaIcerik .istih-cerceve::before {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border: 1px solid rgba(184, 148, 42, 0.22);
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+#masterLayout #anaIcerik .istih-baslik {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  margin-bottom: 18px;
+}
+
+#masterLayout #anaIcerik .istih-baslik-ikon {
+  font-size: 28px;
+  line-height: 1;
+  margin-bottom: 6px;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.6));
+}
+
+#masterLayout #anaIcerik .istih-baslik h2 {
+  margin: 0 0 8px;
+  font-family: "Cinzel", Georgia, serif;
+  font-size: clamp(22px, 3.5vw, 30px);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: #e8c86a;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.8);
+}
+
+#masterLayout #anaIcerik .istih-baslik-alt {
+  margin: 0;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(14px, 2vw, 16px);
+  font-style: italic;
+  color: rgba(220, 210, 190, 0.88);
+  line-height: 1.45;
+}
+
+#masterLayout #anaIcerik .istih-kart {
+  position: relative;
+  margin-bottom: 14px;
+  padding: 14px 14px 16px;
+  background: linear-gradient(180deg, rgba(22, 28, 24, 0.82), rgba(10, 14, 12, 0.9));
+  border: 1px solid rgba(184, 148, 42, 0.38);
+  border-radius: 3px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+#masterLayout #anaIcerik .istih-kart-sekme {
+  display: inline-block;
+  margin: -24px 0 12px 8px;
+  padding: 4px 14px;
+  font-family: "Cinzel", serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: #c5a059;
+  background: linear-gradient(180deg, rgba(32, 38, 32, 0.98), rgba(14, 18, 14, 0.98));
+  border: 1px solid rgba(184, 148, 42, 0.45);
+  border-radius: 2px;
+}
+
+#masterLayout #anaIcerik .istih-eleman-govde {
+  display: grid;
+  grid-template-columns: 118px 1fr;
+  gap: 14px;
+  align-items: start;
+}
+
+#masterLayout #anaIcerik .istih-ajan-portre {
+  width: 118px;
+  height: 148px;
+  border: 2px solid rgba(184, 148, 42, 0.5);
+  border-radius: 2px;
+  overflow: hidden;
+  background: #0a0c0a;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.6);
+}
+
+#masterLayout #anaIcerik .istih-ajan-portre img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 12%;
+  user-select: none;
+}
+
+#masterLayout #anaIcerik .istih-eleman-icerik h3 {
+  margin: 0 0 10px;
+  font-family: "Cinzel", serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: #e0d4b8;
+  letter-spacing: 0.04em;
+}
+
+#masterLayout #anaIcerik .istih-stat-list {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+}
+
+#masterLayout #anaIcerik .istih-stat-list li {
+  margin-bottom: 5px;
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 13px;
+  color: #c8c0b0;
+  line-height: 1.4;
+}
+
+#masterLayout #anaIcerik .istih-stat-list b {
+  color: #e8c86a;
+  font-weight: 700;
+}
+
+#masterLayout #anaIcerik .istih-stat-list .istih-zam-not {
+  margin-top: 2px;
+  font-size: 11px;
+  font-style: italic;
+  color: rgba(180, 170, 150, 0.75);
+}
+
+#masterLayout #anaIcerik .istih-adet-satir {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+#masterLayout #anaIcerik .istih-adet-satir label {
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #c5a059;
+  white-space: nowrap;
+}
+
+#masterLayout #anaIcerik .istih-adet-input {
+  width: 72px;
+  padding: 7px 10px !important;
+  background: rgba(6, 8, 6, 0.95) !important;
+  border: 1px solid rgba(184, 148, 42, 0.45) !important;
+  border-radius: 3px;
+  color: #f0e6d0 !important;
+  font-family: "Roboto Condensed", sans-serif !important;
+  font-size: 15px !important;
+  text-align: center;
+}
+
+#masterLayout #anaIcerik .istih-adet-input:focus {
+  outline: none;
+  border-color: rgba(220, 180, 90, 0.8) !important;
+}
+
+#masterLayout #anaIcerik .istih-rakip-aciklama {
+  margin: 0 0 12px;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 15px;
+  color: rgba(210, 200, 180, 0.9);
+  line-height: 1.45;
+}
+
+#masterLayout #anaIcerik .istih-rakip-satir {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: stretch;
+}
+
+#masterLayout #anaIcerik .istih-hedef-input {
+  flex: 1 1 200px;
+  min-width: 0;
+  padding: 10px 14px !important;
+  background: rgba(6, 8, 6, 0.95) !important;
+  border: 1px solid rgba(184, 148, 42, 0.45) !important;
+  border-radius: 3px;
+  color: #f0e6d0 !important;
+  font-family: "Cormorant Garamond", Georgia, serif !important;
+  font-size: 16px !important;
+}
+
+#masterLayout #anaIcerik .istih-hedef-input::placeholder {
+  color: rgba(170, 160, 145, 0.65);
+}
+
+#masterLayout #anaIcerik .istih-hedef-input:focus {
+  outline: none;
+  border-color: rgba(220, 180, 90, 0.8) !important;
+  box-shadow: 0 0 12px rgba(184, 148, 42, 0.15);
+}
+
+#masterLayout #anaIcerik .istih-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: 2px solid rgba(220, 190, 100, 0.55);
+  border-radius: 6px;
+  font-family: "Cinzel", serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: filter 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+  white-space: nowrap;
+}
+
+#masterLayout #anaIcerik .istih-btn--yesil {
+  width: 100%;
+  background: linear-gradient(180deg, #3a9e4a 0%, #1e6b2e 45%, #145222 100%);
+  color: #fff;
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+#masterLayout #anaIcerik .istih-btn--mavi {
+  flex: 0 0 auto;
+  min-width: 148px;
+  background: linear-gradient(180deg, #3d7ec8 0%, #245a9e 45%, #1a4578 100%);
+  color: #fff;
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+#masterLayout #anaIcerik .istih-btn:hover:not(:disabled) {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+#masterLayout #anaIcerik .istih-btn:active:not(:disabled) {
+  transform: translateY(0);
+  filter: brightness(0.95);
+}
+
+#masterLayout #anaIcerik .istih-sonuc {
+  margin-top: 4px;
+  padding: 12px 14px;
+  border-radius: 4px;
+  border: 1px solid rgba(184, 148, 42, 0.35);
+  background: rgba(8, 12, 10, 0.88);
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+#masterLayout #anaIcerik .istih-sonuc--basari {
+  color: #8ef0a0;
+  border-color: rgba(80, 200, 100, 0.45);
+}
+
+#masterLayout #anaIcerik .istih-sonuc--uyari {
+  color: #f0c060;
+  border-color: rgba(220, 170, 50, 0.45);
+}
+
+#masterLayout #anaIcerik .istih-sonuc--hata {
+  color: #f08080;
+  border-color: rgba(200, 60, 60, 0.45);
+}
+
+#masterLayout #anaIcerik .istih-sonuc-guc {
+  display: block;
+  margin-top: 6px;
+  font-family: "Cinzel", serif;
+  font-size: 18px;
+  color: #ffd76a;
+}
+
+@media (max-width: 560px) {
+  #masterLayout #anaIcerik .istih-eleman-govde {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+
+  #masterLayout #anaIcerik .istih-adet-satir {
+    justify-content: center;
+  }
+
+  #masterLayout #anaIcerik .istih-rakip-satir {
+    flex-direction: column;
+  }
+
+  #masterLayout #anaIcerik .istih-btn--mavi {
+    width: 100%;
+  }
+}

@@ -29,9 +29,10 @@ async function haberleriGetir(db) {
   await haberleriTemizle(db);
   return all(
     db,
-    `SELECT h.haber, h.user_id, u.reis_adi, h.created_at
+    `SELECT h.haber, h.user_id, u.reis_adi, h.created_at, p.profil_resmi
      FROM medya_haberleri h
      JOIN users u ON u.id = h.user_id
+     JOIN players p ON p.user_id = h.user_id
      WHERE h.aktif = 1
      ORDER BY h.created_at DESC
      LIMIT 10`

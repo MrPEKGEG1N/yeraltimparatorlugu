@@ -126,7 +126,7 @@ async function makamHaberEkle(db, makam, kazananId, kaybedenId) {
 async function mafyaSavasIlanHaber(db, saldiranAd, hedefAd) {
   await gazeteEkle(
     db,
-    `[${saldiranAd}], [${hedefAd}]'ye karşı savaş açtı. Eski defterler açılıyor, kimin ayakta kalacağını zaman gösterecek.`
+    `[${saldiranAd}] Mafya Gurubu, [${hedefAd}] Mafya Gurubuna savaş açtı. Eski defterler açılıyor, kimin ayakta kalacağını zaman gösterecek.`
   );
 }
 
@@ -368,6 +368,7 @@ async function getGazetePanel(db, userId) {
     isim: r.isim,
     miktar: Math.abs(r.toplam || 0),
     fallback: !!r.fallback,
+    profilResmi: r.profil_resmi || "",
   }));
 
   const hakimiyetSatirlari = [];

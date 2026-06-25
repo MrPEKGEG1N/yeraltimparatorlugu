@@ -1,0 +1,387 @@
+/* Avukat — ilişki & rüşvet */
+#masterLayout #anaIcerik .av-sayfa {
+  display: flex;
+  justify-content: center;
+  padding: 10px 14px 32px;
+}
+
+#masterLayout #anaIcerik .av-cerceve {
+  position: relative;
+  width: min(860px, 100%);
+  border: 2px solid rgba(184, 148, 42, 0.52);
+  border-radius: 6px;
+  background: linear-gradient(175deg, rgba(24, 20, 16, 0.98) 0%, rgba(8, 6, 4, 0.99) 100%);
+  box-shadow:
+    0 22px 60px rgba(0, 0, 0, 0.72),
+    inset 0 0 90px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 220, 140, 0.07);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+#masterLayout #anaIcerik .av-cerceve::before {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  border: 1px solid rgba(184, 148, 42, 0.2);
+  border-radius: 3px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+#masterLayout #anaIcerik .av-banner {
+  position: relative;
+  height: clamp(120px, 22vw, 165px);
+  overflow: hidden;
+}
+
+#masterLayout #anaIcerik .av-banner img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 30%;
+  filter: saturate(0.78) contrast(1.08);
+}
+
+#masterLayout #anaIcerik .av-banner-ortu {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(16, 14, 20, 0.15) 0%,
+    rgba(16, 14, 20, 0.55) 52%,
+    rgba(8, 7, 10, 0.98) 100%
+  );
+}
+
+#masterLayout #anaIcerik .av-baslik-wrap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  padding: 14px 22px 16px;
+  text-align: center;
+}
+
+#masterLayout #anaIcerik .av-baslik-wrap h2 {
+  margin: 0 0 5px;
+  font-family: "Cinzel", Georgia, serif;
+  font-size: clamp(18px, 3vw, 26px);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: #f0e6d0;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.85);
+}
+
+#masterLayout #anaIcerik .av-motto {
+  margin: 0;
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 12px;
+  font-style: italic;
+  line-height: 1.45;
+  color: rgba(210, 195, 165, 0.88);
+}
+
+#masterLayout #anaIcerik .av-govde {
+  position: relative;
+  z-index: 1;
+  padding: 18px 20px 22px;
+}
+
+#masterLayout #anaIcerik .av-giris {
+  margin: 0 0 14px;
+  text-align: center;
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 13px;
+  line-height: 1.55;
+  color: #bbb;
+}
+
+#masterLayout #anaIcerik .av-uyari {
+  margin: 0 0 16px;
+  padding: 10px 14px;
+  text-align: center;
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgba(235, 220, 200, 0.92);
+  background: rgba(80, 50, 20, 0.28);
+  border: 1px solid rgba(184, 148, 42, 0.38);
+  border-radius: 4px;
+}
+
+#masterLayout #anaIcerik .av-uyari strong {
+  color: #e8a040;
+}
+
+#masterLayout #anaIcerik .av-iliski-kutu {
+  margin-bottom: 16px;
+  padding: 14px 16px;
+  border: 1px solid rgba(184, 148, 42, 0.3);
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.28);
+}
+
+#masterLayout #anaIcerik .av-iliski-ust {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+#masterLayout #anaIcerik .av-iliski-etiket {
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #c5a059;
+}
+
+#masterLayout #anaIcerik .av-iliski-deger {
+  font-family: "Oswald", "Roboto Condensed", sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: #e8c878;
+}
+
+#masterLayout #anaIcerik .av-iliski-deger span {
+  font-size: 12px;
+  color: #888;
+  font-weight: 400;
+}
+
+#masterLayout #anaIcerik .av-iliski-cubuk {
+  height: 10px;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+
+#masterLayout #anaIcerik .av-iliski-dolgu {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #5a4018, #c5a059, #e8d090);
+  box-shadow: 0 0 12px rgba(200, 160, 80, 0.35);
+  transition: width 0.4s ease;
+}
+
+#masterLayout #anaIcerik .av-iliski-dolgu--dusuk {
+  background: linear-gradient(90deg, #6a1818, #c04040);
+  box-shadow: 0 0 12px rgba(200, 60, 60, 0.35);
+}
+
+#masterLayout #anaIcerik .av-paneller {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 14px;
+}
+
+#masterLayout #anaIcerik .av-panel {
+  padding: 16px 16px 18px;
+  border: 1px solid rgba(184, 148, 42, 0.35);
+  border-radius: 5px;
+  background: linear-gradient(180deg, rgba(28, 22, 16, 0.95), rgba(10, 8, 6, 0.98));
+  box-shadow: inset 0 1px 0 rgba(255, 220, 140, 0.05);
+}
+
+#masterLayout #anaIcerik .av-iliski-dolgu--max {
+  background: linear-gradient(90deg, #3a5a18, #6a9a30, #9ed060);
+  box-shadow: 0 0 12px rgba(120, 200, 80, 0.35);
+}
+
+#masterLayout #anaIcerik .av-rusvet-max {
+  margin: 0;
+  padding: 14px 12px;
+  text-align: center;
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #9ed080;
+  background: rgba(40, 80, 30, 0.22);
+  border: 1px solid rgba(100, 180, 80, 0.35);
+  border-radius: 4px;
+}
+
+#masterLayout #anaIcerik .av-panel--avukat {
+  border-color: rgba(120, 120, 160, 0.35);
+  text-align: center;
+}
+
+#masterLayout #anaIcerik .av-panel--rusvet {
+  border-color: rgba(180, 70, 60, 0.38);
+}
+
+#masterLayout #anaIcerik .av-panel-baslik {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+#masterLayout #anaIcerik .av-panel--avukat .av-panel-baslik {
+  justify-content: center;
+}
+
+#masterLayout #anaIcerik .av-panel-ikon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 4px;
+  font-size: 16px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(184, 148, 42, 0.28);
+  flex-shrink: 0;
+}
+
+#masterLayout #anaIcerik .av-panel-baslik h3 {
+  margin: 0;
+  font-family: "Oswald", "Roboto Condensed", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: #e8dcc8;
+}
+
+#masterLayout #anaIcerik .av-portre {
+  width: 110px;
+  height: 140px;
+  margin: 0 auto 12px;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 2px solid rgba(184, 148, 42, 0.4);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+#masterLayout #anaIcerik .av-portre img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+#masterLayout #anaIcerik .av-portre-ad {
+  margin: 0 0 6px;
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: #e8dcc8;
+}
+
+#masterLayout #anaIcerik .av-portre-aciklama {
+  margin: 0;
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #999;
+}
+
+#masterLayout #anaIcerik .av-rusvet-oneri {
+  margin: 0 0 12px;
+  padding: 12px 14px;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.32);
+  border: 1px solid rgba(184, 148, 42, 0.22);
+  border-radius: 4px;
+}
+
+#masterLayout #anaIcerik .av-rusvet-oneri-etiket {
+  display: block;
+  margin-bottom: 4px;
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #c5a059;
+}
+
+#masterLayout #anaIcerik .av-rusvet-oneri-tutar {
+  font-family: "Oswald", "Roboto Condensed", sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  color: #e8c878;
+}
+
+#masterLayout #anaIcerik .av-rusvet-aralik {
+  margin: 0 0 14px;
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 11px;
+  text-align: center;
+  color: #777;
+}
+
+#masterLayout #anaIcerik .av-alan {
+  margin-bottom: 12px;
+}
+
+#masterLayout #anaIcerik .av-alan label {
+  display: block;
+  margin-bottom: 6px;
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #c5a059;
+}
+
+#masterLayout #anaIcerik .av-input {
+  display: block;
+  width: 100%;
+  padding: 11px 13px;
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 15px;
+  color: #e8e0d4;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(184, 148, 42, 0.32);
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+#masterLayout #anaIcerik .av-input:focus {
+  outline: none;
+  border-color: rgba(200, 80, 60, 0.55);
+  box-shadow: 0 0 0 2px rgba(180, 60, 50, 0.15);
+}
+
+#masterLayout #anaIcerik .av-btn {
+  display: block;
+  width: 100%;
+  padding: 12px 16px;
+  font-family: "Oswald", "Roboto Condensed", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: #f5ebe0;
+  background: linear-gradient(180deg, rgba(140, 45, 38, 0.95), rgba(90, 22, 18, 0.98));
+  border: 1px solid rgba(200, 80, 70, 0.45);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: transform 0.15s ease, filter 0.2s ease;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+#masterLayout #anaIcerik .av-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+}
+
+@media (max-width: 768px) {
+  #masterLayout #anaIcerik .av-govde {
+    padding: 14px 12px 18px;
+  }
+
+  #masterLayout #anaIcerik .av-paneller {
+    grid-template-columns: 1fr;
+  }
+}

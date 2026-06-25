@@ -1,4 +1,4 @@
-const { run, get } = require("../db/database");
+const { run, get, all } = require("../db/database");
 
 function kapasite(seviye) {
   const s = Math.max(1, parseInt(seviye, 10) || 1);
@@ -7,11 +7,26 @@ function kapasite(seviye) {
 
 function sonrakiSeviyeMaliyeti(seviye) {
   const s = Math.max(1, parseInt(seviye, 10) || 1);
-  // Erken oyunda erişilebilir, ileride zorlaşır
   return Math.floor(75_000 * s * s);
 }
 
+async function ensureHibeTable(db) {
+  await run(
+    db,
+    `CREATE TABLE IF NOT EXISTS mafya_evi_hibeler (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      grup_id INTEGER NOT NULL,
+      user_id INTEGER NOT NULL,
+      reis_adi TEXT NOT NULL,
+      miktar INTEGER NOT NULL,
+      created_at INTEGER NOT NULL DEFAULT (strftime('%s','now')),
+      FOREIGN KEY (grup_id) REFERENCES mafya_gruplari(id) ON DELETE CASCADE
+    )`
+  );
+}
+
 async function ensureEvi(db, grupId) {
+  await ensureHibeTable(db);
   const row = await get(db, `SELECT grup_id, seviye, birikmis_para FROM mafya_evi WHERE grup_id = ?`, [
     grupId,
   ]);
@@ -34,18 +49,53 @@ async function eviGetir(db, grupId) {
   };
 }
 
+function trTarihSaat(ts) {
+  return new Date(ts * 1000).toLocaleString("tr-TR", {
+    timeZone: "Europe/Istanbul",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+async function hibeGecmisiGetir(db, grupId, limit = 50) {
+  await ensureHibeTable(db);
+  const rows = await all(
+    db,
+    `SELECT reis_adi, miktar, created_at FROM mafya_evi_hibeler
+     WHERE grup_id = ?
+     ORDER BY created_at DESC
+     LIMIT ?`,
+    [grupId, limit]
+  );
+  return rows.map((r) => ({
+    reisAdi: r.reis_adi,
+    miktar: r.miktar,
+    tarih: trTarihSaat(r.created_at),
+    createdAt: r.created_at,
+  }));
+}
+
 async function hibeEt(db, userId, player, grupId, miktar) {
   const tutar = Math.floor(Number(miktar) || 0);
   if (tutar < 1) return { ok: false, error: "Hibe miktarı geçersiz." };
   if (player.kasa < tutar) return { ok: false, error: "Kasanda yeterli nakit yok!" };
 
   await ensureEvi(db, grupId);
+  const u = await get(db, `SELECT reis_adi FROM users WHERE id = ?`, [userId]);
   player.kasa -= tutar;
   await run(db, `UPDATE players SET kasa = ? WHERE user_id = ?`, [player.kasa, userId]);
   await run(db, `UPDATE mafya_evi SET birikmis_para = birikmis_para + ? WHERE grup_id = ?`, [
     tutar,
     grupId,
   ]);
+  await run(
+    db,
+    `INSERT INTO mafya_evi_hibeler (grup_id, user_id, reis_adi, miktar) VALUES (?, ?, ?, ?)`,
+    [grupId, userId, u?.reis_adi || "?", tutar]
+  );
   return { ok: true, odenen: tutar };
 }
 
@@ -68,6 +118,6 @@ module.exports = {
   ensureEvi,
   eviGetir,
   hibeEt,
+  hibeGecmisiGetir,
   seviyeYukselt,
 };
-

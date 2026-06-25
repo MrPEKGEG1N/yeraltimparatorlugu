@@ -1,5 +1,6 @@
 const { run, get, all } = require("../db/database");
-const { HIRE, JOBS, COUNCIL, ICRAAT_MAX, ICRAAT_REGEN_SEC } = require("./catalog");
+const { HIRE, JOBS, COUNCIL, ICRAAT_MAX, ICRAAT_REGEN_SEC, ICRAAT_SAATLIK_BONUS } = require("./catalog");
+const { temizGrupAdi } = require("./grupAdi");
 const {
   processLimanIncome,
   limanCok,
@@ -15,6 +16,7 @@ const {
 const { processSectorIncome, sektorPanel, mekanAl, mekanDevret } = require("./sectorService");
 const { karaListeSenkronize } = require("./karaListeService");
 const { logStatHareket } = require("./statService");
+const { gelistir: guvenliYerGelistir, panelGetir: guvenliYerPanelGetir } = require("./guvenliYerService");
 const { getSehirBanner, gunlukHaberUret, yeniGazeteVarMi } = require("./sehirGazeteService");
 const { MEKANLAR, mekanTanim, sonrakiFiyat } = require("./sectorsCatalog");
 const {
@@ -26,31 +28,48 @@ const {
   okunmamisSayisi,
   mafyaSohbetListe,
   mafyaSohbetGonder,
+  mafyaGrupMesajGonder,
 } = require("./messagingService");
 const {
   rusvetMiktari,
   getDevletIliskisi,
   devletDusur,
   hapisKontrol,
+  rastgeleAvukatDususu,
+  clampAvukatIliskisi,
   rusvetVer,
 } = require("./devletService");
 const {
   getIstihbarat,
   elemanAl,
   oyuncuGucunuOgren,
+  birimMaliyetHesapla,
 } = require("./istihbaratService");
 const {
   getBanka,
+  getBankaPanel,
   paraYatir,
   paraCek,
 } = require("./bankaService");
+const { getKiralamaEnvanter, kiralamaSatinAl } = require("./kiralamaService");
+const { gorevKabul, gorevOdulAl, gorevOlayIsle, gunlukGorevBildirimVarMi } = require("./gunlukGorevService");
+
+async function aksiyonOyuncuYaniti(db, userId, player, gorevSonuc = null) {
+  const full = await publicPlayerFull(db, userId, player);
+  if (gorevSonuc && gorevSonuc.yeniTamamlanan > 0) {
+    full.gunlukGorevBildirim = true;
+  }
+  return full;
+}
 const {
   savasIlanEt,
   savasaKatil,
   savaslariListele,
 } = require("./mafyaSavasService");
 const { isKatil, isGerceklestir } = require("./mafyaIsService");
-const { eviGetir, hibeEt, seviyeYukselt } = require("./mafyaEviService");
+const { eviGetir, hibeEt, seviyeYukselt, hibeGecmisiGetir } = require("./mafyaEviService");
+const { elitFiyatCarpani, elitFiyatDurumu } = require("./elitFiyatService");
+const { enforceNoAltAccount, withTransaction } = require("./securityService");
 const {
   haberYayinla,
   haberleriGetir,
@@ -69,6 +88,8 @@ const {
   gurupDagit,
   guruptanCik,
   bekleyenBasvuruSayisi,
+  grupIsimDegistir,
+  grupAciklamaDegistir,
 } = require("./mafiaService");
 
 function rowToPlayer(row) {
@@ -85,28 +106,24 @@ function rowToPlayer(row) {
     last_icraat_at: row.last_icraat_at,
     reisAdi: row.reis_adi,
     username: row.username,
-    grup: row.grup,
+    grup: temizGrupAdi(row.grup),
     lakap: row.lakap || "Mafya",
     profilAciklama: row.profil_aciklama || "",
     dostlar: row.dostlar || "",
     dusmanlar: row.dusmanlar || "",
+    profilResmi: row.profil_resmi || "",
     userId: row.user_id,
   };
 }
 
 function applyIcraatRegen(player) {
   const now = Math.floor(Date.now() / 1000);
-  if (player.icraat >= ICRAAT_MAX) {
-    player.last_icraat_at = now;
-    return player;
-  }
   const elapsed = now - player.last_icraat_at;
-  const ticks = Math.floor(elapsed / ICRAAT_REGEN_SEC);
-  if (ticks <= 0) return player;
+  const hours = Math.floor(elapsed / ICRAAT_REGEN_SEC);
+  if (hours <= 0) return player;
 
-  const add = Math.min(ticks, ICRAAT_MAX - player.icraat);
-  player.icraat += add;
-  player.last_icraat_at += add * ICRAAT_REGEN_SEC;
+  player.icraat = Math.min(ICRAAT_MAX, player.icraat + hours * ICRAAT_SAATLIK_BONUS);
+  player.last_icraat_at += hours * ICRAAT_REGEN_SEC;
   return player;
 }
 
@@ -216,6 +233,8 @@ async function publicPlayerFull(db, userId, player) {
   const rusvet = rusvetMiktari(player.puan);
   const istihbaratEleman = await getIstihbarat(db, userId);
   const bankaBakiye = await getBanka(db, userId);
+  const bankaPanel = await getBankaPanel(db, userId);
+  const kiralamaEnvanter = await getKiralamaEnvanter(db, userId);
   const kara = await get(
     db,
     `SELECT kara_listede, sehir_efsane, profil_ziyaret_okundu_at FROM players WHERE user_id = ?`,
@@ -232,12 +251,27 @@ async function publicPlayerFull(db, userId, player) {
   try {
     yeniGazeteHaber = await yeniGazeteVarMi(db, userId);
   } catch (_) {}
+  const now = Math.floor(Date.now() / 1000);
+  const onlineRow = await get(
+    db,
+    `SELECT COUNT(*) AS n FROM players WHERE last_seen_at >= ?`,
+    [now - 300]
+  );
+  const fiyatCarpani = await elitFiyatCarpani(db, userId);
+  const elitDurum = await elitFiyatDurumu(db, userId);
+  let gunlukGorevBildirim = false;
+  try {
+    gunlukGorevBildirim = await gunlukGorevBildirimVarMi(db, userId);
+  } catch (_) {}
   return {
     userId,
     kasa: player.kasa,
     guc: player.guc,
     puan: player.puan,
     icraat: player.icraat,
+    lastIcraatAt: player.last_icraat_at,
+    icraatRegenSec: ICRAAT_REGEN_SEC,
+    icraatSaatlikBonus: ICRAAT_SAATLIK_BONUS,
     limanlar: {
       istanbul: sahipLimanlar.includes("istanbul"),
       izmir: sahipLimanlar.includes("izmir"),
@@ -250,6 +284,7 @@ async function publicPlayerFull(db, userId, player) {
     profilAciklama: player.profilAciklama || "",
     dostlar: player.dostlar || "",
     dusmanlar: player.dusmanlar || "",
+    profilResmi: player.profilResmi || "",
     devletIliskisi,
     smsHakki,
     saatlikKazanc: limanSaatlik + sektorSaatlik,
@@ -261,12 +296,22 @@ async function publicPlayerFull(db, userId, player) {
     dunya: sanitizeDunyaForClient({ limanlar, baba }),
     sehirEfsane: !!(kara && kara.sehir_efsane),
     istihbaratEleman,
+    istihbaratBirimMaliyet: birimMaliyetHesapla(istihbaratEleman),
     bankaBakiye,
+    bankaHakki: bankaPanel.bankaHakki,
+    faizBekleyen: bankaPanel.faizBekleyen,
+    kiralamaEnvanter,
     karaListede: !!(kara && kara.kara_listede),
     sehirBanner,
     yeniProfilZiyaret: ziyaretRow?.n || 0,
     offlineWelcome: player.offlineWelcome || null,
     yeniGazeteHaber,
+    onlineSayisi: onlineRow?.n || 1,
+    fiyatCarpani,
+    elitFiyatX2: elitDurum.elitFiyatX2,
+    sehreHukmeden: elitDurum.sehreHukmeden,
+    enYuksekSayginlik: elitDurum.enYuksekSayginlik,
+    gunlukGorevBildirim,
   };
 }
 
@@ -284,6 +329,7 @@ function publicPlayer(player) {
 }
 
 async function performAction(db, userId, action, key, adet = 1, extra = {}) {
+  const securityMeta = extra._securityMeta || {};
   const aliases = {
     port: "liman_cok",
     attack: "dusmana_cok",
@@ -297,24 +343,24 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
   let player = await loadPlayer(db, userId);
 
   if (action === "hire") {
-    const item = HIRE[key];
-    if (!item) return { ok: false, error: "Geçersiz satın alma." };
-    const miktar = Math.min(999, Math.max(1, parseInt(adet, 10) || 1));
-    const toplamMaliyet = item.maliyet * miktar;
-    const toplamGuc = item.guc * miktar;
-    if (player.kasa < toplamMaliyet) {
-      return {
-        ok: false,
-        error: `Kasanda yeterli nakit yok! ${miktar} adet için ${toplamMaliyet.toLocaleString("tr-TR")} TL gerekir.`,
-      };
-    }
-    player.kasa -= toplamMaliyet;
-    player.guc += toplamGuc;
-    await savePlayer(db, userId, player);
+    const sonuc = await kiralamaSatinAl(db, userId, player, key, adet);
+    if (!sonuc.ok) return sonuc;
+    const gorevSonuc = await gorevOlayIsle(db, userId, "esya_al", {
+      hireKey: key,
+      adet: sonuc.adet || adet,
+    });
+    player = await loadPlayer(db, userId);
     return {
       ok: true,
-      player: await publicPlayerFull(db, userId, player),
-      effect: { type: "hire", unvan: item.unvan, guc: toplamGuc, adet: miktar, toplamMaliyet },
+      player: await aksiyonOyuncuYaniti(db, userId, player, gorevSonuc),
+      effect: {
+        type: "hire",
+        unvan: sonuc.unvan,
+        guc: sonuc.guc,
+        adet: sonuc.adet,
+        toplamMaliyet: sonuc.toplamMaliyet,
+        yeniSahip: sonuc.yeniSahip,
+      },
     };
   }
 
@@ -335,25 +381,36 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
     player.icraat -= job.icraat;
     player.kasa += job.netKazanc;
     player.puan += job.puan;
-    // Decrease state relations when performing actions
-    await devletDusur(db, userId, Math.min(5, job.icraat + 2));
-    await savePlayer(db, userId, player);
+    const devletDusus = rastgeleAvukatDususu(5, 10);
+    const mevcutDevlet = await getDevletIliskisi(db, userId);
+    const yeniDevletIliski = clampAvukatIliskisi(mevcutDevlet - devletDusus);
+    await run(
+      db,
+      `UPDATE players SET kasa = ?, puan = ?, icraat = ?, devlet_iliskisi = ?, last_icraat_at = ?
+       WHERE user_id = ?`,
+      [player.kasa, player.puan, player.icraat, yeniDevletIliski, player.last_icraat_at, userId]
+    );
     await logStatHareket(db, userId, "sayginlik", job.puan);
+    const gorevSonuc = await gorevOlayIsle(db, userId, "is_yap", { jobKey: key });
+    const full = await aksiyonOyuncuYaniti(db, userId, player, gorevSonuc);
+    full.devletIliskisi = yeniDevletIliski;
     return {
       ok: true,
-      player: await publicPlayerFull(db, userId, player),
+      player: full,
       effect: {
         type: "job",
         isAdi: job.isAdi,
         netKazanc: job.netKazanc,
         icraat: job.icraat,
         gorselKey: job.gorselKey,
+        devletDusus,
+        yeniDevletIliski,
       },
     };
   }
 
   if (action === "liman_cok") {
-    const sonuc = await limanCok(db, userId, player, key);
+    const sonuc = await limanCok(db, userId, player, key, securityMeta);
     if (!sonuc.ok) return sonuc;
     player = await loadPlayer(db, userId);
     return {
@@ -364,7 +421,7 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
   }
 
   if (action === "baba_cok") {
-    const sonuc = await babaCok(db, userId, player, key);
+    const sonuc = await babaCok(db, userId, player, key, securityMeta);
     if (!sonuc.ok) return sonuc;
     player = await loadPlayer(db, userId);
     return {
@@ -397,12 +454,18 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
   }
 
   if (action === "dusmana_cok") {
-    const sonuc = await dusmanaCok(db, userId, player, extra.hedef || key);
+    const sonuc = await dusmanaCok(db, userId, player, extra.hedef || key, securityMeta);
     if (!sonuc.ok) return sonuc;
+    let gorevSonuc = null;
+    if (sonuc.kazandi) {
+      gorevSonuc = await gorevOlayIsle(db, userId, "saldiri_kazan", {
+        hedefUserId: sonuc.hedefUserId,
+      });
+    }
     player = await loadPlayer(db, userId);
     return {
       ok: true,
-      player: await publicPlayerFull(db, userId, player),
+      player: await aksiyonOyuncuYaniti(db, userId, player, gorevSonuc),
       effect: {
         type: "dusmana_cok",
         mesaj: sonuc.mesaj,
@@ -414,13 +477,14 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
 
   if (action === "mekan_al") {
     const [sektor, mekanKey] = String(key || "").split(":");
-    const adet = parseInt(extra.adet, 10) || 1;
-    const sonuc = await mekanAl(db, userId, player, sektor, mekanKey, adet);
+    const miktar = Math.min(999, Math.max(1, parseInt(adet ?? extra.adet, 10) || 1));
+    const sonuc = await mekanAl(db, userId, player, sektor, mekanKey, miktar);
     if (!sonuc.ok) return sonuc;
+    const gorevSonuc = await gorevOlayIsle(db, userId, "sektor_al", { adet: miktar });
     player = await loadPlayer(db, userId);
     return {
       ok: true,
-      player: await publicPlayerFull(db, userId, player),
+      player: await aksiyonOyuncuYaniti(db, userId, player, gorevSonuc),
       effect: { type: "mekan_al", mesaj: sonuc.mesaj },
     };
   }
@@ -432,7 +496,7 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
     return {
       ok: true,
       player: await publicPlayerFull(db, userId, player),
-      effect: { type: "rusvet", mesaj: `Devlet ilişkin ${sonuc.devletIliskisi} oldu.`, odenen: sonuc.odenen },
+      effect: { type: "rusvet", mesaj: sonuc.mesaj || `Devlet ilişkin ${sonuc.devletIliskisi} oldu.`, odenen: sonuc.odenen },
     };
   }
 
@@ -468,6 +532,22 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
     };
   }
 
+  if (action === "mafya_grup_mesaj") {
+    const sonuc = await mafyaGrupMesajGonder(db, userId, extra.metin);
+    if (!sonuc.ok) return sonuc;
+    player = await loadPlayer(db, userId);
+    try {
+      return {
+        ok: true,
+        player: await publicPlayerFull(db, userId, player),
+        effect: { type: "mafya_grup_mesaj" },
+      };
+    } catch (err) {
+      console.error("mafya_grup_mesaj player sync:", err);
+      return { ok: true, effect: { type: "mafya_grup_mesaj" } };
+    }
+  }
+
   if (action === "mafya_sohbet") {
     const sonuc = await mafyaSohbetGonder(db, userId, extra.metin);
     if (!sonuc.ok) return sonuc;
@@ -483,7 +563,7 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
     const sonuc = await grupOlustur(db, userId, extra.isim, extra.aciklama);
     if (!sonuc.ok) return sonuc;
     player = await loadPlayer(db, userId);
-    player.grup = sonuc.isim + " Mafya Grubu";
+    player.grup = sonuc.isim;
     return { ok: true, player: await publicPlayerFull(db, userId, player) };
   }
 
@@ -546,17 +626,51 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
     return {
       ok: true,
       player: await publicPlayerFull(db, userId, player),
-      effect: { type: "istihbarat_al", elemanSayisi: sonuc.elemanSayisi, odenen: sonuc.odenen },
+      effect: {
+        type: "istihbarat_al",
+        elemanSayisi: sonuc.elemanSayisi,
+        odenen: sonuc.odenen,
+        sonrakiBirimMaliyet: sonuc.sonrakiBirimMaliyet,
+      },
     };
   }
 
   if (action === "istihbarat_spy") {
     const sonuc = await oyuncuGucunuOgren(db, userId, extra.hedef);
     if (!sonuc.ok) return sonuc;
+    let gorevSonuc = null;
+    if (sonuc.basari && sonuc.hedefUserId) {
+      gorevSonuc = await gorevOlayIsle(db, userId, "istihbarat_basari", {
+        hedefUserId: sonuc.hedefUserId,
+      });
+    }
+    player = await loadPlayer(db, userId);
+    return {
+      ok: true,
+      player: await aksiyonOyuncuYaniti(db, userId, player, gorevSonuc),
+      effect: { type: "istihbarat_spy", ...sonuc },
+    };
+  }
+
+  if (action === "gorev_kabul") {
+    const sonuc = await gorevKabul(db, userId, key);
+    if (!sonuc.ok) return sonuc;
+    player = await loadPlayer(db, userId);
     return {
       ok: true,
       player: await publicPlayerFull(db, userId, player),
-      effect: { type: "istihbarat_spy", ...sonuc },
+      effect: { type: "gorev_kabul", gorev: sonuc.gorev, kabulSayisi: sonuc.kabulSayisi },
+    };
+  }
+
+  if (action === "gorev_odul_al") {
+    const sonuc = await gorevOdulAl(db, userId, key, player);
+    if (!sonuc.ok) return sonuc;
+    player = await loadPlayer(db, userId);
+    return {
+      ok: true,
+      player: await publicPlayerFull(db, userId, player),
+      effect: { type: "gorev_odul_al", odulMetni: sonuc.odulMetni, gorev: sonuc.gorev },
     };
   }
 
@@ -588,7 +702,7 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
     const hedefAdi = String(extra.hedef || "").trim();
     const sektor = String(extra.sektor || "").trim();
     const mekanKey = String(extra.mekanKey || "").trim();
-    const adet = parseInt(extra.adet, 10) || 1;
+    const miktar = Math.min(999, Math.max(1, parseInt(adet ?? extra.adet, 10) || 1));
     if (!hedefAdi) return { ok: false, error: "Dost reis adı gerekli." };
     if (!sektor || !mekanKey) return { ok: false, error: "Devredilecek mekan seç." };
 
@@ -600,7 +714,10 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
     if (!hedef) return { ok: false, error: "Bu isimde oyuncu bulunamadı." };
     if (hedef.id === userId) return { ok: false, error: "Kendine mekan devredemezsin." };
 
-    const sonuc = await mekanDevret(db, userId, hedef.id, sektor, mekanKey, adet);
+    const altCheck = await enforceNoAltAccount(db, userId, hedef.id, "mekan_devri", securityMeta);
+    if (!altCheck.ok) return altCheck;
+
+    const sonuc = await mekanDevret(db, userId, hedef.id, sektor, mekanKey, miktar);
     if (!sonuc.ok) return sonuc;
     player = await loadPlayer(db, userId);
     return {
@@ -625,9 +742,31 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
     if (!hedef) return { ok: false, error: "Bu isimde oyuncu bulunamadı." };
     if (hedef.id === userId) return { ok: false, error: "Kendine para gönderemezsin." };
 
-    player.kasa -= gonderMiktari;
-    await run(db, `UPDATE players SET kasa = kasa + ? WHERE user_id = ?`, [gonderMiktari, hedef.id]);
-    await run(db, `UPDATE players SET kasa = ? WHERE user_id = ?`, [player.kasa, userId]);
+    const altCheck = await enforceNoAltAccount(db, userId, hedef.id, "para_gonder", securityMeta);
+    if (!altCheck.ok) return altCheck;
+
+    try {
+      await withTransaction(db, async () => {
+        const kaynak = await get(db, `SELECT kasa FROM players WHERE user_id = ?`, [userId]);
+        if (!kaynak || kaynak.kasa < gonderMiktari) {
+          throw new Error("Yeterli paran yok.");
+        }
+        const guncelle = await run(
+          db,
+          `UPDATE players SET kasa = kasa - ? WHERE user_id = ? AND kasa >= ?`,
+          [gonderMiktari, userId, gonderMiktari]
+        );
+        if (!guncelle.changes) throw new Error("Yeterli paran yok.");
+        await run(db, `UPDATE players SET kasa = kasa + ? WHERE user_id = ?`, [
+          gonderMiktari,
+          hedef.id,
+        ]);
+      });
+    } catch (err) {
+      return { ok: false, error: err.message || "Para transferi başarısız." };
+    }
+
+    player = await loadPlayer(db, userId);
 
     return {
       ok: true,
@@ -675,7 +814,13 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
     }
 
     const sonuc = await savasIlanEt(db, grup.id, hedefGrup.id);
-    return sonuc;
+    if (!sonuc.ok) return sonuc;
+    player = await loadPlayer(db, userId);
+    return {
+      ok: true,
+      player: await publicPlayerFull(db, userId, player),
+      effect: { type: "mafya_savas", mesaj: sonuc.mesaj },
+    };
   }
 
   if (action === "mafya_savas_katil") {
@@ -703,9 +848,13 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
     const sonuc = await isGerceklestir(db, grup.id, isId);
     if (!sonuc.ok) return sonuc;
     player = await loadPlayer(db, userId);
+    const gorevSonuc = {
+      yeniTamamlanan:
+        (sonuc.gorevTamamlananByUser && sonuc.gorevTamamlananByUser[userId]) || 0,
+    };
     return {
       ok: true,
-      player: await publicPlayerFull(db, userId, player),
+      player: await aksiyonOyuncuYaniti(db, userId, player, gorevSonuc),
       effect: { type: "mafya_is", mesaj: sonuc.mesaj },
     };
   }
@@ -737,6 +886,30 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
     };
   }
 
+  if (action === "mafya_grup_isim_degistir") {
+    const yeniIsim = String(extra.isim || extra.yeniIsim || "").trim();
+    const sonuc = await grupIsimDegistir(db, userId, yeniIsim);
+    if (!sonuc.ok) return sonuc;
+    player = await loadPlayer(db, userId);
+    return {
+      ok: true,
+      player: await publicPlayerFull(db, userId, player),
+      effect: { type: "mafya_grup", mesaj: "Mafya Grubu adı güncellendi: " + sonuc.isim },
+    };
+  }
+
+  if (action === "mafya_grup_aciklama_degistir") {
+    const yeniAciklama = String(extra.aciklama || extra.yeniAciklama || "").trim();
+    const sonuc = await grupAciklamaDegistir(db, userId, yeniAciklama);
+    if (!sonuc.ok) return sonuc;
+    player = await loadPlayer(db, userId);
+    return {
+      ok: true,
+      player: await publicPlayerFull(db, userId, player),
+      effect: { type: "mafya_grup", mesaj: "Mafya Grubu açıklaması güncellendi." },
+    };
+  }
+
   if (action === "medya_haber") {
     const haber = extra.haber;
     if (!haber || haber.length < 5) {
@@ -754,6 +927,18 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
       ok: true,
       player: await publicPlayerFull(db, userId, player),
       effect: { type: "medya_haber", mesaj: sonuc.mesaj },
+    };
+  }
+
+  if (action === "guvenli_yer_gelistir") {
+    const sonuc = await guvenliYerGelistir(db, userId, player);
+    if (!sonuc.ok) return sonuc;
+    player = await loadPlayer(db, userId);
+    const panel = await guvenliYerPanelGetir(db, userId, player);
+    return {
+      ok: true,
+      player: await publicPlayerFull(db, userId, player),
+      effect: { type: "guvenli_yer_gelistir", mesaj: sonuc.mesaj, panel },
     };
   }
 

@@ -1,8 +1,11 @@
 const express = require("express");
+const rateLimit = require("express-rate-limit");
 const { registerUser, loginUser, changePassword } = require("../services/authService");
-const { requireAuth } = require("../middleware/auth");
+const { createRequireAuth } = require("../middleware/auth");
 const { loadPlayer, publicPlayerFull } = require("../game/playerService");
 const { COOKIE_NAME, TOKEN_MAX_AGE_MS } = require("../config");
+const { attachClientMeta, ipRateLimit } = require("../middleware/security");
+const { extractClientMeta } = require("../game/securityService");
 
 function setAuthCookie(res, token) {
   res.cookie(COOKIE_NAME, token, {
@@ -15,10 +18,30 @@ function setAuthCookie(res, token) {
 
 function createAuthRouter(db) {
   const router = express.Router();
+  const requireAuth = createRequireAuth(db);
 
-  router.post("/register", async (req, res) => {
+  router.use(attachClientMeta);
+
+  const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 30,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { ok: false, error: "Çok fazla giriş denemesi. 15 dakika sonra tekrar dene." },
+  });
+
+  const registerLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000,
+    max: 5,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { ok: false, error: "Bu IP adresinden çok fazla kayıt denemesi yapıldı." },
+  });
+
+  router.post("/register", registerLimiter, async (req, res) => {
     try {
-      const result = await registerUser(db, req.body);
+      const meta = extractClientMeta(req);
+      const result = await registerUser(db, req.body, meta);
       if (!result.ok) return res.status(400).json(result);
       setAuthCookie(res, result.token);
       res.json({
@@ -36,9 +59,10 @@ function createAuthRouter(db) {
     }
   });
 
-  router.post("/login", async (req, res) => {
+  router.post("/login", authLimiter, async (req, res) => {
     try {
-      const result = await loginUser(db, req.body);
+      const meta = extractClientMeta(req);
+      const result = await loginUser(db, req.body, meta);
       if (!result.ok) return res.status(400).json(result);
       setAuthCookie(res, result.token);
       res.json({
@@ -81,7 +105,7 @@ function createAuthRouter(db) {
     }
   });
 
-  router.post("/password", requireAuth, async (req, res) => {
+  router.post("/password", requireAuth, ipRateLimit({ windowMs: 60_000, max: 5 }), async (req, res) => {
     try {
       const result = await changePassword(db, req.user.id, req.body || {});
       if (!result.ok) return res.status(400).json(result);

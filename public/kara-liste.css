@@ -1,0 +1,319 @@
+/* Kara Liste — şehre hükmeden */
+#masterLayout #anaIcerik .kl-sayfa {
+  display: flex;
+  justify-content: center;
+  padding: 10px 14px 32px;
+}
+
+#masterLayout #anaIcerik .kl-cerceve {
+  position: relative;
+  width: min(900px, 100%);
+  border: 2px solid rgba(184, 148, 42, 0.52);
+  border-radius: 6px;
+  background: linear-gradient(175deg, rgba(22, 16, 18, 0.98) 0%, rgba(6, 4, 6, 0.99) 100%);
+  box-shadow:
+    0 22px 60px rgba(0, 0, 0, 0.72),
+    inset 0 0 90px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 220, 140, 0.07);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+#masterLayout #anaIcerik .kl-cerceve::before {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  border: 1px solid rgba(184, 148, 42, 0.2);
+  border-radius: 3px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+#masterLayout #anaIcerik .kl-banner {
+  position: relative;
+  height: clamp(118px, 22vw, 158px);
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 80% 120% at 50% 100%, rgba(120, 20, 20, 0.35) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 80% at 20% 20%, rgba(184, 148, 42, 0.12) 0%, transparent 50%),
+    linear-gradient(180deg, rgba(28, 18, 22, 0.95) 0%, rgba(8, 5, 8, 0.98) 100%);
+}
+
+#masterLayout #anaIcerik .kl-banner::after {
+  content: "☠";
+  position: absolute;
+  right: 8%;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: clamp(48px, 10vw, 72px);
+  opacity: 0.07;
+  line-height: 1;
+  pointer-events: none;
+}
+
+#masterLayout #anaIcerik .kl-banner-ortu {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.05) 0%,
+    rgba(0, 0, 0, 0.45) 55%,
+    rgba(6, 4, 6, 0.95) 100%
+  );
+}
+
+#masterLayout #anaIcerik .kl-baslik-wrap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  padding: 14px 22px 16px;
+  text-align: center;
+}
+
+#masterLayout #anaIcerik .kl-baslik-ikon {
+  display: block;
+  font-size: 26px;
+  line-height: 1;
+  margin-bottom: 4px;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.6));
+}
+
+#masterLayout #anaIcerik .kl-baslik-wrap h2 {
+  margin: 0 0 5px;
+  font-family: "Cinzel", Georgia, serif;
+  font-size: clamp(18px, 3vw, 26px);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: #f0e6d0;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.85);
+}
+
+#masterLayout #anaIcerik .kl-motto {
+  margin: 0;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(13px, 2vw, 16px);
+  font-style: italic;
+  line-height: 1.45;
+  color: rgba(210, 195, 165, 0.88);
+}
+
+#masterLayout #anaIcerik .kl-govde {
+  position: relative;
+  z-index: 1;
+  padding: 18px 20px 24px;
+}
+
+#masterLayout #anaIcerik .kl-hukumdar-kutu {
+  margin: 0 0 14px;
+  padding: 14px 18px;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.32);
+  border: 1px solid rgba(184, 148, 42, 0.28);
+  border-radius: 4px;
+  box-shadow: inset 0 1px 0 rgba(255, 220, 140, 0.05);
+}
+
+#masterLayout #anaIcerik .kl-hukumdar-metin {
+  margin: 0;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(15px, 2.2vw, 19px);
+  font-style: italic;
+  line-height: 1.5;
+  color: rgba(235, 225, 205, 0.92);
+}
+
+#masterLayout #anaIcerik .kl-hukumdar-isim {
+  font-style: normal;
+  font-weight: 700;
+  color: #e8c86a;
+  letter-spacing: 0.04em;
+}
+
+#masterLayout #anaIcerik .kl-aciklama {
+  margin: 0 0 18px;
+  padding: 10px 14px;
+  text-align: center;
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 12px;
+  line-height: 1.55;
+  color: rgba(170, 160, 145, 0.88);
+  background: rgba(80, 30, 30, 0.15);
+  border: 1px solid rgba(120, 40, 40, 0.25);
+  border-radius: 4px;
+}
+
+#masterLayout #anaIcerik .kl-tablo-wrap {
+  border: 1px solid rgba(184, 148, 42, 0.32);
+  border-radius: 4px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.28);
+}
+
+#masterLayout #anaIcerik .kl-tablo-baslik {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  padding: 11px 16px;
+  background: linear-gradient(180deg, rgba(40, 28, 20, 0.95), rgba(18, 12, 10, 0.98));
+  border-bottom: 1px solid rgba(184, 148, 42, 0.35);
+  font-family: "Cinzel", Georgia, serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #c5a059;
+  text-align: center;
+}
+
+#masterLayout #anaIcerik .kl-tablo-govde {
+  min-height: 52px;
+}
+
+#masterLayout #anaIcerik .kl-satir {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  align-items: center;
+  padding: 13px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  transition: background 0.15s ease;
+}
+
+#masterLayout #anaIcerik .kl-satir:last-child {
+  border-bottom: none;
+}
+
+#masterLayout #anaIcerik .kl-satir:hover {
+  background: rgba(184, 148, 42, 0.06);
+}
+
+#masterLayout #anaIcerik .kl-hucre {
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ece6dc;
+  letter-spacing: 0.04em;
+  text-align: center;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#masterLayout #anaIcerik .kl-hucre--oyuncu {
+  text-align: center;
+}
+
+#masterLayout #anaIcerik .kl-hucre--sayginlik {
+  text-align: center;
+  font-family: "Cinzel", Georgia, serif;
+  font-size: 13px;
+  color: #e8c86a;
+  font-variant-numeric: tabular-nums;
+}
+
+#masterLayout #anaIcerik .kl-satir .oyuncu-link-btn,
+#masterLayout #anaIcerik .kl-hukumdar-isim .oyuncu-link-btn {
+  display: inline;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.15s ease, text-shadow 0.15s ease;
+}
+
+#masterLayout #anaIcerik .kl-hukumdar-isim .oyuncu-link-btn {
+  color: #e8c86a;
+}
+
+#masterLayout #anaIcerik .kl-hucre--grup .oyuncu-link-btn {
+  display: inline-block;
+  max-width: 100%;
+  margin: 0;
+  padding: 3px 10px;
+  border: 1px solid rgba(184, 148, 42, 0.45);
+  border-radius: 3px;
+  background: rgba(184, 148, 42, 0.08);
+  font: inherit;
+  color: #d4af37;
+  cursor: pointer;
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+#masterLayout #anaIcerik .kl-hucre--grup .lt-group-txt {
+  display: inline;
+  font: inherit;
+  color: rgba(200, 190, 170, 0.85);
+}
+
+#masterLayout #anaIcerik .kl-satir .oyuncu-link-btn:hover,
+#masterLayout #anaIcerik .kl-hukumdar-isim .oyuncu-link-btn:hover {
+  color: #fff;
+  text-shadow: 0 0 10px rgba(232, 200, 106, 0.35);
+}
+
+#masterLayout #anaIcerik .kl-hucre--grup .oyuncu-link-btn:hover {
+  color: #f0d878;
+  border-color: rgba(232, 200, 106, 0.65);
+  background: rgba(184, 148, 42, 0.16);
+}
+
+#masterLayout #anaIcerik .kl-yukleniyor,
+#masterLayout #anaIcerik .kl-bos,
+#masterLayout #anaIcerik .kl-hata {
+  margin: 0;
+  padding: 22px 16px;
+  text-align: center;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 15px;
+  font-style: italic;
+  color: rgba(180, 170, 155, 0.8);
+}
+
+#masterLayout #anaIcerik .kl-hata {
+  color: #e88;
+}
+
+@media (max-width: 768px) {
+  #masterLayout #anaIcerik .kl-govde {
+    padding: 14px 12px 18px;
+  }
+
+  #masterLayout #anaIcerik .kl-tablo-baslik,
+  #masterLayout #anaIcerik .kl-satir {
+    grid-template-columns: 1.1fr 1fr 0.9fr;
+    padding-left: 10px;
+    padding-right: 10px;
+    font-size: 10px;
+  }
+
+  #masterLayout #anaIcerik .kl-hucre {
+    font-size: 12px;
+  }
+
+  #masterLayout #anaIcerik .kl-hucre--sayginlik {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  #masterLayout #anaIcerik .kl-tablo-baslik span:nth-child(2) {
+    font-size: 9px;
+    letter-spacing: 0.06em;
+  }
+
+  #masterLayout #anaIcerik .kl-hucre--grup .oyuncu-link-btn {
+    padding: 2px 6px;
+    font-size: 11px;
+  }
+}

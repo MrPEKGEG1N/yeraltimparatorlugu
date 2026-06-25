@@ -1,5 +1,7 @@
 const path = require("path");
 const sqlite3 = require("sqlite3").verbose();
+const { temizGrupAdi } = require("../game/grupAdi");
+const { rastgeleProfilResmi, normalizeProfilResmi } = require("../game/profilPortreler");
 
 const DB_PATH = path.join(__dirname, "oyun.db");
 
@@ -102,6 +104,7 @@ async function initDatabase() {
     ["profil_aciklama", "TEXT NOT NULL DEFAULT ''"],
     ["dostlar", "TEXT NOT NULL DEFAULT ''"],
     ["dusmanlar", "TEXT NOT NULL DEFAULT ''"],
+    ["profil_resmi", "TEXT NOT NULL DEFAULT ''"],
   ];
   for (const [col, def] of playerCols) {
     try {
@@ -240,9 +243,69 @@ async function initDatabase() {
     `CREATE TABLE IF NOT EXISTS banka_hesaplari (
       user_id INTEGER PRIMARY KEY,
       yatirilan_miktar INTEGER NOT NULL DEFAULT 0,
+      banka_hakki INTEGER NOT NULL DEFAULT 20,
+      last_banka_hak_at INTEGER NOT NULL DEFAULT (strftime('%s','now')),
+      faiz_bekleyen INTEGER NOT NULL DEFAULT 0,
+      faiz_gun TEXT,
+      faiz_islendi_gun TEXT,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     )`
   );
+
+  const bankaCols = [
+    ["banka_hakki", "INTEGER NOT NULL DEFAULT 20"],
+    ["last_banka_hak_at", "INTEGER DEFAULT 0"],
+    ["faiz_bekleyen", "INTEGER NOT NULL DEFAULT 0"],
+    ["faiz_gun", "TEXT"],
+    ["faiz_islendi_gun", "TEXT"],
+  ];
+  for (const [col, def] of bankaCols) {
+    try {
+      await run(db, `ALTER TABLE banka_hesaplari ADD COLUMN ${col} ${def}`);
+    } catch (_) {}
+  }
+  try {
+    await run(
+      db,
+      `UPDATE banka_hesaplari SET last_banka_hak_at = strftime('%s','now')
+       WHERE last_banka_hak_at IS NULL OR last_banka_hak_at = 0`
+    );
+  } catch (_) {}
+
+  await run(
+    db,
+    `CREATE TABLE IF NOT EXISTS oyuncu_kiralama (
+      user_id INTEGER NOT NULL,
+      item_key TEXT NOT NULL,
+      adet INTEGER NOT NULL DEFAULT 0,
+      PRIMARY KEY (user_id, item_key),
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )`
+  );
+
+  await run(
+    db,
+    `CREATE TABLE IF NOT EXISTS mafya_grup_mesajlari (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      grup_id INTEGER NOT NULL,
+      from_user_id INTEGER NOT NULL,
+      parent_id INTEGER,
+      icerik TEXT NOT NULL,
+      created_at INTEGER NOT NULL DEFAULT (strftime('%s','now')),
+      FOREIGN KEY (grup_id) REFERENCES mafya_gruplari(id) ON DELETE CASCADE,
+      FOREIGN KEY (from_user_id) REFERENCES users(id) ON DELETE CASCADE
+    )`
+  );
+
+  const mesajCols = [
+    ["grup_id", "INTEGER"],
+    ["grup_mesaj_id", "INTEGER"],
+  ];
+  for (const [col, def] of mesajCols) {
+    try {
+      await run(db, `ALTER TABLE oyuncu_mesajlari ADD COLUMN ${col} ${def}`);
+    } catch (_) {}
+  }
 
   // İstihbarat sistemi
   await run(
@@ -368,7 +431,132 @@ async function initDatabase() {
     await run(db, `ALTER TABLE players ADD COLUMN gazete_okundu_id INTEGER NOT NULL DEFAULT 0`);
   } catch (_) {}
 
+  const grupRows = await all(db, `SELECT id, grup FROM users`);
+  for (const row of grupRows) {
+    const cleaned = temizGrupAdi(row.grup);
+    if (cleaned && cleaned !== row.grup) {
+      await run(db, `UPDATE users SET grup = ? WHERE id = ?`, [cleaned, row.id]);
+    }
+  }
+
+  const eskiPortreler = await all(
+    db,
+    `SELECT user_id, profil_resmi FROM players WHERE profil_resmi LIKE 'portre-%'`
+  );
+  for (const row of eskiPortreler) {
+    const yeni = normalizeProfilResmi(row.profil_resmi);
+    if (yeni && yeni !== row.profil_resmi) {
+      await run(db, `UPDATE players SET profil_resmi = ? WHERE user_id = ?`, [
+        yeni,
+        row.user_id,
+      ]);
+    }
+  }
+
+  const bosPortreler = await all(
+    db,
+    `SELECT user_id FROM players WHERE profil_resmi IS NULL OR profil_resmi = ''`
+  );
+  for (const row of bosPortreler) {
+    await run(db, `UPDATE players SET profil_resmi = ? WHERE user_id = ?`, [
+      rastgeleProfilResmi(),
+      row.user_id,
+    ]);
+  }
+
+  try {
+    const cokluHukum = await all(
+      db,
+      `SELECT user_id
+       FROM sehir_hukumranlik
+       WHERE bitis IS NULL
+       GROUP BY user_id
+       HAVING COUNT(*) > 1`
+    );
+    for (const row of cokluHukum) {
+      const aktifler = await all(
+        db,
+        `SELECT id FROM sehir_hukumranlik
+         WHERE user_id = ? AND bitis IS NULL
+         ORDER BY baslangic ASC, id ASC`,
+        [row.user_id]
+      );
+      for (let i = 1; i < aktifler.length; i++) {
+        await run(db, `DELETE FROM sehir_hukumranlik WHERE id = ?`, [aktifler[i].id]);
+      }
+    }
+  } catch (_) {
+    /* tablo henüz yok */
+  }
+
+  const userSecurityCols = [
+    ["son_ip", "TEXT NOT NULL DEFAULT ''"],
+    ["user_agent", "TEXT NOT NULL DEFAULT ''"],
+    ["visitor_id", "TEXT NOT NULL DEFAULT ''"],
+    ["last_login_at", "INTEGER NOT NULL DEFAULT 0"],
+    ["failed_login_count", "INTEGER NOT NULL DEFAULT 0"],
+    ["banned", "INTEGER NOT NULL DEFAULT 0"],
+    ["is_admin", "INTEGER NOT NULL DEFAULT 0"],
+    ["token_version", "INTEGER NOT NULL DEFAULT 0"],
+  ];
+  for (const [col, def] of userSecurityCols) {
+    try {
+      await run(db, `ALTER TABLE users ADD COLUMN ${col} ${def}`);
+    } catch (_) {
+      /* sütun zaten var */
+    }
+  }
+
+  await run(
+    db,
+    `CREATE TABLE IF NOT EXISTS user_fingerprints (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      visitor_id TEXT NOT NULL DEFAULT '',
+      son_ip TEXT NOT NULL DEFAULT '',
+      user_agent TEXT NOT NULL DEFAULT '',
+      first_seen INTEGER NOT NULL,
+      last_seen INTEGER NOT NULL,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )`
+  );
+  await run(db, `CREATE INDEX IF NOT EXISTS idx_fp_visitor ON user_fingerprints(visitor_id)`);
+  await run(db, `CREATE INDEX IF NOT EXISTS idx_fp_ip ON user_fingerprints(son_ip)`);
+  await run(db, `CREATE UNIQUE INDEX IF NOT EXISTS idx_fp_user_visitor_ip ON user_fingerprints(user_id, visitor_id, son_ip)`);
+
+  await run(
+    db,
+    `CREATE TABLE IF NOT EXISTS security_events (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER,
+      event_type TEXT NOT NULL,
+      detail TEXT,
+      ip TEXT,
+      created_at INTEGER NOT NULL DEFAULT (strftime('%s','now'))
+    )`
+  );
+  await run(db, `CREATE INDEX IF NOT EXISTS idx_sec_events_user ON security_events(user_id)`);
+
+  await bootstrapAdminUser(db);
+
+  const { ensureGunlukGorevTables } = require("../game/gunlukGorevService");
+  await ensureGunlukGorevTables(db);
+
+  const { ensureUserBaseTable } = require("../game/guvenliYerService");
+  await ensureUserBaseTable(db);
+
   return db;
 }
 
-module.exports = { openDb, run, get, all, initDatabase, DB_PATH };
+async function bootstrapAdminUser(db) {
+  const adminUser = String(process.env.ADMIN_USERNAME || "").trim().toLowerCase();
+  if (!adminUser) return;
+  try {
+    await run(db, `UPDATE users SET is_admin = 1 WHERE username = ?`, [adminUser]);
+    console.log(`Yönetici atandı: ${adminUser} (ADMIN_USERNAME)`);
+  } catch (err) {
+    console.warn("Yönetici ataması yapılamadı:", err.message);
+  }
+}
+
+module.exports = { openDb, run, get, all, initDatabase, DB_PATH, bootstrapAdminUser };
