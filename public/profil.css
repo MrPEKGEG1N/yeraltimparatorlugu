@@ -240,6 +240,14 @@
   gap: 14px;
 }
 
+#masterLayout .profil-alan-not {
+  display: block;
+  margin-top: 4px;
+  color: #8a7a62;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
 #masterLayout .profil-aciklama-metin {
   margin: 0 0 14px;
   padding: 10px 12px;

@@ -9,7 +9,7 @@ const {
   mafyaSohbetListe,
 } = require("../game/playerService");
 const { tumMesajlariOkundu } = require("../game/messagingService");
-const { getLeaderboard, getGrupLeaderboard, getOyuncuSira, getGrupSira } = require("../game/leaderboardService");
+const { getLeaderboard, getGrupLeaderboard, getOyuncuSira, getGrupSira, kayitliOyuncuAdiDogrula } = require("../game/leaderboardService");
 const { mafyaPanel, grupAra, kullaniciGrubu } = require("../game/mafiaService");
 const { savaslariListele } = require("../game/mafyaSavasService");
 const { haberleriGetir } = require("../game/medyaService");
@@ -219,8 +219,16 @@ function createGameRouter(db) {
         ]);
       } else {
         const aciklama = sanitizeProfilAciklama(body.aciklama);
-        const dostlar = String(body.dostlar || "").slice(0, 180);
-        const dusmanlar = String(body.dusmanlar || "").slice(0, 180);
+        const dostKontrol = await kayitliOyuncuAdiDogrula(db, body.dostlar);
+        if (!dostKontrol.ok) {
+          return res.status(400).json({ ok: false, error: dostKontrol.error });
+        }
+        const dusmanKontrol = await kayitliOyuncuAdiDogrula(db, body.dusmanlar);
+        if (!dusmanKontrol.ok) {
+          return res.status(400).json({ ok: false, error: dusmanKontrol.error });
+        }
+        const dostlar = dostKontrol.value;
+        const dusmanlar = dusmanKontrol.value;
         if (portre) {
           await run(
             db,

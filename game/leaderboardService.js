@@ -5,7 +5,7 @@ const { kullaniciGrubu } = require("./mafiaService");
 async function getLeaderboard(db, currentUserId) {
   const oyuncular = await all(
     db,
-    `SELECT u.reis_adi AS isim, u.grup, p.puan, u.id AS user_id, p.sehre_hukmet_sayisi,
+    `SELECT u.reis_adi AS isim, u.username, u.grup, p.puan, u.id AS user_id, p.sehre_hukmet_sayisi,
             m.grup_id, mg.isim AS gercek_grup_adi
      FROM players p
      JOIN users u ON u.id = p.user_id
@@ -18,6 +18,7 @@ async function getLeaderboard(db, currentUserId) {
   return oyuncular.slice(0, 25).map((o) => ({
     userId: o.user_id,
     isim: o.isim,
+    username: o.username,
     grup: gercekGrupAdi(o.gercek_grup_adi || o.grup, o.grup_id),
     grupId: o.grup_id || null,
     puan: o.puan,
@@ -80,4 +81,26 @@ async function getGrupLeaderboard(db) {
   }));
 }
 
-module.exports = { getLeaderboard, getGrupLeaderboard, getOyuncuSira, getGrupSira };
+/** Oyunda kayıtlı oyuncu adı doğrulama (reis adı veya kullanıcı adı) */
+async function kayitliOyuncuAdiDogrula(db, ad) {
+  const trimmed = String(ad || "").trim();
+  if (!trimmed) return { ok: true, value: "" };
+  const row = await get(
+    db,
+    `SELECT u.reis_adi FROM users u
+     INNER JOIN players p ON p.user_id = u.id
+     WHERE LOWER(u.reis_adi) = LOWER(?) OR LOWER(u.username) = LOWER(?)
+     LIMIT 1`,
+    [trimmed, trimmed]
+  );
+  if (!row) return { ok: false, error: "Böyle bir oyuncu yok!" };
+  return { ok: true, value: row.reis_adi };
+}
+
+module.exports = {
+  getLeaderboard,
+  getGrupLeaderboard,
+  getOyuncuSira,
+  getGrupSira,
+  kayitliOyuncuAdiDogrula,
+};

@@ -352,6 +352,7 @@ async function sunucuAksiyon(action, key, adet, extra) {
 // GÖRSELLER — yerel (/public/images)
 // ========================
 var GORSEL_VERSIYON = '124';
+var profilLiderlikOyunculari = [];
 
 function temizGrupAdi(grup) {
   if (!grup) return '';
@@ -630,8 +631,13 @@ function mesajMenuYanip() {
 function sohbetMenuAc() {
   var menu = document.getElementById('sohbetMenu');
   var btn = document.getElementById('sohbetMenuBtn');
-  if (menu) menu.classList.add('acik');
+  var root = document.getElementById('masterLayout');
+  if (menu) {
+    menu.classList.add('acik');
+    mobilAltMenuYuvayaAl(menu);
+  }
   if (btn) btn.classList.add('aktif-menu');
+  if (root) root.classList.add('ml-alt-acik');
 }
 
 function mesajGonderenBaslik(m) {
@@ -693,10 +699,30 @@ function mobilMenuOgeyeKaydir(btn) {
   }
 }
 
+var mobilAltMenuKayit = Object.create(null);
+
+function mobilAltMenuYuvayaAl(menu) {
+  if (!menu || window.innerWidth > 768) return;
+  var root = document.getElementById('masterLayout');
+  if (!root || menu.parentElement === root) return;
+  if (!mobilAltMenuKayit[menu.id]) mobilAltMenuKayit[menu.id] = menu.parentElement;
+  menu.classList.add('ml-alt-menu--mobil');
+  root.appendChild(menu);
+}
+
+function mobilAltMenuYuvayaGeri(menu) {
+  if (!menu || !mobilAltMenuKayit[menu.id]) return;
+  menu.classList.remove('ml-alt-menu--mobil');
+  mobilAltMenuKayit[menu.id].appendChild(menu);
+}
+
 function mobilAltMenuKapat() {
   var root = document.getElementById('masterLayout');
   var list = document.querySelectorAll('.ml-alt-menu.acik');
-  for (var i = 0; i < list.length; i++) list[i].classList.remove('acik');
+  for (var i = 0; i < list.length; i++) {
+    list[i].classList.remove('acik');
+    mobilAltMenuYuvayaGeri(list[i]);
+  }
   var sohbetBtn = document.getElementById('sohbetMenuBtn');
   var mafyaBtn = document.getElementById('mafyaMenuBtn');
   if (sohbetBtn) sohbetBtn.classList.remove('aktif-menu');
@@ -721,14 +747,27 @@ function toggleMenu(id, btn) {
   if (!menu) return;
   var acik = menu.classList.contains('acik');
   var root = document.getElementById('masterLayout');
-  if (window.innerWidth <= 768) {
+  var mobil = window.innerWidth <= 768;
+  if (mobil) {
     var diger = document.querySelectorAll('.ml-alt-menu.acik');
     for (var i = 0; i < diger.length; i++) {
-      if (diger[i].id !== id) diger[i].classList.remove('acik');
+      if (diger[i].id !== id) {
+        diger[i].classList.remove('acik');
+        mobilAltMenuYuvayaGeri(diger[i]);
+      }
     }
   }
-  menu.classList.toggle('acik', !acik);
-  if (btn) btn.classList.toggle('aktif-menu', !acik);
+  var yeniAcik = !acik;
+  menu.classList.toggle('acik', yeniAcik);
+  if (btn) btn.classList.toggle('aktif-menu', yeniAcik);
+  if (mobil) {
+    if (yeniAcik) {
+      mobilAltMenuYuvayaAl(menu);
+      mobilMenuOgeyeKaydir(btn);
+    } else {
+      mobilAltMenuYuvayaGeri(menu);
+    }
+  }
   if (root) {
     var herhangiAcik = document.querySelector('.ml-alt-menu.acik');
     root.classList.toggle('ml-alt-acik', !!herhangiAcik);
@@ -2280,6 +2319,54 @@ function profilAciklamaGosterUygula(html) {
   el.innerHTML = s;
 }
 
+async function profilLiderlikOyunculariYukle() {
+  try {
+    var res = await apiFetch('/api/leaderboard?tip=oyuncu');
+    var data = await res.json().catch(function() { return {}; });
+    if (!res.ok || !data.ok) {
+      profilLiderlikOyunculari = [];
+      profilDostDusmanDatalistGuncelle();
+      return;
+    }
+    profilLiderlikOyunculari = (data.liste || []).map(function(o) {
+      return { isim: o.isim, username: o.username, userId: o.userId };
+    });
+    profilDostDusmanDatalistGuncelle();
+  } catch (_) {
+    profilLiderlikOyunculari = [];
+    profilDostDusmanDatalistGuncelle();
+  }
+}
+
+function profilLiderlikIsimEsles(ad) {
+  if (!ad) return null;
+  var lower = String(ad).trim().toLowerCase();
+  if (!lower) return null;
+  for (var i = 0; i < profilLiderlikOyunculari.length; i++) {
+    var o = profilLiderlikOyunculari[i];
+    if (o.isim && o.isim.toLowerCase() === lower) return o;
+    if (o.username && o.username.toLowerCase() === lower) return o;
+  }
+  return null;
+}
+
+function profilDostDusmanDatalistGuncelle() {
+  var list = document.getElementById('profilLiderlikIsimListesi');
+  if (!list) return;
+  var html = '';
+  profilLiderlikOyunculari.forEach(function(o) {
+    if (o.isim) html += '<option value="' + escHtml(o.isim) + '"></option>';
+  });
+  list.innerHTML = html;
+}
+
+function profilDostDusmanGosterHtml(ad) {
+  if (!ad) return '';
+  var esles = profilLiderlikIsimEsles(ad);
+  if (esles && esles.userId) return oyuncuLink(esles.userId, esles.isim || ad);
+  return escHtml(ad);
+}
+
 function profilEkranSablonu(opts) {
   opts = opts || {};
   var ad = opts.oyuncuAdi || 'Reis';
@@ -2329,18 +2416,21 @@ function profilEkranSablonu(opts) {
       + profilQuillToolbarHtml()
       + '</div>'
       + '<div class="profil-form-ikili">'
+      + '<datalist id="profilLiderlikIsimListesi"></datalist>'
       + '<div><label for="profilDostlar">Dostlar</label>'
-      + '<input type="text" id="profilDostlar" placeholder="Virgül ile ayır..."></div>'
+      + '<input type="text" id="profilDostlar" list="profilLiderlikIsimListesi" maxlength="24" placeholder="Kayıtlı oyuncu adı yaz..." autocomplete="off">'
+      + '<small class="profil-alan-not">Liderlik tablosundan seçebilir veya geçerli oyuncu adı yazabilirsin.</small></div>'
       + '<div><label for="profilDusmanlar">Düşmanlar</label>'
-      + '<input type="text" id="profilDusmanlar" placeholder="Ali, Veli, etc."></div>'
+      + '<input type="text" id="profilDusmanlar" list="profilLiderlikIsimListesi" maxlength="24" placeholder="Kayıtlı oyuncu adı yaz..." autocomplete="off">'
+      + '<small class="profil-alan-not">Liderlik tablosundan seçebilir veya geçerli oyuncu adı yazabilirsin.</small></div>'
       + '</div></div>';
   } else {
     formHtml = '<div class="profil-form">'
       + '<label>Açıklama</label>'
       + '<div id="profilAciklamaGoster" class="profil-aciklama-metin profil-aciklama-html">—</div>'
       + '<div class="profil-form-ikili">'
-      + '<div><label>Dostlar</label><p class="profil-aciklama-metin">' + escHtml(opts.dostlar || '—') + '</p></div>'
-      + '<div><label>Düşmanlar</label><p class="profil-aciklama-metin">' + escHtml(opts.dusmanlar || '—') + '</p></div>'
+      + '<div><label>Dostlar</label><p class="profil-aciklama-metin">' + profilDostDusmanGosterHtml(opts.dostlar) + '</p></div>'
+      + '<div><label>Düşmanlar</label><p class="profil-aciklama-metin">' + profilDostDusmanGosterHtml(opts.dusmanlar) + '</p></div>'
       + '</div></div>';
   }
 
@@ -3544,6 +3634,7 @@ async function medyaHaberleriYukle() {
 }
 
 async function mafyaMenuSec(mod) {
+  mobilAltMenuKapat();
   aktifEkran = 'mafya';
   masterFramePlaqueGuncelle('mafya', ML_MAFYA_BASLIKLARI[mod] || 'MAFYA GRUBU');
   var ic = document.getElementById('anaIcerik');
@@ -4301,6 +4392,7 @@ async function profilSiralamaAlanlariGuncelle(p) {
 
 async function profilYukle() {
   try {
+    await profilLiderlikOyunculariYukle();
     var res = await apiFetch('/api/profile/' + encodeURIComponent(String(window.__benimUserId || 'me')));
     if (!res.ok) return;
     var data = await res.json();
@@ -4350,8 +4442,8 @@ async function profilYukle() {
 
 async function profilKaydet() {
   var aciklama = profilAciklamaAl();
-  var dostlar = (document.getElementById('profilDostlar') || {}).value || '';
-  var dusmanlar = (document.getElementById('profilDusmanlar') || {}).value || '';
+  var dostlar = ((document.getElementById('profilDostlar') || {}).value || '').trim();
+  var dusmanlar = ((document.getElementById('profilDusmanlar') || {}).value || '').trim();
   var wrap = document.querySelector('.profil-wrap');
   var profilResmi = oyuncuProfilResmi || (wrap ? wrap.getAttribute('data-profil-resmi') : '') || '';
   try {
@@ -4387,6 +4479,7 @@ async function oyuncuProfilGoster(userId) {
   var ic = document.getElementById('anaIcerik');
   ic.innerHTML = '<div class="profil-wrap"><p style="color:#888;padding:24px;text-align:center;">Yükleniyor...</p></div>';
   try {
+    await profilLiderlikOyunculariYukle();
     var res = await apiFetch('/api/profile/' + encodeURIComponent(String(userId)));
     var data = await res.json().catch(function() { return {}; });
     if (!res.ok || !data.ok || !data.profil) throw new Error(data.error || 'Profil alınamadı.');

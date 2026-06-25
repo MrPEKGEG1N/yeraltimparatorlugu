@@ -302,16 +302,13 @@
     display: none;
   }
 
-  /* Alt menü sarmalayıcıları yatay listede yer kaplamasın */
-  #masterLayout .menu-list.ml-sidebar-nav > li:has(> .ml-alt-menu) {
-    flex: 0 0 0 !important;
-    width: 0 !important;
-    min-width: 0 !important;
-    max-width: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    overflow: visible !important;
-    border: none !important;
+  #masterLayout .menu-list.ml-sidebar-nav > li.ml-menu-grup {
+    position: static;
+    flex: 0 0 auto;
+  }
+
+  #masterLayout .menu-list.ml-sidebar-nav > li.ml-menu-grup > .ml-alt-menu {
+    display: none;
   }
 
   #masterLayout .menu-list.ml-sidebar-nav {
@@ -383,8 +380,9 @@
     box-shadow: 0 0 12px rgba(255, 80, 40, 0.25);
   }
 
-  /* Alt menüler: alttan açılan panel (dock üstünde) */
-  #masterLayout .ml-alt-menu {
+  /* Alt menüler: dock üstünde yukarı açılan panel (#masterLayout portal) */
+  #masterLayout .ml-alt-menu,
+  #masterLayout .ml-alt-menu--mobil {
     position: fixed;
     left: 10px;
     right: 10px;
@@ -393,6 +391,7 @@
     display: none;
     margin: 0;
     padding: 10px;
+    list-style: none;
     border: 1px solid rgba(197, 160, 89, 0.55);
     border-radius: 12px;
     background: rgba(8, 6, 4, 0.98);
@@ -400,12 +399,26 @@
     max-height: min(48vh, 320px);
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    transform-origin: bottom center;
   }
 
-  #masterLayout .ml-alt-menu.acik {
+  #masterLayout .ml-alt-menu.acik,
+  #masterLayout .ml-alt-menu--mobil.acik {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
+    animation: ml-alt-menu-ac 0.22s ease-out;
+  }
+
+  @keyframes ml-alt-menu-ac {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   #masterLayout .ml-alt-menu > li {
