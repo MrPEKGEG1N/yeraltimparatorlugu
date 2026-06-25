@@ -21,7 +21,7 @@ async function ensureSmsReset(db, userId, row) {
   const day = turkeyDayKey();
   if (row.last_sms_day === day) return row.sms_hakki;
   const kalanHak = row.sms_hakki || 0;
-  const yeniHak = Math.min(kalanHak + SMS_GUNLUK, SMS_GUNLUK * 2);
+  const yeniHak = kalanHak + SMS_GUNLUK;
   await run(
     db,
     `UPDATE players SET sms_hakki = ?, last_sms_day = ? WHERE user_id = ?`,

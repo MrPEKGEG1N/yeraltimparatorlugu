@@ -38,7 +38,7 @@ async function ensureSaygiTables(db) {
 
 function gunFarki(baslangic, bitis) {
   const saniye = Math.max(0, bitis - baslangic);
-  return Math.max(1, Math.ceil(saniye / 86400));
+  return Math.max(1, Math.floor(saniye / 86400));
 }
 
 function trTarih(ts) {
@@ -138,7 +138,7 @@ async function saygiDuvariniGetir(db) {
     reisAdi: r.reis_adi,
     puan: r.puan,
     efsane: !!r.sehir_efsane,
-    gun: Math.max(1, Math.ceil((r.toplam_saniye || 0) / 86400)),
+    gun: Math.max(1, Math.floor((r.toplam_saniye || 0) / 86400)),
   }));
 }
 

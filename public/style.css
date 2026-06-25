@@ -390,6 +390,18 @@ body {
   text-align: left;
 }
 
+.racon-overlay-saatlik {
+  top: 38.5%;
+  left: 39.5%;
+  font-size: clamp(10px, 2.2vw, 12px);
+  background: #100e0c;
+  padding: 2px 8px 2px 4px;
+  min-width: 8em;
+  white-space: nowrap;
+  text-align: left;
+  color: #ffd700;
+}
+
 .racon-overlay-btn {
   position: absolute;
   bottom: 3.2%;
@@ -660,7 +672,7 @@ body {
 .cikis-btn:hover { border-color: #cc0000; color: #fff; }
 
 .stat { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
-.stat-label { color: #555; font-size: 12px; }
+.stat-label { color: #c9a44a; font-size: 12px; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
 .stat-val { font-family: 'Oswald', sans-serif; font-size: 15px; font-weight: 600; color: #fff; }
 .kasa-val { color: #28a745; }
 .icraat-vurgu { color: #00e5ff; }

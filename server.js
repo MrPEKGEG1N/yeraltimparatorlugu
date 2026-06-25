@@ -9,7 +9,7 @@ const { initDatabase } = require("./db/database");
 const { createAuthRouter } = require("./routes/auth");
 
 const { createGameRouter } = require("./routes/game");
-const { savasiCoz } = require("./game/mafyaSavasService");
+const { savasiCoz, aylikMafyaOzeti } = require("./game/mafyaSavasService");
 
 
 
@@ -43,6 +43,15 @@ async function start() {
   setInterval(() => {
     savasiCoz(db).catch((err) => console.error("Mafya savaşı çözüm hatası:", err));
   }, 60 * 1000);
+
+  // Aylık mafya raporu: Her ay 1. gün saat 00:05'te çalışır
+  function aylikRaporKontrol() {
+    const now = new Date();
+    if (now.getDate() === 1 && now.getHours() === 0 && now.getMinutes() < 10) {
+      aylikMafyaOzeti(db).catch((err) => console.error("Aylık mafya raporu hatası:", err));
+    }
+  }
+  setInterval(aylikRaporKontrol, 5 * 60 * 1000);
 
 
   // API önce — static dosyalar /api yolunu ezmesin

@@ -330,7 +330,7 @@ async function dusmanaCok(db, attackerId, attacker, hedefAd) {
   }
   
   if (attacker.guc < hedef.guc) {
-    return { ok: false, error: "Rakibin senden daha güçlü! Gücün yetersiz!" };
+    return { ok: false, error: "Rakibin senden daha güçlü! Gücün yetersiz!\n\n💪 Daha fazla güçlenmen gerekiyor! Silah al, koruma kirala veya lüks eşyalar satın alarak gücünü artır." };
   }
 
   const saldiranRow = await get(db, `SELECT reis_adi FROM users WHERE id = ?`, [attackerId]);

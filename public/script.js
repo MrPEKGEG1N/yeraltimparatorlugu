@@ -45,12 +45,15 @@ function hosgeldinGoster(w) {
   if (!w || w.hours < 1 || hosgeldinBuOturum) return;
   var modal = document.getElementById('hosgeldinModal');
   var saatEl = document.getElementById('raconSaat');
+  var saatlikEl = document.getElementById('raconSaatlik');
   var kazancEl = document.getElementById('raconKazanc');
   if (!modal || !saatEl || !kazancEl) return;
   hosgeldinBuOturum = true;
   var saat = w.hours || 0;
   var gelir = w.income || 0;
+  var saatlikGelir = w.saatlik || 0;
   saatEl.textContent = String(saat) + ' Saat';
+  if (saatlikEl) saatlikEl.textContent = fmt(saatlikGelir) + ' TL/saat';
   kazancEl.textContent = fmt(gelir) + ' TL';
   modal.classList.remove('gizli');
   if (gelir > 0) sesCal('para');
@@ -222,7 +225,7 @@ async function sunucuAksiyon(action, key, adet, extra) {
       toast(errMsg, 'hata');
       return null;
     }
-    oyuncuUygula(data.player);
+    if (data.player) oyuncuUygula(data.player);
     if (data.player && data.player.kasa < oncekiKasa) sesCal('para');
     return data.effect;
   } catch (e) {
@@ -1364,7 +1367,11 @@ async function medyaHaberleriYukle() {
 function mafyaMenuSec(mod) {
   aktifEkran = 'mafya';
   var ic = document.getElementById('anaIcerik');
-  ic.innerHTML = '<h2>🕶️ MAFYA GRUBU</h2><div id="mafyaAltIcerik" class="mafya-alt-icerik"></div>';
+  if (mod === 'gurubum') {
+    ic.innerHTML = '<div id="mafyaAltIcerik" class="mafya-alt-icerik"></div>';
+  } else {
+    ic.innerHTML = '<h2>🕶️ MAFYA GRUBU</h2><div id="mafyaAltIcerik" class="mafya-alt-icerik"></div>';
+  }
   mafyaAltEkran(mod);
   mafyaBildirimKontrol();
 }
@@ -1560,7 +1567,8 @@ async function mafyaSavaslarCiz(box) {
       box.innerHTML = '<p style="color:#fff;">Henüz savaş yok.</p>';
       return;
     }
-    var html = '<h3 class="bolum-baslik">Mafya Savaşları</h3>';
+    var html = '<div style="text-align:center;margin-bottom:16px;"><img src="/images/mafya/savas-banner.png?v=24" alt="Mafya Savaşları" style="max-width:100%;max-height:260px;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.6);"></div>'
+      + '<h3 class="bolum-baslik">Mafya Savaşları</h3>';
     if (mafyaData && mafyaData.uyelik && mafyaData.uyelik.benLiderim) {
       html += '<div class="is-kart" style="padding:14px;max-width:520px;margin:0 auto 14px;">'
         + '<p style="color:#888;margin-bottom:8px;">Rakip mafya grubu adını yaz ve savaş ilan et.</p>'

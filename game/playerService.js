@@ -555,6 +555,7 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
     if (!sonuc.ok) return sonuc;
     return {
       ok: true,
+      player: await publicPlayerFull(db, userId, player),
       effect: { type: "istihbarat_spy", ...sonuc },
     };
   }
