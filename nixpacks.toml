@@ -1,3 +1,4 @@
 [variables]
 NODE_ENV = "production"
 ADMIN_USERNAME = "mrpekgeg1n"
+DATABASE_PATH = "/data/oyun.db"

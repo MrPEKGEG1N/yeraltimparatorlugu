@@ -1,10 +1,68 @@
+const fs = require("fs");
 const path = require("path");
 const sqlite3 = require("sqlite3").verbose();
 const { ADMIN_USERNAME } = require("../config");
 const { temizGrupAdi } = require("../game/grupAdi");
 const { rastgeleProfilResmi, normalizeProfilResmi } = require("../game/profilPortreler");
 
-const DB_PATH = process.env.DATABASE_PATH || path.join(__dirname, "oyun.db");
+function resolveDbPath() {
+  if (process.env.DATABASE_PATH) return path.resolve(process.env.DATABASE_PATH);
+  if (process.env.RAILWAY_VOLUME_MOUNT_PATH) {
+    return path.join(process.env.RAILWAY_VOLUME_MOUNT_PATH, "oyun.db");
+  }
+  const local = path.join(__dirname, "oyun.db");
+  if (process.env.NODE_ENV === "production") return "/data/oyun.db";
+  return local;
+}
+
+const DB_PATH = resolveDbPath();
+
+function ensureDbDirectory(dbPath) {
+  const dir = path.dirname(dbPath);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+}
+
+function bootstrapDbFromLegacy(targetPath) {
+  try {
+    if (fs.existsSync(targetPath) && fs.statSync(targetPath).size > 0) return false;
+    const candidates = [path.join(__dirname, "oyun.db"), path.join(process.cwd(), "db", "oyun.db")];
+    for (const legacy of candidates) {
+      const resolved = path.resolve(legacy);
+      if (resolved === path.resolve(targetPath)) continue;
+      if (!fs.existsSync(resolved)) continue;
+      if (fs.statSync(resolved).size <= 0) continue;
+      ensureDbDirectory(targetPath);
+      fs.copyFileSync(resolved, targetPath);
+      console.log(`[db] Mevcut veritabani korunarak tasindi: ${resolved} -> ${targetPath}`);
+      return true;
+    }
+  } catch (err) {
+    console.warn("[db] Veritabani tasinamadi:", err.message);
+  }
+  return false;
+}
+
+async function logDatabaseStats(db) {
+  try {
+    const stats = await get(
+      db,
+      `SELECT
+         (SELECT COUNT(*) FROM users) AS users,
+         (SELECT COUNT(*) FROM players) AS players`
+    );
+    const size = fs.existsSync(DB_PATH) ? fs.statSync(DB_PATH).size : 0;
+    console.log(
+      `[db] ${DB_PATH} (${Math.round(size / 1024)} KB) — kayitli kullanici: ${stats?.users || 0}, oyuncu: ${stats?.players || 0}`
+    );
+    if (process.env.NODE_ENV === "production" && (stats?.users || 0) === 0) {
+      console.warn(
+        "[db] UYARI: Canli ortamda kayitli oyuncu yok. Railway Volume (/data) bagli mi kontrol edin."
+      );
+    }
+  } catch (err) {
+    console.warn("[db] Istatistik okunamadi:", err.message);
+  }
+}
 
 function openDb() {
   return new Promise((resolve, reject) => {
@@ -47,12 +105,18 @@ async function migratePlayersTable(db) {
     db,
     "SELECT sql FROM sqlite_master WHERE type='table' AND name='players'"
   );
-  if (table && table.sql && !table.sql.includes("user_id")) {
-    await run(db, "DROP TABLE players");
+  if (!table || !table.sql || table.sql.includes("user_id")) return;
+  const row = await get(db, "SELECT COUNT(*) AS n FROM players");
+  if ((row?.n || 0) > 0) {
+    console.warn("[db] Eski players semasi var; mevcut kayitlar korunuyor (DROP atlandi).");
+    return;
   }
+  await run(db, "DROP TABLE players");
 }
 
 async function initDatabase() {
+  ensureDbDirectory(DB_PATH);
+  bootstrapDbFromLegacy(DB_PATH);
   const db = await openDb();
 
   await run(
@@ -572,6 +636,7 @@ async function initDatabase() {
   await ensureUserBaseTable(db);
   await migrateGuvenliYerBonusGuc(db);
 
+  await logDatabaseStats(db);
   return db;
 }
 
