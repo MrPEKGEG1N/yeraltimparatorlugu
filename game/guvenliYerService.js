@@ -122,9 +122,10 @@ async function gelistir(db, userId, player) {
   await run(db, `UPDATE user_base SET ${sets.join(", ")} WHERE user_id = ?`, params);
 
   if (sonraki.gucBonus > 0) {
-    player.guc += sonraki.gucBonus;
-    await run(db, `UPDATE players SET guc = ? WHERE user_id = ?`, [player.guc, userId]);
-    await logStatHareket(db, userId, "guc", sonraki.gucBonus, "guvenli_yer");
+    const yeniBonus = toplamGucBonusu(sonraki.seviye);
+    player.bonus_guc = yeniBonus;
+    await run(db, `UPDATE players SET bonus_guc = ? WHERE user_id = ?`, [yeniBonus, userId]);
+    await logStatHareket(db, userId, "bonus_guc", sonraki.gucBonus, "guvenli_yer");
   }
 
   const guncel = await ensureUserBase(db, userId);
@@ -137,10 +138,33 @@ async function gelistir(db, userId, player) {
   };
 }
 
+async function migrateGuvenliYerBonusGuc(db) {
+  const { all, run: dbRun } = require("../db/database");
+  const rows = await all(
+    db,
+    `SELECT ub.user_id, ub.base_seviye, p.guc, COALESCE(p.bonus_guc, 0) AS bonus_guc
+     FROM user_base ub
+     JOIN players p ON p.user_id = ub.user_id`
+  );
+  for (const r of rows) {
+    const expected = toplamGucBonusu(r.base_seviye);
+    const currentBonus = r.bonus_guc || 0;
+    if (expected <= currentBonus) continue;
+    const delta = expected - currentBonus;
+    const newGuc = Math.max(0, (r.guc || 0) - delta);
+    await dbRun(db, `UPDATE players SET bonus_guc = ?, guc = ? WHERE user_id = ?`, [
+      expected,
+      newGuc,
+      r.user_id,
+    ]);
+  }
+}
+
 module.exports = {
   ensureUserBaseTable,
   ensureUserBase,
   panelGetir,
   gelistir,
   baseOzeti,
+  migrateGuvenliYerBonusGuc,
 };

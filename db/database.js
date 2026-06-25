@@ -106,6 +106,7 @@ async function initDatabase() {
     ["dostlar", "TEXT NOT NULL DEFAULT ''"],
     ["dusmanlar", "TEXT NOT NULL DEFAULT ''"],
     ["profil_resmi", "TEXT NOT NULL DEFAULT ''"],
+    ["bonus_guc", "INTEGER NOT NULL DEFAULT 0"],
   ];
   for (const [col, def] of playerCols) {
     try {
@@ -553,8 +554,9 @@ async function initDatabase() {
   const { ensureGunlukGorevTables } = require("../game/gunlukGorevService");
   await ensureGunlukGorevTables(db);
 
-  const { ensureUserBaseTable } = require("../game/guvenliYerService");
+  const { ensureUserBaseTable, migrateGuvenliYerBonusGuc } = require("../game/guvenliYerService");
   await ensureUserBaseTable(db);
+  await migrateGuvenliYerBonusGuc(db);
 
   return db;
 }

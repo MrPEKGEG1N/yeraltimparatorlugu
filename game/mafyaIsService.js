@@ -1,5 +1,5 @@
 const { run, get, all } = require("../db/database");
-const { gucKaybiEnvanterUygula } = require("./kiralamaService");
+const { gucKaybiOranliUygula, toplamGuc } = require("./gucService");
 
 const ONLINE_WINDOW_SEC = 5 * 60; // 5 dk içinde aktifse online say
 
@@ -90,23 +90,23 @@ async function isKatilimcilar(db, isId) {
   try {
     rows = await all(
       db,
-      `SELECT k.user_id, u.reis_adi, p.guc, p.last_seen_at
+      `SELECT k.user_id, u.reis_adi, p.guc, COALESCE(p.bonus_guc, 0) AS bonus_guc, p.last_seen_at
        FROM mafya_is_katilim k
        JOIN users u ON u.id = k.user_id
        JOIN players p ON p.user_id = k.user_id
        WHERE k.is_id = ?
-       ORDER BY p.guc DESC`,
+       ORDER BY (p.guc + COALESCE(p.bonus_guc, 0)) DESC`,
       [isId]
     );
   } catch (_) {
     rows = await all(
       db,
-      `SELECT k.user_id, u.reis_adi, p.guc, 9999999999 as last_seen_at
+      `SELECT k.user_id, u.reis_adi, p.guc, COALESCE(p.bonus_guc, 0) AS bonus_guc, 9999999999 as last_seen_at
        FROM mafya_is_katilim k
        JOIN users u ON u.id = k.user_id
        JOIN players p ON p.user_id = k.user_id
        WHERE k.is_id = ?
-       ORDER BY p.guc DESC`,
+       ORDER BY (p.guc + COALESCE(p.bonus_guc, 0)) DESC`,
       [isId]
     );
   }
@@ -114,7 +114,7 @@ async function isKatilimcilar(db, isId) {
   return rows.map((r) => ({
     userId: r.user_id,
     reisAdi: r.reis_adi,
-    guc: r.guc,
+    guc: toplamGuc(r),
     online: r.last_seen_at >= now - ONLINE_WINDOW_SEC,
   }));
 }
@@ -161,13 +161,13 @@ async function isKatil(db, userId, grupId, isTuru) {
   const now = Math.floor(Date.now() / 1000);
   let p;
   try {
-    p = await get(db, `SELECT guc, last_seen_at FROM players WHERE user_id = ?`, [userId]);
+    p = await get(db, `SELECT guc, COALESCE(bonus_guc, 0) AS bonus_guc, last_seen_at FROM players WHERE user_id = ?`, [userId]);
   } catch (_) {
-    p = await get(db, `SELECT guc, 9999999999 as last_seen_at FROM players WHERE user_id = ?`, [userId]);
+    p = await get(db, `SELECT guc, COALESCE(bonus_guc, 0) AS bonus_guc, 9999999999 as last_seen_at FROM players WHERE user_id = ?`, [userId]);
   }
   if (!p) return { ok: false, error: "Oyuncu bulunamadı." };
   if (p.last_seen_at < now - ONLINE_WINDOW_SEC) return { ok: false, error: "Online değilsin. Sayfayı açık tut ve tekrar dene." };
-  if (p.guc < isDef.minGuc) return { ok: false, error: "Yeterli gereksinimlere sahip değilsin! (Güç yetersiz)" };
+  if (toplamGuc(p) < isDef.minGuc) return { ok: false, error: "Yeterli gereksinimlere sahip değilsin! (Güç yetersiz)" };
 
   // Katılım kaydı
   try {
@@ -193,13 +193,13 @@ async function isGerceklestir(db, grupId, isId) {
 
   // Ödül/ceza: katılan uygun oyunculara uygula
   for (const k of uygun) {
-    const row = await get(db, `SELECT kasa, guc, puan, devlet_iliskisi FROM players WHERE user_id = ?`, [
-      k.userId,
-    ]);
+    const row = await get(
+      db,
+      `SELECT kasa, guc, COALESCE(bonus_guc, 0) AS bonus_guc, puan, devlet_iliskisi FROM players WHERE user_id = ?`,
+      [k.userId]
+    );
     if (!row) continue;
-    const eskiGuc = row.guc;
-    const yeniGuc = Math.floor(row.guc * 0.9);
-    const gucSync = await gucKaybiEnvanterUygula(db, k.userId, eskiGuc, yeniGuc);
+    const gucSync = await gucKaybiOranliUygula(db, k.userId, row, 0.1);
     const yeniPuan = row.puan + isDef.sayginlikKisi;
     const yeniDevlet = Math.max(0, (row.devlet_iliskisi ?? 100) - isDef.devletDus);
     const yeniKasa = row.kasa + isDef.kazancKisi;

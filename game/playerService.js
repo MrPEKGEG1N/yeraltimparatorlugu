@@ -2,6 +2,7 @@ const { run, get, all } = require("../db/database");
 const { HIRE, JOBS, COUNCIL, ICRAAT_MAX, ICRAAT_REGEN_SEC, ICRAAT_SAATLIK_BONUS } = require("./catalog");
 const { temizGrupAdi } = require("./grupAdi");
 const { limanSaatlikToplam } = require("./worldConstants");
+const { toplamGuc } = require("./gucService");
 const {
   processLimanIncome,
   limanCok,
@@ -97,6 +98,7 @@ function rowToPlayer(row) {
   return {
     kasa: row.kasa,
     guc: row.guc,
+    bonus_guc: row.bonus_guc || 0,
     puan: row.puan,
     icraat: row.icraat,
     limanlar: {
@@ -296,6 +298,8 @@ async function publicPlayerFull(db, userId, player) {
     userId,
     kasa: player.kasa,
     guc: player.guc,
+    bonusGuc: player.bonus_guc || 0,
+    toplamGuc: toplamGuc(player),
     puan: player.puan,
     icraat: player.icraat,
     lastIcraatAt: player.last_icraat_at,
@@ -349,6 +353,8 @@ function publicPlayer(player) {
   return {
     kasa: player.kasa,
     guc: player.guc,
+    bonusGuc: player.bonus_guc || 0,
+    toplamGuc: toplamGuc(player),
     puan: player.puan,
     icraat: player.icraat,
     limanlar: player.limanlar,
@@ -399,7 +405,7 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
     if (!hapis.ok) return hapis;
     const job = JOBS[key];
     if (!job) return { ok: false, error: "Geçersiz iş." };
-    if (player.guc < job.minGuc) {
+    if (player.guc < job.minGuc && toplamGuc(player) < job.minGuc) {
       return {
         ok: false,
         error: `Gücün yetersiz! En az ${job.minGuc.toLocaleString("tr-TR")} güce ihtiyacın var.`,

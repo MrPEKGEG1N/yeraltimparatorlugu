@@ -3,7 +3,7 @@ const { sektorPanel } = require("./sectorService");
 const { getLimanDurumu } = require("./worldService");
 const { limanSaatlikToplam } = require("./worldConstants");
 const { mafyaSavasIlanHaber, mafyaSavasSonucHaber } = require("./sehirGazeteService");
-const { gucKaybiEnvanterUygula } = require("./kiralamaService");
+const { gucKaybiOranliUygula, toplamGuc } = require("./gucService");
 
 const SAVAS_BEKLEME_SURESI = 8 * 60 * 60 * 1000; // 8 hours
 
@@ -126,12 +126,20 @@ async function savasiCoz(db) {
       let saldiranToplam = 0;
       let hedefToplam = 0;
       for (const k of saldiranKatilim) {
-        const p = await get(db, `SELECT guc FROM players WHERE user_id = ?`, [k.user_id]);
-        saldiranToplam += p?.guc || 0;
+        const p = await get(
+          db,
+          `SELECT guc, COALESCE(bonus_guc, 0) AS bonus_guc FROM players WHERE user_id = ?`,
+          [k.user_id]
+        );
+        saldiranToplam += toplamGuc(p);
       }
       for (const k of hedefKatilim) {
-        const p = await get(db, `SELECT guc FROM players WHERE user_id = ?`, [k.user_id]);
-        hedefToplam += p?.guc || 0;
+        const p = await get(
+          db,
+          `SELECT guc, COALESCE(bonus_guc, 0) AS bonus_guc FROM players WHERE user_id = ?`,
+          [k.user_id]
+        );
+        hedefToplam += toplamGuc(p);
       }
       if (saldiranToplam > hedefToplam) {
         kazananGrupId = savas.saldiran_grup_id;
@@ -147,12 +155,14 @@ async function savasiCoz(db) {
     // Loser: 50% power reduction, lose all state relations
     
     for (const k of saldiranKatilim) {
-      const player = await get(db, `SELECT guc, kasa FROM players WHERE user_id = ?`, [k.user_id]);
+      const player = await get(
+        db,
+        `SELECT guc, COALESCE(bonus_guc, 0) AS bonus_guc, kasa FROM players WHERE user_id = ?`,
+        [k.user_id]
+      );
       if (player) {
         const kazandi = kazananGrupId === savas.saldiran_grup_id;
-        const eskiGuc = player.guc;
-        const yeniGuc = kazandi ? Math.floor(player.guc * 0.9) : Math.floor(player.guc * 0.5);
-        const gucSync = await gucKaybiEnvanterUygula(db, k.user_id, eskiGuc, yeniGuc);
+        const gucSync = await gucKaybiOranliUygula(db, k.user_id, player, kazandi ? 0.1 : 0.5);
         let yeniKasa = player.kasa;
         let yeniDevlet = null;
         if (kazandi) {
@@ -176,14 +186,16 @@ async function savasiCoz(db) {
         }
       }
     }
-    
+
     for (const k of hedefKatilim) {
-      const player = await get(db, `SELECT guc, devlet_iliskisi FROM players WHERE user_id = ?`, [k.user_id]);
+      const player = await get(
+        db,
+        `SELECT guc, COALESCE(bonus_guc, 0) AS bonus_guc, devlet_iliskisi FROM players WHERE user_id = ?`,
+        [k.user_id]
+      );
       if (player) {
         const kazandi = kazananGrupId === savas.hedef_grup_id;
-        const eskiGuc = player.guc;
-        const yeniGuc = kazandi ? Math.floor(player.guc * 0.9) : Math.floor(player.guc * 0.5);
-        const gucSync = await gucKaybiEnvanterUygula(db, k.user_id, eskiGuc, yeniGuc);
+        const gucSync = await gucKaybiOranliUygula(db, k.user_id, player, kazandi ? 0.1 : 0.5);
         const yeniIliski = kazandi ? player.devlet_iliskisi : 0;
         const kasaRow = await get(db, `SELECT kasa FROM players WHERE user_id = ?`, [k.user_id]);
         let yeniKasa = kasaRow?.kasa || 0;

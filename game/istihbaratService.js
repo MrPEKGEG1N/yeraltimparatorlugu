@@ -1,4 +1,5 @@
 const { run, get, all } = require("../db/database");
+const { toplamGuc } = require("./gucService");
 
 const ELEMAN_MALIYET = 50000;
 const ELEMAN_GUC = 100;
@@ -58,7 +59,8 @@ async function oyuncuGucunuOgren(db, userId, hedefAdi) {
   
   const hedef = await get(
     db,
-    `SELECT u.id, u.reis_adi, p.guc, COALESCE((SELECT eleman_sayisi FROM istihbarat WHERE user_id = u.id), 0) as hedef_istihbarat
+    `SELECT u.id, u.reis_adi, p.guc, COALESCE(p.bonus_guc, 0) AS bonus_guc,
+            COALESCE((SELECT eleman_sayisi FROM istihbarat WHERE user_id = u.id), 0) as hedef_istihbarat
      FROM users u
      JOIN players p ON p.user_id = u.id
      WHERE LOWER(u.reis_adi) = LOWER(?) OR LOWER(u.username) = LOWER(?)`,
@@ -71,13 +73,15 @@ async function oyuncuGucunuOgren(db, userId, hedefAdi) {
   
   const hedefIstihbarat = hedef.hedef_istihbarat || 0;
   
+  const hedefToplam = toplamGuc(hedef);
+
   // Intelligence comparison system
   if (benimIstihbarat > hedefIstihbarat) {
     return {
       ok: true,
       hedefUserId: hedef.id,
       oyuncuAdi: hedef.reis_adi,
-      guc: hedef.guc,
+      guc: hedefToplam,
       basari: true,
       mesaj: "İstihbaratın daha güçlü, rakibin gücünü öğrendin!"
     };
@@ -95,7 +99,7 @@ async function oyuncuGucunuOgren(db, userId, hedefAdi) {
       ok: true,
       hedefUserId: hedef.id,
       oyuncuAdi: hedef.reis_adi,
-      guc: Math.floor(hedef.guc * 0.5), // Partial info when equal
+      guc: Math.floor(hedefToplam * 0.5), // Partial info when equal
       basari: true,
       mesaj: "İstihbarat eşit, kısmi bilgi aldın."
     };

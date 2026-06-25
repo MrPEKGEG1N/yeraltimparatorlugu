@@ -3,6 +3,8 @@
 // ========================
 var oyuncuKasa = 10000;
 var oyuncuGuc = 500;
+var oyuncuBonusGuc = 0;
+var oyuncuToplamGuc = 500;
 var oyuncuPuan = 1500;
 var oyuncuIcraat = 25;
 var oyuncuLastIcraatAt = 0;
@@ -136,6 +138,8 @@ function oyuncuUygula(p, secenekler) {
   if (p.userId != null) window.__benimUserId = p.userId;
   oyuncuKasa = p.kasa;
   oyuncuGuc = p.guc;
+  oyuncuBonusGuc = p.bonusGuc != null ? p.bonusGuc : 0;
+  oyuncuToplamGuc = p.toplamGuc != null ? p.toplamGuc : oyuncuGuc + oyuncuBonusGuc;
   oyuncuPuan = p.puan;
   oyuncuIcraat = p.icraat;
   if (p.lastIcraatAt != null) oyuncuLastIcraatAt = p.lastIcraatAt;
@@ -579,6 +583,8 @@ function arayuzGuncelle() {
   if (kasaEl) kasaEl.innerText = fmt(oyuncuKasa) + ' TL';
   var gucEl = document.getElementById('guc');
   if (gucEl) gucEl.innerText = fmt(oyuncuGuc);
+  var bonusGucEl = document.getElementById('bonusGuc');
+  if (bonusGucEl) bonusGucEl.innerText = fmt(oyuncuBonusGuc);
   var puanEl = document.getElementById('puan');
   if (puanEl) puanEl.innerText = fmt(oyuncuPuan);
   var icraatEl = document.getElementById('icraat');
@@ -1308,26 +1314,31 @@ function guvenliYerPanelCiz() {
   var b = guvenliYerPanel.base || {};
   var sonraki = guvenliYerPanel.sonraki;
   var mevcutGuc = oyuncuGuc;
-  var bonus = b.gucBonus || 0;
+  var bonus = oyuncuBonusGuc || b.gucBonus || 0;
+  var toplamGucDeger = oyuncuToplamGuc || mevcutGuc + bonus;
 
   var html = '<h3 class="gy-durum-baslik">ÜS DURUMU</h3>'
     + '<div class="gy-stat-kart"><span class="gy-stat-ikon">🏠</span><div class="gy-stat-metin">'
     + '<small>Seviye</small><b>' + (b.baseSeviye || 1) + ' / 15</b></div></div>'
+    + '<div class="gy-stat-kart"><span class="gy-stat-ikon">⚔️</span><div class="gy-stat-metin">'
+    + '<small>Normal Güç</small><b>' + fmt(mevcutGuc) + '</b></div></div>'
     + '<div class="gy-stat-kart"><span class="gy-stat-ikon">🛡️</span><div class="gy-stat-metin">'
-    + '<small>Toplam Güç</small><b>' + fmt(mevcutGuc) + '</b></div></div>'
+    + '<small>Bonus Güç</small><b class="gy-yesil">' + fmt(bonus) + '</b></div></div>'
+    + '<div class="gy-stat-kart"><span class="gy-stat-ikon">💪</span><div class="gy-stat-metin">'
+    + '<small>Toplam Güç</small><b>' + fmt(toplamGucDeger) + '</b></div></div>'
     + '<div class="gy-stat-kart"><span class="gy-stat-ikon">💵</span><div class="gy-stat-metin">'
     + '<small>Kasadaki Nakit</small><b class="gy-yesil">' + fmt(oyuncuKasa) + ' TL</b></div></div>';
 
   if (sonraki) {
     var disabled = !sonraki.yeterliPara ? ' disabled' : '';
-    var sonrakiGuc = mevcutGuc + (sonraki.gucBonus || 0);
+    var sonrakiGuc = toplamGucDeger + (sonraki.gucBonus || 0);
     html += '<div class="gy-yukselt-kart">'
       + '<h4>Sonraki: ' + escHtml(gyKisaAd(sonraki)) + '</h4>'
       + '<p style="margin:0 0 8px;color:#888;font-size:12px;">' + escHtml(sonraki.aciklama) + '</p>'
       + '<div class="gy-yukselt-satir"><span>Güç Kazancı</span><b class="gy-arti">+' + fmt(sonraki.gucBonus || 0) + '</b></div>'
       + '<div class="gy-yukselt-satir"><span>Maliyet</span><b>' + fmt(sonraki.maliyet) + ' TL</b></div>'
       + '<div class="gy-guc-karsilastir">'
-      + '<span>MEVCUT <b>' + fmt(mevcutGuc) + '</b></span>'
+      + '<span>MEVCUT <b>' + fmt(toplamGucDeger) + '</b></span>'
       + '<span class="gy-ok">→</span>'
       + '<span>SONRAKİ <b>' + fmt(sonrakiGuc) + '</b></span>'
       + '</div>'
@@ -1456,7 +1467,7 @@ function dusmanPanelHTML() {
     + '<div id="dusmanSonuc" class="dusman-sonuc-alt"></div>'
     + '<div class="dusman-guc-alan is-kart">'
     + '<h3 class="bolum-baslik">⚔️ Güç Değeri</h3>'
-    + '<p class="dusman-guc-aciklama">Gücünün %10\'u ile %150\'si arasındaki rakipleri bul. Rakip güçleri gizlidir.</p>'
+    + '<p class="dusman-guc-aciklama">Toplam gücünün (normal + bonus) %10\'u ile %150\'si arasındaki rakipleri bul. Rakip güçleri gizlidir.</p>'
     + '<button type="button" class="btn-is mavi-btn" onclick="dusmanRakipAra()">[ 🔍 RAKİP ARA ]</button>'
     + '</div>'
     + '<div id="dusmanRakipKutu" class="gizli dusman-rakip-kutu"></div>'
@@ -2288,6 +2299,10 @@ function profilEkranSablonu(opts) {
     + '<div class="profil-ozet-hucre"><span>🏷️ Lakap</span><strong id="profilOzLakap">' + escHtml(opts.lakap || 'Mafya') + '</strong></div>';
   if (opts.guc != null) {
     ozetHtml += '<div class="profil-ozet-hucre"><span>⚔️ Güç</span><strong id="profilOzGuc">' + fmt(opts.guc) + '</strong></div>';
+    if (opts.bonusGuc > 0) {
+      ozetHtml += '<div class="profil-ozet-hucre"><span>🛡️ Bonus Güç</span><strong id="profilOzBonusGuc">' + fmt(opts.bonusGuc) + '</strong></div>';
+      ozetHtml += '<div class="profil-ozet-hucre"><span>💪 Toplam Güç</span><strong id="profilOzToplamGuc">' + fmt(opts.toplamGuc != null ? opts.toplamGuc : opts.guc + opts.bonusGuc) + '</strong></div>';
+    }
   } else {
     ozetHtml += '<div class="profil-ozet-hucre"><span>⚔️ Güç</span><strong id="profilOzGuc">—</strong></div>';
   }
@@ -2980,6 +2995,8 @@ function ekranDegistir(tip) {
       oyuncuAdi: aktifReisAdi,
       lakap: aktifLakap,
       guc: oyuncuGuc,
+      bonusGuc: oyuncuBonusGuc,
+      toplamGuc: oyuncuToplamGuc,
       puan: oyuncuPuan,
       saatlik: saatlikKazanc,
       karaListede: karaListede,

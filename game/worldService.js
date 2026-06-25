@@ -7,7 +7,7 @@ const { ZAYIF_HAMLE_MSG } = require("./saygiDuvariService");
 const { limanHaberEkle, makamHaberEkle } = require("./sehirGazeteService");
 const { logStatHareket } = require("./statService");
 const { temizGrupAdi } = require("./grupAdi");
-const { gucKaybiEnvanterUygula } = require("./kiralamaService");
+const { toplamGuc, savunmaGucu, oyuncuGucBilgisi, gucKaybiOranliUygula } = require("./gucService");
 const {
   LIMAN_IDS,
   BABA_MAKAMLAR,
@@ -191,10 +191,8 @@ async function processLimanIncome(db, userId, player) {
 
 async function limanSahipSavunmaGucu(db, ownerId) {
   if (!ownerId) return 0;
-  const row = await get(db, `SELECT guc, kara_listede FROM players WHERE user_id = ?`, [ownerId]);
-  let guc = row?.guc || 0;
-  if (row?.kara_listede) guc = Math.floor(guc * 0.5);
-  return guc;
+  const info = await oyuncuGucBilgisi(db, ownerId);
+  return info.savunmaGucu;
 }
 
 async function limanCok(db, attackerId, attacker, limanId, securityMeta = {}) {
@@ -230,7 +228,7 @@ async function limanCok(db, attackerId, attacker, limanId, securityMeta = {}) {
     if (!altCheck.ok) return altCheck;
   }
   const sahipGuc = await limanSahipSavunmaGucu(db, liman.owner_user_id);
-  if (liman.owner_user_id && attacker.guc <= sahipGuc) {
+  if (liman.owner_user_id && toplamGuc(attacker) <= sahipGuc) {
     return { ok: false, error: ZAYIF_HAMLE_MSG };
   }
   const eskiSahip = liman.owner_user_id;
@@ -299,7 +297,7 @@ async function babaCok(db, attackerId, attacker, makam, securityMeta = {}) {
     if (!altCheck.ok) return altCheck;
   }
   const sahipGuc = await limanSahipSavunmaGucu(db, row.owner_user_id);
-  if (row.owner_user_id && attacker.guc <= sahipGuc) {
+  if (row.owner_user_id && toplamGuc(attacker) <= sahipGuc) {
     return { ok: false, error: ZAYIF_HAMLE_MSG };
   }
   const eskiSahip = row.owner_user_id;
@@ -361,7 +359,8 @@ async function dusmanaCok(db, attackerId, attacker, hedefAd, securityMeta = {}) 
   }
   const hedef = await get(
     db,
-    `SELECT u.id, u.reis_adi, u.username, p.kasa, p.puan, p.guc
+    `SELECT u.id, u.reis_adi, u.username, p.kasa, p.puan, p.guc,
+            COALESCE(p.bonus_guc, 0) AS bonus_guc, p.kara_listede
      FROM users u
      JOIN players p ON p.user_id = u.id
      WHERE LOWER(u.reis_adi) = LOWER(?) OR LOWER(u.username) = LOWER(?)`,
@@ -372,49 +371,45 @@ async function dusmanaCok(db, attackerId, attacker, hedefAd, securityMeta = {}) 
 
   const altCheck = await enforceNoAltAccount(db, attackerId, hedef.id, "dusmana_cok", securityMeta);
   if (!altCheck.ok) return altCheck;
-  
-  if (attacker.guc < hedef.guc * 0.1) {
+
+  const saldiranToplam = toplamGuc(attacker);
+  const hedefSavunma = savunmaGucu(hedef);
+
+  if (saldiranToplam < hedefSavunma * 0.1) {
     return { ok: false, error: ZAYIF_HAMLE_MSG };
   }
-  
-  if (attacker.guc < hedef.guc) {
-    return { ok: false, error: "Rakibin senden daha güçlü! Gücün yetersiz!\n\n💪 Daha fazla güçlenmen gerekiyor! Silah al, koruma kirala veya lüks eşyalar satın alarak gücünü artır." };
+
+  if (saldiranToplam < hedefSavunma) {
+    return {
+      ok: false,
+      error:
+        "Rakibin senden daha güçlü! Gücün yetersiz!\n\n💪 Daha fazla güçlenmen gerekiyor! Silah al, koruma kirala veya lüks eşyalar satın alarak gücünü artır.",
+    };
   }
 
   const saldiranRow = await get(db, `SELECT reis_adi FROM users WHERE id = ?`, [attackerId]);
   const saldiranAdi = saldiranRow.reis_adi;
   const oncekiPuan = attacker.puan;
-  const oncekiGuc = attacker.guc;
+  const oncekiToplamGuc = saldiranToplam;
 
   attacker.icraat -= 1;
   const devletDusus = rastgeleAvukatDususu(5, 10);
   const yeniDevletIliski = await devletDusur(db, attackerId, devletDusus);
 
-  if (attacker.guc > hedef.guc) {
+  if (saldiranToplam > hedefSavunma) {
     const { paraKazanc, puanKazanc, sayginlikAlinabilir } = saldiriOdulHesapla(
       hedef.kasa,
       hedef.puan
     );
-    const gucDususSald = Math.floor(attacker.guc * 0.1);
-    const gucDususHedef = Math.floor(hedef.guc * 0.1);
 
     attacker.kasa += paraKazanc;
     attacker.puan += puanKazanc;
 
-    const saldSync = await gucKaybiEnvanterUygula(
-      db,
-      attackerId,
-      attacker.guc,
-      attacker.guc - gucDususSald
-    );
+    const saldSync = await gucKaybiOranliUygula(db, attackerId, attacker, 0.1);
     attacker.guc = saldSync.guc;
+    attacker.bonus_guc = saldSync.bonus_guc;
 
-    const hedefSync = await gucKaybiEnvanterUygula(
-      db,
-      hedef.id,
-      hedef.guc,
-      Math.max(0, hedef.guc - gucDususHedef)
-    );
+    const hedefSync = await gucKaybiOranliUygula(db, hedef.id, hedef, 0.1);
     const hedefGuc = hedefSync.guc;
 
     const hedefKasa = Math.max(0, hedef.kasa - paraKazanc);
@@ -454,12 +449,13 @@ async function dusmanaCok(db, attackerId, attacker, hedefAd, securityMeta = {}) 
         ? ""
         : " (rakibin kasası 50.000 TL altında olduğu için saygınlık alınamadı)";
 
+    const yeniToplamGuc = toplamGuc(attacker);
     const detay =
       `Emrinle çatışma başladı! Biz daha güçlü olduğumuz için onları indirdik!\n` +
       `Çatışma sonucunda düşmandan ${paraKazanc.toLocaleString("tr-TR")} TL hasılat${sayginlikMetin}.\n` +
       `Avukat ilişkin ${devletDusus} puan düştü (${yeniDevletIliski}).\n` +
       `Saldırı sonunda ${oncekiPuan.toLocaleString("tr-TR")} olan Saygınlığın ${attacker.puan.toLocaleString("tr-TR")} oldu.\n` +
-      `Saldırı sonunda ${oncekiGuc.toLocaleString("tr-TR")} olan Gücün ${attacker.guc.toLocaleString("tr-TR")} oldu.`;
+      `Saldırı sonunda ${oncekiToplamGuc.toLocaleString("tr-TR")} olan Toplam Gücün ${yeniToplamGuc.toLocaleString("tr-TR")} oldu.`;
 
     return {
       ok: true,
@@ -473,28 +469,17 @@ async function dusmanaCok(db, attackerId, attacker, hedefAd, securityMeta = {}) 
         puanKazanc,
         oncekiPuan,
         yeniPuan: attacker.puan,
-        oncekiGuc,
-        yeniGuc: attacker.guc,
+        oncekiGuc: oncekiToplamGuc,
+        yeniGuc: yeniToplamGuc,
         hedefAdi: hedef.reis_adi,
       },
     };
   }
 
-  const gucDususSald = Math.floor(attacker.guc * 0.1);
-  const gucDususHedef = Math.floor(hedef.guc * 0.1);
-  const saldSync = await gucKaybiEnvanterUygula(
-    db,
-    attackerId,
-    attacker.guc,
-    Math.max(0, attacker.guc - gucDususSald)
-  );
+  const saldSync = await gucKaybiOranliUygula(db, attackerId, attacker, 0.1);
   attacker.guc = saldSync.guc;
-  const hedefSync = await gucKaybiEnvanterUygula(
-    db,
-    hedef.id,
-    hedef.guc,
-    Math.max(0, hedef.guc - gucDususHedef)
-  );
+  attacker.bonus_guc = saldSync.bonus_guc;
+  const hedefSync = await gucKaybiOranliUygula(db, hedef.id, hedef, 0.1);
   const hedefGuc = hedefSync.guc;
 
   await run(db, `UPDATE players SET guc=?, icraat=? WHERE user_id=?`, [
@@ -504,11 +489,12 @@ async function dusmanaCok(db, attackerId, attacker, hedefAd, securityMeta = {}) 
   ]);
   await run(db, `UPDATE players SET guc=? WHERE user_id=?`, [hedefGuc, hedef.id]);
 
+  const yeniToplamGuc = toplamGuc(attacker);
   const detayKayip =
     `Emrinle çatışma başladı! ${hedef.reis_adi} seni ezip geçti!\n` +
     `Avukat ilişkin ${devletDusus} puan düştü (${yeniDevletIliski}).\n` +
     `Saldırı sonunda ${oncekiPuan.toLocaleString("tr-TR")} olan Saygınlığın ${attacker.puan.toLocaleString("tr-TR")} oldu.\n` +
-    `Saldırı sonunda ${oncekiGuc.toLocaleString("tr-TR")} olan Gücün ${attacker.guc.toLocaleString("tr-TR")} oldu.`;
+    `Saldırı sonunda ${oncekiToplamGuc.toLocaleString("tr-TR")} olan Toplam Gücün ${yeniToplamGuc.toLocaleString("tr-TR")} oldu.`;
 
   return {
     ok: true,
@@ -519,16 +505,20 @@ async function dusmanaCok(db, attackerId, attacker, hedefAd, securityMeta = {}) 
     effect: {
       oncekiPuan,
       yeniPuan: attacker.puan,
-      oncekiGuc,
-      yeniGuc: attacker.guc,
+      oncekiGuc: oncekiToplamGuc,
+      yeniGuc: yeniToplamGuc,
       hedefAdi: hedef.reis_adi,
     },
   };
 }
 
 async function rakipListele(db, userId, limit = 5) {
-  const row = await get(db, `SELECT guc FROM players WHERE user_id = ?`, [userId]);
-  const guc = row?.guc || 0;
+  const row = await get(
+    db,
+    `SELECT guc, COALESCE(bonus_guc, 0) AS bonus_guc FROM players WHERE user_id = ?`,
+    [userId]
+  );
+  const guc = toplamGuc(row);
   if (guc <= 0) return [];
 
   // Saldırı motoru: en az %10 güç, en fazla %150 güç farkı (dusmanaCok ile uyumlu)
@@ -540,7 +530,7 @@ async function rakipListele(db, userId, limit = 5) {
      FROM players p
      JOIN users u ON u.id = p.user_id
      WHERE u.id != ?
-       AND p.guc >= ? AND p.guc <= ?
+       AND (p.guc + COALESCE(p.bonus_guc, 0)) >= ? AND (p.guc + COALESCE(p.bonus_guc, 0)) <= ?
      ORDER BY RANDOM()
      LIMIT ?`,
     [userId, minGuc, maxGuc, limit]
