@@ -66,6 +66,9 @@ function oyunuGoster(user) {
   if (user && user.id != null) window.__benimUserId = user.id;
   document.getElementById("authEkran").classList.add("gizli");
   document.getElementById("masterLayout").classList.remove("gizli");
+  if (window.TutorialEngine && typeof TutorialEngine.syncVisibility === "function") {
+    TutorialEngine.syncVisibility();
+  }
   yukleniyorGoster("⏳ İMPARATORLUK YÜKLENİYOR...");
   var etiket = document.getElementById("reisEtiket");
   if (etiket) etiket.textContent = "🕶️ " + (user.reisAdi || user.username);
@@ -75,9 +78,13 @@ function oyunuGoster(user) {
 function authEkraniniGoster() {
   aktifKullanici = null;
   window.aktifKullanici = null;
+  window.__benimUserId = null;
   document.getElementById("masterLayout").classList.add("gizli");
   document.getElementById("authEkran").classList.remove("gizli");
   yukleniyorGizle();
+  if (window.TutorialEngine && typeof TutorialEngine.syncVisibility === "function") {
+    TutorialEngine.syncVisibility();
+  }
 }
 
 async function oturumKontrol() {

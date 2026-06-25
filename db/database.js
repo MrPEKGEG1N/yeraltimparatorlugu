@@ -559,14 +559,39 @@ async function initDatabase() {
 }
 
 async function bootstrapAdminUser(db) {
-  const adminUser = String(process.env.ADMIN_USERNAME || "").trim().toLowerCase();
+  const adminUser = getConfiguredAdminUsername();
   if (!adminUser) return;
   try {
-    await run(db, `UPDATE users SET is_admin = 1 WHERE username = ?`, [adminUser]);
-    console.log(`Yönetici atandı: ${adminUser} (ADMIN_USERNAME)`);
+    const result = await ensureConfiguredAdmin(db, adminUser);
+    if (result.updated) {
+      console.log(`Yönetici atandı: ${adminUser} (ADMIN_USERNAME)`);
+    }
   } catch (err) {
     console.warn("Yönetici ataması yapılamadı:", err.message);
   }
 }
 
-module.exports = { openDb, run, get, all, initDatabase, DB_PATH, bootstrapAdminUser };
+function getConfiguredAdminUsername() {
+  return String(process.env.ADMIN_USERNAME || "").trim().toLowerCase();
+}
+
+async function ensureConfiguredAdmin(db, username) {
+  const adminUser = getConfiguredAdminUsername();
+  if (!adminUser) return { updated: false };
+  const u = String(username || "").trim().toLowerCase();
+  if (u !== adminUser) return { updated: false };
+  const result = await run(db, `UPDATE users SET is_admin = 1 WHERE username = ?`, [adminUser]);
+  return { updated: (result.changes || 0) > 0 };
+}
+
+module.exports = {
+  openDb,
+  run,
+  get,
+  all,
+  initDatabase,
+  DB_PATH,
+  bootstrapAdminUser,
+  ensureConfiguredAdmin,
+  getConfiguredAdminUsername,
+};

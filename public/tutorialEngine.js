@@ -94,11 +94,25 @@
     if (window.aktifKullanici && window.aktifKullanici.id != null) {
       return String(window.aktifKullanici.id);
     }
-    return 'local';
+    return null;
+  }
+
+  function isLoggedIn() {
+    return userId() != null;
+  }
+
+  function isInGame() {
+    var auth = document.getElementById('authEkran');
+    var layout = document.getElementById('masterLayout');
+    if (!isLoggedIn()) return false;
+    if (auth && !auth.classList.contains('gizli')) return false;
+    if (layout && layout.classList.contains('gizli')) return false;
+    return true;
   }
 
   function storageKeys() {
     var uid = userId();
+    if (!uid) return null;
     return {
       step: 'yi_tutorial_step_' + uid,
       done: 'yi_tutorial_done_' + uid,
@@ -123,6 +137,7 @@
   function saveProgress() {
     try {
       var keys = storageKeys();
+      if (!keys) return;
       localStorage.setItem(keys.step, String(currentStep));
       if (currentStep > tutorialData.length) {
         localStorage.setItem(keys.done, '1');
@@ -133,6 +148,7 @@
   function loadProgress() {
     try {
       var keys = storageKeys();
+      if (!keys) return false;
       if (localStorage.getItem(keys.done) === '1') return false;
       var saved = parseInt(localStorage.getItem(keys.step), 10);
       if (!Number.isNaN(saved) && saved >= 1 && saved <= tutorialData.length) {
@@ -174,6 +190,7 @@
   function isComplete() {
     try {
       var keys = storageKeys();
+      if (!keys) return true;
       return localStorage.getItem(keys.done) === '1' || currentStep > tutorialData.length;
     } catch (_) {
       return false;
@@ -192,11 +209,25 @@
   function updateResumeButton() {
     var btn = document.getElementById('tutorialResumeBtn');
     if (!btn) return;
+    if (!isInGame()) {
+      btn.classList.add('gizli');
+      return;
+    }
     var show = isPaused();
     btn.classList.toggle('gizli', !show);
     if (show) {
       btn.textContent = '📖 Eğitime Devam (Adım ' + currentStep + '/' + tutorialData.length + ')';
     }
+  }
+
+  function syncVisibility() {
+    if (!isInGame()) {
+      pause();
+      updateResumeButton();
+      return;
+    }
+    loadProgress();
+    updateResumeButton();
   }
 
   function render() {
@@ -325,6 +356,7 @@
     currentStep = 1;
     try {
       var keys = storageKeys();
+      if (!keys) return;
       localStorage.removeItem(keys.step);
       localStorage.removeItem(keys.done);
     } catch (_) {}
@@ -332,14 +364,13 @@
   }
 
   function init() {
-    loadProgress();
     var ileri = document.getElementById('tutorialIleri');
     var kapat = document.getElementById('tutorialKapat');
     var devam = document.getElementById('tutorialResumeBtn');
     if (ileri) ileri.addEventListener('click', forward);
     if (kapat) kapat.addEventListener('click', function () { pause(); });
     if (devam) devam.addEventListener('click', resume);
-    updateResumeButton();
+    syncVisibility();
   }
 
   window.TutorialEngine = {
@@ -361,6 +392,7 @@
     isComplete: isComplete,
     isPaused: isPaused,
     tryAutoResume: tryAutoResume,
+    syncVisibility: syncVisibility,
     init: init,
   };
 

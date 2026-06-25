@@ -1,6 +1,6 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const { run, get } = require("../db/database");
+const { run, get, ensureConfiguredAdmin } = require("../db/database");
 const { JWT_SECRET } = require("../config");
 const { rastgeleProfilResmi } = require("../game/profilPortreler");
 const {
@@ -92,6 +92,7 @@ async function registerUser(db, { username, password, reisAdi, lakap, website },
   const portre = rastgeleProfilResmi();
   await run(db, "INSERT INTO players (user_id, profil_resmi) VALUES (?, ?)", [userId, portre]);
   await recordFingerprint(db, userId, clientMeta);
+  await ensureConfiguredAdmin(db, u);
 
   const user = await get(db, "SELECT id, username, reis_adi, token_version FROM users WHERE id = ?", [
     userId,
@@ -142,6 +143,7 @@ async function loginUser(db, { username, password }, clientMeta = {}) {
 
   await run(db, `UPDATE users SET failed_login_count = 0 WHERE id = ?`, [user.id]);
   await recordFingerprint(db, user.id, clientMeta);
+  await ensureConfiguredAdmin(db, u);
 
   const tokenUser = await userForToken(db, user.id);
   return {
