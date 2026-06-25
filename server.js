@@ -82,9 +82,10 @@ async function start() {
         db: DB_PATH,
         volume: diag.volumeMount,
         volumeOk: diag.volumeOk,
-        uyari:
-          process.env.NODE_ENV === "production" && !diag.volumeOk
-            ? "Volume bagli degil veya DB yolu uyusmuyor — deployda veri kaybi riski"
+        uyari: !diag.volumeMount
+          ? "Railway Volume bagli degil — deployda oyuncu verileri silinir! Panelden servise Volume ekleyin (mount: /app/db)."
+          : !diag.volumeOk
+            ? "DB yolu volume mount ile uyusmuyor — DATABASE_PATH degiskenini kaldirin."
             : null,
       });
     } catch (err) {
