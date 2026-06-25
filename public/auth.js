@@ -97,6 +97,8 @@ function authSekmeDegistir(mod, sessiz) {
   document.getElementById("sekmeKayit").classList.toggle("aktif-sekme", mod === "kayit");
   document.getElementById("reisAdiAlan").classList.toggle("gizli", mod === "giris");
   document.getElementById("lakapAlan").classList.toggle("gizli", mod === "giris");
+  var kabulAlan = document.getElementById("kurallarKabulAlan");
+  if (kabulAlan) kabulAlan.classList.toggle("gizli", mod === "giris");
   var passEl = document.getElementById("password");
   if (passEl) passEl.setAttribute("autocomplete", mod === "kayit" ? "new-password" : "current-password");
   document.getElementById("authGonder").textContent =
@@ -293,6 +295,11 @@ async function authGonderIslem() {
     body.lakap = document.getElementById("lakap").value;
     if (!body.reisAdi) {
       authHataGoster("Reis adını yazmalısın.");
+      return;
+    }
+    var kabul = document.getElementById("kurallarKabul");
+    if (!kabul || !kabul.checked) {
+      authHataGoster("Kayıt için kuralları okuyup kabul etmelisin.");
       return;
     }
   }

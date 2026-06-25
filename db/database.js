@@ -841,6 +841,9 @@ async function initDatabase() {
   const { ensureAktiviteSchema } = require("../game/aktiviteService");
   await ensureAktiviteSchema(db);
 
+  const { restoreOyuncuSnapshots } = require("../game/oyuncuRestoreService");
+  await restoreOyuncuSnapshots(db);
+
   await logDatabaseStats(db);
   await backupDbFile(DB_PATH);
   return db;
