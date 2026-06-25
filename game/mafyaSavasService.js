@@ -1,6 +1,7 @@
 const { run, get, all } = require("../db/database");
 const { sektorPanel } = require("./sectorService");
-const { getLimanDurumu, LIMAN_SAATLIK } = require("./worldService");
+const { getLimanDurumu } = require("./worldService");
+const { limanSaatlikToplam } = require("./worldConstants");
 const { mafyaSavasIlanHaber, mafyaSavasSonucHaber } = require("./sehirGazeteService");
 const { gucKaybiEnvanterUygula } = require("./kiralamaService");
 
@@ -10,7 +11,7 @@ async function saatlikKazancHesapla(db, userId) {
   const limanlar = await getLimanDurumu(db);
   const sahipLimanlar = limanlar.filter((l) => l.sahipUserId === userId).length;
   const { saatlikKazanc: sektorSaatlik } = await sektorPanel(db, userId);
-  return sahipLimanlar * LIMAN_SAATLIK + (sektorSaatlik || 0);
+  return limanSaatlikToplam(sahipLimanlar) + (sektorSaatlik || 0);
 }
 
 async function savasIlanEt(db, saldiranGrupId, hedefGrupId) {

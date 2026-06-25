@@ -3085,8 +3085,8 @@ function ekranDegistir(tip) {
     ic.innerHTML = '<h2>🚢 LİMAN İŞLETMELERİ</h2>'
       + '<p>"Boğazdan Akdeniz\'e — güçlü olan limanı alır. Saatlik gelir sahibine otomatik işler."</p>'
       + HUKUM_SAVUNMA_NOTU
-      + '<p class="liman-gelir-notu">⏱️ Türkiye saatiyle her saat başı liman başına <b>10.000.000 TL</b> kazanırsın. '
-      + '<b>Üç limanı birden elinde tutarsan saatlik 50.000.000 TL kazanırsın!</b></p>'
+      + '<p class="liman-gelir-notu">⏱️ Türkiye saatiyle her saat başı liman başına <b>100.000 TL</b> kazanırsın. '
+      + '<b>Üç limanı birden elinde tutarsan saatlik toplam 500.000 TL kazanırsın!</b></p>'
       + limanKartHTML('istanbul') + limanKartHTML('izmir') + limanKartHTML('hatay');
     return;
   }

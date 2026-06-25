@@ -3,7 +3,7 @@ const { sektorPanel } = require("./sectorService");
 const {
   LIMAN_IDS,
   BABA_MAKAMLAR,
-  LIMAN_SAATLIK,
+  limanSaatlikToplam,
 } = require("./worldConstants");
 const { yeniHukumdarRejimBaslat, hukumdarligiBitir } = require("./saygiDuvariService");
 
@@ -53,7 +53,7 @@ async function saatlikKazancHesapla(db, userId) {
   const limanlar = await getLimanDurumu(db);
   const sahipLiman = limanlar.filter((l) => l.sahipUserId === userId).length;
   const { saatlikKazanc: sektorSaatlik } = await sektorPanel(db, userId);
-  return sahipLiman * LIMAN_SAATLIK + (sektorSaatlik || 0);
+  return limanSaatlikToplam(sahipLiman) + (sektorSaatlik || 0);
 }
 
 async function sehreHukmetGuncelle(db, yeniHukumdarId) {

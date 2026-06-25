@@ -13,6 +13,7 @@ const {
   BABA_MAKAMLAR,
   LIMAN_SAATLIK,
   LIMAN_UC_BONUS,
+  limanSaatlikToplam,
 } = require("./worldConstants");
 
 const SALDIRI_PARA_ORAN = 0.1;
@@ -560,6 +561,7 @@ module.exports = {
   BABA_MAKAMLAR,
   LIMAN_SAATLIK,
   LIMAN_UC_BONUS,
+  limanSaatlikToplam,
   getLimanDurumu,
   getBabaDurumu,
   sanitizeDunyaForClient,

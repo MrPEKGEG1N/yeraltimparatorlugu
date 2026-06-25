@@ -1,6 +1,7 @@
 const { run, get, all } = require("../db/database");
 const { HIRE, JOBS, COUNCIL, ICRAAT_MAX, ICRAAT_REGEN_SEC, ICRAAT_SAATLIK_BONUS } = require("./catalog");
 const { temizGrupAdi } = require("./grupAdi");
+const { limanSaatlikToplam } = require("./worldConstants");
 const {
   processLimanIncome,
   limanCok,
@@ -11,7 +12,6 @@ const {
   getLimanDurumu,
   getBabaDurumu,
   sanitizeDunyaForClient,
-  LIMAN_SAATLIK,
 } = require("./worldService");
 const { processSectorIncome, sektorPanel, mekanAl, mekanDevret } = require("./sectorService");
 const { karaListeSenkronize } = require("./karaListeService");
@@ -181,7 +181,7 @@ async function loadPlayer(db, userId) {
     const limanlar = await getLimanDurumu(db);
     const sahipLiman = limanlar.filter((l) => l.sahipUserId === userId).length;
     const { saatlikKazanc } = await sektorPanel(db, userId);
-    const saatlik = sahipLiman * LIMAN_SAATLIK + (saatlikKazanc || 0);
+    const saatlik = limanSaatlikToplam(sahipLiman) + (saatlikKazanc || 0);
     const income = Math.floor(offlineHours * saatlik);
     if (income > 0) {
       player.kasa += income;
@@ -254,7 +254,7 @@ async function publicPlayerFull(db, userId, player) {
   } catch (_) {}
   const sahipLimanlar = limanlar.filter((l) => l.sahipUserId === userId).map((l) => l.limanId);
   const { sahiplik, saatlikKazanc: sektorSaatlik } = await sektorPanel(db, userId);
-  const limanSaatlik = sahipLimanlar.length * LIMAN_SAATLIK;
+  const limanSaatlik = limanSaatlikToplam(sahipLimanlar.length);
   const devletIliskisi = await getDevletIliskisi(db, userId);
   const smsHakki = await getSmsHakki(db, userId);
   const okunmamisMesaj = (await okunmamisSayisi(db, userId)) > 0;
