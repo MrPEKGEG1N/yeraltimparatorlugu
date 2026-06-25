@@ -1,6 +1,20 @@
 /** Giriş / kayıt ekranı — oyun script.js'den önce yüklenir */
 var authModu = "giris";
 var aktifKullanici = null;
+var AUTH_MOD_KEY = "yi_auth_mod";
+
+function authModuKaydet(mod) {
+  try {
+    sessionStorage.setItem(AUTH_MOD_KEY, mod);
+  } catch (_) {}
+}
+
+function authModuGeriYukle() {
+  try {
+    var saved = sessionStorage.getItem(AUTH_MOD_KEY);
+    if (saved === "kayit" || saved === "giris") authSekmeDegistir(saved);
+  } catch (_) {}
+}
 
 function apiOpts(method, body) {
   var opts = { method: method, credentials: "include", headers: {} };
@@ -30,6 +44,7 @@ function authHataGoster(mesaj) {
 
 function authSekmeDegistir(mod) {
   authModu = mod;
+  authModuKaydet(mod);
   document.getElementById("sekmeGiris").classList.toggle("aktif-sekme", mod === "giris");
   document.getElementById("sekmeKayit").classList.toggle("aktif-sekme", mod === "kayit");
   document.getElementById("reisAdiAlan").classList.toggle("gizli", mod === "giris");
@@ -238,17 +253,29 @@ document.getElementById("sekmeKayit").addEventListener("click", function () {
 
 document.getElementById("authForm").addEventListener("submit", function (e) {
   e.preventDefault();
+  e.stopPropagation();
+  authGonderIslem();
+  return false;
+});
+
+document.getElementById("authGonder").addEventListener("click", function (e) {
+  e.preventDefault();
   authGonderIslem();
 });
 
-document.getElementById("authGonder").addEventListener("click", authGonderIslem);
-
 (async function authBaslat() {
+  if (window.__authBaslatildi) return;
+  window.__authBaslatildi = true;
+  yukleniyorGizle();
+  authModuGeriYukle();
   try {
     if (await urlParamGirisDene()) return;
+    yukleniyorGoster("⏳ Oturum kontrol ediliyor...");
     var yuklendi = await oturumKontrol();
+    yukleniyorGizle();
     if (!yuklendi) authEkraniniGoster();
   } catch {
+    yukleniyorGizle();
     authEkraniniGoster();
     authHataGoster("Bağlantı hatası. Sunucunun çalıştığından emin olun.");
   }

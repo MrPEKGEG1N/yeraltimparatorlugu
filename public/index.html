@@ -46,7 +46,7 @@
       <button type="button" id="sekmeKayit" class="auth-sekme">KAYIT OL</button>
     </div>
 
-    <form id="authForm" class="auth-form" autocomplete="on" novalidate onsubmit="return false;">
+    <form id="authForm" class="auth-form" autocomplete="on" novalidate method="post" action="#">
       <div id="reisAdiAlan" class="auth-alan gizli">
         <label for="reisAdi">Reis Adın</label>
         <input type="text" id="reisAdi" name="reisAdi" maxlength="24" placeholder="Örn: Doğan">
@@ -77,12 +77,12 @@
       </div>
       <input type="text" id="authHoneypot" name="website" tabindex="-1" autocomplete="off" class="gizli" aria-hidden="true">
       <p id="authHata" class="auth-hata gizli"></p>
-      <button type="button" id="authGonder" class="auth-btn">[ ⚔️ GİRİŞ YAP ]</button>
+      <button type="submit" id="authGonder" class="auth-btn">[ ⚔️ GİRİŞ YAP ]</button>
     </form>
   </div>
 </div>
 
-<div id="yukleniyor" class="yukleniyor">⏳ İMPARATORLUK YÜKLENİYOR...</div>
+<div id="yukleniyor" class="yukleniyor gizli">⏳ İMPARATORLUK YÜKLENİYOR...</div>
 
 <div id="masterLayout" class="gizli">
   <header class="ml-header" id="headerStatsBar">
@@ -321,6 +321,6 @@
 <script src="mekanlar-data.js?v=85"></script>
 <script src="tutorialEngine.js?v=7"></script>
   <script src="script.js?v=217"></script>
-<script src="auth.js?v=91"></script>
+  <script src="auth.js?v=92"></script>
 </body>
 </html>

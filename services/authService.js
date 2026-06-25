@@ -21,6 +21,7 @@ const LAKAPLAR = new Set([
   "Satıcı",
   "İş Adamı",
   "Mafya",
+  "Şehre Hükmet",
   "Baba",
   "Baron",
   "Aslan",
