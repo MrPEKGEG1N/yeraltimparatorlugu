@@ -2947,6 +2947,8 @@ function ekranDegistir(tip) {
   if (tip !== 'profilim' && tip !== 'profil_ziyaret') profilIcraatTimerDurdur();
   if (tip !== 'profilim') profilQuillYokEt();
   mobilAltMenuKapat();
+  var oyunScroll = document.getElementById('oyunEkran');
+  if (oyunScroll) oyunScroll.scrollTop = 0;
   aktifEkran = tip;
   masterFramePlaqueGuncelle(tip);
   sehirBannerGuncelle();

@@ -173,10 +173,13 @@
   }
 
   #masterLayout #oyunEkran {
+    flex: 1;
+    min-height: 0;
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
+    scroll-behavior: smooth;
   }
 
   #masterLayout #anaIcerik {
@@ -184,6 +187,11 @@
     max-width: 100%;
     overflow-x: hidden;
     word-wrap: break-word;
+    overflow-wrap: anywhere;
+  }
+
+  #masterLayout #anaIcerik > * {
+    max-width: 100%;
   }
 
   #masterLayout #anaIcerik > h2 {
@@ -206,32 +214,47 @@
     aspect-ratio: 1;
   }
 
-  /* —— Alt menü çubuğu (eski sol sidebar) —— */
+  /* —— Alt menü çubuğu: sabit, yatay kaydırmalı dock —— */
   #masterLayout .ml-sidebar {
     grid-area: nav;
-    position: relative;
-    z-index: 30;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 50;
     min-height: 0;
     max-height: none;
-    height: var(--ml-bottom-nav-h);
+    height: calc(var(--ml-bottom-nav-h) + env(safe-area-inset-bottom, 0px));
     padding: 0;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
     margin: 0;
     overflow: visible;
-    border-top: 1px solid rgba(197, 160, 89, 0.45);
-    background: linear-gradient(180deg, rgba(12, 9, 7, 0.98) 0%, rgba(4, 3, 2, 0.99) 100%);
-    box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.55);
+    border-top: 1px solid rgba(197, 160, 89, 0.5);
+    background: linear-gradient(180deg, rgba(14, 10, 8, 0.98) 0%, rgba(4, 3, 2, 0.99) 100%);
+    box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
   }
 
+  #masterLayout .ml-sidebar::before,
   #masterLayout .ml-sidebar::after {
     content: "";
     position: absolute;
-    right: 0;
     top: 0;
     bottom: 0;
-    width: 28px;
-    background: linear-gradient(90deg, transparent, rgba(4, 3, 2, 0.92));
+    width: 22px;
     pointer-events: none;
-    z-index: 2;
+    z-index: 3;
+  }
+
+  #masterLayout .ml-sidebar::before {
+    left: 0;
+    background: linear-gradient(90deg, rgba(4, 3, 2, 0.95), transparent);
+  }
+
+  #masterLayout .ml-sidebar::after {
+    right: 0;
+    background: linear-gradient(270deg, rgba(4, 3, 2, 0.95), transparent);
   }
 
   #masterLayout .g2-frame--menu {
@@ -251,8 +274,8 @@
     height: 100%;
     max-height: none;
     margin: 0;
-    padding: 4px 6px;
-    overflow: visible;
+    padding: 5px 0 5px 6px;
+    overflow: hidden;
     background: transparent;
   }
 
@@ -260,19 +283,33 @@
     display: none;
   }
 
+  /* Alt menü sarmalayıcıları yatay listede yer kaplamasın */
+  #masterLayout .menu-list.ml-sidebar-nav > li:has(> .ml-alt-menu) {
+    flex: 0 0 0 !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    max-width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    border: none !important;
+  }
+
   #masterLayout .menu-list.ml-sidebar-nav {
     display: flex;
     flex-direction: row;
-    align-items: stretch;
-    gap: 6px;
+    align-items: center;
+    gap: 5px;
     height: 100%;
     margin: 0;
-    padding: 2px 4px 2px 2px;
+    padding: 4px 20px 4px 8px;
     overflow-x: auto;
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
     scroll-snap-type: x proximity;
+    scroll-padding-inline: 12px;
     scrollbar-width: none;
+    touch-action: pan-x;
   }
 
   #masterLayout .menu-list.ml-sidebar-nav::-webkit-scrollbar {
@@ -289,25 +326,28 @@
   #masterLayout .ml-menu-item,
   #masterLayout .menu-list > li > button.ml-menu-item {
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 2px;
     width: auto;
-    min-width: 82px;
-    max-width: 108px;
-    height: calc(var(--ml-bottom-nav-h) - 12px);
-    min-height: 44px;
-    padding: 6px 8px;
-    font-size: 9px;
-    line-height: 1.2;
+    min-width: 66px;
+    max-width: 78px;
+    height: calc(var(--ml-bottom-nav-h) - 14px);
+    min-height: 46px;
+    padding: 4px 5px;
+    font-size: 7.5px;
+    line-height: 1.1;
     text-align: center;
     white-space: normal;
     text-overflow: unset;
     overflow: hidden;
-    border-radius: 7px;
-    border: 1px solid rgba(197, 160, 89, 0.32);
-    background: rgba(22, 18, 14, 0.92) !important;
+    border-radius: 8px;
+    border: 1px solid rgba(197, 160, 89, 0.35);
+    background: rgba(22, 18, 14, 0.94) !important;
     background-image: none !important;
     touch-action: manipulation;
+    scroll-snap-align: center;
     transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease;
   }
 
@@ -326,21 +366,21 @@
     box-shadow: 0 0 12px rgba(255, 80, 40, 0.25);
   }
 
-  /* Alt menüler: alttan açılan panel */
+  /* Alt menüler: alttan açılan panel (dock üstünde) */
   #masterLayout .ml-alt-menu {
     position: fixed;
-    left: 8px;
-    right: 8px;
-    bottom: calc(var(--ml-bottom-nav-h) + env(safe-area-inset-bottom, 0px) + 6px);
-    z-index: 45;
+    left: 10px;
+    right: 10px;
+    bottom: calc(var(--ml-bottom-nav-h) + env(safe-area-inset-bottom, 0px) + 8px);
+    z-index: 55;
     display: none;
     margin: 0;
     padding: 10px;
-    border: 1px solid rgba(197, 160, 89, 0.5);
-    border-radius: 10px;
-    background: rgba(10, 7, 5, 0.97);
-    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.65);
-    max-height: min(42vh, 280px);
+    border: 1px solid rgba(197, 160, 89, 0.55);
+    border-radius: 12px;
+    background: rgba(8, 6, 4, 0.98);
+    box-shadow: 0 -10px 36px rgba(0, 0, 0, 0.7);
+    max-height: min(48vh, 320px);
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
@@ -348,7 +388,7 @@
   #masterLayout .ml-alt-menu.acik {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 6px;
+    gap: 8px;
   }
 
   #masterLayout .ml-alt-menu > li {
@@ -502,22 +542,29 @@
   }
 
   #masterLayout .lt-panel {
-    min-width: 680px;
+    min-width: 0;
+    max-width: 100%;
+    width: 100%;
+  }
+
+  #masterLayout .lt-panel-wrap {
+    max-width: 100%;
+    overflow-x: hidden;
   }
 
   #masterLayout .g2-frame--panel .g2-body:has(.lt-panel),
   #masterLayout .ui-frame-inner:has(.lt-panel),
   #masterLayout #oyunEkran:has(.lt-panel) {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow-x: hidden;
   }
 
   #masterLayout .lt-side-tabs {
     position: static;
     transform: none;
     justify-content: center;
-    margin: 8px 12px 0;
+    margin: 6px 8px 0;
     flex-wrap: wrap;
+    gap: 6px;
   }
 
   #masterLayout .lt-tab-floating {
@@ -525,23 +572,34 @@
     transform: none;
     display: block;
     width: fit-content;
-    margin: 10px auto 0;
-    font-size: 11px;
-    padding: 9px 18px;
+    max-width: 92%;
+    margin: 8px auto 0;
+    font-size: 10px;
+    padding: 8px 14px;
+    letter-spacing: 1px;
   }
 
   #masterLayout .lt-carved-bar {
     height: auto;
-    min-height: 36px;
-    padding-bottom: 8px;
+    min-height: 32px;
+    padding-bottom: 6px;
   }
 
   #masterLayout .lt-head {
-    padding: 14px 16px 10px;
+    padding: 10px 12px 8px;
+  }
+
+  #masterLayout .lt-head-title {
+    font-size: 14px;
+    line-height: 1.25;
+  }
+
+  #masterLayout .lt-head-quote {
+    font-size: 11px;
   }
 
   #masterLayout .lt-list {
-    padding: 0 12px 18px;
+    padding: 0 10px 14px;
   }
 
   #masterLayout #anaIcerik .banka-ozet-grid {
@@ -604,6 +662,26 @@
     max-width: 100%;
   }
 
+  #masterLayout #anaIcerik [class*="-sayfa"],
+  #masterLayout #anaIcerik [class*="-wrap"],
+  #masterLayout #anaIcerik [class*="-cerceve"],
+  #masterLayout #anaIcerik [class*="-panel"] {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  #masterLayout #anaIcerik .sb-cerceve,
+  #masterLayout #anaIcerik .banka-cerceve,
+  #masterLayout #anaIcerik .profil-kart {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  #masterLayout .modal-pencere,
+  #tutorialModal .eg-panel {
+    width: min(96vw, 420px);
+  }
+
   #tutorialResumeBtn.eg-devam-btn {
     bottom: calc(var(--ml-bottom-nav-h) + env(safe-area-inset-bottom, 0px) + 10px);
     left: 50%;
@@ -613,16 +691,21 @@
   }
 }
 
-/* Dikey telefon — daha kompakt üst bar, geniş oyun alanı */
+/* Dikey telefon — maksimum oyun alanı */
 @media (max-width: 768px) and (orientation: portrait) {
   :root {
-    --ml-bottom-nav-h: 54px;
-    --ml-ribbon-h: 30px;
+    --ml-bottom-nav-h: 58px;
+    --ml-ribbon-h: 28px;
   }
 
   #masterLayout {
-    --ml-bottom-nav-h: 54px;
-    --ml-ribbon-h: 30px;
+    --ml-bottom-nav-h: 58px;
+    --ml-ribbon-h: 28px;
+  }
+
+  #masterLayout .ml-header {
+    padding: 3px 5px;
+    padding-top: max(3px, env(safe-area-inset-top, 0px));
   }
 
   #masterLayout .ml-top-ribbon {
@@ -635,9 +718,9 @@
   }
 
   #masterLayout .ml-top-ribbon-txt {
-    width: min(88vw, 320px);
-    font-size: 8px;
-    letter-spacing: 0.5px;
+    width: min(90vw, 300px);
+    font-size: 7.5px;
+    letter-spacing: 0.4px;
   }
 
   #masterLayout .ml-stat-label {
@@ -645,25 +728,55 @@
   }
 
   #masterLayout .ml-btn-red {
-    font-size: 7.5px;
+    font-size: 7px;
+    padding: 4px 5px;
+    min-height: 32px;
+  }
+
+  #masterLayout .ml-stat-chip {
+    padding: 3px 5px;
+    font-size: 8px;
+  }
+
+  #masterLayout .ml-header-right button {
+    min-height: 32px;
     padding: 4px 6px;
+    font-size: 7px;
   }
 
   #masterLayout #reisEtiket {
-    display: inline-block;
-    max-width: 64px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    vertical-align: bottom;
+    display: none;
+  }
+
+  #masterLayout .ml-menu-item,
+  #masterLayout .menu-list > li > button.ml-menu-item {
+    min-width: 62px;
+    max-width: 72px;
+    min-height: 44px;
+    font-size: 7px;
+    padding: 3px 4px;
   }
 
   #masterLayout #anaIcerik {
-    padding-bottom: 4px;
+    padding-bottom: 6px;
+  }
+
+  #masterLayout #anaIcerik .vizuel-menu-hub {
+    padding: 4px 2px 6px;
+  }
+
+  #masterLayout #anaIcerik .vizuel-menu-wrap {
+    max-height: min(42vh, 280px);
+  }
+
+  #masterLayout #anaIcerik .vizuel-menu-img {
+    max-height: min(42vh, 280px);
+    object-fit: contain;
   }
 
   .ses-kontrol {
     bottom: calc(var(--ml-bottom-nav-h) + env(safe-area-inset-bottom, 0px) + 8px);
-    transform: scale(0.92);
+    transform: scale(0.9);
     transform-origin: bottom right;
   }
 }
@@ -672,33 +785,20 @@
 @media (max-width: 480px) {
   :root {
     --ml-bottom-nav-h: 56px;
+    --ml-ribbon-h: 26px;
   }
 
   #masterLayout {
     --ml-bottom-nav-h: 56px;
-    --ml-ribbon-h: 34px;
-  }
-
-  #masterLayout .ml-stat-label {
-    display: none;
-  }
-
-  #masterLayout .ml-stat-chip {
-    padding: 4px 6px;
-    font-size: 9px;
-  }
-
-  #masterLayout .ml-header-right button {
-    font-size: 8px;
-    padding: 5px 7px;
+    --ml-ribbon-h: 26px;
   }
 
   #masterLayout .ml-menu-item,
   #masterLayout .menu-list > li > button.ml-menu-item {
-    min-width: 74px;
-    max-width: 96px;
-    font-size: 8.5px;
-    padding: 5px 6px;
+    min-width: 58px;
+    max-width: 68px;
+    font-size: 6.8px;
+    padding: 3px 3px;
   }
 
   #masterLayout .profil-ozet-bar {
@@ -706,12 +806,12 @@
   }
 
   #masterLayout .lt-head-title {
-    font-size: 15px;
+    font-size: 13px;
   }
 
   #masterLayout .ml-top-ribbon-txt {
-    font-size: 8px;
-    letter-spacing: 0.5px;
+    font-size: 7px;
+    letter-spacing: 0.3px;
   }
 }
 
