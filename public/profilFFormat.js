@@ -2,6 +2,7 @@
   "use strict";
 
   var F_TAG_RE = /\[f(\s+[^\]]*)?\]|\[\/f\]/gi;
+  var HIZA_PREFIX_RE = /^\[profil-hiza:(left|center|right)\]\s*/i;
   var SIZE_MAP = {
     "01": "1px", "02": "2px", "03": "3px", "04": "4px", "05": "5px",
     "06": "6px", "07": "7px", "08": "8px", "09": "9px", "10": "10px",
@@ -37,8 +38,29 @@
       .replace(/&#39;/gi, "'");
   }
 
+  function profilHizaAyikla(raw) {
+    var s = String(raw || "");
+    var m = s.match(HIZA_PREFIX_RE);
+    if (!m) return { hiza: "left", body: s };
+    return { hiza: m[1].toLowerCase(), body: s.slice(m[0].length) };
+  }
+
+  function profilHizaEkle(body, hiza) {
+    var b = String(body || "").trim();
+    var h = String(hiza || "left").toLowerCase();
+    if (!b) return "";
+    if (h === "left") return b;
+    return "[profil-hiza:" + h + "]\n" + b;
+  }
+
+  function profilHizaSinif(hiza) {
+    if (hiza === "center") return "profil-hiza-orta";
+    if (hiza === "right") return "profil-hiza-sag";
+    return "profil-hiza-sol";
+  }
+
   function profilAciklamaFFormatMi(raw) {
-    var text = htmlToPlainText(raw);
+    var text = htmlToPlainText(profilHizaAyikla(raw).body);
     return /\[f[\s\]]/i.test(text) || /\[\/f\]/i.test(text);
   }
 
@@ -81,8 +103,9 @@
   }
 
   function fFormatToHtml(raw) {
-    var text = htmlToPlainText(raw);
-    if (!profilAciklamaFFormatMi(text)) return null;
+    var parsed = profilHizaAyikla(htmlToPlainText(raw));
+    var text = parsed.body;
+    if (!/\[f[\s\]]/i.test(text) && !/\[\/f\]/i.test(text)) return null;
 
     var html = "";
     var stack = [];
@@ -111,11 +134,14 @@
       html += "</span>";
       stack.pop();
     }
-    return '<div class="profil-f-art">' + html + "</div>";
+    return '<div class="profil-f-art ' + profilHizaSinif(parsed.hiza) + '">' + html + "</div>";
   }
 
   global.profilFFormat = {
     htmlToPlainText: htmlToPlainText,
+    profilHizaAyikla: profilHizaAyikla,
+    profilHizaEkle: profilHizaEkle,
+    profilHizaSinif: profilHizaSinif,
     profilAciklamaFFormatMi: profilAciklamaFFormatMi,
     fFormatToHtml: fFormatToHtml
   };

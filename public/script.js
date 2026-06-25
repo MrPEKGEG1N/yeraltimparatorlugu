@@ -529,6 +529,7 @@ var profilGorseller = {
 var profilIcraatTimer = null;
 var profilQuill = null;
 var profilQuillHazir = false;
+var profilAktifHiza = 'left';
 var profilResimAktifSekme = 'kadin';
 var KADIN_PORTRE_ANAHTARLARI = [
   'kadin-01', 'kadin-02', 'kadin-03', 'kadin-04', 'kadin-05', 'kadin-06',
@@ -2239,12 +2240,63 @@ function profilIcraatTimerOyuncudan() {
   );
 }
 
+function profilHizaAracHtml() {
+  return '<div id="profilHizaArac" class="profil-hiza-arac">'
+    + '<span class="profil-hiza-etiket">Hizalama:</span>'
+    + '<button type="button" class="profil-hiza-btn aktif" data-hiza="left" title="Sola hizala">◧ Sol</button>'
+    + '<button type="button" class="profil-hiza-btn" data-hiza="center" title="Ortala">◫ Orta</button>'
+    + '<button type="button" class="profil-hiza-btn" data-hiza="right" title="Sağa hizala">◨ Sağ</button>'
+    + '</div>';
+}
+
+function profilHizaButonlariGuncelle(hiza) {
+  profilAktifHiza = hiza || 'left';
+  document.querySelectorAll('.profil-hiza-btn').forEach(function(btn) {
+    btn.classList.toggle('aktif', btn.getAttribute('data-hiza') === profilAktifHiza);
+  });
+}
+
+function profilHizaUygula(hiza) {
+  profilHizaButonlariGuncelle(hiza);
+  var kodAlani = document.getElementById('profilAciklamaKodAlani');
+  var kod = document.getElementById('profilAciklamaKod');
+  if (kodAlani && kod && !kodAlani.classList.contains('gizli')) {
+    profilAciklamaOnizlemeGuncelle(
+      typeof profilFFormat !== 'undefined'
+        ? profilFFormat.profilHizaEkle(kod.value, hiza)
+        : kod.value
+    );
+    return;
+  }
+  if (profilQuill) {
+    var uzunluk = profilQuill.getLength();
+    var deger = hiza === 'left' ? false : hiza;
+    profilQuill.formatLine(0, uzunluk, 'align', deger);
+  }
+}
+
+function profilHizaAracBagla() {
+  if (window.__profilHizaBagli) return;
+  window.__profilHizaBagli = true;
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest && e.target.closest('.profil-hiza-btn');
+    if (!btn || !document.getElementById('profilHizaArac')) return;
+    e.preventDefault();
+    profilHizaUygula(btn.getAttribute('data-hiza'));
+  });
+}
+
 function profilQuillToolbarHtml() {
   return '<div id="profilAciklamaToolbar">'
     + '<span class="ql-formats">'
     + '<button type="button" class="ql-bold" title="Kalın"></button>'
     + '<button type="button" class="ql-italic" title="Eğik"></button>'
     + '<button type="button" class="ql-undo" title="Geri Al"></button>'
+    + '</span>'
+    + '<span class="ql-formats">'
+    + '<button type="button" class="ql-align" value="" title="Sola hizala"></button>'
+    + '<button type="button" class="ql-align" value="center" title="Ortala"></button>'
+    + '<button type="button" class="ql-align" value="right" title="Sağa hizala"></button>'
     + '</span>'
     + '<span class="ql-formats"><select class="ql-color" title="Metin Rengi"></select></span>'
     + '<span class="ql-formats"><select class="ql-size" title="Yazı tipi boyutu">'
@@ -2288,6 +2340,7 @@ function profilQuillYokEt() {
 
 function profilQuillBaslat() {
   profilQuillKayitlari();
+  profilHizaAracBagla();
   if (typeof Quill === 'undefined') return;
   if (!document.getElementById('profilAciklamaWrap')) return;
 
@@ -2328,7 +2381,10 @@ function profilAciklamaAl() {
   var kod = document.getElementById('profilAciklamaKod');
   var kodAlani = document.getElementById('profilAciklamaKodAlani');
   if (kod && kodAlani && !kodAlani.classList.contains('gizli')) {
-    return kod.value.trim();
+    var govde = kod.value.trim();
+    return typeof profilFFormat !== 'undefined'
+      ? profilFFormat.profilHizaEkle(govde, profilAktifHiza)
+      : govde;
   }
   if (!profilQuill) return '';
   var html = profilQuill.root.innerHTML || '';
@@ -2381,14 +2437,22 @@ function profilAciklamaModuUygula(html) {
     if (quillWrap) quillWrap.classList.add('gizli');
     if (onizBaslik) onizBaslik.classList.remove('gizli');
     if (oniz) oniz.classList.remove('gizli');
-    kod.value = profilFFormat.htmlToPlainText(s);
+    var parsed = typeof profilFFormat !== 'undefined'
+      ? profilFFormat.profilHizaAyikla(s)
+      : { hiza: 'left', body: profilFFormat ? profilFFormat.htmlToPlainText(s) : s };
+    kod.value = typeof profilFFormat !== 'undefined'
+      ? profilFFormat.htmlToPlainText(parsed.body)
+      : parsed.body;
+    profilHizaButonlariGuncelle(parsed.hiza);
     if (!kod.dataset.bagli) {
       kod.dataset.bagli = '1';
       kod.addEventListener('input', function() {
-        profilAciklamaOnizlemeGuncelle(kod.value);
+        profilAciklamaOnizlemeGuncelle(
+          profilFFormat.profilHizaEkle(kod.value, profilAktifHiza)
+        );
       });
     }
-    profilAciklamaOnizlemeGuncelle(kod.value);
+    profilAciklamaOnizlemeGuncelle(profilFFormat.profilHizaEkle(kod.value, parsed.hiza));
     return;
   }
 
@@ -2507,6 +2571,7 @@ function profilEkranSablonu(opts) {
     formHtml = '<div class="profil-form">'
       + '<label>Açıklama Ekle</label>'
       + '<p class="profil-alan-not">[f] renk kodlu ASCII sanat için kod alanını kullanın; önizleme altta görünür.</p>'
+      + profilHizaAracHtml()
       + '<div id="profilAciklamaKodAlani" class="gizli">'
       + '<textarea id="profilAciklamaKod" class="profil-kod-textarea" spellcheck="false" rows="14" '
       + 'placeholder="[f f=&quot;Lucida Console&quot;][f s=03][f c=#ff0000]...[/f][/f][/f]"></textarea>'

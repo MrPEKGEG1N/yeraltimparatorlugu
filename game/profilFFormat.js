@@ -1,6 +1,7 @@
 const { escapeHtml } = require("./htmlEscape");
 
 const F_TAG_RE = /\[f(\s+[^\]]*)?\]|\[\/f\]/gi;
+const HIZA_PREFIX_RE = /^\[profil-hiza:(left|center|right)\]\s*/i;
 const SIZE_MAP = {
   "01": "1px",
   "02": "2px",
@@ -37,9 +38,30 @@ function htmlToPlainText(html) {
     .replace(/&#39;/gi, "'");
 }
 
+function profilHizaAyikla(raw) {
+  const s = String(raw || "");
+  const m = s.match(HIZA_PREFIX_RE);
+  if (!m) return { hiza: "left", body: s };
+  return { hiza: m[1].toLowerCase(), body: s.slice(m[0].length) };
+}
+
 function profilAciklamaFFormatMi(raw) {
-  const text = htmlToPlainText(raw);
+  const text = htmlToPlainText(profilHizaAyikla(raw).body);
   return /\[f[\s\]]/i.test(text) || /\[\/f\]/i.test(text);
+}
+
+function profilHizaEkle(body, hiza) {
+  const b = String(body || "").trim();
+  const h = String(hiza || "left").toLowerCase();
+  if (!b) return "";
+  if (h === "left") return b;
+  return "[profil-hiza:" + h + "]\n" + b;
+}
+
+function profilHizaSinif(hiza) {
+  if (hiza === "center") return "profil-hiza-orta";
+  if (hiza === "right") return "profil-hiza-sag";
+  return "profil-hiza-sol";
 }
 
 function parseFAttrs(attrStr) {
@@ -81,8 +103,9 @@ function spanStyleFromAttrs(attrs) {
 }
 
 function fFormatToHtml(raw) {
-  const text = htmlToPlainText(raw);
-  if (!profilAciklamaFFormatMi(text)) return null;
+  const parsed = profilHizaAyikla(htmlToPlainText(raw));
+  const text = parsed.body;
+  if (!/\[f[\s\]]/i.test(text) && !/\[\/f\]/i.test(text)) return null;
 
   let html = "";
   const stack = [];
@@ -111,7 +134,7 @@ function fFormatToHtml(raw) {
     html += "</span>";
     stack.pop();
   }
-  return '<div class="profil-f-art">' + html + "</div>";
+  return '<div class="profil-f-art ' + profilHizaSinif(parsed.hiza) + '">' + html + "</div>";
 }
 
 function profilAciklamaRenderHtml(raw) {
@@ -123,6 +146,9 @@ function profilAciklamaRenderHtml(raw) {
 module.exports = {
   htmlToPlainText,
   profilAciklamaFFormatMi,
+  profilHizaAyikla,
+  profilHizaEkle,
+  profilHizaSinif,
   fFormatToHtml,
   profilAciklamaRenderHtml,
 };
