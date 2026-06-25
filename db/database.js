@@ -3,7 +3,7 @@ const sqlite3 = require("sqlite3").verbose();
 const { temizGrupAdi } = require("../game/grupAdi");
 const { rastgeleProfilResmi, normalizeProfilResmi } = require("../game/profilPortreler");
 
-const DB_PATH = path.join(__dirname, "oyun.db");
+const DB_PATH = process.env.DATABASE_PATH || path.join(__dirname, "oyun.db");
 
 function openDb() {
   return new Promise((resolve, reject) => {
