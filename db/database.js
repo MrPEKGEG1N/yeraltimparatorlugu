@@ -118,6 +118,13 @@ async function initDatabase() {
 
   await run(
     db,
+    `UPDATE players
+     SET last_icraat_at = strftime('%s','now')
+     WHERE last_icraat_at IS NULL OR last_icraat_at <= 0`
+  );
+
+  await run(
+    db,
     `CREATE TABLE IF NOT EXISTS sektor_sahiplik (
       user_id INTEGER NOT NULL,
       sektor TEXT NOT NULL,

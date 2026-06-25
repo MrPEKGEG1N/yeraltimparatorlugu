@@ -1,7 +1,7 @@
 const { run, get, all } = require("../db/database");
 const { turkeyDayKey } = require("./messagingService");
 const { logStatHareket } = require("./statService");
-const { ICRAAT_MAX } = require("./catalog");
+const { ICRAAT_MAX, syncIcraatRegen } = require("./icraatService");
 const {
   GUNLUK_SLOT_SAYISI,
   MAX_KABUL,
@@ -454,7 +454,8 @@ async function gorevOdulAl(db, userId, slot, player) {
   player.kasa += def.odul.kasa || 0;
   player.puan += def.odul.puan || 0;
   if (def.odul.icraat) {
-    player.icraat = Math.min(ICRAAT_MAX, player.icraat + def.odul.icraat);
+    const icraatSync = await syncIcraatRegen(db, userId);
+    player.icraat = Math.min(ICRAAT_MAX, icraatSync.icraat + def.odul.icraat);
   }
   await run(
     db,

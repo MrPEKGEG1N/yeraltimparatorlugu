@@ -11,7 +11,6 @@ var oyuncuLastIcraatAt = 0;
 var oyuncuIcraatRegenSec = 3600;
 var oyuncuIcraatSaatlikBonus = 25;
 var oyuncuProfilResmi = '';
-var ICRAAT_GOSTERIM_MAX = 25;
 var limanlar = { istanbul: false, izmir: false, hatay: false };
 var sunucuBagli = false;
 var aksiyonBekliyor = false;
@@ -2149,9 +2148,9 @@ function icraatRegenPollBaslat() {
   icraatRegenPollTimer = setInterval(function() {
     if (!sunucuBagli) return;
     var kalan = profilSonrakiSaatKalanSn(oyuncuLastIcraatAt, oyuncuIcraatRegenSec);
-    if (kalan > 3) return;
+    if (kalan > 5) return;
     var simdi = Date.now();
-    if (simdi - icraatSonRegenPoll < 4000) return;
+    if (simdi - icraatSonRegenPoll < 2500) return;
     icraatSonRegenPoll = simdi;
     sunucudanYukle({ poll: true }).then(function() {
       if (aktifEkran === 'profilim') profilYukle();

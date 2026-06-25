@@ -1,5 +1,11 @@
 const { run, get, all } = require("../db/database");
-const { HIRE, JOBS, COUNCIL, ICRAAT_MAX, ICRAAT_REGEN_SEC, ICRAAT_SAATLIK_BONUS } = require("./catalog");
+const { HIRE, JOBS, COUNCIL } = require("./catalog");
+const {
+  ICRAAT_REGEN_SEC,
+  ICRAAT_SAATLIK_BONUS,
+  syncIcraatRegen,
+  icraatHarca,
+} = require("./icraatService");
 const { temizGrupAdi } = require("./grupAdi");
 const { limanSaatlikToplam } = require("./worldConstants");
 const { toplamGuc } = require("./gucService");
@@ -119,39 +125,6 @@ function rowToPlayer(row) {
   };
 }
 
-function applyIcraatRegen(player) {
-  const now = Math.floor(Date.now() / 1000);
-  let lastAt = Number(player.last_icraat_at);
-  if (!Number.isFinite(lastAt) || lastAt <= 0) lastAt = now;
-
-  const elapsed = now - lastAt;
-  const hours = Math.floor(elapsed / ICRAAT_REGEN_SEC);
-  if (hours <= 0) {
-    player.last_icraat_at = lastAt;
-    return player;
-  }
-
-  player.icraat = Math.min(ICRAAT_MAX, (player.icraat || 0) + hours * ICRAAT_SAATLIK_BONUS);
-  player.last_icraat_at = lastAt + hours * ICRAAT_REGEN_SEC;
-  return player;
-}
-
-async function syncIcraatRegen(db, userId) {
-  const row = await get(db, `SELECT icraat, last_icraat_at FROM players WHERE user_id = ?`, [userId]);
-  if (!row) {
-    const now = Math.floor(Date.now() / 1000);
-    return { icraat: 0, last_icraat_at: now };
-  }
-  const synced = applyIcraatRegen({ icraat: row.icraat, last_icraat_at: row.last_icraat_at });
-  if (synced.icraat !== row.icraat || synced.last_icraat_at !== row.last_icraat_at) {
-    await run(db, `UPDATE players SET icraat = ?, last_icraat_at = ? WHERE user_id = ?`, [
-      synced.icraat,
-      synced.last_icraat_at,
-      userId,
-    ]);
-  }
-  return synced;
-}
 
 async function loadPlayer(db, userId) {
   const row = await get(
@@ -168,13 +141,10 @@ async function loadPlayer(db, userId) {
   const lastSeen = row.last_seen_at || 0;
   const offlineHours = lastSeen > 0 ? Math.floor((now - lastSeen) / 3600) : 0;
 
-  let player = applyIcraatRegen(rowToPlayer(row));
-  const raw = await get(db, "SELECT icraat, last_icraat_at FROM players WHERE user_id = ?", [
-    userId,
-  ]);
-  if (player.icraat !== raw.icraat || player.last_icraat_at !== raw.last_icraat_at) {
-    await savePlayer(db, userId, player);
-  }
+  const icraatSync = await syncIcraatRegen(db, userId);
+  let player = rowToPlayer(row);
+  player.icraat = icraatSync.icraat;
+  player.last_icraat_at = icraatSync.last_icraat_at;
   player = await processLimanIncome(db, userId, player);
   player = await processSectorIncome(db, userId, player);
 
@@ -203,7 +173,7 @@ async function savePlayer(db, userId, player) {
     db,
     `UPDATE players SET
       kasa = ?, guc = ?, puan = ?, icraat = ?,
-      liman_istanbul = ?, last_icraat_at = ?
+      liman_istanbul = ?
      WHERE user_id = ?`,
     [
       player.kasa,
@@ -211,7 +181,6 @@ async function savePlayer(db, userId, player) {
       player.puan,
       player.icraat,
       player.limanlar && player.limanlar.istanbul ? 1 : 0,
-      player.last_icraat_at,
       userId,
     ]
   );
@@ -411,10 +380,9 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
         error: `Gücün yetersiz! En az ${job.minGuc.toLocaleString("tr-TR")} güce ihtiyacın var.`,
       };
     }
-    if (player.icraat < job.icraat) {
-      return { ok: false, error: "Yeterli İcraat Hakkın kalmadı! Biraz bekle." };
-    }
-    player.icraat -= job.icraat;
+    const icraatSonuc = await icraatHarca(db, userId, job.icraat);
+    if (!icraatSonuc.ok) return icraatSonuc;
+    player.icraat = icraatSonuc.icraat;
     player.kasa += job.netKazanc;
     player.puan += job.puan;
     const devletDusus = rastgeleAvukatDususu(5, 10);
@@ -422,9 +390,8 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
     const yeniDevletIliski = clampAvukatIliskisi(mevcutDevlet - devletDusus);
     await run(
       db,
-      `UPDATE players SET kasa = ?, puan = ?, icraat = ?, devlet_iliskisi = ?, last_icraat_at = ?
-       WHERE user_id = ?`,
-      [player.kasa, player.puan, player.icraat, yeniDevletIliski, player.last_icraat_at, userId]
+      `UPDATE players SET kasa = ?, puan = ?, devlet_iliskisi = ? WHERE user_id = ?`,
+      [player.kasa, player.puan, yeniDevletIliski, userId]
     );
     await logStatHareket(db, userId, "sayginlik", job.puan);
     const gorevSonuc = await gorevOlayIsle(db, userId, "is_yap", { jobKey: key });

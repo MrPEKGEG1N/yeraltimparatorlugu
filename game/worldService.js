@@ -8,6 +8,7 @@ const { limanHaberEkle, makamHaberEkle } = require("./sehirGazeteService");
 const { logStatHareket } = require("./statService");
 const { temizGrupAdi } = require("./grupAdi");
 const { toplamGuc, savunmaGucu, oyuncuGucBilgisi, gucKaybiOranliUygula } = require("./gucService");
+const { icraatHarca } = require("./icraatService");
 const {
   LIMAN_IDS,
   BABA_MAKAMLAR,
@@ -201,9 +202,6 @@ async function limanCok(db, attackerId, attacker, limanId, securityMeta = {}) {
   }
   const hapis = await hapisKontrol(db, attackerId);
   if (!hapis.ok) return hapis;
-  if (attacker.icraat < 1) {
-    return { ok: false, error: "Liman baskını için 1 İcraat Hakkı gerekir!" };
-  }
   await ensureWorldRows(db);
   const liman = await get(
     db,
@@ -231,15 +229,18 @@ async function limanCok(db, attackerId, attacker, limanId, securityMeta = {}) {
   if (liman.owner_user_id && toplamGuc(attacker) <= sahipGuc) {
     return { ok: false, error: ZAYIF_HAMLE_MSG };
   }
+  const icraatSonuc = await icraatHarca(db, attackerId, 1);
+  if (!icraatSonuc.ok) {
+    return { ok: false, error: "Liman baskını için 1 İcraat Hakkı gerekir!" };
+  }
+  attacker.icraat = icraatSonuc.icraat;
   const eskiSahip = liman.owner_user_id;
-  attacker.icraat -= 1;
   await devletDusur(db, attackerId, 4);
   await run(
     db,
     `UPDATE liman_sahiplik SET owner_user_id = ?, last_income_hour = NULL WHERE liman_id = ?`,
     [attackerId, limanId]
   );
-  await run(db, `UPDATE players SET icraat = ? WHERE user_id = ?`, [attacker.icraat, attackerId]);
   const attackerRow = await get(db, `SELECT reis_adi FROM users WHERE id = ?`, [attackerId]);
   if (eskiSahip && eskiSahip !== attackerId) {
     try {
@@ -270,9 +271,6 @@ async function babaCok(db, attackerId, attacker, makam, securityMeta = {}) {
   }
   const hapis = await hapisKontrol(db, attackerId);
   if (!hapis.ok) return hapis;
-  if (attacker.icraat < 1) {
-    return { ok: false, error: "Makam baskını için 1 İcraat Hakkı gerekir!" };
-  }
   await ensureWorldRows(db);
   const row = await get(
     db,
@@ -300,14 +298,17 @@ async function babaCok(db, attackerId, attacker, makam, securityMeta = {}) {
   if (row.owner_user_id && toplamGuc(attacker) <= sahipGuc) {
     return { ok: false, error: ZAYIF_HAMLE_MSG };
   }
+  const icraatSonuc = await icraatHarca(db, attackerId, 1);
+  if (!icraatSonuc.ok) {
+    return { ok: false, error: "Makam baskını için 1 İcraat Hakkı gerekir!" };
+  }
+  attacker.icraat = icraatSonuc.icraat;
   const eskiSahip = row.owner_user_id;
-  attacker.icraat -= 1;
   await devletDusur(db, attackerId, 5);
   await run(db, `UPDATE baba_makamlari SET owner_user_id = ? WHERE makam = ?`, [
     attackerId,
     makam,
   ]);
-  await run(db, `UPDATE players SET icraat = ? WHERE user_id = ?`, [attacker.icraat, attackerId]);
   const attackerRow = await get(db, `SELECT reis_adi FROM users WHERE id = ?`, [attackerId]);
   if (eskiSahip && eskiSahip !== attackerId) {
     try {
@@ -354,9 +355,6 @@ async function sadakatOy(db, userId, oy) {
 async function dusmanaCok(db, attackerId, attacker, hedefAd, securityMeta = {}) {
   const hapis = await hapisKontrol(db, attackerId);
   if (!hapis.ok) return hapis;
-  if (attacker.icraat < 1) {
-    return { ok: false, error: "Saldırı için 1 İcraat Hakkı gerekir!" };
-  }
   const hedef = await get(
     db,
     `SELECT u.id, u.reis_adi, u.username, p.kasa, p.puan, p.guc,
@@ -387,12 +385,17 @@ async function dusmanaCok(db, attackerId, attacker, hedefAd, securityMeta = {}) 
     };
   }
 
+  const icraatSonuc = await icraatHarca(db, attackerId, 1);
+  if (!icraatSonuc.ok) {
+    return { ok: false, error: "Saldırı için 1 İcraat Hakkı gerekir!" };
+  }
+  attacker.icraat = icraatSonuc.icraat;
+
   const saldiranRow = await get(db, `SELECT reis_adi FROM users WHERE id = ?`, [attackerId]);
   const saldiranAdi = saldiranRow.reis_adi;
   const oncekiPuan = attacker.puan;
   const oncekiToplamGuc = saldiranToplam;
 
-  attacker.icraat -= 1;
   const devletDusus = rastgeleAvukatDususu(5, 10);
   const yeniDevletIliski = await devletDusur(db, attackerId, devletDusus);
 

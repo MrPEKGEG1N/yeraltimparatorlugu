@@ -55,23 +55,30 @@ async function ensureBankaRow(db, userId) {
 
 async function ensureBankaHak(db, userId, row) {
   const now = Math.floor(Date.now() / 1000);
-  let hak = row.banka_hakki ?? BANKA_HAK_GUNLUK;
-  let last = Number(row.last_banka_hak_at);
-  if (!Number.isFinite(last) || last <= 0) {
-    last = now;
+  let hak = Number(row.banka_hakki ?? BANKA_HAK_GUNLUK);
+  let last = normalizeLastBankaAt(row.last_banka_hak_at, now);
+  if (last !== Number(row.last_banka_hak_at)) {
     await run(db, `UPDATE banka_hesaplari SET last_banka_hak_at = ? WHERE user_id = ?`, [last, userId]);
   }
   const elapsed = now - last;
   const periods = Math.floor(elapsed / BANKA_HAK_REGEN_SEC);
   if (periods > 0) {
     hak += periods * BANKA_HAK_GUNLUK;
+    const yeniLast = last + periods * BANKA_HAK_REGEN_SEC;
     await run(
       db,
       `UPDATE banka_hesaplari SET banka_hakki = ?, last_banka_hak_at = ? WHERE user_id = ?`,
-      [hak, last + periods * BANKA_HAK_REGEN_SEC, userId]
+      [hak, yeniLast, userId]
     );
+    return hak;
   }
   return hak;
+}
+
+function normalizeLastBankaAt(value, now) {
+  const n = Number(value);
+  if (!Number.isFinite(n) || n <= 0) return now;
+  return Math.floor(n);
 }
 
 async function bankaHakHarca(db, userId) {

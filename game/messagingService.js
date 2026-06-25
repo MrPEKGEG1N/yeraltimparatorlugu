@@ -44,8 +44,13 @@ function turkeyDayKey() {
 async function ensureSmsReset(db, userId, row) {
   const day = turkeyDayKey();
   if (!row.last_sms_day) {
-    await run(db, `UPDATE players SET last_sms_day = ? WHERE user_id = ?`, [day, userId]);
-    return row.sms_hakki ?? SMS_GUNLUK;
+    const baslangic = row.sms_hakki != null ? row.sms_hakki : SMS_GUNLUK;
+    await run(db, `UPDATE players SET last_sms_day = ?, sms_hakki = ? WHERE user_id = ?`, [
+      day,
+      baslangic,
+      userId,
+    ]);
+    return baslangic;
   }
   if (row.last_sms_day === day) return row.sms_hakki;
   const kalanHak = row.sms_hakki || 0;
