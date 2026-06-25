@@ -5,17 +5,48 @@ const { ADMIN_USERNAME } = require("../config");
 const { temizGrupAdi } = require("../game/grupAdi");
 const { rastgeleProfilResmi, normalizeProfilResmi } = require("../game/profilPortreler");
 
+const PRODUCTION_DB_DIRS = ["/app/db", "/data"];
+
 function resolveDbPath() {
-  if (process.env.DATABASE_PATH) return path.resolve(process.env.DATABASE_PATH);
+  // Railway volume mount her zaman oncelikli — dashboard'daki gercek kalici yol
   if (process.env.RAILWAY_VOLUME_MOUNT_PATH) {
     return path.join(process.env.RAILWAY_VOLUME_MOUNT_PATH, "oyun.db");
   }
+  if (process.env.DATABASE_PATH) return path.resolve(process.env.DATABASE_PATH);
   const local = path.join(__dirname, "oyun.db");
-  if (process.env.NODE_ENV === "production") return "/data/oyun.db";
+  if (process.env.NODE_ENV === "production") return path.join(PRODUCTION_DB_DIRS[0], "oyun.db");
   return local;
 }
 
 const DB_PATH = resolveDbPath();
+
+function knownDbDirectories() {
+  const dirs = new Set([path.dirname(DB_PATH), path.join(__dirname), path.join(process.cwd(), "db")]);
+  for (const d of PRODUCTION_DB_DIRS) dirs.add(d);
+  if (process.env.RAILWAY_VOLUME_MOUNT_PATH) dirs.add(process.env.RAILWAY_VOLUME_MOUNT_PATH);
+  if (process.env.DATABASE_PATH) dirs.add(path.dirname(path.resolve(process.env.DATABASE_PATH)));
+  return [...dirs];
+}
+
+function knownDbFileCandidates() {
+  const files = new Set();
+  for (const dir of knownDbDirectories()) {
+    files.add(path.join(dir, "oyun.db"));
+    files.add(path.join(dir, "oyun.db.bak"));
+    files.add(path.join(dir, "oyun.db-wal"));
+    files.add(path.join(dir, "backups", "oyun.db"));
+    files.add(path.join(dir, "backups", "oyun.db.bak"));
+  }
+  files.add(DB_PATH);
+  files.add(DB_PATH + ".bak");
+  return [...files];
+}
+
+function isVolumeMounted() {
+  const mount = process.env.RAILWAY_VOLUME_MOUNT_PATH;
+  if (!mount) return false;
+  return path.resolve(path.dirname(DB_PATH)) === path.resolve(mount);
+}
 
 function ensureDbDirectory(dbPath) {
   const dir = path.dirname(dbPath);
@@ -67,18 +98,12 @@ function countSqliteUsers(dbPath) {
 
 async function restoreDbFromBestCandidate(targetPath) {
   ensureDbDirectory(targetPath);
-  const candidates = [
-    targetPath,
-    targetPath + ".bak",
-    path.join(__dirname, "oyun.db"),
-    path.join(process.cwd(), "db", "oyun.db"),
-  ];
   const seen = new Set();
   let bestPath = null;
   let bestUsers = -1;
   let bestSize = 0;
 
-  for (const p of candidates) {
+  for (const p of knownDbFileCandidates()) {
     const resolved = path.resolve(p);
     if (seen.has(resolved)) continue;
     seen.add(resolved);
@@ -98,6 +123,7 @@ async function restoreDbFromBestCandidate(targetPath) {
   const currentUsers = await countSqliteUsers(targetResolved);
   if (bestPath && bestUsers > 0 && (currentUsers <= 0 || bestUsers > currentUsers)) {
     if (bestPath !== targetResolved) {
+      ensureDbDirectory(targetPath);
       fs.copyFileSync(bestPath, targetResolved);
       console.log(
         `[db] Veritabani geri yuklendi: ${bestPath} -> ${targetResolved} (${bestUsers} kullanici)`
@@ -106,16 +132,89 @@ async function restoreDbFromBestCandidate(targetPath) {
   }
 }
 
+async function consolidateLegacyDbCopies(targetPath) {
+  const targetResolved = path.resolve(targetPath);
+  const targetUsers = await countSqliteUsers(targetResolved);
+  for (const p of knownDbFileCandidates()) {
+    const resolved = path.resolve(p);
+    if (resolved === targetResolved) continue;
+    if (!fs.existsSync(resolved)) continue;
+    if (fs.statSync(resolved).size < 512) continue;
+    const users = await countSqliteUsers(resolved);
+    if (users <= 0) continue;
+    if (targetUsers <= 0 && users > 0) {
+      ensureDbDirectory(targetPath);
+      fs.copyFileSync(resolved, targetResolved);
+      console.log(`[db] Eski konumdan tasindi: ${resolved} -> ${targetResolved} (${users} kullanici)`);
+      return;
+    }
+    if (users > targetUsers) {
+      const bak = targetPath + ".pre-merge.bak";
+      if (fs.existsSync(targetResolved)) fs.copyFileSync(targetResolved, bak);
+      fs.copyFileSync(resolved, targetResolved);
+      console.log(
+        `[db] Daha zengin kopya birlestirildi: ${resolved} -> ${targetResolved} (${users} > ${targetUsers} kullanici)`
+      );
+      return;
+    }
+  }
+}
+
 async function backupDbFile(targetPath) {
+  if (!fs.existsSync(targetPath) || fs.statSync(targetPath).size < 512) return;
   const users = await countSqliteUsers(targetPath);
   if (users <= 0) return;
+  const dir = path.dirname(targetPath);
   const bak = targetPath + ".bak";
+  const backupDir = path.join(dir, "backups");
   try {
     fs.copyFileSync(targetPath, bak);
+    if (!fs.existsSync(backupDir)) fs.mkdirSync(backupDir, { recursive: true });
+    const stamped = path.join(backupDir, `oyun-${new Date().toISOString().slice(0, 10)}.db`);
+    fs.copyFileSync(targetPath, stamped);
     console.log(`[db] Yedek alindi: ${bak} (${users} kullanici)`);
   } catch (err) {
     console.warn("[db] Yedek alinamadi:", err.message);
   }
+}
+
+function logDbEnvironment() {
+  const vol = process.env.RAILWAY_VOLUME_MOUNT_PATH || "(yok)";
+  const envPath = process.env.DATABASE_PATH || "(yok)";
+  console.log(`[db] Hedef: ${DB_PATH}`);
+  console.log(`[db] RAILWAY_VOLUME_MOUNT_PATH=${vol}, DATABASE_PATH=${envPath}`);
+  if (process.env.NODE_ENV === "production" && !process.env.RAILWAY_VOLUME_MOUNT_PATH) {
+    console.warn(
+      "[db] UYARI: Volume bagli degil! Railway panelinden servise Volume ekleyin (onerilen mount: /app/db)."
+    );
+  }
+  if (process.env.RAILWAY_VOLUME_MOUNT_PATH && !isVolumeMounted()) {
+    console.warn(
+      `[db] UYARI: DB yolu volume mount ile uyusmuyor! DB=${DB_PATH}, volume=${process.env.RAILWAY_VOLUME_MOUNT_PATH}`
+    );
+  }
+}
+
+async function configureSqlitePragmas(db) {
+  try {
+    await run(db, "PRAGMA journal_mode = WAL");
+    await run(db, "PRAGMA synchronous = NORMAL");
+    await run(db, "PRAGMA foreign_keys = ON");
+    await run(db, "PRAGMA busy_timeout = 10000");
+  } catch (err) {
+    console.warn("[db] PRAGMA ayarlanamadi:", err.message);
+  }
+}
+
+async function getDbDiagnostics() {
+  const users = fs.existsSync(DB_PATH) ? await countSqliteUsers(DB_PATH) : 0;
+  return {
+    path: DB_PATH,
+    volumeMount: process.env.RAILWAY_VOLUME_MOUNT_PATH || null,
+    volumeOk: isVolumeMounted(),
+    users,
+    sizeKb: fs.existsSync(DB_PATH) ? Math.round(fs.statSync(DB_PATH).size / 1024) : 0,
+  };
 }
 
 async function logDatabaseStats(db) {
@@ -182,8 +281,9 @@ async function migratePlayersTable(db) {
     "SELECT sql FROM sqlite_master WHERE type='table' AND name='players'"
   );
   if (!table || !table.sql || table.sql.includes("user_id")) return;
+  const users = await get(db, "SELECT COUNT(*) AS n FROM users");
   const row = await get(db, "SELECT COUNT(*) AS n FROM players");
-  if ((row?.n || 0) > 0) {
+  if ((users?.n || 0) > 0 || (row?.n || 0) > 0) {
     console.warn("[db] Eski players semasi var; mevcut kayitlar korunuyor (DROP atlandi).");
     return;
   }
@@ -191,10 +291,13 @@ async function migratePlayersTable(db) {
 }
 
 async function initDatabase() {
+  logDbEnvironment();
   ensureDbDirectory(DB_PATH);
   bootstrapDbFromLegacy(DB_PATH);
   await restoreDbFromBestCandidate(DB_PATH);
+  await consolidateLegacyDbCopies(DB_PATH);
   const db = await openDb();
+  await configureSqlitePragmas(db);
 
   await run(
     db,
@@ -755,6 +858,7 @@ module.exports = {
   initDatabase,
   DB_PATH,
   backupDbFile,
+  getDbDiagnostics,
   bootstrapAdminUser,
   ensureConfiguredAdmin,
   getConfiguredAdminUsername,

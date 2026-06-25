@@ -4,7 +4,7 @@ const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 const cookieParser = require("cookie-parser");
 
-const { initDatabase, get, DB_PATH, backupDbFile } = require("./db/database");
+const { initDatabase, get, DB_PATH, backupDbFile, getDbDiagnostics } = require("./db/database");
 const { ensureMessagingTables } = require("./game/messagingService");
 const { createAuthRouter } = require("./routes/auth");
 const { createGameRouter } = require("./routes/game");
@@ -71,6 +71,7 @@ async function start() {
 
   app.get("/api/health", async (req, res) => {
     try {
+      const diag = await getDbDiagnostics();
       const row = await get(db, "SELECT COUNT(*) AS n FROM users");
       res.json({
         ok: true,
@@ -79,6 +80,12 @@ async function start() {
         mafya: true,
         oyuncular: row?.n || 0,
         db: DB_PATH,
+        volume: diag.volumeMount,
+        volumeOk: diag.volumeOk,
+        uyari:
+          process.env.NODE_ENV === "production" && !diag.volumeOk
+            ? "Volume bagli degil veya DB yolu uyusmuyor — deployda veri kaybi riski"
+            : null,
       });
     } catch (err) {
       res.json({ ok: true, name: "yeralti-imparatorlugu", auth: true, mafya: true });
@@ -152,6 +159,22 @@ async function start() {
     console.log(`Yeraltı İmparatorluğu: http://localhost:${PORT}`);
     console.log("Durdurmak için Ctrl+C");
   });
+
+  let shuttingDown = false;
+  async function gracefulShutdown(signal) {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    console.log(`[db] ${signal} — yedek aliniyor...`);
+    try {
+      await backupDbFile(DB_PATH);
+      await new Promise((resolve) => db.close(() => resolve()));
+    } catch (err) {
+      console.warn("[db] Kapanis yedegi hatasi:", err.message);
+    }
+    process.exit(0);
+  }
+  process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+  process.on("SIGINT", () => gracefulShutdown("SIGINT"));
 }
 
 start().catch((err) => {
