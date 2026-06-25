@@ -409,6 +409,14 @@
   font-style: italic;
 }
 
+#masterLayout .profil-quill-wrap .ql-editor .ql-align-center {
+  text-align: center;
+}
+
+#masterLayout .profil-quill-wrap .ql-editor .ql-align-right {
+  text-align: right;
+}
+
 #masterLayout .profil-quill-wrap .ql-snow .ql-stroke {
   stroke: #c5a059;
 }
