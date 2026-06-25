@@ -1,5 +1,6 @@
 const { run, get, all } = require("../db/database");
 const { logSecurityEvent } = require("./securityService");
+const { listCanliAktivite, listOyuncuAktiviteLog, mapAktiviteAlanlari } = require("./aktiviteService");
 
 function fmtTs(ts) {
   if (!ts) return "—";
@@ -29,7 +30,8 @@ async function searchPlayers(db, q, limit = 200) {
       db,
       `SELECT u.id, u.username, u.reis_adi, u.lakap, u.grup, u.banned, u.is_admin,
               u.visitor_id, u.son_ip, u.user_agent, u.last_login_at, u.created_at,
-              p.kasa, p.guc, p.puan, p.icraat, p.last_seen_at, p.kara_listede
+              p.kasa, p.guc, p.puan, p.icraat, p.last_seen_at, p.kara_listede,
+              p.aktif_ekran, p.son_aksiyon, p.son_aksiyon_detay, p.son_aksiyon_at
        FROM users u
        JOIN players p ON p.user_id = u.id
        ORDER BY p.puan DESC
@@ -43,7 +45,8 @@ async function searchPlayers(db, q, limit = 200) {
     db,
     `SELECT u.id, u.username, u.reis_adi, u.lakap, u.grup, u.banned, u.is_admin,
             u.visitor_id, u.son_ip, u.user_agent, u.last_login_at, u.created_at,
-            p.kasa, p.guc, p.puan, p.icraat, p.last_seen_at, p.kara_listede
+            p.kasa, p.guc, p.puan, p.icraat, p.last_seen_at, p.kara_listede,
+            p.aktif_ekran, p.son_aksiyon, p.son_aksiyon_detay, p.son_aksiyon_at
      FROM users u
      JOIN players p ON p.user_id = u.id
      WHERE u.username LIKE ? COLLATE NOCASE
@@ -58,7 +61,8 @@ async function searchPlayers(db, q, limit = 200) {
 async function getPlayerDetail(db, userId) {
   const user = await get(
     db,
-    `SELECT u.*, p.kasa, p.guc, p.puan, p.icraat, p.last_seen_at, p.kara_listede, p.sms_hakki
+    `SELECT u.*, p.kasa, p.guc, p.puan, p.icraat, p.last_seen_at, p.kara_listede, p.sms_hakki,
+            p.aktif_ekran, p.son_aksiyon, p.son_aksiyon_detay, p.son_aksiyon_at
      FROM users u
      JOIN players p ON p.user_id = u.id
      WHERE u.id = ?`,
@@ -91,7 +95,9 @@ async function getPlayerDetail(db, userId) {
     [userId]
   );
 
-  return { user, fingerprints, events, uyelik };
+  const aktiviteLog = await listOyuncuAktiviteLog(db, userId, 40);
+
+  return { user, fingerprints, events, uyelik, aktiviteLog };
 }
 
 async function invalidateSessions(db, userId) {
@@ -324,6 +330,7 @@ function mapPlayerRow(r) {
     karaListede: !!r.kara_listede,
     lastSeen: fmtTs(r.last_seen_at),
     lastLogin: fmtTs(r.last_login_at),
+    ...mapAktiviteAlanlari(r),
   };
 }
 
@@ -345,5 +352,6 @@ module.exports = {
   deleteGrupMesaj,
   purgeUserMessages,
   listSecurityEvents,
+  listCanliAktivite,
   mapPlayerRow,
 };

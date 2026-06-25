@@ -636,6 +636,9 @@ async function initDatabase() {
   await ensureUserBaseTable(db);
   await migrateGuvenliYerBonusGuc(db);
 
+  const { ensureAktiviteSchema } = require("../game/aktiviteService");
+  await ensureAktiviteSchema(db);
+
   await logDatabaseStats(db);
   return db;
 }

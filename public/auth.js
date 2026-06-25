@@ -1,6 +1,7 @@
 /** Giriş / kayıt ekranı — script.js'den önce yüklenir; sayfa yenilemesini engeller */
 var authModu = "giris";
 var aktifKullanici = null;
+var authIslemSuruyor = false;
 var AUTH_MOD_KEY = "yi_auth_mod";
 var AUTH_DRAFT_KEY = "yi_auth_draft";
 
@@ -231,19 +232,39 @@ async function urlParamGirisDene() {
   }
 }
 
-async function cikisYap() {
+async function cikisYap(secenekler) {
+  secenekler = secenekler || {};
   try {
     await fetch("/api/auth/logout", apiOpts("POST"));
   } catch (_) {}
   if (typeof hosgeldinBuOturum !== "undefined") hosgeldinBuOturum = false;
   if (typeof muzikDurdur === "function") muzikDurdur();
+  if (typeof sunucuBagli !== "undefined") sunucuBagli = false;
+  document.getElementById("masterLayout").classList.add("gizli");
   authEkraniniGoster();
   authSekmeDegistir("giris");
-  authFormuTemizle();
+  if (secenekler.formuTemizle !== false) authFormuTemizle();
+}
+
+async function oturumDogrula() {
+  try {
+    var ctrl = new AbortController();
+    var timer = setTimeout(function () { ctrl.abort(); }, 12000);
+    var res = await fetch("/api/auth/me", Object.assign(apiOpts("GET"), { signal: ctrl.signal }));
+    clearTimeout(timer);
+    if (!res.ok) return { ok: false };
+    var data = await res.json().catch(function () { return {}; });
+    if (!data.ok) return { ok: false };
+    return { ok: true, user: data.user };
+  } catch {
+    return { ok: false };
+  }
 }
 
 async function authGonderIslem() {
   authHataGoster("");
+  if (authIslemSuruyor) return;
+
   var btn = document.getElementById("authGonder");
   if (!btn || btn.disabled) return;
 
@@ -279,6 +300,7 @@ async function authGonderIslem() {
   authTaslakKaydet();
 
   var eskiBtnText = btn.textContent;
+  authIslemSuruyor = true;
   btn.disabled = true;
   btn.textContent = authModu === "kayit" ? "⏳ Kayıt yapılıyor..." : "⏳ Giriş yapılıyor...";
 
@@ -295,12 +317,20 @@ async function authGonderIslem() {
       authHataGoster(data.error || "İşlem başarısız.");
       return;
     }
+    var oturum = await oturumDogrula();
+    if (!oturum.ok) {
+      authHataGoster(
+        "İşlem tamamlandı ama oturum kaydedilemedi. Çerezlere izin verip aynı bilgilerle tekrar giriş yap."
+      );
+      return;
+    }
     authUrlTemizle();
     if (authModu === "kayit") window.__yeniKayitOlundu = true;
-    oyunuGoster(data.user);
+    oyunuGoster(oturum.user || data.user);
   } catch {
     authHataGoster("Sunucuya bağlanılamadı. Terminalde npm start çalıştırın.");
   } finally {
+    authIslemSuruyor = false;
     btn.disabled = false;
     btn.textContent = eskiBtnText;
   }
@@ -313,30 +343,26 @@ function authEnterEngelle(e) {
   authGonderIslem();
 }
 
-function authSayfaYenilemeyiEngelle(e) {
-  if (e.type !== "submit") return;
-  var auth = document.getElementById("authEkran");
-  if (!auth || auth.classList.contains("gizli")) return;
-  var t = e.target;
-  if (!t) return;
-  if (t.id === "authForm" || (t.closest && (t.closest("#authForm") || t.closest("#authEkran")))) {
-    e.preventDefault();
-    e.stopImmediatePropagation();
-    authGonderIslem();
-    return false;
-  }
-}
-
 function authGirisTuslariBagla() {
   if (window.__authTuslariBagli) return;
   window.__authTuslariBagli = true;
 
   var sekmeGiris = document.getElementById("sekmeGiris");
   var sekmeKayit = document.getElementById("sekmeKayit");
-  var gonder = document.getElementById("authGonder");
   var wrap = document.getElementById("authForm");
 
-  document.addEventListener("submit", authSayfaYenilemeyiEngelle, true);
+  if (wrap) {
+    wrap.addEventListener(
+      "submit",
+      function (e) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        authGonderIslem();
+        return false;
+      },
+      true
+    );
+  }
 
   if (sekmeGiris) {
     sekmeGiris.addEventListener("click", function (e) {
@@ -348,12 +374,6 @@ function authGirisTuslariBagla() {
     sekmeKayit.addEventListener("click", function (e) {
       e.preventDefault();
       authSekmeDegistir("kayit");
-    });
-  }
-  if (gonder) {
-    gonder.addEventListener("click", function (e) {
-      e.preventDefault();
-      authGonderIslem();
     });
   }
   if (wrap) {
@@ -376,15 +396,19 @@ function authBekleyenOyunuBaslat() {
 async function authBaslat() {
   if (window.__authBaslatildi) return;
   window.__authBaslatildi = true;
-  yukleniyorGizle();
+
+  yukleniyorGoster("⏳ Oturum kontrol ediliyor...");
+  var authEl = document.getElementById("authEkran");
+  if (authEl) authEl.classList.add("gizli");
   authModuGeriYukle();
-  authTaslakGeriYukle();
+
   try {
     if (await urlParamGirisDene()) return;
-    yukleniyorGoster("⏳ Oturum kontrol ediliyor...");
     var yuklendi = await oturumKontrol();
-    yukleniyorGizle();
-    if (!yuklendi) authEkraniniGoster();
+    if (!yuklendi) {
+      yukleniyorGizle();
+      authEkraniniGoster();
+    }
   } catch {
     yukleniyorGizle();
     authEkraniniGoster();
@@ -394,9 +418,18 @@ async function authBaslat() {
 
 function authDomHazir() {
   authGirisTuslariBagla();
-  authBaslat();
-  authBekleyenOyunuBaslat();
+  function basla() {
+    authBaslat();
+    authBekleyenOyunuBaslat();
+  }
+  if (document.readyState === "complete") {
+    basla();
+  } else {
+    window.addEventListener("load", basla, { once: true });
+  }
 }
+
+window.authGonderIslem = authGonderIslem;
 
 window.addEventListener("pageshow", function (e) {
   if (e.persisted && !aktifKullanici) {

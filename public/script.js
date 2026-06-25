@@ -41,6 +41,8 @@ var elitFiyatX2 = false;
 var onlineSayisi = 0;
 var icraatRegenPollTimer = null;
 var icraatSonRegenPoll = 0;
+var aktiviteBekleyenTimer = null;
+var aktiviteHeartbeatTimer = null;
 var sehirBannerState = { tip: 'belirsiz', reisAdi: null };
 var yeniProfilZiyaret = 0;
 var dusmanBulunanHedef = null;
@@ -277,12 +279,44 @@ async function saygiDuvariYukle() {
 }
 
 async function sunucudanYukle(secenekler) {
+  secenekler = secenekler || {};
   var res = await apiFetch('/api/player');
-  if (res.status === 401) { cikisYap(); throw new Error('Oturum kapalı'); }
+  if (res.status === 401) {
+    if (secenekler.poll) throw new Error('Oturum kapalı');
+    if (secenekler.bootstrap) throw new Error('AUTH_BOOTSTRAP_FAIL');
+    cikisYap();
+    throw new Error('Oturum kapalı');
+  }
   if (!res.ok) throw new Error('Oyuncu yüklenemedi');
   var p = await res.json();
   oyuncuUygula(p, secenekler);
   sunucuBagli = true;
+  aktiviteHeartbeatBaslat();
+}
+
+function aktiviteBildir(ekran, aksiyon, detay) {
+  if (!sunucuBagli) return;
+  var ekranKey = ekran || aktifEkran || '';
+  if (aktiviteBekleyenTimer) clearTimeout(aktiviteBekleyenTimer);
+  var gecikme = aksiyon ? 0 : 350;
+  aktiviteBekleyenTimer = setTimeout(function() {
+    apiFetch('/api/activity', {
+      method: 'POST',
+      body: {
+        ekran: ekranKey,
+        aksiyon: aksiyon || '',
+        detay: detay || ''
+      }
+    }).catch(function() {});
+  }, gecikme);
+}
+
+function aktiviteHeartbeatBaslat() {
+  if (aktiviteHeartbeatTimer) return;
+  aktiviteHeartbeatTimer = setInterval(function() {
+    if (!sunucuBagli) return;
+    aktiviteBildir(aktifEkran, 'heartbeat');
+  }, 60000);
 }
 
 async function sunucuAksiyon(action, key, adet, extra) {
@@ -303,6 +337,7 @@ async function sunucuAksiyon(action, key, adet, extra) {
       payload.clientTs = meta.clientTs;
       if (meta.visitorId) payload.visitorId = meta.visitorId;
     }
+    payload.aktifEkran = aktifEkran || '';
     var res = await apiFetch('/api/action', { method: 'POST', body: payload });
     if (res.status === 401) { cikisYap(); return null; }
     var data = await res.json().catch(function() { return {}; });
@@ -3066,6 +3101,7 @@ function ekranDegistir(tip) {
   var oyunScroll = document.getElementById('oyunEkran');
   if (oyunScroll) oyunScroll.scrollTop = 0;
   aktifEkran = tip;
+  aktiviteBildir(tip, 'ekran_goruntule');
   masterFramePlaqueGuncelle(tip);
   sehirBannerGuncelle();
   sidebarMenuAktif(tip);
@@ -3635,6 +3671,7 @@ async function medyaHaberleriYukle() {
 async function mafyaMenuSec(mod) {
   mobilAltMenuKapat();
   aktifEkran = 'mafya';
+  aktiviteBildir('mafya:' + mod, 'ekran_goruntule');
   masterFramePlaqueGuncelle('mafya', ML_MAFYA_BASLIKLARI[mod] || 'MAFYA GRUBU');
   var ic = document.getElementById('anaIcerik');
   ic.innerHTML = '<div id="mafyaAltIcerik" class="mafya-alt-icerik"></div>';
@@ -4871,8 +4908,7 @@ async function oyunuBaslat() {
   try {
     var health = await fetch('/api/health', { credentials: 'include' });
     if (!health.ok) throw new Error('API yanıt vermedi');
-    await sunucudanYukle();
-    sunucuBagli = true;
+    await sunucudanYukle({ bootstrap: true });
     clearTimeout(yukTimeout);
     if (yuk) yuk.classList.add('gizli');
     sesUiGuncelle();
@@ -4896,6 +4932,15 @@ async function oyunuBaslat() {
   } catch (e) {
     clearTimeout(yukTimeout);
     sunucuBagli = false;
+    if (e && e.message === 'AUTH_BOOTSTRAP_FAIL') {
+      document.getElementById('masterLayout').classList.add('gizli');
+      if (typeof authEkraniniGoster === 'function') authEkraniniGoster();
+      if (typeof authHataGoster === 'function') {
+        authHataGoster('Oturum kurulamadı. Çerezlere izin verip tekrar giriş yap.');
+      }
+      if (yuk) yuk.classList.add('gizli');
+      return;
+    }
     if (yuk) {
       yuk.innerHTML =
         '❌ Sunucu kapalı veya oturum geçersiz.<br><br>Proje klasöründe <b>npm start</b> çalıştır, ardından <b>http://localhost:3000</b> adresinden gir (dosyayı doğrudan açma).'

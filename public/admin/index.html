@@ -28,6 +28,7 @@
         <nav class="admin-nav">
           <button type="button" data-tab="dashboard" class="nav-btn aktif">📊 Özet</button>
           <button type="button" data-tab="oyuncular" class="nav-btn">👤 Oyuncular</button>
+          <button type="button" data-tab="aktivite" class="nav-btn">📡 Canlı Aktivite</button>
           <button type="button" data-tab="multi" class="nav-btn">🕵️ Şüpheli Hesaplar</button>
           <button type="button" data-tab="mesajlar" class="nav-btn">💬 Sohbet Kontrol</button>
           <button type="button" data-tab="guvenlik" class="nav-btn">🛡️ Güvenlik Günlüğü</button>
@@ -57,13 +58,28 @@
               <table class="admin-tablo">
                 <thead>
                   <tr>
-                    <th>ID</th><th>Reis</th><th>Kullanıcı</th><th>Güç</th><th>Saygınlık</th><th>Durum</th><th></th>
+                    <th>ID</th><th>Reis</th><th>Kullanıcı</th><th>Ekran</th><th>Son İşlem</th><th>Güç</th><th>Saygınlık</th><th>Durum</th><th></th>
                   </tr>
                 </thead>
                 <tbody id="oyuncuTablo"></tbody>
               </table>
             </div>
             <div id="oyuncuDetay" class="detay-kutu hidden"></div>
+          </section>
+
+          <section id="tab-aktivite" class="tab-panel hidden">
+            <p class="baslik-altin" style="margin-top:0">Son 10 dakikada aktif oyuncular</p>
+            <p style="color:#6b7280;font-size:13px;margin:0 0 12px">Liste her 15 saniyede yenilenir.</p>
+            <div class="admin-tablo-wrap">
+              <table class="admin-tablo">
+                <thead>
+                  <tr>
+                    <th></th><th>Reis</th><th>Ekran</th><th>Son İşlem</th><th>Detay</th><th>Zaman</th><th></th>
+                  </tr>
+                </thead>
+                <tbody id="aktiviteTablo"></tbody>
+              </table>
+            </div>
           </section>
 
           <section id="tab-multi" class="tab-panel hidden">
@@ -93,6 +109,6 @@
     </div>
   </div>
 
-  <script src="/admin/admin.js?v=6"></script>
+  <script src="/admin/admin.js?v=7"></script>
 </body>
 </html>

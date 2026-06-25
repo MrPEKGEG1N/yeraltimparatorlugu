@@ -18,6 +18,7 @@ const {
   deleteGrupMesaj,
   purgeUserMessages,
   listSecurityEvents,
+  listCanliAktivite,
   mapPlayerRow,
   fmtTs,
 } = require("../game/adminService");
@@ -97,6 +98,7 @@ function createAdminRouter(db) {
         mafya: detail.uyelik
           ? { grupId: detail.uyelik.grup_id, isim: detail.uyelik.isim, rutbe: detail.uyelik.rutbe }
           : null,
+        aktiviteLog: detail.aktiviteLog || [],
       });
     } catch (err) {
       console.error(err);
@@ -294,6 +296,16 @@ function createAdminRouter(db) {
     } catch (err) {
       console.error(err);
       res.status(500).json({ ok: false, error: "Güvenlik günlüğü yüklenemedi." });
+    }
+  });
+
+  router.get("/aktivite", async (req, res) => {
+    try {
+      const liste = await listCanliAktivite(db, parseInt(req.query.limit, 10) || 100);
+      res.json({ ok: true, liste });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ ok: false, error: "Canlı aktivite yüklenemedi." });
     }
   });
 

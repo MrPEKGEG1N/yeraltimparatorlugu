@@ -1,6 +1,7 @@
 (function () {
   var seciliOyuncuId = null;
   var aktifMsgTab = "kutu";
+  var aktivitePollTimer = null;
 
   function esc(s) {
     var d = document.createElement("div");
@@ -87,6 +88,7 @@
     var baslik = {
       dashboard: "Özet",
       oyuncular: "Oyuncu Yönetimi",
+      aktivite: "Canlı Aktivite",
       multi: "Şüpheli Multi-Hesaplar",
       mesajlar: "Sohbet Kontrol",
       guvenlik: "Güvenlik Günlüğü",
@@ -124,7 +126,7 @@
   function oyuncuTabloCiz(liste) {
     var tb = document.getElementById("oyuncuTablo");
     if (!liste.length) {
-      tb.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#6b7280;padding:16px">Sonuç yok.</td></tr>';
+      tb.innerHTML = '<tr><td colspan="9" style="text-align:center;color:#6b7280;padding:16px">Sonuç yok.</td></tr>';
       return;
     }
     tb.innerHTML = liste
@@ -133,9 +135,18 @@
           ? '<span style="color:#f87171">Banlı</span>'
           : o.isAdmin
             ? '<span style="color:#c5a059">Admin</span>'
-            : '<span style="color:#4ade80">Aktif</span>';
+            : o.online
+              ? '<span style="color:#4ade80">Çevrimiçi</span>'
+              : '<span style="color:#6b7280">Uzakta</span>';
+        var ekran = o.online && o.aktifEkranLabel
+          ? '<span style="color:#93c5fd;font-size:12px">' + esc(o.aktifEkranLabel) + "</span>"
+          : '<span style="color:#4b5563">—</span>';
+        var sonIs = o.online && o.sonAksiyonLabel
+          ? '<span style="font-size:12px">' + esc(o.sonAksiyonLabel) + "</span>"
+          : '<span style="color:#4b5563">—</span>';
         return (
           "<tr><td>" + o.id + "</td><td><b>" + esc(o.reisAdi) + "</b></td><td>" + esc(o.username) +
+          "</td><td>" + ekran + "</td><td>" + sonIs +
           "</td><td>" + fmt(o.guc) + "</td><td style='color:#c5a059'>" + fmt(o.puan) +
           "</td><td>" + durum + '</td><td><button type="button" data-id="' + o.id +
           '" class="detay-btn admin-btn admin-btn-altin" style="min-height:36px;padding:6px 12px">Detay</button></td></tr>'
@@ -152,7 +163,7 @@
   function oyuncuAra() {
     var q = document.getElementById("oyuncuAra").value.trim();
     var tb = document.getElementById("oyuncuTablo");
-    if (tb) tb.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#6b7280;padding:16px">Yükleniyor…</td></tr>';
+    if (tb) tb.innerHTML = '<tr><td colspan="9" style="text-align:center;color:#6b7280;padding:16px">Yükleniyor…</td></tr>';
     api("/api/admin/oyuncular?q=" + encodeURIComponent(q)).then(function (res) {
       if (!res.ok) {
         toast(res.data.error || "Arama hatası", true);
@@ -186,9 +197,25 @@
           return "<li style='font-size:12px;color:#9ca3af'>" + esc(f.visitorId || "—") + " | " + esc(f.ip) + "</li>";
         })
         .join("");
+      var aktiviteSatir = o.aktifEkranLabel
+        ? "<p style='color:#93c5fd;font-size:13px;margin:0 0 8px'><b>Şu an:</b> " + esc(o.aktifEkranLabel) +
+          (o.sonAksiyonLabel ? " · <b>Son işlem:</b> " + esc(o.sonAksiyonLabel) : "") +
+          (o.sonAksiyonDetay ? " — " + esc(o.sonAksiyonDetay) : "") +
+          (o.sonAksiyonAt ? " <span style='color:#6b7280'>(" + esc(o.sonAksiyonAt) + ")</span>" : "") +
+          "</p>"
+        : "";
+      var log = (res.data.aktiviteLog || [])
+        .map(function (a) {
+          return "<li style='font-size:12px;color:#9ca3af;margin-bottom:4px'>" +
+            "<span style='color:#6b7280'>" + esc(a.at) + "</span> · " +
+            esc(a.ekranLabel || "—") + " · <b style='color:#d1d5db'>" + esc(a.aksiyonLabel || "—") + "</b>" +
+            (a.detay ? " — " + esc(a.detay) : "") + "</li>";
+        })
+        .join("");
       el.innerHTML =
         "<h3 style='margin:0 0 4px;color:#fff'>" + esc(o.reisAdi) + "</h3>" +
         "<p style='color:#6b7280;margin:0 0 12px'>@" + esc(o.username) + " · ID " + o.id + "</p>" +
+        aktiviteSatir +
         "<div class='aksiyon-satir'>" +
         btn("Banla", "ban", "admin-btn-kirmizi") +
         btn("Banı Kaldır", "unban", "admin-btn-gri") +
@@ -202,6 +229,8 @@
         "<form id='statForm' class='detay-grid' style='grid-template-columns:repeat(4,1fr)'>" +
         inputStat("kasa", o.kasa) + inputStat("guc", o.guc) + inputStat("puan", o.puan) + inputStat("icraat", o.icraat) +
         "<button type='submit' class='admin-btn admin-btn-altin' style='grid-column:1/-1'>İstatistik Kaydet</button></form>" +
+        "<p class='baslik-altin'>Son aktiviteler</p><ul style='max-height:200px;overflow-y:auto;padding-left:18px'>" +
+        (log || "<li style='color:#6b7280'>Henüz kayıt yok</li>") + "</ul>" +
         "<p class='baslik-altin'>Parmak izi</p><ul>" + (fp || "<li style='color:#6b7280'>Yok</li>") + "</ul>";
 
       el.querySelectorAll("[data-action]").forEach(function (b) {
@@ -333,6 +362,49 @@
     });
   }
 
+  function yukleAktivite() {
+    var tb = document.getElementById("aktiviteTablo");
+    if (!tb) return;
+    api("/api/admin/aktivite").then(function (res) {
+      if (!res.ok) {
+        tb.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#f87171;padding:16px">' +
+          esc(res.data.error || "Yüklenemedi") + "</td></tr>";
+        return;
+      }
+      var liste = res.data.liste || [];
+      if (!liste.length) {
+        tb.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#6b7280;padding:16px">Şu an aktif oyuncu yok.</td></tr>';
+        return;
+      }
+      tb.innerHTML = liste.map(function (a) {
+        var dot = a.online
+          ? '<span style="color:#4ade80;font-size:16px" title="Çevrimiçi">●</span>'
+          : '<span style="color:#6b7280;font-size:16px" title="Uzakta">○</span>';
+        return "<tr><td>" + dot + "</td><td><b>" + esc(a.reisAdi) + "</b><br><span style='font-size:11px;color:#6b7280'>@" +
+          esc(a.username) + "</span></td><td style='color:#93c5fd;font-size:12px'>" + esc(a.aktifEkranLabel || "—") +
+          "</td><td style='font-size:12px'>" + esc(a.sonAksiyonLabel || "—") +
+          "</td><td style='font-size:12px;color:#9ca3af;max-width:200px;word-break:break-word'>" + esc(a.sonAksiyonDetay || "—") +
+          "</td><td style='font-size:11px;color:#6b7280;white-space:nowrap'>" + esc(a.sonAksiyonAt || a.lastSeen) +
+          '</td><td><button type="button" data-id="' + a.id +
+          '" class="aktivite-detay-btn admin-btn admin-btn-altin" style="min-height:32px;padding:4px 10px;font-size:12px">Detay</button></td></tr>';
+      }).join("");
+      tb.querySelectorAll(".aktivite-detay-btn").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          aktifNav("oyuncular");
+          oyuncuDetayYukle(parseInt(btn.getAttribute("data-id"), 10));
+        });
+      });
+    });
+  }
+
+  function aktivitePollBaslat() {
+    if (aktivitePollTimer) clearInterval(aktivitePollTimer);
+    aktivitePollTimer = setInterval(function () {
+      var panel = document.getElementById("tab-aktivite");
+      if (panel && !panel.classList.contains("hidden")) yukleAktivite();
+    }, 15000);
+  }
+
   function yukleGuvenlik() {
     api("/api/admin/guvenlik").then(function (res) {
       if (!res.ok) return;
@@ -351,6 +423,7 @@
         aktifNav(tab);
         if (tab === "dashboard") yukleDashboard();
         if (tab === "oyuncular") oyuncuAra();
+        if (tab === "aktivite") yukleAktivite();
         if (tab === "multi") yukleMulti();
         if (tab === "mesajlar") msgTab("kutu");
         if (tab === "guvenlik") yukleGuvenlik();
@@ -385,6 +458,7 @@
     document.getElementById("adminEtiket").textContent =
       (res.data.admin && res.data.admin.reisAdi) || res.data.admin.username || "";
     bagla();
+    aktivitePollBaslat();
     aktifNav("dashboard");
     yukleDashboard();
   }).catch(function () {

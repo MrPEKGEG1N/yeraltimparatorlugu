@@ -24,6 +24,7 @@ const { gecerliProfilResmi } = require("../game/profilPortreler");
 const { panelGetir } = require("../game/gunlukGorevService");
 const { panelGetir: guvenliYerPanelGetir } = require("../game/guvenliYerService");
 const { sanitizeProfilAciklama } = require("../game/profilAciklamaSanitize");
+const { kaydetAktivite, aksiyonDetayOlustur } = require("../game/aktiviteService");
 const {
   attachClientMeta,
   createBannedCheck,
@@ -251,9 +252,24 @@ function createGameRouter(db) {
     }
   });
 
+  router.post("/activity", async (req, res) => {
+    const body = req.body || {};
+    try {
+      await kaydetAktivite(db, req.user.id, {
+        ekran: body.ekran,
+        aksiyon: body.aksiyon,
+        detay: body.detay,
+      });
+      res.json({ ok: true });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ ok: false, error: "Aktivite kaydedilemedi." });
+    }
+  });
+
   router.post("/action", createActionGuard(db), async (req, res) => {
     const body = req.body || {};
-    const { action, key, adet, ...extra } = body;
+    const { action, key, adet, aktifEkran, ...extra } = body;
     if (!action) {
       return res.status(400).json({ ok: false, error: "Aksiyon belirtilmedi." });
     }
@@ -263,6 +279,15 @@ function createGameRouter(db) {
         _securityMeta: req.clientMeta || {},
       });
       if (!result.ok) return res.status(400).json(result);
+      try {
+        await kaydetAktivite(db, req.user.id, {
+          ekran: aktifEkran || "",
+          aksiyon: action,
+          detay: aksiyonDetayOlustur(action, key, adet, extra, result),
+        });
+      } catch (aktErr) {
+        console.warn("Aktivite kaydı atlandı:", aktErr.message);
+      }
       res.json(result);
     } catch (err) {
       console.error(err);
