@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
-const { JWT_SECRET, COOKIE_NAME } = require("../config");
-const { get } = require("../db/database");
+const { JWT_SECRET, COOKIE_NAME, ADMIN_USERNAME } = require("../config");
+const { get, ensureConfiguredAdmin } = require("../db/database");
 
 async function loadAuthUser(db, userId) {
   if (!db || !userId) return null;
@@ -69,12 +69,22 @@ function createRequireAuth(db) {
 
 function createRequireAdmin(db) {
   return async function requireAdmin(req, res, next) {
-    const row = await verifySession(db, req, res);
+    let row = await verifySession(db, req, res);
     if (!row) return;
-    if (!row.is_admin) {
+
+    let isAdmin = !!row.is_admin;
+    if (!isAdmin && ADMIN_USERNAME && row.username === ADMIN_USERNAME) {
+      await ensureConfiguredAdmin(db, row.username);
+      row = await loadAuthUser(db, row.id);
+      isAdmin = !!row?.is_admin;
+    }
+
+    if (!isAdmin) {
       res.status(403).json({ ok: false, error: "Yönetici yetkisi gerekli." });
       return;
     }
+
+    attachUser(req, row);
     next();
   };
 }

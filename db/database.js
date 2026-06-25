@@ -1,5 +1,6 @@
 const path = require("path");
 const sqlite3 = require("sqlite3").verbose();
+const { ADMIN_USERNAME } = require("../config");
 const { temizGrupAdi } = require("../game/grupAdi");
 const { rastgeleProfilResmi, normalizeProfilResmi } = require("../game/profilPortreler");
 
@@ -572,7 +573,7 @@ async function bootstrapAdminUser(db) {
 }
 
 function getConfiguredAdminUsername() {
-  return String(process.env.ADMIN_USERNAME || "").trim().toLowerCase();
+  return ADMIN_USERNAME;
 }
 
 async function ensureConfiguredAdmin(db, username) {

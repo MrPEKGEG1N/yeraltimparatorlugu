@@ -5,22 +5,25 @@
 
 @media (max-width: 768px) {
   :root {
-    --ml-bottom-nav-h: 62px;
+    --ml-bottom-nav-h: 58px;
     --ml-header-stack-h: auto;
-    --ml-ribbon-h: 38px;
+    --ml-ribbon-h: 34px;
   }
 
   html,
   body {
     height: 100%;
     min-height: 100%;
+    width: 100%;
+    max-width: 100%;
     overflow: hidden;
+    overscroll-behavior: none;
     -webkit-text-size-adjust: 100%;
     -webkit-tap-highlight-color: transparent;
   }
 
   #masterLayout {
-    --ml-bottom-nav-h: 62px;
+    --ml-bottom-nav-h: 58px;
     display: grid;
     grid-template-columns: 1fr;
     grid-template-rows: auto var(--ml-ribbon-h) minmax(0, 1fr) var(--ml-bottom-nav-h);
@@ -30,37 +33,65 @@
       "main"
       "nav";
     width: 100%;
-    max-width: 100vw;
+    max-width: 100%;
     height: 100dvh;
     height: 100vh;
     overflow: hidden;
     font-size: 14px;
     padding-bottom: env(safe-area-inset-bottom, 0px);
+    background-attachment: scroll;
   }
 
-  /* —— Üst bar —— */
+  /* —— Üst bar: tek satır, kaydırmalı istatistikler —— */
   #masterLayout .ml-header {
-    flex-wrap: wrap;
+    grid-area: hdr;
+    flex-wrap: nowrap;
     align-items: center;
     gap: 4px;
-    padding: 6px 8px;
-    padding-top: max(6px, env(safe-area-inset-top, 0px));
-    min-height: 44px;
+    padding: 4px 6px;
+    padding-top: max(4px, env(safe-area-inset-top, 0px));
+    min-height: 0;
+    overflow: hidden;
   }
 
-  #masterLayout .ml-header-right {
-    order: 1;
-    width: 100%;
-    justify-content: space-between;
+  #masterLayout .stats-bar {
+    order: 0;
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
     flex-wrap: nowrap;
     gap: 4px;
-    padding: 2px 4px;
+    padding-bottom: 0;
     overflow-x: auto;
+    overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
   }
 
-  #masterLayout .ml-header-right::-webkit-scrollbar {
+  #masterLayout .stats-bar::-webkit-scrollbar {
+    display: none;
+  }
+
+  #masterLayout .ml-header-right {
+    order: 0;
+    flex: 0 0 auto;
+    width: auto;
+    justify-content: flex-end;
+    flex-wrap: nowrap;
+    gap: 3px;
+    padding: 2px 4px;
+    overflow: visible;
+  }
+
+  #masterLayout .ml-header-right button {
+    flex-shrink: 0;
+    min-height: 34px;
+    padding: 5px 7px;
+    font-size: 8px;
+    white-space: nowrap;
+  }
+
+  #masterLayout .ml-header-right button[onclick*="sehirTarihi"] {
     display: none;
   }
 
@@ -68,33 +99,26 @@
     display: none;
   }
 
-  #masterLayout .ml-header-right button {
+  #masterLayout .ml-btn-red {
     flex-shrink: 0;
-    min-height: 36px;
-    padding: 6px 9px;
-    font-size: 9px;
+    min-height: 34px;
+    padding: 5px 8px;
+    font-size: 8px;
     white-space: nowrap;
   }
 
-  #masterLayout .stats-bar {
-    order: 2;
-    width: 100%;
-    flex: 1 1 100%;
-    gap: 5px;
-    padding-bottom: 2px;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  #masterLayout .ml-btn-red {
-    flex-shrink: 0;
-    min-height: 38px;
-    padding: 7px 11px;
-    font-size: 9px;
-  }
-
   #masterLayout .ml-stat-chip {
-    padding: 5px 7px;
-    font-size: 10px;
+    padding: 4px 6px;
+    font-size: 9px;
+    flex-shrink: 0;
+  }
+
+  #masterLayout .ml-stat-label {
+    font-size: 8px;
+  }
+
+  #masterLayout .ml-stat-val {
+    font-size: 9px;
   }
 
   #masterLayout .ml-top-ribbon {
@@ -117,22 +141,35 @@
     grid-area: main;
     min-height: 0;
     min-width: 0;
+    height: 100%;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
 
   #masterLayout .g2-main {
     min-height: 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
   }
 
   #masterLayout .g2-frame--panel {
     min-height: 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
   }
 
   #masterLayout .g2-frame--panel .g2-body,
   #masterLayout .ui-frame-inner {
-    padding: 8px 10px 10px;
+    padding: 6px 8px 8px;
     overflow: hidden;
     min-height: 0;
+    flex: 1;
+    height: auto;
+    display: flex;
+    flex-direction: column;
   }
 
   #masterLayout #oyunEkran {
@@ -568,7 +605,66 @@
   }
 
   #tutorialResumeBtn.eg-devam-btn {
-    bottom: calc(var(--ml-bottom-nav-h) + env(safe-area-inset-bottom, 0px) + 14px);
+    bottom: calc(var(--ml-bottom-nav-h) + env(safe-area-inset-bottom, 0px) + 10px);
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: calc(100vw - 24px);
+    z-index: 36;
+  }
+}
+
+/* Dikey telefon — daha kompakt üst bar, geniş oyun alanı */
+@media (max-width: 768px) and (orientation: portrait) {
+  :root {
+    --ml-bottom-nav-h: 54px;
+    --ml-ribbon-h: 30px;
+  }
+
+  #masterLayout {
+    --ml-bottom-nav-h: 54px;
+    --ml-ribbon-h: 30px;
+  }
+
+  #masterLayout .ml-top-ribbon {
+    height: var(--ml-ribbon-h);
+    min-height: var(--ml-ribbon-h);
+  }
+
+  #masterLayout .ml-top-ribbon-img {
+    height: var(--ml-ribbon-h);
+  }
+
+  #masterLayout .ml-top-ribbon-txt {
+    width: min(88vw, 320px);
+    font-size: 8px;
+    letter-spacing: 0.5px;
+  }
+
+  #masterLayout .ml-stat-label {
+    display: none;
+  }
+
+  #masterLayout .ml-btn-red {
+    font-size: 7.5px;
+    padding: 4px 6px;
+  }
+
+  #masterLayout #reisEtiket {
+    display: inline-block;
+    max-width: 64px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: bottom;
+  }
+
+  #masterLayout #anaIcerik {
+    padding-bottom: 4px;
+  }
+
+  .ses-kontrol {
+    bottom: calc(var(--ml-bottom-nav-h) + env(safe-area-inset-bottom, 0px) + 8px);
+    transform: scale(0.92);
+    transform-origin: bottom right;
   }
 }
 

@@ -375,7 +375,7 @@
         return;
       }
       if (res.status === 403) {
-        yetkisizGoster("Bu hesabın yönetici yetkisi yok. Sunucu yöneticisi ADMIN_USERNAME ortam değişkeni ile yetki atamalı.");
+        yetkisizGoster("Bu hesabın yönetici yetkisi yok. Yönetici hesabıyla giriş yapmalısın.");
         return;
       }
       yetkisizGoster(res.data.error || "Panele erişilemedi.");
