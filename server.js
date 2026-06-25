@@ -4,7 +4,7 @@ const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 const cookieParser = require("cookie-parser");
 
-const { initDatabase } = require("./db/database");
+const { initDatabase, get, DB_PATH, backupDbFile } = require("./db/database");
 const { ensureMessagingTables } = require("./game/messagingService");
 const { createAuthRouter } = require("./routes/auth");
 const { createGameRouter } = require("./routes/game");
@@ -52,7 +52,7 @@ app.use(
   })
 );
 
-app.use(express.json({ limit: "48kb" }));
+app.use(express.json({ limit: "1mb" }));
 app.use(cookieParser());
 
 const globalApiLimiter = rateLimit({
@@ -65,13 +65,25 @@ const globalApiLimiter = rateLimit({
 
 app.use("/api", globalApiLimiter);
 
-app.get("/api/health", (req, res) => {
-  res.json({ ok: true, name: "yeralti-imparatorlugu", auth: true, mafya: true });
-});
-
 async function start() {
   const db = await initDatabase();
   await ensureMessagingTables(db);
+
+  app.get("/api/health", async (req, res) => {
+    try {
+      const row = await get(db, "SELECT COUNT(*) AS n FROM users");
+      res.json({
+        ok: true,
+        name: "yeralti-imparatorlugu",
+        auth: true,
+        mafya: true,
+        oyuncular: row?.n || 0,
+        db: DB_PATH,
+      });
+    } catch (err) {
+      res.json({ ok: true, name: "yeralti-imparatorlugu", auth: true, mafya: true });
+    }
+  });
 
   setInterval(() => {
     savasiCoz(db).catch((err) => console.error("Mafya savaşı çözüm hatası:", err));
@@ -88,6 +100,10 @@ async function start() {
     }
   }
   setInterval(aylikRaporKontrol, 5 * 60 * 1000);
+
+  setInterval(() => {
+    backupDbFile(DB_PATH).catch((err) => console.warn("[db] Periyodik yedek hatasi:", err.message));
+  }, 6 * 60 * 60 * 1000);
 
   app.use("/api/auth", createAuthRouter(db));
   app.use("/api/admin", createAdminRouter(db));

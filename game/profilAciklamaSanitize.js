@@ -1,7 +1,8 @@
 const sanitizeHtml = require("sanitize-html");
 const { profilAciklamaFFormatMi, htmlToPlainText } = require("./profilFFormat");
 
-const MAX_UZUNLUK = 12000;
+const MAX_HTML_UZUNLUK = 12000;
+const MAX_F_UZUNLUK = 250000;
 
 function sanitizeProfilAciklama(raw) {
   const src = String(raw || "");
@@ -12,7 +13,7 @@ function sanitizeProfilAciklama(raw) {
       .replace(/<[^>]+>/g, "")
       .trim();
     if (!plain) return "";
-    return plain.slice(0, MAX_UZUNLUK);
+    return plain.slice(0, MAX_F_UZUNLUK);
   }
 
   const cleaned = sanitizeHtml(src, {
@@ -44,7 +45,7 @@ function sanitizeProfilAciklama(raw) {
   if (!cleaned || cleaned === "<p></p>" || cleaned === "<p><br></p>") {
     return "";
   }
-  return cleaned.slice(0, MAX_UZUNLUK);
+  return cleaned.slice(0, MAX_HTML_UZUNLUK);
 }
 
 module.exports = { sanitizeProfilAciklama };

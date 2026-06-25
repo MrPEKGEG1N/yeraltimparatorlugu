@@ -42,6 +42,82 @@ function bootstrapDbFromLegacy(targetPath) {
   return false;
 }
 
+function countSqliteUsers(dbPath) {
+  return new Promise((resolve) => {
+    if (!fs.existsSync(dbPath)) return resolve(-1);
+    if (fs.statSync(dbPath).size < 512) return resolve(0);
+    const db = new sqlite3.Database(dbPath, sqlite3.OPEN_READONLY, (err) => {
+      if (err) return resolve(-1);
+      db.get(
+        "SELECT COUNT(*) AS n FROM sqlite_master WHERE type='table' AND name='users'",
+        [],
+        (tblErr, tbl) => {
+          if (tblErr || !tbl) {
+            db.close(() => resolve(-1));
+            return;
+          }
+          db.get("SELECT COUNT(*) AS n FROM users", [], (e, row) => {
+            db.close(() => resolve(e ? -1 : row?.n || 0));
+          });
+        }
+      );
+    });
+  });
+}
+
+async function restoreDbFromBestCandidate(targetPath) {
+  ensureDbDirectory(targetPath);
+  const candidates = [
+    targetPath,
+    targetPath + ".bak",
+    path.join(__dirname, "oyun.db"),
+    path.join(process.cwd(), "db", "oyun.db"),
+  ];
+  const seen = new Set();
+  let bestPath = null;
+  let bestUsers = -1;
+  let bestSize = 0;
+
+  for (const p of candidates) {
+    const resolved = path.resolve(p);
+    if (seen.has(resolved)) continue;
+    seen.add(resolved);
+    if (!fs.existsSync(resolved)) continue;
+    const size = fs.statSync(resolved).size;
+    if (size < 512) continue;
+    const users = await countSqliteUsers(resolved);
+    if (users < 0) continue;
+    if (users > bestUsers || (users === bestUsers && size > bestSize)) {
+      bestUsers = users;
+      bestSize = size;
+      bestPath = resolved;
+    }
+  }
+
+  const targetResolved = path.resolve(targetPath);
+  const currentUsers = await countSqliteUsers(targetResolved);
+  if (bestPath && bestUsers > 0 && (currentUsers <= 0 || bestUsers > currentUsers)) {
+    if (bestPath !== targetResolved) {
+      fs.copyFileSync(bestPath, targetResolved);
+      console.log(
+        `[db] Veritabani geri yuklendi: ${bestPath} -> ${targetResolved} (${bestUsers} kullanici)`
+      );
+    }
+  }
+}
+
+async function backupDbFile(targetPath) {
+  const users = await countSqliteUsers(targetPath);
+  if (users <= 0) return;
+  const bak = targetPath + ".bak";
+  try {
+    fs.copyFileSync(targetPath, bak);
+    console.log(`[db] Yedek alindi: ${bak} (${users} kullanici)`);
+  } catch (err) {
+    console.warn("[db] Yedek alinamadi:", err.message);
+  }
+}
+
 async function logDatabaseStats(db) {
   try {
     const stats = await get(
@@ -117,6 +193,7 @@ async function migratePlayersTable(db) {
 async function initDatabase() {
   ensureDbDirectory(DB_PATH);
   bootstrapDbFromLegacy(DB_PATH);
+  await restoreDbFromBestCandidate(DB_PATH);
   const db = await openDb();
 
   await run(
@@ -640,6 +717,7 @@ async function initDatabase() {
   await ensureAktiviteSchema(db);
 
   await logDatabaseStats(db);
+  await backupDbFile(DB_PATH);
   return db;
 }
 
@@ -676,6 +754,7 @@ module.exports = {
   all,
   initDatabase,
   DB_PATH,
+  backupDbFile,
   bootstrapAdminUser,
   ensureConfiguredAdmin,
   getConfiguredAdminUsername,

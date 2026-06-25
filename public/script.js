@@ -2315,9 +2315,21 @@ function profilQuillBaslat() {
       }
     }
   });
+  profilQuill.on('text-change', function() {
+    if (!profilQuill) return;
+    var html = profilQuill.root.innerHTML || '';
+    if (typeof profilFFormat !== 'undefined' && profilFFormat.profilAciklamaFFormatMi(html)) {
+      profilAciklamaModuUygula(profilFFormat.htmlToPlainText(html));
+    }
+  });
 }
 
 function profilAciklamaAl() {
+  var kod = document.getElementById('profilAciklamaKod');
+  var kodAlani = document.getElementById('profilAciklamaKodAlani');
+  if (kod && kodAlani && !kodAlani.classList.contains('gizli')) {
+    return kod.value.trim();
+  }
   if (!profilQuill) return '';
   var html = profilQuill.root.innerHTML || '';
   if (html === '<p><br></p>' || html === '<p></p>') return '';
@@ -2327,26 +2339,8 @@ function profilAciklamaAl() {
   return html;
 }
 
-function profilAciklamaYaz(html) {
-  if (!profilQuill) return;
-  if (!html || !String(html).trim()) {
-    profilQuill.setText('');
-    return;
-  }
-  var s = String(html).trim();
-  if (typeof profilFFormat !== 'undefined' && profilFFormat.profilAciklamaFFormatMi(s)) {
-    profilQuill.setText(profilFFormat.htmlToPlainText(s));
-    return;
-  }
-  if (s.indexOf('<') < 0) {
-    profilQuill.setText(s);
-    return;
-  }
-  profilQuill.root.innerHTML = s;
-}
-
-function profilAciklamaGosterUygula(html) {
-  var el = document.getElementById('profilAciklamaGoster');
+function profilAciklamaGosterUygula(html, hedefId) {
+  var el = document.getElementById(hedefId || 'profilAciklamaGoster');
   if (!el) return;
   if (!html || !String(html).trim()) {
     el.textContent = '—';
@@ -2365,6 +2359,58 @@ function profilAciklamaGosterUygula(html) {
     return;
   }
   el.innerHTML = s;
+}
+
+function profilAciklamaOnizlemeGuncelle(kaynak) {
+  var oniz = document.getElementById('profilAciklamaOnizleme');
+  if (!oniz || oniz.classList.contains('gizli')) return;
+  profilAciklamaGosterUygula(kaynak != null ? kaynak : profilAciklamaAl(), 'profilAciklamaOnizleme');
+}
+
+function profilAciklamaModuUygula(html) {
+  var kodAlani = document.getElementById('profilAciklamaKodAlani');
+  var quillWrap = document.getElementById('profilAciklamaWrap');
+  var onizBaslik = document.getElementById('profilAciklamaOnizlemeBaslik');
+  var oniz = document.getElementById('profilAciklamaOnizleme');
+  var kod = document.getElementById('profilAciklamaKod');
+  var s = String(html || '').trim();
+  var fMi = typeof profilFFormat !== 'undefined' && profilFFormat.profilAciklamaFFormatMi(s);
+
+  if (fMi && kodAlani && kod) {
+    kodAlani.classList.remove('gizli');
+    if (quillWrap) quillWrap.classList.add('gizli');
+    if (onizBaslik) onizBaslik.classList.remove('gizli');
+    if (oniz) oniz.classList.remove('gizli');
+    kod.value = profilFFormat.htmlToPlainText(s);
+    if (!kod.dataset.bagli) {
+      kod.dataset.bagli = '1';
+      kod.addEventListener('input', function() {
+        profilAciklamaOnizlemeGuncelle(kod.value);
+      });
+    }
+    profilAciklamaOnizlemeGuncelle(kod.value);
+    return;
+  }
+
+  if (kodAlani) kodAlani.classList.add('gizli');
+  if (quillWrap) quillWrap.classList.remove('gizli');
+  if (onizBaslik) onizBaslik.classList.add('gizli');
+  if (oniz) oniz.classList.add('gizli');
+
+  if (!profilQuill) return;
+  if (!s) {
+    profilQuill.setText('');
+    return;
+  }
+  if (s.indexOf('<') < 0) {
+    profilQuill.setText(s);
+    return;
+  }
+  profilQuill.root.innerHTML = s;
+}
+
+function profilAciklamaYaz(html) {
+  profilAciklamaModuUygula(html);
 }
 
 async function profilLiderlikOyunculariYukle() {
@@ -2460,9 +2506,16 @@ function profilEkranSablonu(opts) {
   if (opts.duzenlenebilir) {
     formHtml = '<div class="profil-form">'
       + '<label>Açıklama Ekle</label>'
+      + '<p class="profil-alan-not">[f] renk kodlu ASCII sanat için kod alanını kullanın; önizleme altta görünür.</p>'
+      + '<div id="profilAciklamaKodAlani" class="gizli">'
+      + '<textarea id="profilAciklamaKod" class="profil-kod-textarea" spellcheck="false" rows="14" '
+      + 'placeholder="[f f=&quot;Lucida Console&quot;][f s=03][f c=#ff0000]...[/f][/f][/f]"></textarea>'
+      + '</div>'
       + '<div id="profilAciklamaWrap" class="profil-quill-wrap">'
       + profilQuillToolbarHtml()
       + '</div>'
+      + '<label id="profilAciklamaOnizlemeBaslik" class="profil-onizleme-baslik gizli">Önizleme</label>'
+      + '<div id="profilAciklamaOnizleme" class="profil-aciklama-metin profil-aciklama-html gizli">—</div>'
       + '<div class="profil-form-ikili">'
       + '<datalist id="profilLiderlikIsimListesi"></datalist>'
       + '<div><label for="profilDostlar">Dostlar</label>'
@@ -4509,6 +4562,9 @@ async function profilKaydet() {
       return;
     }
     oyuncuUygula(data.player);
+    profilAciklamaModuUygula(
+      data.player && data.player.profilAciklama != null ? data.player.profilAciklama : aciklama
+    );
     var avatar = document.getElementById('profilAvatar');
     if (avatar && oyuncuProfilResmi) {
       avatar.src = profilPortreUrlFromKey(oyuncuProfilResmi);

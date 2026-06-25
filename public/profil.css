@@ -287,6 +287,30 @@
   white-space: pre;
 }
 
+#masterLayout .profil-kod-textarea {
+  width: 100%;
+  min-height: 220px;
+  max-height: 360px;
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid #800000;
+  color: #ece4d4;
+  font-family: "Lucida Console", "Courier New", monospace;
+  font-size: 11px;
+  line-height: 1.15;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+#masterLayout .profil-onizleme-baslik {
+  display: block;
+  margin: 12px 0 6px;
+  color: #c5a059;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+}
+
 /* Quill zengin metin editörü */
 #masterLayout .profil-quill-wrap {
   margin-bottom: 14px;
