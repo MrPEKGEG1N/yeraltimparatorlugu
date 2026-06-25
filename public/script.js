@@ -669,6 +669,23 @@ function gunlukGorevSureSinifi(metin, kabulEdildi) {
   return cls;
 }
 
+function mobilMenuOgeyeKaydir(btn) {
+  if (window.innerWidth > 768 || !btn) return;
+  var scroller = btn.closest('.g2-body') || btn.closest('.mafya-sidebar-panel');
+  if (!scroller) {
+    try { btn.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' }); } catch (_) {}
+    return;
+  }
+  var li = btn.closest('li') || btn;
+  var hedef = li.offsetLeft + li.offsetWidth / 2;
+  var sol = Math.max(0, hedef - scroller.clientWidth / 2);
+  try {
+    scroller.scrollTo({ left: sol, behavior: 'smooth' });
+  } catch (_) {
+    scroller.scrollLeft = sol;
+  }
+}
+
 function mobilAltMenuKapat() {
   var root = document.getElementById('masterLayout');
   var list = document.querySelectorAll('.ml-alt-menu.acik');
@@ -2933,13 +2950,7 @@ function sidebarMenuAktif(tip) {
   }
   if (hedef) {
     hedef.classList.add('aktif-menu');
-    if (window.innerWidth <= 768 && hedef.scrollIntoView) {
-      try {
-        hedef.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
-      } catch (_) {
-        hedef.scrollIntoView();
-      }
-    }
+    mobilMenuOgeyeKaydir(hedef);
   }
 }
 
