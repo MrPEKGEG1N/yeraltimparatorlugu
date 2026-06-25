@@ -35,8 +35,11 @@ var istihbaratBirimMaliyet = 50000;
 var bankaBakiye = 0;
 var bankaHakki = 20;
 var kiralamaEnvanter = {};
+var kiralamaFiyatEnvanter = {};
 var elitFiyatX2 = false;
 var onlineSayisi = 0;
+var icraatRegenPollTimer = null;
+var icraatSonRegenPoll = 0;
 var sehirBannerState = { tip: 'belirsiz', reisAdi: null };
 var yeniProfilZiyaret = 0;
 var dusmanBulunanHedef = null;
@@ -156,6 +159,7 @@ function oyuncuUygula(p, secenekler) {
   bankaBakiye = p.bankaBakiye || 0;
   bankaHakki = p.bankaHakki != null ? p.bankaHakki : bankaHakki;
   kiralamaEnvanter = p.kiralamaEnvanter || {};
+  kiralamaFiyatEnvanter = p.kiralamaFiyatEnvanter || kiralamaEnvanter;
   elitFiyatX2 = !!(p.elitFiyatX2 || Number(p.fiyatCarpani) >= 2 || p.sehreHukmeden || p.enYuksekSayginlik || p.karaListede);
   onlineSayisi = p.onlineSayisi != null ? p.onlineSayisi : onlineSayisi;
   karaListede = !!p.karaListede;
@@ -174,6 +178,7 @@ function oyuncuUygula(p, secenekler) {
   sehirBannerGuncelle();
   mesajMenuYanip();
   arayuzGuncelle();
+  icraatRegenPollBaslat();
   // ÖNEMLİ: Otomatik ekran yeniden çizimi, kullanıcı ekranını bozuyordu
   // (Düşmana Çök sonucu kaybolması, Mafya ekranlarının kendi kendine değişmesi vb.)
   // Bu yüzden aktif ekranı kendiliğinden yeniden çizme.
@@ -326,6 +331,9 @@ async function sunucuAksiyon(action, key, adet, extra) {
       guvenliYerTumunuCiz();
     } else if (aktifEkran === 'guvenliYer') {
       await guvenliYerYukle();
+    }
+    if (window.TutorialEngine && typeof TutorialEngine.tryAutoResume === 'function') {
+      TutorialEngine.tryAutoResume(action);
     }
     return data.effect;
   } catch (e) {
@@ -661,11 +669,46 @@ function gunlukGorevSureSinifi(metin, kabulEdildi) {
   return cls;
 }
 
+function mobilAltMenuKapat() {
+  var root = document.getElementById('masterLayout');
+  var list = document.querySelectorAll('.ml-alt-menu.acik');
+  for (var i = 0; i < list.length; i++) list[i].classList.remove('acik');
+  var sohbetBtn = document.getElementById('sohbetMenuBtn');
+  var mafyaBtn = document.getElementById('mafyaMenuBtn');
+  if (sohbetBtn) sohbetBtn.classList.remove('aktif-menu');
+  if (mafyaBtn) mafyaBtn.classList.remove('aktif-menu');
+  if (root) root.classList.remove('ml-alt-acik');
+}
+
+function mobilNavBagla() {
+  if (window.__mobilNavBagli) return;
+  window.__mobilNavBagli = true;
+  document.addEventListener('click', function(e) {
+    if (window.innerWidth > 768) return;
+    if (!document.querySelector('.ml-alt-menu.acik')) return;
+    var t = e.target;
+    if (t.closest('.ml-alt-menu') || t.closest('#sohbetMenuBtn') || t.closest('#mafyaMenuBtn')) return;
+    mobilAltMenuKapat();
+  });
+}
+
 function toggleMenu(id, btn) {
   var menu = document.getElementById(id);
+  if (!menu) return;
   var acik = menu.classList.contains('acik');
+  var root = document.getElementById('masterLayout');
+  if (window.innerWidth <= 768) {
+    var diger = document.querySelectorAll('.ml-alt-menu.acik');
+    for (var i = 0; i < diger.length; i++) {
+      if (diger[i].id !== id) diger[i].classList.remove('acik');
+    }
+  }
   menu.classList.toggle('acik', !acik);
   if (btn) btn.classList.toggle('aktif-menu', !acik);
+  if (root) {
+    var herhangiAcik = document.querySelector('.ml-alt-menu.acik');
+    root.classList.toggle('ml-alt-acik', !!herhangiAcik);
+  }
 }
 
 function limanBul(id) {
@@ -1708,6 +1751,13 @@ var ELIT_FIYAT_NOTU = '<p style="color:#fff;font-size:13px;margin:12px 0 16px;">
 var HUKUM_SAVUNMA_METIN = 'Şehre Hükmeden oyuncu saldırı aldığında gücü %50 düşük hesaplanır.';
 var HUKUM_SAVUNMA_NOTU = '<p style="color:#fff;font-size:13px;margin:12px 0 16px;">' + HUKUM_SAVUNMA_METIN + '</p>';
 
+function guclenFiyatAdet(key) {
+  if (kiralamaFiyatEnvanter && kiralamaFiyatEnvanter[key] != null) {
+    return kiralamaFiyatEnvanter[key];
+  }
+  return kiralamaEnvanter[key] || 0;
+}
+
 function guclenKartlariCiz(keys, gorseller, imgCls, gucRenk, btnLabel, btnCls) {
   var html = '';
   for (var i = 0; i < keys.length; i++) {
@@ -1715,7 +1765,8 @@ function guclenKartlariCiz(keys, gorseller, imgCls, gucRenk, btnLabel, btnCls) {
     var info = HIRE_BILGI[k];
     if (!info) continue;
     var sahip = kiralamaEnvanter[k] || 0;
-    var bazFiyat = guclenBazBirimFiyat(info.maliyet, sahip);
+    var fiyatAdet = guclenFiyatAdet(k);
+    var bazFiyat = guclenBazBirimFiyat(info.maliyet, fiyatAdet);
     html += guclenKartHTML(k, gorseller[k], imgCls, info.baslik, info.alinti, bazFiyat, '+' + fmt(info.guc), gucRenk, btnLabel, btnCls);
   }
   return html;
@@ -2022,18 +2073,22 @@ function profilSonrakiSaatKalanSn(lastAt, regenSec) {
 /** Profilde gösterilecek icraat yenilenme süresi (sn) */
 function profilIcraatKalanSn(icraat, lastAt, regenSec, saatlikBonus) {
   regenSec = regenSec || oyuncuIcraatRegenSec || 3600;
-  saatlikBonus = saatlikBonus || oyuncuIcraatSaatlikBonus || 25;
-  var max = ICRAAT_GOSTERIM_MAX;
-  var mevcut = Math.max(0, icraat || 0);
-  var sonrakiSaat = profilSonrakiSaatKalanSn(lastAt, regenSec);
+  return profilSonrakiSaatKalanSn(lastAt, regenSec);
+}
 
-  if (mevcut < max) {
-    // 25'in altında: saatte 25 hak dolacak hızında 25'e ulaşmaya kalan süre
-    return Math.max(1, Math.ceil((max - mevcut) / max * regenSec));
-  }
-
-  // 25 ve üzeri: bir sonraki saatlik +25 yüklemesine kalan süre
-  return sonrakiSaat;
+function icraatRegenPollBaslat() {
+  if (icraatRegenPollTimer) clearInterval(icraatRegenPollTimer);
+  icraatRegenPollTimer = setInterval(function() {
+    if (!sunucuBagli) return;
+    var kalan = profilSonrakiSaatKalanSn(oyuncuLastIcraatAt, oyuncuIcraatRegenSec);
+    if (kalan > 3) return;
+    var simdi = Date.now();
+    if (simdi - icraatSonRegenPoll < 4000) return;
+    icraatSonRegenPoll = simdi;
+    sunucudanYukle({ poll: true }).then(function() {
+      if (aktifEkran === 'profilim') profilYukle();
+    }).catch(function() {});
+  }, 1000);
 }
 
 function profilSureFormat(sn) {
@@ -2876,12 +2931,22 @@ function sidebarMenuAktif(tip) {
       }
     }
   }
-  if (hedef) hedef.classList.add('aktif-menu');
+  if (hedef) {
+    hedef.classList.add('aktif-menu');
+    if (window.innerWidth <= 768 && hedef.scrollIntoView) {
+      try {
+        hedef.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+      } catch (_) {
+        hedef.scrollIntoView();
+      }
+    }
+  }
 }
 
 function ekranDegistir(tip) {
   if (tip !== 'profilim' && tip !== 'profil_ziyaret') profilIcraatTimerDurdur();
   if (tip !== 'profilim') profilQuillYokEt();
+  mobilAltMenuKapat();
   aktifEkran = tip;
   masterFramePlaqueGuncelle(tip);
   sehirBannerGuncelle();
@@ -4242,6 +4307,7 @@ async function profilYukle() {
     if (p.icraat != null) oyuncuIcraat = p.icraat;
     if (p.icraatRegenSec != null) oyuncuIcraatRegenSec = p.icraatRegenSec;
     if (p.icraatSaatlikBonus != null) oyuncuIcraatSaatlikBonus = p.icraatSaatlikBonus;
+    arayuzGuncelle();
     profilIcraatTimerBaslat(
       p.icraat != null ? p.icraat : oyuncuIcraat,
       p.lastIcraatAt != null ? p.lastIcraatAt : oyuncuLastIcraatAt,
@@ -4661,7 +4727,7 @@ async function mafyaSohbetGonder() {
 
 function egitimAc() {
   if (!window.TutorialEngine) return;
-  if (TutorialEngine.isComplete()) TutorialEngine.reset();
+  TutorialEngine.reset();
   TutorialEngine.open({ force: true });
 }
 
@@ -4691,11 +4757,18 @@ async function oyunuBaslat() {
     else muzikDurdur();
     guncelleBgIsim();
     statTooltipBagla();
+    mobilNavBagla();
     ekranDegistir('liderlik');
-    if (window.TutorialEngine && !TutorialEngine.isComplete()) {
-      setTimeout(function () {
-        TutorialEngine.open();
-      }, 500);
+    if (window.TutorialEngine) {
+      if (window.__yeniKayitOlundu) {
+        TutorialEngine.reset();
+        window.__yeniKayitOlundu = false;
+      }
+      if (!TutorialEngine.isComplete()) {
+        setTimeout(function () {
+          TutorialEngine.open({ force: true, navigate: false });
+        }, 600);
+      }
     }
   } catch (e) {
     clearTimeout(yukTimeout);

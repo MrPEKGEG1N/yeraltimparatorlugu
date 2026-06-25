@@ -34,6 +34,8 @@ function authSekmeDegistir(mod) {
   document.getElementById("sekmeKayit").classList.toggle("aktif-sekme", mod === "kayit");
   document.getElementById("reisAdiAlan").classList.toggle("gizli", mod === "giris");
   document.getElementById("lakapAlan").classList.toggle("gizli", mod === "giris");
+  var reisEl = document.getElementById("reisAdi");
+  if (reisEl) reisEl.required = mod === "kayit";
   document.getElementById("authGonder").textContent =
     mod === "giris" ? "[ ⚔️ GİRİŞ YAP ]" : "[ 👑 REİS OL ]";
   authHataGoster("");
@@ -60,6 +62,8 @@ function authUrlTemizle() {
 
 function oyunuGoster(user) {
   aktifKullanici = user;
+  window.aktifKullanici = user;
+  if (user && user.id != null) window.__benimUserId = user.id;
   document.getElementById("authEkran").classList.add("gizli");
   document.getElementById("masterLayout").classList.remove("gizli");
   yukleniyorGoster("⏳ İMPARATORLUK YÜKLENİYOR...");
@@ -70,6 +74,7 @@ function oyunuGoster(user) {
 
 function authEkraniniGoster() {
   aktifKullanici = null;
+  window.aktifKullanici = null;
   document.getElementById("masterLayout").classList.add("gizli");
   document.getElementById("authEkran").classList.remove("gizli");
   yukleniyorGizle();
@@ -159,32 +164,42 @@ async function cikisYap() {
   document.getElementById("authForm").reset();
 }
 
-document.getElementById("sekmeGiris").addEventListener("click", function () {
-  authSekmeDegistir("giris");
-});
-document.getElementById("sekmeKayit").addEventListener("click", function () {
-  authSekmeDegistir("kayit");
-});
-
-document.getElementById("authForm").addEventListener("submit", async function (e) {
-  e.preventDefault();
+async function authGonderIslem() {
   authHataGoster("");
   var btn = document.getElementById("authGonder");
-  btn.disabled = true;
-  yukleniyorGoster("⏳ GİRİŞ YAPILIYOR...");
+  if (!btn || btn.disabled) return;
 
-  if (typeof guvenlikMeta !== "undefined") {
-    try { await guvenlikMeta.getVisitorIdAsync(); } catch (_) {}
+  var username = document.getElementById("username").value.trim();
+  var password = document.getElementById("password").value;
+  if (!username || username.length < 3) {
+    authHataGoster("Kullanıcı adı en az 3 karakter olmalı.");
+    return;
+  }
+  if (!password || password.length < 6) {
+    authHataGoster("Şifre en az 6 karakter olmalı.");
+    return;
   }
 
   var body = {
-    username: document.getElementById("username").value.trim(),
-    password: document.getElementById("password").value,
+    username: username,
+    password: password,
     website: document.getElementById("authHoneypot")?.value || "",
   };
   if (authModu === "kayit") {
     body.reisAdi = document.getElementById("reisAdi").value.trim();
     body.lakap = document.getElementById("lakap").value;
+    if (!body.reisAdi) {
+      authHataGoster("Reis adını yazmalısın.");
+      return;
+    }
+  }
+
+  var eskiBtnText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = authModu === "kayit" ? "⏳ Kayıt yapılıyor..." : "⏳ Giriş yapılıyor...";
+
+  if (typeof guvenlikMeta !== "undefined") {
+    try { await guvenlikMeta.getVisitorIdAsync(); } catch (_) {}
   }
 
   var url = authModu === "kayit" ? "/api/auth/register" : "/api/auth/login";
@@ -193,22 +208,35 @@ document.getElementById("authForm").addEventListener("submit", async function (e
     var res = await fetch(url, apiOpts("POST", body));
     var data = await res.json();
     if (!data.ok) {
-      yukleniyorGizle();
       authHataGoster(data.error || "İşlem başarısız.");
       return;
     }
     authUrlTemizle();
+    if (authModu === "kayit") window.__yeniKayitOlundu = true;
     oyunuGoster(data.user);
   } catch {
-    yukleniyorGizle();
     authHataGoster("Sunucuya bağlanılamadı. Terminalde npm start çalıştırın.");
   } finally {
     btn.disabled = false;
+    btn.textContent = eskiBtnText;
   }
+}
+
+document.getElementById("sekmeGiris").addEventListener("click", function () {
+  authSekmeDegistir("giris");
+});
+document.getElementById("sekmeKayit").addEventListener("click", function () {
+  authSekmeDegistir("kayit");
 });
 
+document.getElementById("authForm").addEventListener("submit", function (e) {
+  e.preventDefault();
+  authGonderIslem();
+});
+
+document.getElementById("authGonder").addEventListener("click", authGonderIslem);
+
 (async function authBaslat() {
-  yukleniyorGoster("⏳ İMPARATORLUK YÜKLENİYOR...");
   try {
     if (await urlParamGirisDene()) return;
     var yuklendi = await oturumKontrol();

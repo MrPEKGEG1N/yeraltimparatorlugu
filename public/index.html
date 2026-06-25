@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Yeraltı İmparatorluğu</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="ekran-icerik.css?v=112">
   <link rel="stylesheet" href="gazete.css?v=104">
   <link rel="stylesheet" href="profil.css?v=113">
-  <link rel="stylesheet" href="menu-hub.css?v=103">
+  <link rel="stylesheet" href="menu-hub.css?v=104">
   <link rel="stylesheet" href="dusman.css?v=105">
   <link rel="stylesheet" href="banka.css?v=108">
   <link rel="stylesheet" href="gunluk-gorevler.css?v=110">
@@ -20,14 +20,14 @@
   <link rel="stylesheet" href="guvenli-yer.css?v=13">
   <link rel="stylesheet" href="istihbarat.css?v=102">
   <link rel="stylesheet" href="sadakat-yemini.css?v=3">
-  <link rel="stylesheet" href="sehre-hukmet.css?v=1">
+  <link rel="stylesheet" href="sehre-hukmet.css?v=2">
   <link rel="stylesheet" href="mekan-devri.css?v=2">
   <link rel="stylesheet" href="medya.css?v=2">
   <link rel="stylesheet" href="sohbet.css?v=2">
   <link rel="stylesheet" href="avukat.css?v=2">
   <link rel="stylesheet" href="kara-liste.css?v=6">
-  <link rel="stylesheet" href="egitim.css?v=2">
-  <link rel="stylesheet" href="responsive.css?v=101">
+  <link rel="stylesheet" href="egitim.css?v=8">
+  <link rel="stylesheet" href="responsive.css?v=102">
   <link href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css" rel="stylesheet">
 </head>
 <body>
@@ -46,7 +46,7 @@
       <button type="button" id="sekmeKayit" class="auth-sekme">KAYIT OL</button>
     </div>
 
-    <form id="authForm" class="auth-form" autocomplete="on" novalidate>
+    <form id="authForm" class="auth-form" autocomplete="on" novalidate onsubmit="return false;">
       <div id="reisAdiAlan" class="auth-alan gizli">
         <label for="reisAdi">Reis Adın</label>
         <input type="text" id="reisAdi" name="reisAdi" maxlength="24" placeholder="Örn: Doğan">
@@ -77,7 +77,7 @@
       </div>
       <input type="text" id="authHoneypot" name="website" tabindex="-1" autocomplete="off" class="gizli" aria-hidden="true">
       <p id="authHata" class="auth-hata gizli"></p>
-      <button type="submit" id="authGonder" class="auth-btn">[ ⚔️ GİRİŞ YAP ]</button>
+      <button type="button" id="authGonder" class="auth-btn">[ ⚔️ GİRİŞ YAP ]</button>
     </form>
   </div>
 </div>
@@ -305,8 +305,8 @@
 <div id="tutorialModal" class="eg-modal gizli" role="dialog" aria-modal="true" aria-labelledby="tutorialBaslik" aria-hidden="true">
   <div class="eg-modal-ortu" aria-hidden="true"></div>
   <div class="eg-panel">
-    <img src="/images/egitim/egitim-panel.png?v=1" alt="" class="eg-panel-img">
-    <h2 id="tutorialBaslik">Oyun Eğitimi: Hoşgeldiniz</h2>
+    <img src="/images/egitim/egitim-panel.png?v=3" alt="" class="eg-panel-img">
+    <h2 id="tutorialBaslik" class="eg-sr-only">Oyun Eğitimi</h2>
     <p id="tutorialMetin"></p>
     <button type="button" id="tutorialIleri" class="eg-btn eg-btn--ileri">İleri</button>
     <button type="button" id="tutorialKapat" class="eg-btn eg-btn--kapat">Kapat</button>
@@ -318,8 +318,8 @@
 <script src="security.js?v=1"></script>
 <script src="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js"></script>
 <script src="mekanlar-data.js?v=85"></script>
-<script src="tutorialEngine.js?v=2"></script>
-  <script src="script.js?v=208"></script>
-<script src="auth.js?v=89"></script>
+<script src="tutorialEngine.js?v=6"></script>
+  <script src="script.js?v=213"></script>
+<script src="auth.js?v=90"></script>
 </body>
 </html>

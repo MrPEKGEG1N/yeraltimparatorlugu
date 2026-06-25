@@ -283,6 +283,16 @@ async function initDatabase() {
     )`
   );
 
+  try {
+    await run(db, `ALTER TABLE oyuncu_kiralama ADD COLUMN fiyat_adet INTEGER NOT NULL DEFAULT 0`);
+  } catch (_) {}
+  try {
+    await run(
+      db,
+      `UPDATE oyuncu_kiralama SET fiyat_adet = adet WHERE COALESCE(fiyat_adet, 0) < adet`
+    );
+  } catch (_) {}
+
   await run(
     db,
     `CREATE TABLE IF NOT EXISTS mafya_grup_mesajlari (

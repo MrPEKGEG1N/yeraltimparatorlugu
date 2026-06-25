@@ -1,13 +1,6 @@
-const { all } = require("../db/database");
+const { all, get } = require("../db/database");
 const { temizGrupAdi } = require("./grupAdi");
 const { kullaniciGrubu } = require("./mafiaService");
-
-const BOTLAR = [
-  { isim: "Baron Süleyman", grup: "Çakır Ailesi", puan: 2450, bot: true },
-  { isim: "Kordon Celal", grup: "Ege Reisleri", puan: 1800, bot: true },
-  { isim: "Fırtına Temel", grup: "Kuzey Lobisi", puan: 1200, bot: true },
-  { isim: "Akrep Nuri", grup: "Gaddarlar Grubu", puan: 600, bot: true },
-];
 
 async function getLeaderboard(db, currentUserId) {
   const gruplar = await all(db, `SELECT id, isim FROM mafya_gruplari`);
@@ -38,7 +31,7 @@ async function getLeaderboard(db, currentUserId) {
      LIMIT 50`
   );
 
-  const liste = oyuncular.map((o) => ({
+  return oyuncular.slice(0, 25).map((o) => ({
     userId: o.user_id,
     isim: o.isim,
     grup: temizGrupAdi(o.grup),
@@ -48,35 +41,17 @@ async function getLeaderboard(db, currentUserId) {
     bot: false,
     benim: o.user_id === currentUserId,
   }));
-
-  BOTLAR.forEach((b) =>
-    liste.push({
-      ...b,
-      grupId: resolveGrupId(null, b.grup),
-      benim: false,
-    })
-  );
-
-  liste.sort((a, b) => b.puan - a.puan);
-  return liste.slice(0, 25);
 }
 
 async function getOyuncuSira(db, userId) {
-  const liste = await getLeaderboard(db, userId);
-  const idx = liste.findIndex((x) => x.userId === userId);
-  if (idx >= 0) return idx + 1;
-
-  const oyuncular = await all(
+  const row = await get(db, `SELECT puan FROM players WHERE user_id = ?`, [userId]);
+  if (!row) return null;
+  const ust = await get(
     db,
-    `SELECT user_id, puan FROM players ORDER BY puan DESC`
+    `SELECT COUNT(*) AS n FROM players WHERE puan > ?`,
+    [row.puan || 0]
   );
-  const tamListe = [
-    ...oyuncular.map((o) => ({ userId: o.user_id, puan: o.puan || 0, bot: false })),
-    ...BOTLAR.map((b, i) => ({ userId: `bot-${i}`, puan: b.puan, bot: true })),
-  ];
-  tamListe.sort((a, b) => b.puan - a.puan);
-  const globalIdx = tamListe.findIndex((x) => x.userId === userId);
-  return globalIdx >= 0 ? globalIdx + 1 : null;
+  return (ust?.n || 0) + 1;
 }
 
 async function getGrupSira(db, userId, grupAdiFallback) {
@@ -121,4 +96,4 @@ async function getGrupLeaderboard(db) {
   }));
 }
 
-module.exports = { getLeaderboard, getGrupLeaderboard, getOyuncuSira, getGrupSira, BOTLAR };
+module.exports = { getLeaderboard, getGrupLeaderboard, getOyuncuSira, getGrupSira };

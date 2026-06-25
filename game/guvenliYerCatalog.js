@@ -18,7 +18,7 @@ const SEVIYELER = [
     ad: "Ana Malikane & Ahşap Çit",
     aciklama: "Merkez malikane ve ilk çevre güvenliği.",
     maliyet: 50_000,
-    gucBonus: 200,
+    gucBonus: 4_500,
   },
   {
     seviye: 3,
@@ -26,7 +26,7 @@ const SEVIYELER = [
     ad: "Taş Duvar",
     aciklama: "Çevreyi taş duvarla güçlendir.",
     maliyet: 120_000,
-    gucBonus: 400,
+    gucBonus: 12_000,
   },
   {
     seviye: 4,
@@ -34,7 +34,7 @@ const SEVIYELER = [
     ad: "Bahçe",
     aciklama: "Malikanenin çevresine düzenli bahçe alanı.",
     maliyet: 250_000,
-    gucBonus: 150,
+    gucBonus: 27_500,
   },
   {
     seviye: 5,
@@ -42,7 +42,7 @@ const SEVIYELER = [
     ad: "Çevre Güçlendirme",
     aciklama: "Duvar hatları ve giriş kontrol noktası.",
     maliyet: 400_000,
-    gucBonus: 300,
+    gucBonus: 48_000,
   },
   {
     seviye: 6,
@@ -50,7 +50,7 @@ const SEVIYELER = [
     ad: "Enerji Duvarı",
     aciklama: "Dinamik enerji bariyeri — saldırılara karşı ek koruma.",
     maliyet: 600_000,
-    gucBonus: 800,
+    gucBonus: 78_000,
   },
   {
     seviye: 7,
@@ -58,7 +58,7 @@ const SEVIYELER = [
     ad: "Savunma Hattı",
     aciklama: "İkinci halka savunma ve gözetleme.",
     maliyet: 900_000,
-    gucBonus: 450,
+    gucBonus: 126_000,
   },
   {
     seviye: 8,
@@ -66,7 +66,7 @@ const SEVIYELER = [
     ad: "Yeraltı Hazırlık",
     aciklama: "Gizli tüneller ve sığınak altyapısı.",
     maliyet: 1_200_000,
-    gucBonus: 500,
+    gucBonus: 180_000,
   },
   {
     seviye: 9,
@@ -74,7 +74,7 @@ const SEVIYELER = [
     ad: "Gizli Düzenler",
     aciklama: "Holografik operasyon işaretleri.",
     maliyet: 1_800_000,
-    gucBonus: 300,
+    gucBonus: 288_000,
   },
   {
     seviye: 10,
@@ -82,7 +82,7 @@ const SEVIYELER = [
     ad: "Keskin Nişancı Kulesi",
     aciklama: "Üssün köşesine gözetleme kulesi.",
     maliyet: 2_500_000,
-    gucBonus: 1_200,
+    gucBonus: 425_000,
   },
   {
     seviye: 11,
@@ -90,7 +90,7 @@ const SEVIYELER = [
     ad: "Yeraltı Ağı",
     aciklama: "Tünel bağlantıları ve gizli geçitler.",
     maliyet: 3_500_000,
-    gucBonus: 600,
+    gucBonus: 630_000,
   },
   {
     seviye: 12,
@@ -98,7 +98,7 @@ const SEVIYELER = [
     ad: "Lojistik Alanı",
     aciklama: "Depo ve tedarik hatları.",
     maliyet: 4_200_000,
-    gucBonus: 400,
+    gucBonus: 798_000,
   },
   {
     seviye: 13,
@@ -106,7 +106,7 @@ const SEVIYELER = [
     ad: "Helikopter Pisti",
     aciklama: "Hızlı tahliye ve lojistik iniş alanı.",
     maliyet: 5_000_000,
-    gucBonus: 600,
+    gucBonus: 1_000_000,
   },
   {
     seviye: 14,
@@ -114,7 +114,7 @@ const SEVIYELER = [
     ad: "Stratejik Bunker",
     aciklama: "Komuta merkezi ve ağır koruma.",
     maliyet: 8_000_000,
-    gucBonus: 2_000,
+    gucBonus: 1_760_000,
   },
   {
     seviye: 15,
@@ -122,7 +122,7 @@ const SEVIYELER = [
     ad: "Bunker Girişi",
     aciklama: "Gizli yeraltı giriş kapısı — maksimum güvenlik.",
     maliyet: 10_000_000,
-    gucBonus: 500,
+    gucBonus: 2_400_000,
   },
 ];
 

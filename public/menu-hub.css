@@ -223,3 +223,32 @@
     radial-gradient(ellipse 58% 42% at 50% 24%, rgba(255, 185, 95, 0.68) 0%, transparent 70%),
     radial-gradient(ellipse 85% 65% at 50% 58%, rgba(180, 200, 120, 0.24) 0%, transparent 78%);
 }
+
+@media (max-width: 768px) {
+  #masterLayout #anaIcerik .vizuel-menu-hub {
+    min-height: auto;
+    padding: 4px 2px 8px;
+  }
+
+  #masterLayout #anaIcerik .vizuel-menu-wrap {
+    border-radius: 4px;
+  }
+
+  #masterLayout #anaIcerik .vizuel-menu-zone {
+    touch-action: manipulation;
+  }
+
+  #masterLayout #anaIcerik .vizuel-menu-zone::after {
+    animation: none;
+  }
+
+  #masterLayout #anaIcerik .vizuel-menu-zone:active::after,
+  #masterLayout #anaIcerik .vizuel-menu-zone:focus-visible::after {
+    opacity: 1;
+  }
+
+  #masterLayout #anaIcerik .vizuel-menu-wrap:has(.vizuel-menu-zone:active) .vizuel-menu-img,
+  #masterLayout #anaIcerik .vizuel-menu-wrap:has(.vizuel-menu-zone:focus-visible) .vizuel-menu-img {
+    filter: brightness(0.78) saturate(0.9);
+  }
+}

@@ -56,7 +56,11 @@ async function ensureBankaRow(db, userId) {
 async function ensureBankaHak(db, userId, row) {
   const now = Math.floor(Date.now() / 1000);
   let hak = row.banka_hakki ?? BANKA_HAK_GUNLUK;
-  const last = row.last_banka_hak_at || now;
+  let last = Number(row.last_banka_hak_at);
+  if (!Number.isFinite(last) || last <= 0) {
+    last = now;
+    await run(db, `UPDATE banka_hesaplari SET last_banka_hak_at = ? WHERE user_id = ?`, [last, userId]);
+  }
   const elapsed = now - last;
   const periods = Math.floor(elapsed / BANKA_HAK_REGEN_SEC);
   if (periods > 0) {

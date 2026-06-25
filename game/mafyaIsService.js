@@ -1,4 +1,5 @@
 const { run, get, all } = require("../db/database");
+const { gucKaybiEnvanterUygula } = require("./kiralamaService");
 
 const ONLINE_WINDOW_SEC = 5 * 60; // 5 dk içinde aktifse online say
 
@@ -196,14 +197,16 @@ async function isGerceklestir(db, grupId, isId) {
       k.userId,
     ]);
     if (!row) continue;
+    const eskiGuc = row.guc;
     const yeniGuc = Math.floor(row.guc * 0.9);
+    const gucSync = await gucKaybiEnvanterUygula(db, k.userId, eskiGuc, yeniGuc);
     const yeniPuan = row.puan + isDef.sayginlikKisi;
     const yeniDevlet = Math.max(0, (row.devlet_iliskisi ?? 100) - isDef.devletDus);
     const yeniKasa = row.kasa + isDef.kazancKisi;
     await run(
       db,
       `UPDATE players SET kasa = ?, guc = ?, puan = ?, devlet_iliskisi = ? WHERE user_id = ?`,
-      [yeniKasa, yeniGuc, yeniPuan, yeniDevlet, k.userId]
+      [yeniKasa, gucSync.guc, yeniPuan, yeniDevlet, k.userId]
     );
   }
 

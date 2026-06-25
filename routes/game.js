@@ -9,7 +9,7 @@ const {
   mafyaSohbetListe,
 } = require("../game/playerService");
 const { tumMesajlariOkundu } = require("../game/messagingService");
-const { getLeaderboard, getGrupLeaderboard, getOyuncuSira, getGrupSira, BOTLAR } = require("../game/leaderboardService");
+const { getLeaderboard, getGrupLeaderboard, getOyuncuSira, getGrupSira } = require("../game/leaderboardService");
 const { mafyaPanel, grupAra, kullaniciGrubu } = require("../game/mafiaService");
 const { savaslariListele } = require("../game/mafyaSavasService");
 const { haberleriGetir } = require("../game/medyaService");
@@ -156,10 +156,14 @@ function createGameRouter(db) {
       const grupSira = await getGrupSira(db, targetId, p.grup);
 
       let saatlikKazanc = null;
+      let icraatGoster = null;
+      let lastIcraatAtGoster = null;
       if (kendiProfili) {
         const player = await loadPlayer(db, targetId);
         const full = await publicPlayerFull(db, targetId, player);
         saatlikKazanc = full.saatlikKazanc;
+        icraatGoster = full.icraat;
+        lastIcraatAtGoster = full.lastIcraatAt;
       }
 
       res.json({
@@ -174,8 +178,8 @@ function createGameRouter(db) {
           sira,
           grupSira,
           saatlikKazanc,
-          icraat: kendiProfili ? p.icraat : null,
-          lastIcraatAt: kendiProfili ? p.last_icraat_at : null,
+          icraat: icraatGoster,
+          lastIcraatAt: lastIcraatAtGoster,
           icraatRegenSec: kendiProfili ? ICRAAT_REGEN_SEC : null,
           icraatSaatlikBonus: kendiProfili ? ICRAAT_SAATLIK_BONUS : null,
           aciklama: p.profil_aciklama || "",

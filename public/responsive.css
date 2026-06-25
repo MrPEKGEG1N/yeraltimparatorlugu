@@ -1,48 +1,79 @@
 /* ═══════════════════════════════════════════════════════════
-   Yeraltı İmparatorluğu — Mobil uyum katmanı (≤768px)
-   Masaüstü stillere dokunmaz; son yüklenen dosya olarak override eder.
+   Yeraltı İmparatorluğu — Mobil uyum (≤768px)
+   Sol menü → altta yatay kaydırmalı navigasyon
    ═══════════════════════════════════════════════════════════ */
 
 @media (max-width: 768px) {
-
-  /* —— Genel sayfa akışı —— */
-  html,
-  body {
-    height: auto;
-    min-height: 100%;
-    overflow-x: hidden;
-    overflow-y: auto;
-    -webkit-text-size-adjust: 100%;
+  :root {
+    --ml-bottom-nav-h: 62px;
+    --ml-header-stack-h: auto;
+    --ml-ribbon-h: 38px;
   }
 
-  body:has(#masterLayout:not(.gizli)) {
-    overflow: hidden;
+  html,
+  body {
     height: 100%;
+    min-height: 100%;
+    overflow: hidden;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
   }
 
   #masterLayout {
+    --ml-bottom-nav-h: 62px;
     display: grid;
     grid-template-columns: 1fr;
-    grid-template-rows: auto 40px minmax(120px, 34vh) 1fr;
+    grid-template-rows: auto var(--ml-ribbon-h) minmax(0, 1fr) var(--ml-bottom-nav-h);
     grid-template-areas:
       "hdr"
       "ribbon"
-      "side"
-      "main";
+      "main"
+      "nav";
     width: 100%;
     max-width: 100vw;
     height: 100dvh;
     height: 100vh;
     overflow: hidden;
     font-size: 14px;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
+  /* —— Üst bar —— */
   #masterLayout .ml-header {
     flex-wrap: wrap;
-    align-items: flex-start;
-    gap: 6px;
+    align-items: center;
+    gap: 4px;
     padding: 6px 8px;
-    min-height: 46px;
+    padding-top: max(6px, env(safe-area-inset-top, 0px));
+    min-height: 44px;
+  }
+
+  #masterLayout .ml-header-right {
+    order: 1;
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: nowrap;
+    gap: 4px;
+    padding: 2px 4px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  #masterLayout .ml-header-right::-webkit-scrollbar {
+    display: none;
+  }
+
+  #masterLayout #saygiDuvariKutu {
+    display: none;
+  }
+
+  #masterLayout .ml-header-right button {
+    flex-shrink: 0;
+    min-height: 36px;
+    padding: 6px 9px;
+    font-size: 9px;
+    white-space: nowrap;
   }
 
   #masterLayout .stats-bar {
@@ -56,105 +87,73 @@
 
   #masterLayout .ml-btn-red {
     flex-shrink: 0;
-    min-height: 40px;
-    padding: 8px 12px;
-    font-size: 10px;
-  }
-
-  #masterLayout .ml-header-right {
-    order: 1;
-    width: 100%;
-    justify-content: flex-end;
-    flex-wrap: wrap;
-    gap: 6px;
-    padding: 4px 6px;
-  }
-
-  #masterLayout #saygiDuvariKutu {
-    display: none;
-  }
-
-  #masterLayout .ml-header-right button {
     min-height: 38px;
-    padding: 6px 10px;
+    padding: 7px 11px;
+    font-size: 9px;
+  }
+
+  #masterLayout .ml-stat-chip {
+    padding: 5px 7px;
     font-size: 10px;
   }
 
   #masterLayout .ml-top-ribbon {
-    height: 40px;
-    min-height: 40px;
+    height: var(--ml-ribbon-h);
+    min-height: var(--ml-ribbon-h);
   }
 
   #masterLayout .ml-top-ribbon-img {
-    height: 40px;
+    height: var(--ml-ribbon-h);
   }
 
   #masterLayout .ml-top-ribbon-txt {
-    width: min(72vw, 320px);
+    width: min(78vw, 340px);
     font-size: 9px;
-    letter-spacing: 0.8px;
+    letter-spacing: 0.7px;
   }
 
-  /* —— Yan menü: üstte, kaydırılabilir —— */
-  #masterLayout .ml-sidebar {
-    grid-area: side;
-    min-height: 0;
-    max-height: 34vh;
-    padding: 0 4px 4px;
-    overflow: hidden;
-  }
-
-  #masterLayout .g2-frame--menu .g2-body,
-  #masterLayout .mafya-sidebar-panel {
-    overflow-y: auto;
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
-    max-height: calc(34vh - 8px);
-  }
-
-  #masterLayout .ml-menu-item,
-  #masterLayout .menu-list > li > button.ml-menu-item {
-    min-height: 42px;
-    height: auto;
-    padding-top: 10px;
-    padding-bottom: 10px;
-    font-size: 11px;
-  }
-
-  #masterLayout .ml-alt-menu .ml-menu-item,
-  #masterLayout .ml-alt-menu button {
-    min-height: 38px;
-    padding-top: 8px;
-    padding-bottom: 8px;
-    font-size: 11px;
-  }
-
-  /* —— Ana içerik —— */
+  /* —— Ana içerik (üstte, tam yükseklik) —— */
   #masterLayout .ml-main-content {
     grid-area: main;
     min-height: 0;
     min-width: 0;
+    overflow: hidden;
+  }
+
+  #masterLayout .g2-main {
+    min-height: 0;
+  }
+
+  #masterLayout .g2-frame--panel {
+    min-height: 0;
   }
 
   #masterLayout .g2-frame--panel .g2-body,
   #masterLayout .ui-frame-inner {
-    padding: 8px 10px 12px;
+    padding: 8px 10px 10px;
     overflow: hidden;
+    min-height: 0;
   }
 
   #masterLayout #oyunEkran {
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
   }
 
   #masterLayout #anaIcerik {
     width: 100%;
     max-width: 100%;
     overflow-x: hidden;
+    word-wrap: break-word;
   }
 
-  /* Görseller taşmasın */
+  #masterLayout #anaIcerik > h2 {
+    font-size: 16px;
+    line-height: 1.25;
+  }
+
   #masterLayout #anaIcerik img,
   #masterLayout .modal-resim,
   #authEkran img {
@@ -170,7 +169,179 @@
     aspect-ratio: 1;
   }
 
-  /* —— İş / ürün kartları: dikey —— */
+  /* —— Alt menü çubuğu (eski sol sidebar) —— */
+  #masterLayout .ml-sidebar {
+    grid-area: nav;
+    position: relative;
+    z-index: 30;
+    min-height: 0;
+    max-height: none;
+    height: var(--ml-bottom-nav-h);
+    padding: 0;
+    margin: 0;
+    overflow: visible;
+    border-top: 1px solid rgba(197, 160, 89, 0.45);
+    background: linear-gradient(180deg, rgba(12, 9, 7, 0.98) 0%, rgba(4, 3, 2, 0.99) 100%);
+    box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.55);
+  }
+
+  #masterLayout .ml-sidebar::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 28px;
+    background: linear-gradient(90deg, transparent, rgba(4, 3, 2, 0.92));
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  #masterLayout .g2-frame--menu {
+    height: 100%;
+    background: transparent;
+  }
+
+  #masterLayout .g2-frame--menu .g2-c,
+  #masterLayout .g2-frame--menu .g2-e,
+  #masterLayout .g2-frame--menu .g2-bl,
+  #masterLayout .g2-frame--menu .g2-br {
+    display: none !important;
+  }
+
+  #masterLayout .g2-frame--menu .g2-body,
+  #masterLayout .mafya-sidebar-panel {
+    height: 100%;
+    max-height: none;
+    margin: 0;
+    padding: 4px 6px;
+    overflow: visible;
+    background: transparent;
+  }
+
+  #masterLayout .sidebar-title {
+    display: none;
+  }
+
+  #masterLayout .menu-list.ml-sidebar-nav {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    gap: 6px;
+    height: 100%;
+    margin: 0;
+    padding: 2px 4px 2px 2px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+  }
+
+  #masterLayout .menu-list.ml-sidebar-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  #masterLayout .menu-list > li {
+    flex: 0 0 auto;
+    margin: 0;
+    scroll-snap-align: start;
+    position: static;
+  }
+
+  #masterLayout .ml-menu-item,
+  #masterLayout .menu-list > li > button.ml-menu-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    min-width: 82px;
+    max-width: 108px;
+    height: calc(var(--ml-bottom-nav-h) - 12px);
+    min-height: 44px;
+    padding: 6px 8px;
+    font-size: 9px;
+    line-height: 1.2;
+    text-align: center;
+    white-space: normal;
+    text-overflow: unset;
+    overflow: hidden;
+    border-radius: 7px;
+    border: 1px solid rgba(197, 160, 89, 0.32);
+    background: rgba(22, 18, 14, 0.92) !important;
+    background-image: none !important;
+    touch-action: manipulation;
+    transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+  }
+
+  #masterLayout .ml-menu-item::before {
+    display: none;
+  }
+
+  #masterLayout .ml-menu-item:active {
+    transform: scale(0.96);
+  }
+
+  #masterLayout .ml-menu-item.aktif-menu {
+    border-color: rgba(255, 215, 0, 0.75);
+    background: rgba(120, 28, 18, 0.55) !important;
+    color: #fff;
+    box-shadow: 0 0 12px rgba(255, 80, 40, 0.25);
+  }
+
+  /* Alt menüler: alttan açılan panel */
+  #masterLayout .ml-alt-menu {
+    position: fixed;
+    left: 8px;
+    right: 8px;
+    bottom: calc(var(--ml-bottom-nav-h) + env(safe-area-inset-bottom, 0px) + 6px);
+    z-index: 45;
+    display: none;
+    margin: 0;
+    padding: 10px;
+    border: 1px solid rgba(197, 160, 89, 0.5);
+    border-radius: 10px;
+    background: rgba(10, 7, 5, 0.97);
+    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.65);
+    max-height: min(42vh, 280px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #masterLayout .ml-alt-menu.acik {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  #masterLayout .ml-alt-menu > li {
+    margin: 0;
+  }
+
+  #masterLayout .ml-alt-menu .ml-menu-item,
+  #masterLayout .ml-alt-menu button {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    height: auto;
+    min-height: 44px;
+    padding: 10px 8px;
+    font-size: 10px;
+    text-transform: none;
+    border: 1px solid rgba(197, 160, 89, 0.28);
+    background: rgba(18, 14, 10, 0.9) !important;
+  }
+
+  #masterLayout.ml-alt-acik::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background: rgba(0, 0, 0, 0.45);
+    pointer-events: auto;
+  }
+
+  /* —— Kartlar & formlar —— */
   #masterLayout .is-yapi {
     flex-direction: column;
     align-items: stretch;
@@ -201,7 +372,6 @@
     font-size: 14px;
   }
 
-  /* —— Butonlar: dokunmatik —— */
   #masterLayout .btn-is,
   #masterLayout .btn-savas,
   #masterLayout .ml-btn-red,
@@ -254,7 +424,6 @@
     width: 100%;
   }
 
-  /* —— İki sütunlu gridler → tek sütun —— */
   #masterLayout .profil-dost-dusman,
   #masterLayout #anaIcerik .sy-listeler,
   #masterLayout #anaIcerik .sy-oylar,
@@ -276,7 +445,6 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  /* —— Tablolar: yatay kaydırma —— */
   #masterLayout .tablo-container,
   #masterLayout .mafya-uyeler-tablo,
   #masterLayout .mafya-hibe-tablo,
@@ -307,7 +475,6 @@
     -webkit-overflow-scrolling: touch;
   }
 
-  /* —— Liderlik mobil —— */
   #masterLayout .lt-side-tabs {
     position: static;
     transform: none;
@@ -340,30 +507,33 @@
     padding: 0 12px 18px;
   }
 
-  /* —— Gazete: gazete.css içindeki kurallar 768px'te —— */
-
-  /* —— Banka —— */
   #masterLayout #anaIcerik .banka-ozet-grid {
     grid-template-columns: 1fr !important;
   }
 
-  /* —— Sohbet satırları —— */
   #masterLayout #anaIcerik .sb-sohbet-ust-satir {
     flex-direction: column;
     align-items: flex-start;
     gap: 2px;
   }
 
-  /* —— Modallar —— */
   .modal-pencere {
     width: min(96vw, 420px);
-    max-height: 92vh;
+    max-height: min(92vh, 92dvh);
     overflow-y: auto;
   }
 
+  .auth-ekran {
+    padding: max(16px, env(safe-area-inset-top)) 12px max(16px, env(safe-area-inset-bottom));
+    align-items: flex-start;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
   .auth-kutu {
-    width: min(420px, 94vw);
+    width: min(420px, 100%);
     padding: 24px 18px 20px;
+    margin: auto 0;
   }
 
   .auth-alan input,
@@ -376,41 +546,63 @@
     min-height: 48px;
   }
 
-  /* —— Ses kontrolü —— */
   .ses-kontrol {
-    bottom: max(10px, env(safe-area-inset-bottom));
-    right: max(8px, env(safe-area-inset-right));
+    bottom: calc(var(--ml-bottom-nav-h) + env(safe-area-inset-bottom, 0px) + 10px);
+    right: max(8px, env(safe-area-inset-right, 0px));
     padding: 8px 10px;
+    z-index: 35;
   }
 
   .ses-slider {
     width: 72px;
   }
 
-  /* —— Görsel menü hub —— */
   #masterLayout #anaIcerik .vizuel-menu-hub {
     min-height: auto;
-    padding: 8px 6px 16px;
+    padding: 6px 4px 12px;
   }
 
   #masterLayout #anaIcerik .vizuel-menu-wrap {
     width: 100%;
+    max-width: 100%;
+  }
+
+  #tutorialResumeBtn.eg-devam-btn {
+    bottom: calc(var(--ml-bottom-nav-h) + env(safe-area-inset-bottom, 0px) + 14px);
   }
 }
 
-/* Çok dar ekranlar */
+/* Çok dar telefon */
 @media (max-width: 480px) {
-  #masterLayout {
-    grid-template-rows: auto 36px minmax(100px, 30vh) 1fr;
+  :root {
+    --ml-bottom-nav-h: 56px;
   }
 
-  #masterLayout .ml-stat-chip {
-    padding: 5px 6px;
-    font-size: 10px;
+  #masterLayout {
+    --ml-bottom-nav-h: 56px;
+    --ml-ribbon-h: 34px;
   }
 
   #masterLayout .ml-stat-label {
     display: none;
+  }
+
+  #masterLayout .ml-stat-chip {
+    padding: 4px 6px;
+    font-size: 9px;
+  }
+
+  #masterLayout .ml-header-right button {
+    font-size: 8px;
+    padding: 5px 7px;
+  }
+
+  #masterLayout .ml-menu-item,
+  #masterLayout .menu-list > li > button.ml-menu-item {
+    min-width: 74px;
+    max-width: 96px;
+    font-size: 8.5px;
+    padding: 5px 6px;
   }
 
   #masterLayout .profil-ozet-bar {
@@ -421,8 +613,28 @@
     font-size: 15px;
   }
 
-  #masterLayout .sidebar-title .sm-title-txt {
-    font-size: 8.5px;
-    letter-spacing: 1.4px;
+  #masterLayout .ml-top-ribbon-txt {
+    font-size: 8px;
+    letter-spacing: 0.5px;
+  }
+}
+
+/* Yatay telefon: menü biraz daha kompakt */
+@media (max-width: 768px) and (orientation: landscape) {
+  :root {
+    --ml-bottom-nav-h: 50px;
+  }
+
+  #masterLayout {
+    --ml-bottom-nav-h: 50px;
+    --ml-ribbon-h: 32px;
+  }
+
+  #masterLayout .ml-menu-item,
+  #masterLayout .menu-list > li > button.ml-menu-item {
+    min-width: 70px;
+    max-width: 90px;
+    min-height: 38px;
+    font-size: 8px;
   }
 }

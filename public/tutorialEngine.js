@@ -1,9 +1,6 @@
 (function () {
   'use strict';
 
-  var STORAGE_STEP = 'yi_tutorial_step';
-  var STORAGE_DONE = 'yi_tutorial_done';
-
   var tutorialData = [
     {
       step: 1,
@@ -39,8 +36,6 @@
       step: 7,
       text: "Şimdi Medya kısmına göz at ve Gazete Oku. Medya'da haber yaptırabilir, Gazete'den düşmanlarını takip edebilirsin.",
       targetPage: '/medya',
-      delay: 5000,
-      nextAction: 'auto-redirect-gazete',
     },
     {
       step: 8,
@@ -92,8 +87,31 @@
 
   var currentStep = 1;
   var busy = false;
-  var delayTimer = null;
-  var modalVisible = false;
+  var autoResumeTimer = null;
+
+  function userId() {
+    if (window.__benimUserId != null) return String(window.__benimUserId);
+    if (window.aktifKullanici && window.aktifKullanici.id != null) {
+      return String(window.aktifKullanici.id);
+    }
+    return 'local';
+  }
+
+  function storageKeys() {
+    var uid = userId();
+    return {
+      step: 'yi_tutorial_step_' + uid,
+      done: 'yi_tutorial_done_' + uid,
+    };
+  }
+
+  function escTutorial(s) {
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
 
   function getStep() {
     for (var i = 0; i < tutorialData.length; i++) {
@@ -104,22 +122,27 @@
 
   function saveProgress() {
     try {
-      localStorage.setItem(STORAGE_STEP, String(currentStep));
+      var keys = storageKeys();
+      localStorage.setItem(keys.step, String(currentStep));
       if (currentStep > tutorialData.length) {
-        localStorage.setItem(STORAGE_DONE, '1');
+        localStorage.setItem(keys.done, '1');
       }
     } catch (_) {}
   }
 
   function loadProgress() {
     try {
-      if (localStorage.getItem(STORAGE_DONE) === '1') return false;
-      var saved = parseInt(localStorage.getItem(STORAGE_STEP), 10);
+      var keys = storageKeys();
+      if (localStorage.getItem(keys.done) === '1') return false;
+      var saved = parseInt(localStorage.getItem(keys.step), 10);
       if (!Number.isNaN(saved) && saved >= 1 && saved <= tutorialData.length) {
         currentStep = saved;
+      } else {
+        currentStep = 1;
       }
       return true;
     } catch (_) {
+      currentStep = 1;
       return true;
     }
   }
@@ -148,15 +171,32 @@
     expandMenuForTip(tip);
   }
 
-  function setBodyClass(on) {
-    document.body.classList.toggle('egitim-acik', !!on);
+  function isComplete() {
+    try {
+      var keys = storageKeys();
+      return localStorage.getItem(keys.done) === '1' || currentStep > tutorialData.length;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function isPaused() {
+    return !isComplete() && !modalVisible();
+  }
+
+  function modalVisible() {
+    var modal = document.getElementById('tutorialModal');
+    return !!(modal && !modal.classList.contains('gizli'));
   }
 
   function updateResumeButton() {
     var btn = document.getElementById('tutorialResumeBtn');
     if (!btn) return;
-    var show = !isComplete() && !modalVisible;
+    var show = isPaused();
     btn.classList.toggle('gizli', !show);
+    if (show) {
+      btn.textContent = '📖 Eğitime Devam (Adım ' + currentStep + '/' + tutorialData.length + ')';
+    }
   }
 
   function render() {
@@ -165,55 +205,63 @@
     var metin = document.getElementById('tutorialMetin');
     var baslik = document.getElementById('tutorialBaslik');
     var ileri = document.getElementById('tutorialIleri');
-    if (!modal || !metin) return;
+    if (!modal || !metin) return false;
 
-    metin.textContent = step.text || '';
     if (baslik) {
       baslik.textContent =
         currentStep === 1
           ? 'Oyun Eğitimi: Hoşgeldiniz'
           : 'Oyun Eğitimi: Adım ' + currentStep + ' / ' + tutorialData.length;
     }
+    if (currentStep > 1) {
+      metin.innerHTML =
+        '<span class="eg-adim-etiket">Adım ' + currentStep + ' / ' + tutorialData.length + '</span>'
+        + escTutorial(step.text || '');
+    } else {
+      metin.textContent = step.text || '';
+    }
     if (ileri) {
       ileri.disabled = !!busy;
-      ileri.textContent = currentStep >= tutorialData.length ? 'Bitir' : 'İleri';
+      if (step.targetPage === 'close-tutorial') {
+        ileri.textContent = 'Bitir';
+      } else {
+        ileri.textContent = 'Sayfaya Git';
+      }
     }
 
     modal.classList.remove('gizli');
     modal.setAttribute('aria-hidden', 'false');
-    modalVisible = true;
-    setBodyClass(true);
     updateResumeButton();
+    return true;
   }
 
-  function close(markDone) {
+  function pause() {
     var modal = document.getElementById('tutorialModal');
     if (modal) {
       modal.classList.add('gizli');
       modal.setAttribute('aria-hidden', 'true');
     }
-    if (delayTimer) {
-      clearTimeout(delayTimer);
-      delayTimer = null;
-    }
     busy = false;
-    modalVisible = false;
-    setBodyClass(false);
-    if (markDone) {
-      currentStep = tutorialData.length + 1;
-    }
     saveProgress();
     updateResumeButton();
   }
 
-  function showCurrentStep() {
+  function close(markDone) {
+    pause();
+    if (markDone) {
+      currentStep = tutorialData.length + 1;
+      saveProgress();
+    }
+    updateResumeButton();
+  }
+
+  function resume() {
+    if (isComplete()) return;
     var step = getStep();
     if (step.targetPage && step.targetPage !== 'close-tutorial') {
       navigate(step.targetPage);
     }
-    requestAnimationFrame(function () {
-      requestAnimationFrame(render);
-    });
+    render();
   }
 
   function open(opts) {
@@ -221,20 +269,23 @@
     if (opts.step != null) currentStep = opts.step;
     else if (!opts.force) {
       if (!loadProgress()) return;
+    } else {
+      loadProgress();
     }
-    if (currentStep > tutorialData.length) return;
-    showCurrentStep();
-  }
+    if (currentStep > tutorialData.length) currentStep = 1;
 
-  function advanceToNext() {
-    currentStep += 1;
-    saveProgress();
-    if (currentStep > tutorialData.length) {
-      close(true);
-      return false;
+    if (isPaused() && !opts.force) {
+      updateResumeButton();
+      return;
     }
-    showCurrentStep();
-    return true;
+
+    render();
+    if (opts.navigate) {
+      var step = getStep();
+      if (step.targetPage && step.targetPage !== 'close-tutorial') {
+        navigate(step.targetPage);
+      }
+    }
   }
 
   function forward() {
@@ -246,34 +297,36 @@
       return;
     }
 
-    if (step.delay && step.nextAction === 'auto-redirect-gazete') {
-      busy = true;
-      render();
-      delayTimer = setTimeout(function () {
-        navigate('/gazete');
-        busy = false;
-        delayTimer = null;
-        advanceToNext();
-      }, step.delay);
+    if (step.targetPage) {
+      navigate(step.targetPage);
+    }
+
+    currentStep += 1;
+    saveProgress();
+
+    if (currentStep > tutorialData.length) {
+      close(true);
       return;
     }
 
-    advanceToNext();
+    pause();
   }
 
-  function isComplete() {
-    try {
-      return localStorage.getItem(STORAGE_DONE) === '1' || currentStep > tutorialData.length;
-    } catch (_) {
-      return false;
-    }
+  function tryAutoResume(action) {
+    if (!isPaused() || busy) return;
+    if (autoResumeTimer) clearTimeout(autoResumeTimer);
+    autoResumeTimer = setTimeout(function () {
+      autoResumeTimer = null;
+      if (isPaused()) resume();
+    }, 900);
   }
 
   function reset() {
     currentStep = 1;
     try {
-      localStorage.removeItem(STORAGE_STEP);
-      localStorage.removeItem(STORAGE_DONE);
+      var keys = storageKeys();
+      localStorage.removeItem(keys.step);
+      localStorage.removeItem(keys.done);
     } catch (_) {}
     updateResumeButton();
   }
@@ -284,8 +337,8 @@
     var kapat = document.getElementById('tutorialKapat');
     var devam = document.getElementById('tutorialResumeBtn');
     if (ileri) ileri.addEventListener('click', forward);
-    if (kapat) kapat.addEventListener('click', function () { close(false); });
-    if (devam) devam.addEventListener('click', function () { open({ force: true }); });
+    if (kapat) kapat.addEventListener('click', function () { pause(); });
+    if (devam) devam.addEventListener('click', resume);
     updateResumeButton();
   }
 
@@ -300,10 +353,14 @@
     },
     open: open,
     close: close,
+    pause: pause,
+    resume: resume,
     forward: forward,
     render: render,
     reset: reset,
     isComplete: isComplete,
+    isPaused: isPaused,
+    tryAutoResume: tryAutoResume,
     init: init,
   };
 

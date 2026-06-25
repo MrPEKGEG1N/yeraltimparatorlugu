@@ -51,11 +51,12 @@ const {
   paraYatir,
   paraCek,
 } = require("./bankaService");
-const { getKiralamaEnvanter, kiralamaSatinAl } = require("./kiralamaService");
+const { getKiralamaEnvanter, getKiralamaFiyatEnvanter, kiralamaSatinAl } = require("./kiralamaService");
 const { gorevKabul, gorevOdulAl, gorevOlayIsle, gunlukGorevBildirimVarMi } = require("./gunlukGorevService");
 
-async function aksiyonOyuncuYaniti(db, userId, player, gorevSonuc = null) {
-  const full = await publicPlayerFull(db, userId, player);
+async function aksiyonOyuncuYaniti(db, userId, _player, gorevSonuc = null) {
+  const fresh = await loadPlayer(db, userId);
+  const full = await publicPlayerFull(db, userId, fresh);
   if (gorevSonuc && gorevSonuc.yeniTamamlanan > 0) {
     full.gunlukGorevBildirim = true;
   }
@@ -118,13 +119,36 @@ function rowToPlayer(row) {
 
 function applyIcraatRegen(player) {
   const now = Math.floor(Date.now() / 1000);
-  const elapsed = now - player.last_icraat_at;
-  const hours = Math.floor(elapsed / ICRAAT_REGEN_SEC);
-  if (hours <= 0) return player;
+  let lastAt = Number(player.last_icraat_at);
+  if (!Number.isFinite(lastAt) || lastAt <= 0) lastAt = now;
 
-  player.icraat = Math.min(ICRAAT_MAX, player.icraat + hours * ICRAAT_SAATLIK_BONUS);
-  player.last_icraat_at += hours * ICRAAT_REGEN_SEC;
+  const elapsed = now - lastAt;
+  const hours = Math.floor(elapsed / ICRAAT_REGEN_SEC);
+  if (hours <= 0) {
+    player.last_icraat_at = lastAt;
+    return player;
+  }
+
+  player.icraat = Math.min(ICRAAT_MAX, (player.icraat || 0) + hours * ICRAAT_SAATLIK_BONUS);
+  player.last_icraat_at = lastAt + hours * ICRAAT_REGEN_SEC;
   return player;
+}
+
+async function syncIcraatRegen(db, userId) {
+  const row = await get(db, `SELECT icraat, last_icraat_at FROM players WHERE user_id = ?`, [userId]);
+  if (!row) {
+    const now = Math.floor(Date.now() / 1000);
+    return { icraat: 0, last_icraat_at: now };
+  }
+  const synced = applyIcraatRegen({ icraat: row.icraat, last_icraat_at: row.last_icraat_at });
+  if (synced.icraat !== row.icraat || synced.last_icraat_at !== row.last_icraat_at) {
+    await run(db, `UPDATE players SET icraat = ?, last_icraat_at = ? WHERE user_id = ?`, [
+      synced.icraat,
+      synced.last_icraat_at,
+      userId,
+    ]);
+  }
+  return synced;
 }
 
 async function loadPlayer(db, userId) {
@@ -193,6 +217,10 @@ async function savePlayer(db, userId, player) {
 }
 
 async function publicPlayerFull(db, userId, player) {
+  const icraatSync = await syncIcraatRegen(db, userId);
+  player.icraat = icraatSync.icraat;
+  player.last_icraat_at = icraatSync.last_icraat_at;
+
   await karaListeSenkronize(db);
   try {
     await gunlukHaberUret(db);
@@ -235,6 +263,7 @@ async function publicPlayerFull(db, userId, player) {
   const bankaBakiye = await getBanka(db, userId);
   const bankaPanel = await getBankaPanel(db, userId);
   const kiralamaEnvanter = await getKiralamaEnvanter(db, userId);
+  const kiralamaFiyatEnvanter = await getKiralamaFiyatEnvanter(db, userId);
   const kara = await get(
     db,
     `SELECT kara_listede, sehir_efsane, profil_ziyaret_okundu_at FROM players WHERE user_id = ?`,
@@ -301,6 +330,7 @@ async function publicPlayerFull(db, userId, player) {
     bankaHakki: bankaPanel.bankaHakki,
     faizBekleyen: bankaPanel.faizBekleyen,
     kiralamaEnvanter,
+    kiralamaFiyatEnvanter,
     karaListede: !!(kara && kara.kara_listede),
     sehirBanner,
     yeniProfilZiyaret: ziyaretRow?.n || 0,

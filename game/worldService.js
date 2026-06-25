@@ -7,6 +7,7 @@ const { ZAYIF_HAMLE_MSG } = require("./saygiDuvariService");
 const { limanHaberEkle, makamHaberEkle } = require("./sehirGazeteService");
 const { logStatHareket } = require("./statService");
 const { temizGrupAdi } = require("./grupAdi");
+const { gucKaybiEnvanterUygula } = require("./kiralamaService");
 const {
   LIMAN_IDS,
   BABA_MAKAMLAR,
@@ -398,11 +399,25 @@ async function dusmanaCok(db, attackerId, attacker, hedefAd, securityMeta = {}) 
 
     attacker.kasa += paraKazanc;
     attacker.puan += puanKazanc;
-    attacker.guc -= gucDususSald;
+
+    const saldSync = await gucKaybiEnvanterUygula(
+      db,
+      attackerId,
+      attacker.guc,
+      attacker.guc - gucDususSald
+    );
+    attacker.guc = saldSync.guc;
+
+    const hedefSync = await gucKaybiEnvanterUygula(
+      db,
+      hedef.id,
+      hedef.guc,
+      Math.max(0, hedef.guc - gucDususHedef)
+    );
+    const hedefGuc = hedefSync.guc;
 
     const hedefKasa = Math.max(0, hedef.kasa - paraKazanc);
     const hedefPuan = Math.max(0, hedef.puan - puanKazanc);
-    const hedefGuc = Math.max(0, hedef.guc - gucDususHedef);
 
     await run(db, `UPDATE players SET kasa=?, puan=?, guc=?, icraat=? WHERE user_id=?`, [
       attacker.kasa,
@@ -466,8 +481,20 @@ async function dusmanaCok(db, attackerId, attacker, hedefAd, securityMeta = {}) 
 
   const gucDususSald = Math.floor(attacker.guc * 0.1);
   const gucDususHedef = Math.floor(hedef.guc * 0.1);
-  attacker.guc = Math.max(0, attacker.guc - gucDususSald);
-  const hedefGuc = Math.max(0, hedef.guc - gucDususHedef);
+  const saldSync = await gucKaybiEnvanterUygula(
+    db,
+    attackerId,
+    attacker.guc,
+    Math.max(0, attacker.guc - gucDususSald)
+  );
+  attacker.guc = saldSync.guc;
+  const hedefSync = await gucKaybiEnvanterUygula(
+    db,
+    hedef.id,
+    hedef.guc,
+    Math.max(0, hedef.guc - gucDususHedef)
+  );
+  const hedefGuc = hedefSync.guc;
 
   await run(db, `UPDATE players SET guc=?, icraat=? WHERE user_id=?`, [
     attacker.guc,

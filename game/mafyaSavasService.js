@@ -2,6 +2,7 @@ const { run, get, all } = require("../db/database");
 const { sektorPanel } = require("./sectorService");
 const { getLimanDurumu, LIMAN_SAATLIK } = require("./worldService");
 const { mafyaSavasIlanHaber, mafyaSavasSonucHaber } = require("./sehirGazeteService");
+const { gucKaybiEnvanterUygula } = require("./kiralamaService");
 
 const SAVAS_BEKLEME_SURESI = 8 * 60 * 60 * 1000; // 8 hours
 
@@ -148,7 +149,9 @@ async function savasiCoz(db) {
       const player = await get(db, `SELECT guc, kasa FROM players WHERE user_id = ?`, [k.user_id]);
       if (player) {
         const kazandi = kazananGrupId === savas.saldiran_grup_id;
+        const eskiGuc = player.guc;
         const yeniGuc = kazandi ? Math.floor(player.guc * 0.9) : Math.floor(player.guc * 0.5);
+        const gucSync = await gucKaybiEnvanterUygula(db, k.user_id, eskiGuc, yeniGuc);
         let yeniKasa = player.kasa;
         let yeniDevlet = null;
         if (kazandi) {
@@ -158,12 +161,16 @@ async function savasiCoz(db) {
           yeniDevlet = 0;
         }
         if (yeniDevlet === null) {
-          await run(db, `UPDATE players SET guc = ?, kasa = ? WHERE user_id = ?`, [yeniGuc, yeniKasa, k.user_id]);
+          await run(db, `UPDATE players SET guc = ?, kasa = ? WHERE user_id = ?`, [
+            gucSync.guc,
+            yeniKasa,
+            k.user_id,
+          ]);
         } else {
           await run(
             db,
             `UPDATE players SET guc = ?, kasa = ?, devlet_iliskisi = ? WHERE user_id = ?`,
-            [yeniGuc, yeniKasa, yeniDevlet, k.user_id]
+            [gucSync.guc, yeniKasa, yeniDevlet, k.user_id]
           );
         }
       }
@@ -173,7 +180,9 @@ async function savasiCoz(db) {
       const player = await get(db, `SELECT guc, devlet_iliskisi FROM players WHERE user_id = ?`, [k.user_id]);
       if (player) {
         const kazandi = kazananGrupId === savas.hedef_grup_id;
+        const eskiGuc = player.guc;
         const yeniGuc = kazandi ? Math.floor(player.guc * 0.9) : Math.floor(player.guc * 0.5);
+        const gucSync = await gucKaybiEnvanterUygula(db, k.user_id, eskiGuc, yeniGuc);
         const yeniIliski = kazandi ? player.devlet_iliskisi : 0;
         const kasaRow = await get(db, `SELECT kasa FROM players WHERE user_id = ?`, [k.user_id]);
         let yeniKasa = kasaRow?.kasa || 0;
@@ -184,7 +193,7 @@ async function savasiCoz(db) {
         await run(
           db,
           `UPDATE players SET guc = ?, kasa = ?, devlet_iliskisi = ? WHERE user_id = ?`,
-          [yeniGuc, yeniKasa, yeniIliski, k.user_id]
+          [gucSync.guc, yeniKasa, yeniIliski, k.user_id]
         );
       }
     }
