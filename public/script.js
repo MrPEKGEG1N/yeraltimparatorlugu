@@ -2321,6 +2321,9 @@ function profilAciklamaAl() {
   if (!profilQuill) return '';
   var html = profilQuill.root.innerHTML || '';
   if (html === '<p><br></p>' || html === '<p></p>') return '';
+  if (typeof profilFFormat !== 'undefined' && profilFFormat.profilAciklamaFFormatMi(html)) {
+    return profilFFormat.htmlToPlainText(html).trim();
+  }
   return html;
 }
 
@@ -2331,6 +2334,10 @@ function profilAciklamaYaz(html) {
     return;
   }
   var s = String(html).trim();
+  if (typeof profilFFormat !== 'undefined' && profilFFormat.profilAciklamaFFormatMi(s)) {
+    profilQuill.setText(profilFFormat.htmlToPlainText(s));
+    return;
+  }
   if (s.indexOf('<') < 0) {
     profilQuill.setText(s);
     return;
@@ -2346,6 +2353,13 @@ function profilAciklamaGosterUygula(html) {
     return;
   }
   var s = String(html).trim();
+  if (typeof profilFFormat !== 'undefined') {
+    var fHtml = profilFFormat.fFormatToHtml(s);
+    if (fHtml) {
+      el.innerHTML = fHtml;
+      return;
+    }
+  }
   if (s.indexOf('<') < 0) {
     el.textContent = s;
     return;

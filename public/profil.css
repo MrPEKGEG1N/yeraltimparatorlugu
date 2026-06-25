@@ -267,6 +267,26 @@
   margin-bottom: 0;
 }
 
+#masterLayout .profil-f-art {
+  white-space: pre;
+  word-break: normal;
+  overflow-x: auto;
+  line-height: 1;
+  letter-spacing: 0;
+  font-family: "Lucida Console", "Courier New", monospace;
+  font-size: 3px;
+  margin: 0;
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid #4a3c2a;
+}
+
+#masterLayout .profil-f-art span {
+  line-height: 1;
+  letter-spacing: 0;
+  white-space: pre;
+}
+
 /* Quill zengin metin editörü */
 #masterLayout .profil-quill-wrap {
   margin-bottom: 14px;

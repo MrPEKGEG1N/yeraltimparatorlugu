@@ -1,9 +1,21 @@
 const sanitizeHtml = require("sanitize-html");
+const { profilAciklamaFFormatMi, htmlToPlainText } = require("./profilFFormat");
 
-const MAX_UZUNLUK = 6000;
+const MAX_UZUNLUK = 12000;
 
 function sanitizeProfilAciklama(raw) {
-  const cleaned = sanitizeHtml(String(raw || ""), {
+  const src = String(raw || "");
+
+  if (profilAciklamaFFormatMi(src)) {
+    const plain = htmlToPlainText(src)
+      .replace(/<script[\s\S]*?<\/script>/gi, "")
+      .replace(/<[^>]+>/g, "")
+      .trim();
+    if (!plain) return "";
+    return plain.slice(0, MAX_UZUNLUK);
+  }
+
+  const cleaned = sanitizeHtml(src, {
     allowedTags: ["p", "br", "b", "strong", "i", "em", "u", "span", "font"],
     allowedAttributes: {
       "*": ["style", "class"],
