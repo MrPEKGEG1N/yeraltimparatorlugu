@@ -32,7 +32,7 @@ function authTaslakGeriYukle() {
     var raw = sessionStorage.getItem(AUTH_DRAFT_KEY);
     if (!raw) return;
     var d = JSON.parse(raw);
-    if (d.mod === "kayit" || d.mod === "giris") authSekmeDegistir(d.mod);
+    if (d.mod === "kayit" || d.mod === "giris") authSekmeDegistir(d.mod, true);
     var usernameEl = document.getElementById("username");
     var reisEl = document.getElementById("reisAdi");
     var lakapEl = document.getElementById("lakap");
@@ -59,7 +59,7 @@ function authFormuTemizle() {
 function authModuGeriYukle() {
   try {
     var saved = sessionStorage.getItem(AUTH_MOD_KEY);
-    if (saved === "kayit" || saved === "giris") authSekmeDegistir(saved);
+    if (saved === "kayit" || saved === "giris") authSekmeDegistir(saved, true);
   } catch (_) {}
 }
 
@@ -89,7 +89,7 @@ function authHataGoster(mesaj) {
   el.classList.remove("gizli");
 }
 
-function authSekmeDegistir(mod) {
+function authSekmeDegistir(mod, sessiz) {
   authModu = mod;
   authModuKaydet(mod);
   document.getElementById("sekmeGiris").classList.toggle("aktif-sekme", mod === "giris");
@@ -101,7 +101,7 @@ function authSekmeDegistir(mod) {
   document.getElementById("authGonder").textContent =
     mod === "giris" ? "[ ⚔️ GİRİŞ YAP ]" : "[ 👑 REİS OL ]";
   authHataGoster("");
-  authTaslakKaydet();
+  if (!sessiz) authTaslakKaydet();
 }
 
 function yukleniyorGoster(mesaj) {
@@ -184,7 +184,7 @@ async function urlParamGirisDene() {
   authUrlTemizle();
   var reisAdi = (params.get("reisAdi") || "").trim();
   var kayit = !!reisAdi;
-  if (kayit) authSekmeDegistir("kayit");
+  if (kayit) authSekmeDegistir("kayit", true);
 
   var userEl = document.getElementById("username");
   var passEl = document.getElementById("password");
@@ -306,19 +306,47 @@ async function authGonderIslem() {
   }
 }
 
+function authEnterEngelle(e) {
+  if (e.key !== "Enter") return;
+  e.preventDefault();
+  e.stopPropagation();
+  authGonderIslem();
+}
+
+function authSayfaYenilemeyiEngelle(e) {
+  if (e.type !== "submit") return;
+  var auth = document.getElementById("authEkran");
+  if (!auth || auth.classList.contains("gizli")) return;
+  var t = e.target;
+  if (!t) return;
+  if (t.id === "authForm" || (t.closest && (t.closest("#authForm") || t.closest("#authEkran")))) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    authGonderIslem();
+    return false;
+  }
+}
+
 function authGirisTuslariBagla() {
+  if (window.__authTuslariBagli) return;
+  window.__authTuslariBagli = true;
+
   var sekmeGiris = document.getElementById("sekmeGiris");
   var sekmeKayit = document.getElementById("sekmeKayit");
   var gonder = document.getElementById("authGonder");
   var wrap = document.getElementById("authForm");
 
+  document.addEventListener("submit", authSayfaYenilemeyiEngelle, true);
+
   if (sekmeGiris) {
-    sekmeGiris.addEventListener("click", function () {
+    sekmeGiris.addEventListener("click", function (e) {
+      e.preventDefault();
       authSekmeDegistir("giris");
     });
   }
   if (sekmeKayit) {
-    sekmeKayit.addEventListener("click", function () {
+    sekmeKayit.addEventListener("click", function (e) {
+      e.preventDefault();
       authSekmeDegistir("kayit");
     });
   }
@@ -329,12 +357,7 @@ function authGirisTuslariBagla() {
     });
   }
   if (wrap) {
-    wrap.addEventListener("keydown", function (e) {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        authGonderIslem();
-      }
-    });
+    wrap.addEventListener("keydown", authEnterEngelle);
     wrap.addEventListener("input", function () {
       authTaslakKaydet();
     });
@@ -346,7 +369,6 @@ function authGirisTuslariBagla() {
 
 function authBekleyenOyunuBaslat() {
   if (!window.__bekleyenOyunUser || typeof oyunuBaslat !== "function") return;
-  var user = window.__bekleyenOyunUser;
   window.__bekleyenOyunUser = null;
   oyunuBaslat();
 }
@@ -370,7 +392,11 @@ async function authBaslat() {
   }
 }
 
-authGirisTuslariBagla();
+function authDomHazir() {
+  authGirisTuslariBagla();
+  authBaslat();
+  authBekleyenOyunuBaslat();
+}
 
 window.addEventListener("pageshow", function (e) {
   if (e.persisted && !aktifKullanici) {
@@ -379,12 +405,8 @@ window.addEventListener("pageshow", function (e) {
   }
 });
 
-if (document.readyState === "complete") {
-  authBaslat();
-  authBekleyenOyunuBaslat();
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", authDomHazir);
 } else {
-  window.addEventListener("load", function () {
-    authBaslat();
-    authBekleyenOyunuBaslat();
-  });
+  authDomHazir();
 }

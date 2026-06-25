@@ -108,8 +108,29 @@ async function start() {
     });
   });
 
+  function sendNoCacheHtml(res, filePath) {
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
+    res.sendFile(filePath);
+  }
+
+  app.get(["/", "/index.html"], (req, res) => {
+    sendNoCacheHtml(res, path.join(PUBLIC_DIR, "index.html"));
+  });
+
   app.use("/static", express.static(path.join(__dirname, "static")));
-  app.use(express.static(PUBLIC_DIR));
+  app.use(
+    express.static(PUBLIC_DIR, {
+      setHeaders(res, filePath) {
+        if (filePath.endsWith(".html")) {
+          res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+          res.setHeader("Pragma", "no-cache");
+          res.setHeader("Expires", "0");
+        }
+      },
+    })
+  );
 
   app.listen(PORT, () => {
     console.log(`Yeraltı İmparatorluğu: http://localhost:${PORT}`);
