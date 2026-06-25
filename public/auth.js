@@ -1,12 +1,59 @@
-/** Giriş / kayıt ekranı — oyun script.js'den önce yüklenir */
+/** Giriş / kayıt ekranı — script.js'den önce yüklenir; sayfa yenilemesini engeller */
 var authModu = "giris";
 var aktifKullanici = null;
 var AUTH_MOD_KEY = "yi_auth_mod";
+var AUTH_DRAFT_KEY = "yi_auth_draft";
 
 function authModuKaydet(mod) {
   try {
     sessionStorage.setItem(AUTH_MOD_KEY, mod);
   } catch (_) {}
+}
+
+function authTaslakKaydet() {
+  try {
+    var usernameEl = document.getElementById("username");
+    var reisEl = document.getElementById("reisAdi");
+    var lakapEl = document.getElementById("lakap");
+    sessionStorage.setItem(
+      AUTH_DRAFT_KEY,
+      JSON.stringify({
+        mod: authModu,
+        username: usernameEl ? usernameEl.value : "",
+        reisAdi: reisEl ? reisEl.value : "",
+        lakap: lakapEl ? lakapEl.value : "",
+      })
+    );
+  } catch (_) {}
+}
+
+function authTaslakGeriYukle() {
+  try {
+    var raw = sessionStorage.getItem(AUTH_DRAFT_KEY);
+    if (!raw) return;
+    var d = JSON.parse(raw);
+    if (d.mod === "kayit" || d.mod === "giris") authSekmeDegistir(d.mod);
+    var usernameEl = document.getElementById("username");
+    var reisEl = document.getElementById("reisAdi");
+    var lakapEl = document.getElementById("lakap");
+    if (usernameEl && d.username) usernameEl.value = d.username;
+    if (reisEl && d.reisAdi) reisEl.value = d.reisAdi;
+    if (lakapEl && d.lakap) lakapEl.value = d.lakap;
+  } catch (_) {}
+}
+
+function authTaslakTemizle() {
+  try {
+    sessionStorage.removeItem(AUTH_DRAFT_KEY);
+  } catch (_) {}
+}
+
+function authFormuTemizle() {
+  ["username", "password", "reisAdi", "authHoneypot"].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.value = "";
+  });
+  authTaslakTemizle();
 }
 
 function authModuGeriYukle() {
@@ -49,11 +96,12 @@ function authSekmeDegistir(mod) {
   document.getElementById("sekmeKayit").classList.toggle("aktif-sekme", mod === "kayit");
   document.getElementById("reisAdiAlan").classList.toggle("gizli", mod === "giris");
   document.getElementById("lakapAlan").classList.toggle("gizli", mod === "giris");
-  var reisEl = document.getElementById("reisAdi");
-  if (reisEl) reisEl.required = mod === "kayit";
+  var passEl = document.getElementById("password");
+  if (passEl) passEl.setAttribute("autocomplete", mod === "kayit" ? "new-password" : "current-password");
   document.getElementById("authGonder").textContent =
     mod === "giris" ? "[ ⚔️ GİRİŞ YAP ]" : "[ 👑 REİS OL ]";
   authHataGoster("");
+  authTaslakKaydet();
 }
 
 function yukleniyorGoster(mesaj) {
@@ -87,7 +135,12 @@ function oyunuGoster(user) {
   yukleniyorGoster("⏳ İMPARATORLUK YÜKLENİYOR...");
   var etiket = document.getElementById("reisEtiket");
   if (etiket) etiket.textContent = "🕶️ " + (user.reisAdi || user.username);
-  if (typeof oyunuBaslat === "function") oyunuBaslat();
+  authTaslakTemizle();
+  if (typeof oyunuBaslat === "function") {
+    oyunuBaslat();
+  } else {
+    window.__bekleyenOyunUser = user;
+  }
 }
 
 function authEkraniniGoster() {
@@ -100,6 +153,7 @@ function authEkraniniGoster() {
   if (window.TutorialEngine && typeof TutorialEngine.syncVisibility === "function") {
     TutorialEngine.syncVisibility();
   }
+  authTaslakGeriYukle();
 }
 
 async function oturumKontrol() {
@@ -121,6 +175,8 @@ async function oturumKontrol() {
 
 async function urlParamGirisDene() {
   var params = new URLSearchParams(window.location.search);
+  if (params.get("auth") !== "oto") return false;
+
   var username = (params.get("username") || "").trim();
   var password = params.get("password") || "";
   if (!username || !password) return false;
@@ -183,7 +239,7 @@ async function cikisYap() {
   if (typeof muzikDurdur === "function") muzikDurdur();
   authEkraniniGoster();
   authSekmeDegistir("giris");
-  document.getElementById("authForm").reset();
+  authFormuTemizle();
 }
 
 async function authGonderIslem() {
@@ -195,6 +251,10 @@ async function authGonderIslem() {
   var password = document.getElementById("password").value;
   if (!username || username.length < 3) {
     authHataGoster("Kullanıcı adı en az 3 karakter olmalı.");
+    return;
+  }
+  if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+    authHataGoster("Kullanıcı adı yalnızca harf, rakam ve _ içerebilir.");
     return;
   }
   if (!password || password.length < 6) {
@@ -215,6 +275,8 @@ async function authGonderIslem() {
       return;
     }
   }
+
+  authTaslakKaydet();
 
   var eskiBtnText = btn.textContent;
   btn.disabled = true;
@@ -244,30 +306,57 @@ async function authGonderIslem() {
   }
 }
 
-document.getElementById("sekmeGiris").addEventListener("click", function () {
-  authSekmeDegistir("giris");
-});
-document.getElementById("sekmeKayit").addEventListener("click", function () {
-  authSekmeDegistir("kayit");
-});
+function authGirisTuslariBagla() {
+  var sekmeGiris = document.getElementById("sekmeGiris");
+  var sekmeKayit = document.getElementById("sekmeKayit");
+  var gonder = document.getElementById("authGonder");
+  var wrap = document.getElementById("authForm");
 
-document.getElementById("authForm").addEventListener("submit", function (e) {
-  e.preventDefault();
-  e.stopPropagation();
-  authGonderIslem();
-  return false;
-});
+  if (sekmeGiris) {
+    sekmeGiris.addEventListener("click", function () {
+      authSekmeDegistir("giris");
+    });
+  }
+  if (sekmeKayit) {
+    sekmeKayit.addEventListener("click", function () {
+      authSekmeDegistir("kayit");
+    });
+  }
+  if (gonder) {
+    gonder.addEventListener("click", function (e) {
+      e.preventDefault();
+      authGonderIslem();
+    });
+  }
+  if (wrap) {
+    wrap.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        authGonderIslem();
+      }
+    });
+    wrap.addEventListener("input", function () {
+      authTaslakKaydet();
+    });
+    wrap.addEventListener("change", function () {
+      authTaslakKaydet();
+    });
+  }
+}
 
-document.getElementById("authGonder").addEventListener("click", function (e) {
-  e.preventDefault();
-  authGonderIslem();
-});
+function authBekleyenOyunuBaslat() {
+  if (!window.__bekleyenOyunUser || typeof oyunuBaslat !== "function") return;
+  var user = window.__bekleyenOyunUser;
+  window.__bekleyenOyunUser = null;
+  oyunuBaslat();
+}
 
-(async function authBaslat() {
+async function authBaslat() {
   if (window.__authBaslatildi) return;
   window.__authBaslatildi = true;
   yukleniyorGizle();
   authModuGeriYukle();
+  authTaslakGeriYukle();
   try {
     if (await urlParamGirisDene()) return;
     yukleniyorGoster("⏳ Oturum kontrol ediliyor...");
@@ -279,4 +368,23 @@ document.getElementById("authGonder").addEventListener("click", function (e) {
     authEkraniniGoster();
     authHataGoster("Bağlantı hatası. Sunucunun çalıştığından emin olun.");
   }
-})();
+}
+
+authGirisTuslariBagla();
+
+window.addEventListener("pageshow", function (e) {
+  if (e.persisted && !aktifKullanici) {
+    authModuGeriYukle();
+    authTaslakGeriYukle();
+  }
+});
+
+if (document.readyState === "complete") {
+  authBaslat();
+  authBekleyenOyunuBaslat();
+} else {
+  window.addEventListener("load", function () {
+    authBaslat();
+    authBekleyenOyunuBaslat();
+  });
+}

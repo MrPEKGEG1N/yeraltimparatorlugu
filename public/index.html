@@ -46,14 +46,14 @@
       <button type="button" id="sekmeKayit" class="auth-sekme">KAYIT OL</button>
     </div>
 
-    <form id="authForm" class="auth-form" autocomplete="on" novalidate method="post" action="#">
+    <div id="authForm" class="auth-form" role="form" aria-label="Giriş ve kayıt">
       <div id="reisAdiAlan" class="auth-alan gizli">
         <label for="reisAdi">Reis Adın</label>
-        <input type="text" id="reisAdi" name="reisAdi" maxlength="24" placeholder="Örn: Doğan">
+        <input type="text" id="reisAdi" maxlength="24" placeholder="Örn: Doğan" autocomplete="nickname">
       </div>
       <div id="lakapAlan" class="auth-alan gizli">
         <label for="lakap">Lakap (kalıcı)</label>
-        <select id="lakap" name="lakap">
+        <select id="lakap">
           <option>Tetikçi</option>
           <option>Soyguncu</option>
           <option>İşlemeci</option>
@@ -69,16 +69,16 @@
       </div>
       <div class="auth-alan">
         <label for="username">Kullanıcı Adı</label>
-        <input type="text" id="username" name="username" required minlength="3" maxlength="20" pattern="[a-zA-Z0-9_]+" placeholder="Kullanıcı Adını Yaz">
+        <input type="text" id="username" minlength="3" maxlength="20" placeholder="Kullanıcı Adını Yaz" autocomplete="username" autocapitalize="off" spellcheck="false">
       </div>
       <div class="auth-alan">
         <label for="password">Şifre</label>
-        <input type="password" id="password" name="password" required minlength="6" placeholder="••••••">
+        <input type="password" id="password" minlength="6" placeholder="••••••" autocomplete="new-password">
       </div>
-      <input type="text" id="authHoneypot" name="website" tabindex="-1" autocomplete="off" class="gizli" aria-hidden="true">
+      <input type="text" id="authHoneypot" tabindex="-1" autocomplete="off" class="gizli" aria-hidden="true">
       <p id="authHata" class="auth-hata gizli"></p>
-      <button type="submit" id="authGonder" class="auth-btn">[ ⚔️ GİRİŞ YAP ]</button>
-    </form>
+      <button type="button" id="authGonder" class="auth-btn">[ ⚔️ GİRİŞ YAP ]</button>
+    </div>
   </div>
 </div>
 
@@ -317,10 +317,10 @@
 
 <script src="https://openfpcdn.io/fingerprintjs/v4/iife.min.js"></script>
 <script src="security.js?v=1"></script>
+<script src="auth.js?v=93"></script>
 <script src="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js"></script>
 <script src="mekanlar-data.js?v=85"></script>
 <script src="tutorialEngine.js?v=7"></script>
-  <script src="script.js?v=218"></script>
-  <script src="auth.js?v=92"></script>
+<script src="script.js?v=218"></script>
 </body>
 </html>
