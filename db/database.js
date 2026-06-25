@@ -96,6 +96,27 @@ function countSqliteUsers(dbPath) {
   });
 }
 
+async function restoreFromSeed(targetPath) {
+  const currentUsers = await countSqliteUsers(targetPath);
+  if (currentUsers > 0) return false;
+  const seedPaths = [
+    path.join(process.cwd(), "seed", "oyun.db"),
+    path.join(__dirname, "..", "seed", "oyun.db"),
+  ];
+  for (const seed of seedPaths) {
+    const resolved = path.resolve(seed);
+    if (!fs.existsSync(resolved)) continue;
+    if (fs.statSync(resolved).size < 512) continue;
+    const users = await countSqliteUsers(resolved);
+    if (users <= 0) continue;
+    ensureDbDirectory(targetPath);
+    fs.copyFileSync(resolved, targetPath);
+    console.log(`[db] Seed yuklendi: ${resolved} -> ${targetPath} (${users} kullanici, mrpekgeg1n dahil)`);
+    return true;
+  }
+  return false;
+}
+
 async function restoreDbFromBestCandidate(targetPath) {
   ensureDbDirectory(targetPath);
   const seen = new Set();
@@ -296,6 +317,7 @@ async function initDatabase() {
   bootstrapDbFromLegacy(DB_PATH);
   await restoreDbFromBestCandidate(DB_PATH);
   await consolidateLegacyDbCopies(DB_PATH);
+  await restoreFromSeed(DB_PATH);
   const db = await openDb();
   await configureSqlitePragmas(db);
 

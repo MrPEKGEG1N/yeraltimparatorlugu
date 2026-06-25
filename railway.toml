@@ -6,6 +6,7 @@ startCommand = "npm start"
 healthcheckPath = "/api/health"
 restartPolicyType = "on_failure"
 
-# Kalici SQLite: Railway panelinde Volume mount /app/db olmali (canli ortam bu yolu kullaniyor)
-[[deploy.volumes]]
+# Kalici SQLite — volume Railway panelinde de bu isimle baglanmali
+[[deploy.mounts]]
+volumeName = "yeralti-db"
 mountPath = "/app/db"
