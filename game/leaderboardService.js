@@ -1,32 +1,16 @@
 const { all, get } = require("../db/database");
-const { temizGrupAdi } = require("./grupAdi");
+const { temizGrupAdi, gercekGrupAdi } = require("./grupAdi");
 const { kullaniciGrubu } = require("./mafiaService");
 
 async function getLeaderboard(db, currentUserId) {
-  const gruplar = await all(db, `SELECT id, isim FROM mafya_gruplari`);
-  const grupByName = new Map();
-  for (const g of gruplar) {
-    const raw = String(g.isim || "").trim().toLowerCase();
-    const clean = temizGrupAdi(g.isim).toLowerCase();
-    if (raw) grupByName.set(raw, g.id);
-    if (clean) grupByName.set(clean, g.id);
-  }
-
-  function resolveGrupId(grupId, grupAdi) {
-    if (grupId) return grupId;
-    const raw = String(grupAdi || "").trim();
-    if (!raw || raw === "Bağımsız Reis") return null;
-    const clean = temizGrupAdi(raw);
-    return grupByName.get(clean.toLowerCase()) || grupByName.get(raw.toLowerCase()) || null;
-  }
-
   const oyuncular = await all(
     db,
     `SELECT u.reis_adi AS isim, u.grup, p.puan, u.id AS user_id, p.sehre_hukmet_sayisi,
-            m.grup_id
+            m.grup_id, mg.isim AS gercek_grup_adi
      FROM players p
      JOIN users u ON u.id = p.user_id
      LEFT JOIN mafya_uyeleri m ON m.user_id = u.id
+     LEFT JOIN mafya_gruplari mg ON mg.id = m.grup_id
      ORDER BY p.puan DESC
      LIMIT 50`
   );
@@ -34,8 +18,8 @@ async function getLeaderboard(db, currentUserId) {
   return oyuncular.slice(0, 25).map((o) => ({
     userId: o.user_id,
     isim: o.isim,
-    grup: temizGrupAdi(o.grup),
-    grupId: resolveGrupId(o.grup_id, o.grup),
+    grup: gercekGrupAdi(o.gercek_grup_adi || o.grup, o.grup_id),
+    grupId: o.grup_id || null,
     puan: o.puan,
     sehreHukmetSayisi: o.sehre_hukmet_sayisi || 0,
     bot: false,

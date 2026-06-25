@@ -63,7 +63,7 @@ async function initDatabase() {
       password_hash TEXT NOT NULL,
       reis_adi TEXT NOT NULL,
       lakap TEXT NOT NULL DEFAULT 'Mafya',
-      grup TEXT NOT NULL DEFAULT 'Sokakların Hakimi',
+      grup TEXT NOT NULL DEFAULT '',
       created_at INTEGER NOT NULL DEFAULT (strftime('%s','now'))
     )`
   );
@@ -446,10 +446,17 @@ async function initDatabase() {
   const grupRows = await all(db, `SELECT id, grup FROM users`);
   for (const row of grupRows) {
     const cleaned = temizGrupAdi(row.grup);
-    if (cleaned && cleaned !== row.grup) {
+    if (cleaned !== row.grup) {
       await run(db, `UPDATE users SET grup = ? WHERE id = ?`, [cleaned, row.id]);
     }
   }
+
+  await run(
+    db,
+    `UPDATE users SET grup = ''
+     WHERE grup = 'Sokakların Hakimi'
+       AND id NOT IN (SELECT user_id FROM mafya_uyeleri)`
+  );
 
   const eskiPortreler = await all(
     db,

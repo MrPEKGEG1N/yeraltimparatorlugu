@@ -354,10 +354,11 @@ async function sunucuAksiyon(action, key, adet, extra) {
 var GORSEL_VERSIYON = '124';
 
 function temizGrupAdi(grup) {
-  if (!grup) return '—';
+  if (!grup) return '';
   var s = String(grup).trim();
+  if (!s || s === 'Sokakların Hakimi') return '';
   if (s === 'Bağımsız Reis') return s;
-  return s.replace(/\s+Mafya+a*\s+G[uü]?rubu$/i, '').trim() || '—';
+  return s.replace(/\s+Mafya+a*\s+G[uü]?rubu$/i, '').trim();
 }
 
 function ltMedalClass(i) {
@@ -393,8 +394,8 @@ function ltGrupLinkHtml(isim, grupId, grupMap) {
   if (!gid && grupMap && ad) {
     gid = grupMap[ad.toLowerCase()] || grupMap[String(isim || '').trim().toLowerCase()];
   }
-  if (!gid || !ad || ad === '—' || ad === 'Bağımsız Reis') {
-    return '<span class="lt-group-txt">' + escHtml(ad) + '</span>';
+  if (!gid || !ad || ad === 'Bağımsız Reis') {
+    return '<span class="lt-group-txt"></span>';
   }
   return '<button type="button" class="oyuncu-link lt-group-txt" onclick="mafyaGrupGoster(' + gid + ')">' + escHtml(ad) + '</button>';
 }
