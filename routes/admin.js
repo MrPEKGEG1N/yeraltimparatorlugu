@@ -11,6 +11,11 @@ const {
   updatePlayerStats,
   updatePlayerMekanlar,
   updatePlayerGuvenliYer,
+  updatePlayerIstihbarat,
+  listMafyaGruplari,
+  getMafyaGrupDetail,
+  mapMafyaGrupRow,
+  mapMafyaGrupDetail,
   getMultiAccountClusters,
   listInboxMessages,
   listMafyaSohbet,
@@ -85,9 +90,11 @@ function createAdminRouter(db) {
           smsHakki: detail.user.sms_hakki,
           mekanToplam: detail.mekanToplam,
           guvenliYer: detail.guvenliYer,
+          istihbaratEleman: detail.istihbaratEleman,
         },
         mekanlar: detail.mekanlar || [],
         guvenliYer: detail.guvenliYer,
+        istihbaratEleman: detail.istihbaratEleman,
         fingerprints: detail.fingerprints.map((f) => ({
           visitorId: f.visitor_id,
           ip: f.son_ip,
@@ -195,6 +202,43 @@ function createAdminRouter(db) {
     } catch (err) {
       console.error(err);
       res.status(500).json({ ok: false, error: "Güvenli Yer güncellenemedi." });
+    }
+  });
+
+  router.patch("/oyuncular/:id/istihbarat", async (req, res) => {
+    try {
+      const result = await updatePlayerIstihbarat(
+        db,
+        req.user.id,
+        parseInt(req.params.id, 10),
+        req.body?.elemanSayisi
+      );
+      if (!result.ok) return res.status(400).json(result);
+      res.json(result);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ ok: false, error: "İstihbarat güncellenemedi." });
+    }
+  });
+
+  router.get("/mafya-gruplari", async (req, res) => {
+    try {
+      const rows = await listMafyaGruplari(db, req.query.q || "");
+      res.json({ ok: true, liste: rows.map(mapMafyaGrupRow) });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ ok: false, error: "Mafya grupları yüklenemedi." });
+    }
+  });
+
+  router.get("/mafya-gruplari/:id", async (req, res) => {
+    try {
+      const detail = await getMafyaGrupDetail(db, parseInt(req.params.id, 10));
+      if (!detail) return res.status(404).json({ ok: false, error: "Grup bulunamadı." });
+      res.json({ ok: true, ...mapMafyaGrupDetail(detail) });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ ok: false, error: "Grup detayı yüklenemedi." });
     }
   });
 

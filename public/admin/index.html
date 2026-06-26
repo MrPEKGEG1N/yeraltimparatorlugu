@@ -28,6 +28,7 @@
         <nav class="admin-nav">
           <button type="button" data-tab="dashboard" class="nav-btn aktif">📊 Özet</button>
           <button type="button" data-tab="oyuncular" class="nav-btn">👤 Oyuncular</button>
+          <button type="button" data-tab="mafya" class="nav-btn">🔫 Mafya Grupları</button>
           <button type="button" data-tab="aktivite" class="nav-btn">📡 Canlı Aktivite</button>
           <button type="button" data-tab="multi" class="nav-btn">🕵️ Şüpheli Hesaplar</button>
           <button type="button" data-tab="mesajlar" class="nav-btn">💬 Sohbet Kontrol</button>
@@ -58,13 +59,31 @@
               <table class="admin-tablo">
                 <thead>
                   <tr>
-                    <th>ID</th><th>Reis</th><th>Kullanıcı</th><th>SMS</th><th>Mekan</th><th>Güvenli Yer</th><th>Ekran</th><th>Son İşlem</th><th>Güç</th><th>Saygınlık</th><th>Durum</th><th></th>
+                    <th>ID</th><th>Reis</th><th>Kullanıcı</th><th>SMS</th><th>Mekan</th><th>Güvenli Yer</th><th>İstihbarat</th><th>Ekran</th><th>Son İşlem</th><th>Güç</th><th>Saygınlık</th><th>Durum</th><th></th>
                   </tr>
                 </thead>
                 <tbody id="oyuncuTablo"></tbody>
               </table>
             </div>
             <div id="oyuncuDetay" class="detay-kutu hidden"></div>
+          </section>
+
+          <section id="tab-mafya" class="tab-panel hidden">
+            <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px">
+              <input id="mafyaAra" type="search" placeholder="Grup ara… (boş bırakınca tüm gruplar)" class="admin-input" style="flex:1;min-width:200px">
+              <button type="button" id="mafyaAraBtn" class="admin-btn admin-btn-kirmizi">Ara</button>
+            </div>
+            <div class="admin-tablo-wrap">
+              <table class="admin-tablo">
+                <thead>
+                  <tr>
+                    <th>ID</th><th>Grup</th><th>Lider</th><th>Üye</th><th>Ev</th><th>Başvuru</th><th>Savaş</th><th></th>
+                  </tr>
+                </thead>
+                <tbody id="mafyaTablo"></tbody>
+              </table>
+            </div>
+            <div id="mafyaDetay" class="detay-kutu hidden"></div>
           </section>
 
           <section id="tab-aktivite" class="tab-panel hidden">
@@ -109,6 +128,6 @@
     </div>
   </div>
 
-  <script src="/admin/admin.js?v=8"></script>
+  <script src="/admin/admin.js?v=9"></script>
 </body>
 </html>

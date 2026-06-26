@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
-    "liderlik": "python app.py"
+    "liderlik": "python app.py",
+    "railway:volume": "powershell -ExecutionPolicy Bypass -File tools/setup-railway-volume.ps1"
   },
   "keywords": [],
   "author": "",

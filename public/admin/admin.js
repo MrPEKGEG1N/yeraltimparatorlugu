@@ -88,6 +88,7 @@
     var baslik = {
       dashboard: "Özet",
       oyuncular: "Oyuncu Yönetimi",
+      mafya: "Mafya Grupları",
       aktivite: "Canlı Aktivite",
       multi: "Şüpheli Multi-Hesaplar",
       mesajlar: "Sohbet Kontrol",
@@ -109,6 +110,7 @@
         statKart("Son 15 dk Aktif", s.online_15dk, "🟢") +
         statKart("Güvenlik (24s)", s.olay_24s, "⚠️") +
         statKart("Mesaj (24s)", s.mesaj_24s, "💬") +
+        statKart("Mafya Grubu", s.mafya_grup, "🔫") +
         statKart("Yönetici", s.admin_sayisi, "👑");
     });
   }
@@ -126,7 +128,7 @@
   function oyuncuTabloCiz(liste) {
     var tb = document.getElementById("oyuncuTablo");
     if (!liste.length) {
-      tb.innerHTML = '<tr><td colspan="12" style="text-align:center;color:#6b7280;padding:16px">Sonuç yok.</td></tr>';
+      tb.innerHTML = '<tr><td colspan="13" style="text-align:center;color:#6b7280;padding:16px">Sonuç yok.</td></tr>';
       return;
     }
     tb.innerHTML = liste
@@ -148,6 +150,7 @@
           "<tr><td>" + o.id + "</td><td><b>" + esc(o.reisAdi) + "</b></td><td>" + esc(o.username) +
           "</td><td>" + fmt(o.smsHakki) + "</td><td>" + fmt(o.mekanToplam) +
           "</td><td title='" + esc(o.guvenliYerAd || "") + "'>" + fmt(o.guvenliYerSeviye) +
+          "</td><td title='+" + fmt(o.istihbaratGuc || 0) + " güç'>" + fmt(o.istihbaratEleman) +
           "</td><td>" + ekran + "</td><td>" + sonIs +
           "</td><td>" + fmt(o.guc) + "</td><td style='color:#c5a059'>" + fmt(o.puan) +
           "</td><td>" + durum + '</td><td><button type="button" data-id="' + o.id +
@@ -165,7 +168,7 @@
   function oyuncuAra() {
     var q = document.getElementById("oyuncuAra").value.trim();
     var tb = document.getElementById("oyuncuTablo");
-    if (tb) tb.innerHTML = '<tr><td colspan="12" style="text-align:center;color:#6b7280;padding:16px">Yükleniyor…</td></tr>';
+    if (tb) tb.innerHTML = '<tr><td colspan="13" style="text-align:center;color:#6b7280;padding:16px">Yükleniyor…</td></tr>';
     api("/api/admin/oyuncular?q=" + encodeURIComponent(q)).then(function (res) {
       if (!res.ok) {
         toast(res.data.error || "Arama hatası", true);
@@ -218,6 +221,8 @@
       var gySeviye = gy.baseSeviye || o.guvenliYerSeviye || 1;
       var gyAd = gy.ad || o.guvenliYerAd || "";
       var gyGuc = gy.gucBonus != null ? gy.gucBonus : "";
+      var istEleman = res.data.istihbaratEleman != null ? res.data.istihbaratEleman : (o.istihbaratEleman || 0);
+      var istGuc = istEleman * 100;
       var mekanlar = res.data.mekanlar || [];
       var mekanSatirlari = mekanlar
         .map(function (m) {
@@ -244,6 +249,7 @@
         info("İcraat", fmt(o.icraat)) + info("SMS Hakkı", fmt(o.smsHakki)) +
         info("Mekan Toplam", fmt(o.mekanToplam)) +
         info("Güvenli Yer", "Seviye " + fmt(gySeviye) + (gyAd ? " — " + esc(gyAd) : "") + (gyGuc !== "" ? " (+" + fmt(gyGuc) + " güç)" : "")) +
+        info("İstihbarat", fmt(istEleman) + " eleman (+" + fmt(istGuc) + " güç)") +
         info("Son IP", o.sonIp || "—") +
         "</div>" +
         "<form id='statForm' class='detay-grid' style='grid-template-columns:repeat(5,1fr)'>" +
@@ -257,6 +263,12 @@
         "<div style='font-size:12px;color:#9ca3af;padding-bottom:8px'>" + esc(gyAd || "") +
         (gyGuc !== "" ? " · +" + fmt(gyGuc) + " güç bonusu" : "") + "</div>" +
         "<button type='button' id='gyKaydetBtn' class='admin-btn admin-btn-altin' style='min-height:38px'>Güvenli Yer Kaydet</button></div>" +
+        "<p class='baslik-altin'>İstihbarat</p>" +
+        "<div style='display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:16px'>" +
+        "<div><label style='display:block;font-size:11px;color:#9ca3af;margin-bottom:4px'>Eleman sayısı</label>" +
+        '<input id="istElemanInput" type="number" min="0" class="admin-input" style="width:120px;padding:6px 8px" value="' + istEleman + '"></div>' +
+        "<div style='font-size:12px;color:#9ca3af;padding-bottom:8px'>+" + fmt(istGuc) + " güç bonusu (100/eleman)</div>" +
+        "<button type='button' id='istKaydetBtn' class='admin-btn admin-btn-altin' style='min-height:38px'>İstihbarat Kaydet</button></div>" +
         "<p class='baslik-altin'>Mekan adetleri</p>" +
         "<div class='admin-tablo-wrap' style='max-height:320px;overflow:auto;margin-bottom:10px'>" +
         "<table class='admin-tablo'><thead><tr><th>Sektör</th><th>Mekan</th><th>Adet</th></tr></thead>" +
@@ -312,6 +324,20 @@
           var inp = document.getElementById("gySeviyeInput");
           var sev = inp ? inp.value : gySeviye;
           api("/api/admin/oyuncular/" + id + "/guvenli-yer", { method: "PATCH", body: { baseSeviye: sev } }).then(function (r) {
+            toast(r.data.mesaj || r.data.error || "Tamam", !r.ok);
+            if (r.ok) {
+              oyuncuDetayYukle(id);
+              oyuncuAra();
+            }
+          });
+        });
+      }
+      var istBtn = document.getElementById("istKaydetBtn");
+      if (istBtn) {
+        istBtn.addEventListener("click", function () {
+          var inp = document.getElementById("istElemanInput");
+          var adet = inp ? inp.value : istEleman;
+          api("/api/admin/oyuncular/" + id + "/istihbarat", { method: "PATCH", body: { elemanSayisi: adet } }).then(function (r) {
             toast(r.data.mesaj || r.data.error || "Tamam", !r.ok);
             if (r.ok) {
               oyuncuDetayYukle(id);
@@ -486,6 +512,97 @@
     });
   }
 
+  function mafyaTabloCiz(liste) {
+    var tb = document.getElementById("mafyaTablo");
+    if (!tb) return;
+    if (!liste.length) {
+      tb.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#6b7280;padding:16px">Grup yok.</td></tr>';
+      return;
+    }
+    tb.innerHTML = liste.map(function (g) {
+      return "<tr><td>" + g.id + "</td><td><b>" + esc(g.isim) + "</b><br><span style='font-size:11px;color:#6b7280'>" +
+        esc(g.aciklama || "") + "</span></td><td>" + esc(g.liderReis) + "<br><span style='font-size:11px;color:#6b7280'>@" +
+        esc(g.liderUsername) + "</span></td><td>" + fmt(g.uyeSayisi) + "</td><td>Sev. " + fmt(g.evSeviye) +
+        "</td><td>" + fmt(g.bekleyenBasvuru) + "</td><td>" + (g.aktifSavas ? '<span style="color:#f87171">' + fmt(g.aktifSavas) + "</span>" : "0") +
+        '</td><td><button type="button" data-id="' + g.id +
+        '" class="mafya-detay-btn admin-btn admin-btn-altin" style="min-height:36px;padding:6px 12px">Detay</button></td></tr>';
+    }).join("");
+    tb.querySelectorAll(".mafya-detay-btn").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        mafyaDetayYukle(parseInt(btn.getAttribute("data-id"), 10));
+      });
+    });
+  }
+
+  function mafyaAra() {
+    var q = document.getElementById("mafyaAra").value.trim();
+    var tb = document.getElementById("mafyaTablo");
+    if (tb) tb.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#6b7280;padding:16px">Yükleniyor…</td></tr>';
+    api("/api/admin/mafya-gruplari?q=" + encodeURIComponent(q)).then(function (res) {
+      if (!res.ok) {
+        toast(res.data.error || "Mafya listesi yüklenemedi", true);
+        return;
+      }
+      mafyaTabloCiz(res.data.liste || []);
+      document.getElementById("mafyaDetay").classList.add("hidden");
+    });
+  }
+
+  function mafyaDetayYukle(id) {
+    var el = document.getElementById("mafyaDetay");
+    if (!el) return;
+    el.classList.remove("hidden");
+    el.innerHTML = "<p style='color:#9ca3af;padding:12px'>Grup detayı yükleniyor…</p>";
+    el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    api("/api/admin/mafya-gruplari/" + id).then(function (res) {
+      if (!res.ok) {
+        el.innerHTML = "<p style='color:#f87171;padding:12px'>" + esc(res.data.error || "Detay yüklenemedi") + "</p>";
+        return;
+      }
+      var g = res.data.grup || {};
+      var ev = res.data.evi || {};
+      var uyeler = (res.data.uyeler || []).map(function (u) {
+        return "<tr><td><b>" + esc(u.reisAdi) + "</b><br><span style='font-size:11px;color:#6b7280'>@" + esc(u.username) +
+          "</span></td><td>" + esc(u.rutbe) + "</td><td>" + fmt(u.puan) + "</td><td>" + fmt(u.guc) +
+          "</td><td>" + fmt(u.istihbaratEleman) + "</td><td style='font-size:11px;color:#6b7280'>" + esc(u.lastSeen) +
+          '</td><td><button type="button" data-uid="' + u.userId +
+          '" class="mafya-uye-detay admin-btn admin-btn-gri" style="min-height:30px;padding:4px 8px;font-size:11px">Oyuncu</button></td></tr>';
+      }).join("");
+      var basv = (res.data.basvurular || []).map(function (b) {
+        return "<li style='font-size:12px;color:#9ca3af'>" + esc(b.reisAdi) + " (@" + esc(b.username) + ")</li>";
+      }).join("");
+      var savas = (res.data.savaslar || []).map(function (s) {
+        return "<li style='font-size:12px;color:#9ca3af;margin-bottom:4px'>" + esc(s.baslangic) + " · " +
+          esc(s.saldiranIsim) + " → " + esc(s.hedefIsim) + " · <b style='color:#d1d5db'>" + esc(s.durum) + "</b>" +
+          (s.kazananGrupId ? " · Kazanan ID " + s.kazananGrupId : "") + "</li>";
+      }).join("");
+      el.innerHTML =
+        "<h3 style='margin:0 0 4px;color:#fff'>" + esc(g.isim) + "</h3>" +
+        "<p style='color:#6b7280;margin:0 0 12px'>ID " + g.id + " · Lider: " + esc(g.liderReis) + " (@" + esc(g.liderUsername) + ")</p>" +
+        "<p style='color:#9ca3af;font-size:13px;margin:0 0 12px'>" + esc(g.aciklama || "—") + "</p>" +
+        "<div class='detay-grid'>" +
+        info("Üye", fmt((res.data.uyeler || []).length)) +
+        info("Ev Seviyesi", fmt(ev.seviye || 1)) +
+        info("Ev Birikimi", fmt(ev.birikmisPara || 0) + " TL") +
+        info("Kuruluş", g.createdAt || "—") +
+        "</div>" +
+        "<p class='baslik-altin'>Üyeler</p>" +
+        "<div class='admin-tablo-wrap' style='max-height:280px;overflow:auto;margin-bottom:12px'>" +
+        "<table class='admin-tablo'><thead><tr><th>Reis</th><th>Rütbe</th><th>Saygınlık</th><th>Güç</th><th>İstihbarat</th><th>Son Görülme</th><th></th></tr></thead>" +
+        "<tbody>" + (uyeler || "<tr><td colspan='7' style='color:#6b7280'>Üye yok</td></tr>") + "</tbody></table></div>" +
+        "<p class='baslik-altin'>Bekleyen başvurular</p><ul style='padding-left:18px;margin:0 0 12px'>" +
+        (basv || "<li style='color:#6b7280'>Yok</li>") + "</ul>" +
+        "<p class='baslik-altin'>Son savaşlar</p><ul style='padding-left:18px;margin:0'>" +
+        (savas || "<li style='color:#6b7280'>Kayıt yok</li>") + "</ul>";
+      el.querySelectorAll(".mafya-uye-detay").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          aktifNav("oyuncular");
+          oyuncuDetayYukle(parseInt(btn.getAttribute("data-uid"), 10));
+        });
+      });
+    });
+  }
+
   function bagla() {
     document.querySelectorAll(".nav-btn").forEach(function (btn) {
       btn.addEventListener("click", function () {
@@ -493,6 +610,7 @@
         aktifNav(tab);
         if (tab === "dashboard") yukleDashboard();
         if (tab === "oyuncular") oyuncuAra();
+        if (tab === "mafya") mafyaAra();
         if (tab === "aktivite") yukleAktivite();
         if (tab === "multi") yukleMulti();
         if (tab === "mesajlar") msgTab("kutu");
@@ -502,6 +620,10 @@
     document.getElementById("oyuncuAraBtn").addEventListener("click", oyuncuAra);
     document.getElementById("oyuncuAra").addEventListener("keydown", function (e) {
       if (e.key === "Enter") oyuncuAra();
+    });
+    document.getElementById("mafyaAraBtn").addEventListener("click", mafyaAra);
+    document.getElementById("mafyaAra").addEventListener("keydown", function (e) {
+      if (e.key === "Enter") mafyaAra();
     });
     document.querySelectorAll(".msg-tab").forEach(function (b) {
       b.addEventListener("click", function () { msgTab(b.getAttribute("data-msg")); });
