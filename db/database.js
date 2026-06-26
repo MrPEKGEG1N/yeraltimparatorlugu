@@ -96,6 +96,48 @@ function countSqliteUsers(dbPath) {
   });
 }
 
+function scoreDbFile(dbPath) {
+  return new Promise((resolve) => {
+    if (!fs.existsSync(dbPath)) return resolve({ users: 0, score: 0, size: 0 });
+    const size = fs.statSync(dbPath).size;
+    if (size < 512) return resolve({ users: 0, score: 0, size });
+    const db = new sqlite3.Database(dbPath, sqlite3.OPEN_READONLY, (err) => {
+      if (err) return resolve({ users: 0, score: 0, size });
+      db.get(
+        "SELECT COUNT(*) AS n FROM sqlite_master WHERE type='table' AND name='users'",
+        [],
+        (tblErr, tbl) => {
+          if (tblErr || !tbl) {
+            db.close(() => resolve({ users: 0, score: 0, size }));
+            return;
+          }
+          db.get(
+            `SELECT
+               (SELECT COUNT(*) FROM users) AS users,
+               (SELECT COUNT(*) FROM players) AS players,
+               (SELECT COALESCE(SUM(kasa), 0) FROM players) AS kasa,
+               (SELECT COALESCE(SUM(puan), 0) FROM players) AS puan`,
+            [],
+            (e, row) => {
+              db.close(() => {
+                if (e || !row) return resolve({ users: 0, score: 0, size });
+                const users = row.users || 0;
+                const score =
+                  users * 1_000_000 +
+                  (row.players || 0) * 10_000 +
+                  (row.kasa || 0) +
+                  (row.puan || 0) +
+                  size;
+                resolve({ users, players: row.players || 0, score, size });
+              });
+            }
+          );
+        }
+      );
+    });
+  });
+}
+
 async function restoreFromSeed(targetPath) {
   const currentUsers = await countSqliteUsers(targetPath);
   if (currentUsers > 0) return false;
@@ -121,33 +163,34 @@ async function restoreDbFromBestCandidate(targetPath) {
   ensureDbDirectory(targetPath);
   const seen = new Set();
   let bestPath = null;
-  let bestUsers = -1;
-  let bestSize = 0;
+  let bestScore = -1;
 
   for (const p of knownDbFileCandidates()) {
     const resolved = path.resolve(p);
     if (seen.has(resolved)) continue;
     seen.add(resolved);
     if (!fs.existsSync(resolved)) continue;
-    const size = fs.statSync(resolved).size;
-    if (size < 512) continue;
-    const users = await countSqliteUsers(resolved);
-    if (users < 0) continue;
-    if (users > bestUsers || (users === bestUsers && size > bestSize)) {
-      bestUsers = users;
-      bestSize = size;
+    const stats = await scoreDbFile(resolved);
+    if (stats.users <= 0) continue;
+    if (stats.score > bestScore) {
+      bestScore = stats.score;
       bestPath = resolved;
     }
   }
 
   const targetResolved = path.resolve(targetPath);
-  const currentUsers = await countSqliteUsers(targetResolved);
-  if (bestPath && bestUsers > 0 && (currentUsers <= 0 || bestUsers > currentUsers)) {
+  const current = await scoreDbFile(targetResolved);
+  if (bestPath && bestScore > 0 && (current.users <= 0 || bestScore > current.score)) {
     if (bestPath !== targetResolved) {
+      if (current.users > 0) {
+        try {
+          fs.copyFileSync(targetResolved, targetPath + ".pre-restore.bak");
+        } catch (_) {}
+      }
       ensureDbDirectory(targetPath);
       fs.copyFileSync(bestPath, targetResolved);
       console.log(
-        `[db] Veritabani geri yuklendi: ${bestPath} -> ${targetResolved} (${bestUsers} kullanici)`
+        `[db] Veritabani geri yuklendi: ${bestPath} -> ${targetResolved} (skor ${bestScore} > ${current.score})`
       );
     }
   }
@@ -155,26 +198,26 @@ async function restoreDbFromBestCandidate(targetPath) {
 
 async function consolidateLegacyDbCopies(targetPath) {
   const targetResolved = path.resolve(targetPath);
-  const targetUsers = await countSqliteUsers(targetResolved);
+  const targetStats = await scoreDbFile(targetResolved);
   for (const p of knownDbFileCandidates()) {
     const resolved = path.resolve(p);
     if (resolved === targetResolved) continue;
     if (!fs.existsSync(resolved)) continue;
-    if (fs.statSync(resolved).size < 512) continue;
-    const users = await countSqliteUsers(resolved);
-    if (users <= 0) continue;
-    if (targetUsers <= 0 && users > 0) {
+    const stats = await scoreDbFile(resolved);
+    if (stats.users <= 0) continue;
+    if (targetStats.users <= 0 && stats.users > 0) {
       ensureDbDirectory(targetPath);
       fs.copyFileSync(resolved, targetResolved);
-      console.log(`[db] Eski konumdan tasindi: ${resolved} -> ${targetResolved} (${users} kullanici)`);
+      console.log(`[db] Eski konumdan tasindi: ${resolved} -> ${targetResolved} (${stats.users} kullanici)`);
       return;
     }
-    if (users > targetUsers) {
-      const bak = targetPath + ".pre-merge.bak";
-      if (fs.existsSync(targetResolved)) fs.copyFileSync(targetResolved, bak);
+    if (stats.score > targetStats.score) {
+      try {
+        if (fs.existsSync(targetResolved)) fs.copyFileSync(targetResolved, targetPath + ".pre-merge.bak");
+      } catch (_) {}
       fs.copyFileSync(resolved, targetResolved);
       console.log(
-        `[db] Daha zengin kopya birlestirildi: ${resolved} -> ${targetResolved} (${users} > ${targetUsers} kullanici)`
+        `[db] Daha zengin kopya birlestirildi: ${resolved} -> ${targetResolved} (skor ${stats.score} > ${targetStats.score})`
       );
       return;
     }
@@ -314,6 +357,10 @@ async function migratePlayersTable(db) {
 async function initDatabase() {
   logDbEnvironment();
   ensureDbDirectory(DB_PATH);
+  if (fs.existsSync(DB_PATH) && fs.statSync(DB_PATH).size >= 512) {
+    const mevcut = await countSqliteUsers(DB_PATH);
+    if (mevcut > 0) await backupDbFile(DB_PATH);
+  }
   bootstrapDbFromLegacy(DB_PATH);
   await restoreDbFromBestCandidate(DB_PATH);
   await consolidateLegacyDbCopies(DB_PATH);

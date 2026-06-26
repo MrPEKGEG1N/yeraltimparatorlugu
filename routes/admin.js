@@ -10,6 +10,7 @@ const {
   kickPlayer,
   updatePlayerStats,
   updatePlayerMekanlar,
+  updatePlayerGuvenliYer,
   getMultiAccountClusters,
   listInboxMessages,
   listMafyaSohbet,
@@ -83,8 +84,10 @@ function createAdminRouter(db) {
           createdAt: fmtTs(detail.user.created_at),
           smsHakki: detail.user.sms_hakki,
           mekanToplam: detail.mekanToplam,
+          guvenliYer: detail.guvenliYer,
         },
         mekanlar: detail.mekanlar || [],
+        guvenliYer: detail.guvenliYer,
         fingerprints: detail.fingerprints.map((f) => ({
           visitorId: f.visitor_id,
           ip: f.son_ip,
@@ -176,6 +179,22 @@ function createAdminRouter(db) {
     } catch (err) {
       console.error(err);
       res.status(500).json({ ok: false, error: "Mekanlar güncellenemedi." });
+    }
+  });
+
+  router.patch("/oyuncular/:id/guvenli-yer", async (req, res) => {
+    try {
+      const result = await updatePlayerGuvenliYer(
+        db,
+        req.user.id,
+        parseInt(req.params.id, 10),
+        req.body?.baseSeviye
+      );
+      if (!result.ok) return res.status(400).json(result);
+      res.json(result);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ ok: false, error: "Güvenli Yer güncellenemedi." });
     }
   });
 

@@ -138,6 +138,31 @@ async function gelistir(db, userId, player) {
   };
 }
 
+async function adminSeviyeAyarla(db, userId, seviye) {
+  const s = Math.max(1, Math.min(MAX_SEVIYE, parseInt(seviye, 10) || 1));
+  await ensureUserBase(db, userId);
+  await run(
+    db,
+    `UPDATE user_base SET
+      building_lvl = 0, wall_lvl = 0, garden_lvl = 0, energy_wall = 0,
+      underground_lvl = 0, secret_orders = 0, has_tower = 0, helipad = 0,
+      bunker_lvl = 0, bunker_entrance = 0,
+      base_seviye = ?, updated_at = strftime('%s','now')
+     WHERE user_id = ?`,
+    [s, userId]
+  );
+  for (const mod of SEVIYELER) {
+    if (mod.seviye > s) break;
+    const alan = MODUL_ALAN[mod.id];
+    if (!alan) continue;
+    await run(db, `UPDATE user_base SET ${alan} = 1 WHERE user_id = ?`, [userId]);
+  }
+  const bonus = toplamGucBonusu(s);
+  await run(db, `UPDATE players SET bonus_guc = ? WHERE user_id = ?`, [bonus, userId]);
+  const row = await ensureUserBase(db, userId);
+  return { ok: true, base: baseOzeti(row) };
+}
+
 async function migrateGuvenliYerBonusGuc(db) {
   const { all, run: dbRun } = require("../db/database");
   const rows = await all(
@@ -166,5 +191,6 @@ module.exports = {
   panelGetir,
   gelistir,
   baseOzeti,
+  adminSeviyeAyarla,
   migrateGuvenliYerBonusGuc,
 };

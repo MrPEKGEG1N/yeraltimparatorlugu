@@ -126,7 +126,7 @@
   function oyuncuTabloCiz(liste) {
     var tb = document.getElementById("oyuncuTablo");
     if (!liste.length) {
-      tb.innerHTML = '<tr><td colspan="11" style="text-align:center;color:#6b7280;padding:16px">Sonuç yok.</td></tr>';
+      tb.innerHTML = '<tr><td colspan="12" style="text-align:center;color:#6b7280;padding:16px">Sonuç yok.</td></tr>';
       return;
     }
     tb.innerHTML = liste
@@ -147,6 +147,7 @@
         return (
           "<tr><td>" + o.id + "</td><td><b>" + esc(o.reisAdi) + "</b></td><td>" + esc(o.username) +
           "</td><td>" + fmt(o.smsHakki) + "</td><td>" + fmt(o.mekanToplam) +
+          "</td><td title='" + esc(o.guvenliYerAd || "") + "'>" + fmt(o.guvenliYerSeviye) +
           "</td><td>" + ekran + "</td><td>" + sonIs +
           "</td><td>" + fmt(o.guc) + "</td><td style='color:#c5a059'>" + fmt(o.puan) +
           "</td><td>" + durum + '</td><td><button type="button" data-id="' + o.id +
@@ -164,7 +165,7 @@
   function oyuncuAra() {
     var q = document.getElementById("oyuncuAra").value.trim();
     var tb = document.getElementById("oyuncuTablo");
-    if (tb) tb.innerHTML = '<tr><td colspan="11" style="text-align:center;color:#6b7280;padding:16px">Yükleniyor…</td></tr>';
+    if (tb) tb.innerHTML = '<tr><td colspan="12" style="text-align:center;color:#6b7280;padding:16px">Yükleniyor…</td></tr>';
     api("/api/admin/oyuncular?q=" + encodeURIComponent(q)).then(function (res) {
       if (!res.ok) {
         toast(res.data.error || "Arama hatası", true);
@@ -213,6 +214,10 @@
             (a.detay ? " — " + esc(a.detay) : "") + "</li>";
         })
         .join("");
+      var gy = res.data.guvenliYer || o.guvenliYer || {};
+      var gySeviye = gy.baseSeviye || o.guvenliYerSeviye || 1;
+      var gyAd = gy.ad || o.guvenliYerAd || "";
+      var gyGuc = gy.gucBonus != null ? gy.gucBonus : "";
       var mekanlar = res.data.mekanlar || [];
       var mekanSatirlari = mekanlar
         .map(function (m) {
@@ -237,12 +242,21 @@
         "<div class='detay-grid'>" +
         info("Kasa", fmt(o.kasa)) + info("Güç", fmt(o.guc)) + info("Saygınlık", fmt(o.puan)) +
         info("İcraat", fmt(o.icraat)) + info("SMS Hakkı", fmt(o.smsHakki)) +
-        info("Mekan Toplam", fmt(o.mekanToplam)) + info("Son IP", o.sonIp || "—") +
+        info("Mekan Toplam", fmt(o.mekanToplam)) +
+        info("Güvenli Yer", "Seviye " + fmt(gySeviye) + (gyAd ? " — " + esc(gyAd) : "") + (gyGuc !== "" ? " (+" + fmt(gyGuc) + " güç)" : "")) +
+        info("Son IP", o.sonIp || "—") +
         "</div>" +
         "<form id='statForm' class='detay-grid' style='grid-template-columns:repeat(5,1fr)'>" +
         inputStat("kasa", o.kasa, "Kasa") + inputStat("guc", o.guc, "Güç") + inputStat("puan", o.puan, "Saygınlık") +
         inputStat("icraat", o.icraat, "İcraat") + inputStat("sms_hakki", o.smsHakki, "SMS") +
         "<button type='submit' class='admin-btn admin-btn-altin' style='grid-column:1/-1'>İstatistik Kaydet</button></form>" +
+        "<p class='baslik-altin'>Güvenli Yer</p>" +
+        "<div style='display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:16px'>" +
+        "<div><label style='display:block;font-size:11px;color:#9ca3af;margin-bottom:4px'>Seviye (1-15)</label>" +
+        '<input id="gySeviyeInput" type="number" min="1" max="15" class="admin-input" style="width:88px;padding:6px 8px" value="' + gySeviye + '"></div>' +
+        "<div style='font-size:12px;color:#9ca3af;padding-bottom:8px'>" + esc(gyAd || "") +
+        (gyGuc !== "" ? " · +" + fmt(gyGuc) + " güç bonusu" : "") + "</div>" +
+        "<button type='button' id='gyKaydetBtn' class='admin-btn admin-btn-altin' style='min-height:38px'>Güvenli Yer Kaydet</button></div>" +
         "<p class='baslik-altin'>Mekan adetleri</p>" +
         "<div class='admin-tablo-wrap' style='max-height:320px;overflow:auto;margin-bottom:10px'>" +
         "<table class='admin-tablo'><thead><tr><th>Sektör</th><th>Mekan</th><th>Adet</th></tr></thead>" +
@@ -284,6 +298,20 @@
             });
           });
           api("/api/admin/oyuncular/" + id + "/mekanlar", { method: "PATCH", body: { mekanlar: items } }).then(function (r) {
+            toast(r.data.mesaj || r.data.error || "Tamam", !r.ok);
+            if (r.ok) {
+              oyuncuDetayYukle(id);
+              oyuncuAra();
+            }
+          });
+        });
+      }
+      var gyBtn = document.getElementById("gyKaydetBtn");
+      if (gyBtn) {
+        gyBtn.addEventListener("click", function () {
+          var inp = document.getElementById("gySeviyeInput");
+          var sev = inp ? inp.value : gySeviye;
+          api("/api/admin/oyuncular/" + id + "/guvenli-yer", { method: "PATCH", body: { baseSeviye: sev } }).then(function (r) {
             toast(r.data.mesaj || r.data.error || "Tamam", !r.ok);
             if (r.ok) {
               oyuncuDetayYukle(id);

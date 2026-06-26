@@ -180,17 +180,19 @@ async function restoreOneSnapshot(db, snap) {
   }
 
   const player = snap.player || {};
-  const sets = [];
-  const vals = [];
-  for (const col of PLAYER_COLS) {
-    if (player[col] !== undefined && player[col] !== null && player[col] !== "") {
-      sets.push(`${col} = ?`);
-      vals.push(player[col]);
+  if (created) {
+    const sets = [];
+    const vals = [];
+    for (const col of PLAYER_COLS) {
+      if (player[col] !== undefined && player[col] !== null && player[col] !== "") {
+        sets.push(`${col} = ?`);
+        vals.push(player[col]);
+      }
     }
-  }
-  if (sets.length) {
-    vals.push(userId);
-    await run(db, `UPDATE players SET ${sets.join(", ")} WHERE user_id = ?`, vals);
+    if (sets.length) {
+      vals.push(userId);
+      await run(db, `UPDATE players SET ${sets.join(", ")} WHERE user_id = ?`, vals);
+    }
   }
 
   const fps = Array.isArray(snap.fingerprints) ? snap.fingerprints : [];
@@ -209,7 +211,7 @@ async function restoreOneSnapshot(db, snap) {
   await restoreSecurityEvents(db, userId, snap.security_events);
 
   console.log(
-    `[restore] ${created ? "Eklendi" : "Guncellendi"}: ${username} (${reisAdi}) ip=${snap.son_ip || "-"}`
+    `[restore] ${created ? "Eklendi" : "Korundu"}: ${username} (${reisAdi}) ip=${snap.son_ip || "-"}`
   );
   return { ok: true, userId, created, username, reisAdi };
 }

@@ -2,6 +2,8 @@ const { run, get, all } = require("../db/database");
 const { logSecurityEvent } = require("./securityService");
 const { listCanliAktivite, listOyuncuAktiviteLog, mapAktiviteAlanlari } = require("./aktiviteService");
 const { SECTOR_KEYS, MEKANLAR } = require("./sectorsCatalog");
+const { ensureUserBase, adminSeviyeAyarla, baseOzeti } = require("./guvenliYerService");
+const { MAX_SEVIYE, seviyeBul } = require("./guvenliYerCatalog");
 
 const SEKTOR_ETIKET = { yeralti: "Yeraltı", silah: "Silah", paket: "Paket" };
 
@@ -74,9 +76,11 @@ async function searchPlayers(db, q, limit = 200) {
               u.visitor_id, u.son_ip, u.user_agent, u.last_login_at, u.created_at,
               p.kasa, p.guc, p.puan, p.icraat, p.sms_hakki, p.last_seen_at, p.kara_listede,
               p.aktif_ekran, p.son_aksiyon, p.son_aksiyon_detay, p.son_aksiyon_at,
-              (SELECT COALESCE(SUM(adet), 0) FROM sektor_sahiplik s WHERE s.user_id = u.id) AS mekan_toplam
+              (SELECT COALESCE(SUM(adet), 0) FROM sektor_sahiplik s WHERE s.user_id = u.id) AS mekan_toplam,
+              COALESCE(ub.base_seviye, 1) AS guvenli_yer_seviye
        FROM users u
        JOIN players p ON p.user_id = u.id
+       LEFT JOIN user_base ub ON ub.user_id = u.id
        ORDER BY p.puan DESC
        LIMIT ?`,
       [cap]
@@ -90,9 +94,11 @@ async function searchPlayers(db, q, limit = 200) {
             u.visitor_id, u.son_ip, u.user_agent, u.last_login_at, u.created_at,
             p.kasa, p.guc, p.puan, p.icraat, p.sms_hakki, p.last_seen_at, p.kara_listede,
             p.aktif_ekran, p.son_aksiyon, p.son_aksiyon_detay, p.son_aksiyon_at,
-            (SELECT COALESCE(SUM(adet), 0) FROM sektor_sahiplik s WHERE s.user_id = u.id) AS mekan_toplam
+            (SELECT COALESCE(SUM(adet), 0) FROM sektor_sahiplik s WHERE s.user_id = u.id) AS mekan_toplam,
+            COALESCE(ub.base_seviye, 1) AS guvenli_yer_seviye
      FROM users u
      JOIN players p ON p.user_id = u.id
+     LEFT JOIN user_base ub ON ub.user_id = u.id
      WHERE u.username LIKE ? COLLATE NOCASE
         OR u.reis_adi LIKE ? COLLATE NOCASE
         OR CAST(u.id AS TEXT) = ?
@@ -141,8 +147,19 @@ async function getPlayerDetail(db, userId) {
 
   const aktiviteLog = await listOyuncuAktiviteLog(db, userId, 40);
   const mekan = await getPlayerMekanlar(db, userId);
+  const baseRow = await ensureUserBase(db, userId);
+  const guvenliYer = baseOzeti(baseRow);
 
-  return { user, fingerprints, events, uyelik, aktiviteLog, mekanlar: mekan.mekanlar, mekanToplam: mekan.toplam };
+  return {
+    user,
+    fingerprints,
+    events,
+    uyelik,
+    aktiviteLog,
+    mekanlar: mekan.mekanlar,
+    mekanToplam: mekan.toplam,
+    guvenliYer,
+  };
 }
 
 async function invalidateSessions(db, userId) {
@@ -230,6 +247,18 @@ async function updatePlayerMekanlar(db, adminId, userId, items) {
 
   await logSecurityEvent(db, userId, "admin_mekan_edit", { adminId, patch });
   return { ok: true, mesaj: "Mekan adetleri güncellendi." };
+}
+
+async function updatePlayerGuvenliYer(db, adminId, userId, baseSeviye) {
+  const player = await get(db, `SELECT user_id FROM players WHERE user_id = ?`, [userId]);
+  if (!player) return { ok: false, error: "Oyuncu bulunamadı." };
+  const s = parseInt(baseSeviye, 10);
+  if (Number.isNaN(s) || s < 1 || s > MAX_SEVIYE) {
+    return { ok: false, error: `Güvenli Yer seviyesi 1-${MAX_SEVIYE} arasında olmalı.` };
+  }
+  const sonuc = await adminSeviyeAyarla(db, userId, s);
+  await logSecurityEvent(db, userId, "admin_guvenli_yer", { adminId, baseSeviye: s });
+  return { ok: true, mesaj: `Güvenli Yer seviye ${s} olarak ayarlandı.`, guvenliYer: sonuc.base };
 }
 
 async function updatePlayerStats(db, adminId, userId, patch) {
@@ -429,6 +458,8 @@ function mapPlayerRow(r) {
     icraat: r.icraat,
     smsHakki: r.sms_hakki,
     mekanToplam: r.mekan_toplam || 0,
+    guvenliYerSeviye: r.guvenli_yer_seviye || 1,
+    guvenliYerAd: seviyeBul(r.guvenli_yer_seviye || 1).ad,
     karaListede: !!r.kara_listede,
     lastSeen: fmtTs(r.last_seen_at),
     lastLogin: fmtTs(r.last_login_at),
@@ -446,6 +477,7 @@ module.exports = {
   kickPlayer,
   updatePlayerStats,
   updatePlayerMekanlar,
+  updatePlayerGuvenliYer,
   listMekanSablonu,
   getMultiAccountClusters,
   listInboxMessages,
