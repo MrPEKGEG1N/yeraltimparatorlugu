@@ -126,7 +126,7 @@
   function oyuncuTabloCiz(liste) {
     var tb = document.getElementById("oyuncuTablo");
     if (!liste.length) {
-      tb.innerHTML = '<tr><td colspan="9" style="text-align:center;color:#6b7280;padding:16px">Sonuç yok.</td></tr>';
+      tb.innerHTML = '<tr><td colspan="11" style="text-align:center;color:#6b7280;padding:16px">Sonuç yok.</td></tr>';
       return;
     }
     tb.innerHTML = liste
@@ -146,6 +146,7 @@
           : '<span style="color:#4b5563">—</span>';
         return (
           "<tr><td>" + o.id + "</td><td><b>" + esc(o.reisAdi) + "</b></td><td>" + esc(o.username) +
+          "</td><td>" + fmt(o.smsHakki) + "</td><td>" + fmt(o.mekanToplam) +
           "</td><td>" + ekran + "</td><td>" + sonIs +
           "</td><td>" + fmt(o.guc) + "</td><td style='color:#c5a059'>" + fmt(o.puan) +
           "</td><td>" + durum + '</td><td><button type="button" data-id="' + o.id +
@@ -163,7 +164,7 @@
   function oyuncuAra() {
     var q = document.getElementById("oyuncuAra").value.trim();
     var tb = document.getElementById("oyuncuTablo");
-    if (tb) tb.innerHTML = '<tr><td colspan="9" style="text-align:center;color:#6b7280;padding:16px">Yükleniyor…</td></tr>';
+    if (tb) tb.innerHTML = '<tr><td colspan="11" style="text-align:center;color:#6b7280;padding:16px">Yükleniyor…</td></tr>';
     api("/api/admin/oyuncular?q=" + encodeURIComponent(q)).then(function (res) {
       if (!res.ok) {
         toast(res.data.error || "Arama hatası", true);
@@ -212,6 +213,17 @@
             (a.detay ? " — " + esc(a.detay) : "") + "</li>";
         })
         .join("");
+      var mekanlar = res.data.mekanlar || [];
+      var mekanSatirlari = mekanlar
+        .map(function (m) {
+          return (
+            "<tr><td style='font-size:12px;color:#9ca3af'>" + esc(m.sektorLabel) +
+            "</td><td>" + esc(m.ad) +
+            '</td><td><input type="number" min="0" class="admin-input mekan-adet-input" style="width:88px;padding:6px 8px" ' +
+            'data-sektor="' + esc(m.sektor) + '" data-mekan="' + esc(m.mekanKey) + '" value="' + (m.adet || 0) + '"></td></tr>'
+          );
+        })
+        .join("");
       el.innerHTML =
         "<h3 style='margin:0 0 4px;color:#fff'>" + esc(o.reisAdi) + "</h3>" +
         "<p style='color:#6b7280;margin:0 0 12px'>@" + esc(o.username) + " · ID " + o.id + "</p>" +
@@ -224,11 +236,18 @@
         "</div>" +
         "<div class='detay-grid'>" +
         info("Kasa", fmt(o.kasa)) + info("Güç", fmt(o.guc)) + info("Saygınlık", fmt(o.puan)) +
-        info("İcraat", fmt(o.icraat)) + info("Son IP", o.sonIp || "—") + info("SMS", o.smsHakki) +
+        info("İcraat", fmt(o.icraat)) + info("SMS Hakkı", fmt(o.smsHakki)) +
+        info("Mekan Toplam", fmt(o.mekanToplam)) + info("Son IP", o.sonIp || "—") +
         "</div>" +
-        "<form id='statForm' class='detay-grid' style='grid-template-columns:repeat(4,1fr)'>" +
-        inputStat("kasa", o.kasa) + inputStat("guc", o.guc) + inputStat("puan", o.puan) + inputStat("icraat", o.icraat) +
+        "<form id='statForm' class='detay-grid' style='grid-template-columns:repeat(5,1fr)'>" +
+        inputStat("kasa", o.kasa, "Kasa") + inputStat("guc", o.guc, "Güç") + inputStat("puan", o.puan, "Saygınlık") +
+        inputStat("icraat", o.icraat, "İcraat") + inputStat("sms_hakki", o.smsHakki, "SMS") +
         "<button type='submit' class='admin-btn admin-btn-altin' style='grid-column:1/-1'>İstatistik Kaydet</button></form>" +
+        "<p class='baslik-altin'>Mekan adetleri</p>" +
+        "<div class='admin-tablo-wrap' style='max-height:320px;overflow:auto;margin-bottom:10px'>" +
+        "<table class='admin-tablo'><thead><tr><th>Sektör</th><th>Mekan</th><th>Adet</th></tr></thead>" +
+        "<tbody>" + (mekanSatirlari || "<tr><td colspan='3' style='color:#6b7280'>Mekan yok</td></tr>") + "</tbody></table></div>" +
+        "<button type='button' id='mekanKaydetBtn' class='admin-btn admin-btn-altin' style='margin-bottom:16px'>Mekan Adetlerini Kaydet</button>" +
         "<p class='baslik-altin'>Son aktiviteler</p><ul style='max-height:200px;overflow-y:auto;padding-left:18px'>" +
         (log || "<li style='color:#6b7280'>Henüz kayıt yok</li>") + "</ul>" +
         "<p class='baslik-altin'>Parmak izi</p><ul>" + (fp || "<li style='color:#6b7280'>Yok</li>") + "</ul>";
@@ -243,13 +262,33 @@
         form.addEventListener("submit", function (e) {
           e.preventDefault();
           var body = {};
-          ["kasa", "guc", "puan", "icraat"].forEach(function (k) {
+          ["kasa", "guc", "puan", "icraat", "sms_hakki"].forEach(function (k) {
             var inp = form.querySelector('[name="' + k + '"]');
             if (inp && inp.value !== "") body[k] = inp.value;
           });
           api("/api/admin/oyuncular/" + id + "/stats", { method: "PATCH", body: body }).then(function (r) {
             toast(r.data.mesaj || r.data.error || "Tamam", !r.ok);
             if (r.ok) oyuncuDetayYukle(id);
+          });
+        });
+      }
+      var mekanBtn = document.getElementById("mekanKaydetBtn");
+      if (mekanBtn) {
+        mekanBtn.addEventListener("click", function () {
+          var items = [];
+          el.querySelectorAll(".mekan-adet-input").forEach(function (inp) {
+            items.push({
+              sektor: inp.getAttribute("data-sektor"),
+              mekanKey: inp.getAttribute("data-mekan"),
+              adet: inp.value,
+            });
+          });
+          api("/api/admin/oyuncular/" + id + "/mekanlar", { method: "PATCH", body: { mekanlar: items } }).then(function (r) {
+            toast(r.data.mesaj || r.data.error || "Tamam", !r.ok);
+            if (r.ok) {
+              oyuncuDetayYukle(id);
+              oyuncuAra();
+            }
           });
         });
       }
@@ -266,8 +305,11 @@
     return '<div class="detay-item"><span>' + esc(l) + "</span>" + esc(v) + "</div>";
   }
 
-  function inputStat(name, val) {
-    return '<input name="' + name + '" type="number" class="admin-input" value="' + val + '">';
+  function inputStat(name, val, label) {
+    var baslik = label
+      ? '<label style="display:block;font-size:11px;color:#9ca3af;margin-bottom:4px">' + esc(label) + "</label>"
+      : "";
+    return '<div>' + baslik + '<input name="' + name + '" type="number" min="0" class="admin-input" value="' + val + '"></div>';
   }
 
   function oyuncuAksiyon(action) {

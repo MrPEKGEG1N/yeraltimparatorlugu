@@ -9,6 +9,7 @@ const {
   unbanPlayer,
   kickPlayer,
   updatePlayerStats,
+  updatePlayerMekanlar,
   getMultiAccountClusters,
   listInboxMessages,
   listMafyaSohbet,
@@ -81,7 +82,9 @@ function createAdminRouter(db) {
           userAgent: detail.user.user_agent,
           createdAt: fmtTs(detail.user.created_at),
           smsHakki: detail.user.sms_hakki,
+          mekanToplam: detail.mekanToplam,
         },
+        mekanlar: detail.mekanlar || [],
         fingerprints: detail.fingerprints.map((f) => ({
           visitorId: f.visitor_id,
           ip: f.son_ip,
@@ -157,6 +160,22 @@ function createAdminRouter(db) {
     } catch (err) {
       console.error(err);
       res.status(500).json({ ok: false, error: "İstatistik güncellenemedi." });
+    }
+  });
+
+  router.patch("/oyuncular/:id/mekanlar", async (req, res) => {
+    try {
+      const result = await updatePlayerMekanlar(
+        db,
+        req.user.id,
+        parseInt(req.params.id, 10),
+        req.body?.mekanlar || []
+      );
+      if (!result.ok) return res.status(400).json(result);
+      res.json(result);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ ok: false, error: "Mekanlar güncellenemedi." });
     }
   });
 

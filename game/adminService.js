@@ -1,6 +1,48 @@
 const { run, get, all } = require("../db/database");
 const { logSecurityEvent } = require("./securityService");
 const { listCanliAktivite, listOyuncuAktiviteLog, mapAktiviteAlanlari } = require("./aktiviteService");
+const { SECTOR_KEYS, MEKANLAR } = require("./sectorsCatalog");
+
+const SEKTOR_ETIKET = { yeralti: "Yeraltı", silah: "Silah", paket: "Paket" };
+
+function listMekanSablonu() {
+  const liste = [];
+  for (const sektor of SECTOR_KEYS) {
+    const mekanlar = MEKANLAR[sektor] || {};
+    for (const mekanKey of Object.keys(mekanlar)) {
+      const m = mekanlar[mekanKey];
+      liste.push({
+        sektor,
+        mekanKey,
+        sektorLabel: SEKTOR_ETIKET[sektor] || sektor,
+        ad: m.ad,
+        saatlik: m.saatlik,
+        sayginlik: m.sayginlik,
+      });
+    }
+  }
+  return liste;
+}
+
+async function getPlayerMekanlar(db, userId) {
+  const rows = await all(
+    db,
+    `SELECT sektor, mekan_key, adet FROM sektor_sahiplik WHERE user_id = ? ORDER BY sektor, mekan_key`,
+    [userId]
+  );
+  const adetMap = {};
+  let toplam = 0;
+  for (const r of rows) {
+    const k = `${r.sektor}:${r.mekan_key}`;
+    adetMap[k] = r.adet || 0;
+    toplam += r.adet || 0;
+  }
+  const mekanlar = listMekanSablonu().map((m) => ({
+    ...m,
+    adet: adetMap[`${m.sektor}:${m.mekanKey}`] || 0,
+  }));
+  return { mekanlar, toplam };
+}
 
 function fmtTs(ts) {
   if (!ts) return "—";
@@ -30,8 +72,9 @@ async function searchPlayers(db, q, limit = 200) {
       db,
       `SELECT u.id, u.username, u.reis_adi, u.lakap, u.grup, u.banned, u.is_admin,
               u.visitor_id, u.son_ip, u.user_agent, u.last_login_at, u.created_at,
-              p.kasa, p.guc, p.puan, p.icraat, p.last_seen_at, p.kara_listede,
-              p.aktif_ekran, p.son_aksiyon, p.son_aksiyon_detay, p.son_aksiyon_at
+              p.kasa, p.guc, p.puan, p.icraat, p.sms_hakki, p.last_seen_at, p.kara_listede,
+              p.aktif_ekran, p.son_aksiyon, p.son_aksiyon_detay, p.son_aksiyon_at,
+              (SELECT COALESCE(SUM(adet), 0) FROM sektor_sahiplik s WHERE s.user_id = u.id) AS mekan_toplam
        FROM users u
        JOIN players p ON p.user_id = u.id
        ORDER BY p.puan DESC
@@ -45,8 +88,9 @@ async function searchPlayers(db, q, limit = 200) {
     db,
     `SELECT u.id, u.username, u.reis_adi, u.lakap, u.grup, u.banned, u.is_admin,
             u.visitor_id, u.son_ip, u.user_agent, u.last_login_at, u.created_at,
-            p.kasa, p.guc, p.puan, p.icraat, p.last_seen_at, p.kara_listede,
-            p.aktif_ekran, p.son_aksiyon, p.son_aksiyon_detay, p.son_aksiyon_at
+            p.kasa, p.guc, p.puan, p.icraat, p.sms_hakki, p.last_seen_at, p.kara_listede,
+            p.aktif_ekran, p.son_aksiyon, p.son_aksiyon_detay, p.son_aksiyon_at,
+            (SELECT COALESCE(SUM(adet), 0) FROM sektor_sahiplik s WHERE s.user_id = u.id) AS mekan_toplam
      FROM users u
      JOIN players p ON p.user_id = u.id
      WHERE u.username LIKE ? COLLATE NOCASE
@@ -96,8 +140,9 @@ async function getPlayerDetail(db, userId) {
   );
 
   const aktiviteLog = await listOyuncuAktiviteLog(db, userId, 40);
+  const mekan = await getPlayerMekanlar(db, userId);
 
-  return { user, fingerprints, events, uyelik, aktiviteLog };
+  return { user, fingerprints, events, uyelik, aktiviteLog, mekanlar: mekan.mekanlar, mekanToplam: mekan.toplam };
 }
 
 async function invalidateSessions(db, userId) {
@@ -130,6 +175,61 @@ async function kickPlayer(db, adminId, userId) {
   await invalidateSessions(db, userId);
   await logSecurityEvent(db, userId, "admin_kick", { adminId });
   return { ok: true, mesaj: "Aktif oturum sonlandırıldı." };
+}
+
+async function updatePlayerMekanlar(db, adminId, userId, items) {
+  if (!Array.isArray(items) || !items.length) {
+    return { ok: false, error: "Güncellenecek mekan yok." };
+  }
+  const player = await get(db, `SELECT user_id FROM players WHERE user_id = ?`, [userId]);
+  if (!player) return { ok: false, error: "Oyuncu bulunamadı." };
+
+  const sablon = listMekanSablonu();
+  const gecerli = new Set(sablon.map((m) => `${m.sektor}:${m.mekanKey}`));
+  const patch = [];
+
+  for (const item of items) {
+    const sektor = String(item.sektor || "").trim();
+    const mekanKey = String(item.mekanKey || item.mekan_key || "").trim();
+    const key = `${sektor}:${mekanKey}`;
+    if (!gecerli.has(key)) return { ok: false, error: `Geçersiz mekan: ${key}` };
+    const adet = parseInt(item.adet, 10);
+    if (Number.isNaN(adet) || adet < 0) return { ok: false, error: `${mekanKey} adedi geçersiz.` };
+    patch.push({ sektor, mekanKey, adet });
+  }
+
+  for (const { sektor, mekanKey, adet } of patch) {
+    if (adet === 0) {
+      await run(
+        db,
+        `DELETE FROM sektor_sahiplik WHERE user_id = ? AND sektor = ? AND mekan_key = ?`,
+        [userId, sektor, mekanKey]
+      );
+    } else {
+      const row = await get(
+        db,
+        `SELECT adet FROM sektor_sahiplik WHERE user_id = ? AND sektor = ? AND mekan_key = ?`,
+        [userId, sektor, mekanKey]
+      );
+      if (row) {
+        await run(
+          db,
+          `UPDATE sektor_sahiplik SET adet = ? WHERE user_id = ? AND sektor = ? AND mekan_key = ?`,
+          [adet, userId, sektor, mekanKey]
+        );
+      } else {
+        await run(
+          db,
+          `INSERT INTO sektor_sahiplik (user_id, sektor, mekan_key, adet, last_income_hour)
+           VALUES (?, ?, ?, ?, NULL)`,
+          [userId, sektor, mekanKey, adet]
+        );
+      }
+    }
+  }
+
+  await logSecurityEvent(db, userId, "admin_mekan_edit", { adminId, patch });
+  return { ok: true, mesaj: "Mekan adetleri güncellendi." };
 }
 
 async function updatePlayerStats(db, adminId, userId, patch) {
@@ -327,6 +427,8 @@ function mapPlayerRow(r) {
     guc: r.guc,
     puan: r.puan,
     icraat: r.icraat,
+    smsHakki: r.sms_hakki,
+    mekanToplam: r.mekan_toplam || 0,
     karaListede: !!r.kara_listede,
     lastSeen: fmtTs(r.last_seen_at),
     lastLogin: fmtTs(r.last_login_at),
@@ -343,6 +445,8 @@ module.exports = {
   unbanPlayer,
   kickPlayer,
   updatePlayerStats,
+  updatePlayerMekanlar,
+  listMekanSablonu,
   getMultiAccountClusters,
   listInboxMessages,
   listMafyaSohbet,
