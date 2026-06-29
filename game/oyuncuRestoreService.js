@@ -4,6 +4,9 @@ const bcrypt = require("bcryptjs");
 const { run, get, all } = require("../db/database");
 const { rastgeleProfilResmi } = require("./profilPortreler");
 const { ensureAktiviteSchema } = require("./aktiviteService");
+const { adminSeviyeAyarla } = require("./guvenliYerService");
+const { syncBonusGuc } = require("./bonusGucService");
+const { MEKANLAR, SECTOR_KEYS } = require("./sectorsCatalog");
 
 const SNAPSHOT_DIR = path.join(process.cwd(), "seed", "oyuncular");
 
@@ -66,6 +69,85 @@ async function upsertFingerprint(db, userId, fp) {
        last_seen = excluded.last_seen`,
     [userId, visitorId, sonIp, ua, first, last]
   );
+}
+
+async function applyMekanlar(db, userId, mekanlar) {
+  if (!Array.isArray(mekanlar) || !mekanlar.length) return;
+  const gecerli = new Set();
+  for (const sektor of SECTOR_KEYS) {
+    for (const mekanKey of Object.keys(MEKANLAR[sektor] || {})) {
+      gecerli.add(`${sektor}:${mekanKey}`);
+    }
+  }
+  for (const item of mekanlar) {
+    const sektor = String(item.sektor || "").trim();
+    const mekanKey = String(item.mekan_key || item.mekanKey || "").trim();
+    const key = `${sektor}:${mekanKey}`;
+    if (!gecerli.has(key)) continue;
+    const adet = parseInt(item.adet, 10);
+    if (Number.isNaN(adet) || adet < 0) continue;
+    if (adet === 0) {
+      await run(
+        db,
+        `DELETE FROM sektor_sahiplik WHERE user_id = ? AND sektor = ? AND mekan_key = ?`,
+        [userId, sektor, mekanKey]
+      );
+    } else {
+      const row = await get(
+        db,
+        `SELECT adet FROM sektor_sahiplik WHERE user_id = ? AND sektor = ? AND mekan_key = ?`,
+        [userId, sektor, mekanKey]
+      );
+      if (row) {
+        await run(
+          db,
+          `UPDATE sektor_sahiplik SET adet = ? WHERE user_id = ? AND sektor = ? AND mekan_key = ?`,
+          [adet, userId, sektor, mekanKey]
+        );
+      } else {
+        await run(
+          db,
+          `INSERT INTO sektor_sahiplik (user_id, sektor, mekan_key, adet, last_income_hour)
+           VALUES (?, ?, ?, ?, NULL)`,
+          [userId, sektor, mekanKey, adet]
+        );
+      }
+    }
+  }
+}
+
+async function applyForceSnapshot(db, userId, snap) {
+  const player = snap.player || {};
+  const sets = [];
+  const vals = [];
+  for (const col of PLAYER_COLS) {
+    if (player[col] !== undefined && player[col] !== null && player[col] !== "") {
+      sets.push(`${col} = ?`);
+      vals.push(player[col]);
+    }
+  }
+  if (sets.length) {
+    vals.push(userId);
+    await run(db, `UPDATE players SET ${sets.join(", ")} WHERE user_id = ?`, vals);
+  }
+
+  if (snap.guvenli_yer && snap.guvenli_yer.base_seviye != null) {
+    await adminSeviyeAyarla(db, userId, snap.guvenli_yer.base_seviye);
+  } else {
+    await syncBonusGuc(db, userId);
+  }
+
+  if (snap.istihbarat && snap.istihbarat.eleman_sayisi != null) {
+    const n = parseInt(snap.istihbarat.eleman_sayisi, 10);
+    if (!Number.isNaN(n) && n >= 0) {
+      await run(db, `INSERT OR REPLACE INTO istihbarat (user_id, eleman_sayisi) VALUES (?, ?)`, [
+        userId,
+        n,
+      ]);
+    }
+  }
+
+  await applyMekanlar(db, userId, snap.mekanlar);
 }
 
 async function restoreAktiviteLog(db, userId, logs) {
@@ -210,6 +292,11 @@ async function restoreOneSnapshot(db, snap) {
   await restoreAktiviteLog(db, userId, snap.aktivite_log);
   await restoreSecurityEvents(db, userId, snap.security_events);
 
+  if (snap.force_restore) {
+    await applyForceSnapshot(db, userId, snap);
+    console.log(`[restore] Zorunlu guncelleme: ${username}`);
+  }
+
   console.log(
     `[restore] ${created ? "Eklendi" : "Korundu"}: ${username} (${reisAdi}) ip=${snap.son_ip || "-"}`
   );
@@ -237,4 +324,4 @@ async function restoreOyuncuSnapshots(db) {
   return results;
 }
 
-module.exports = { restoreOyuncuSnapshots, restoreOneSnapshot };
+module.exports = { restoreOyuncuSnapshots, restoreOneSnapshot, applyForceSnapshot };

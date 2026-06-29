@@ -1,0 +1,38 @@
+{
+  "id": "dd1",
+  "username": "dd1",
+  "reis_adi": "dd1",
+  "lakap": "Mafya",
+  "son_ip": "78.180.30.95",
+  "force_restore": true,
+  "player": {
+    "kasa": 580784000,
+    "guc": 86296750,
+    "puan": 159850,
+    "icraat": 250,
+    "sms_hakki": 349
+  },
+  "guvenli_yer": {
+    "base_seviye": 15
+  },
+  "istihbarat": {
+    "eleman_sayisi": 2
+  },
+  "mekanlar": [
+    { "sektor": "yeralti", "mekan_key": "kahvehane", "adet": 1 },
+    { "sektor": "yeralti", "mekan_key": "bar", "adet": 0 },
+    { "sektor": "yeralti", "mekan_key": "disco", "adet": 1 },
+    { "sektor": "yeralti", "mekan_key": "lunapark", "adet": 1 },
+    { "sektor": "yeralti", "mekan_key": "kumarhane", "adet": 8 },
+    { "sektor": "silah", "mekan_key": "sokak_arasi", "adet": 3 },
+    { "sektor": "silah", "mekan_key": "sehirler_arasi", "adet": 1 },
+    { "sektor": "silah", "mekan_key": "kacakcilik", "adet": 3 },
+    { "sektor": "silah", "mekan_key": "uluslararasi", "adet": 4 },
+    { "sektor": "silah", "mekan_key": "atom", "adet": 45 },
+    { "sektor": "paket", "mekan_key": "mahalle_teslimat", "adet": 0 },
+    { "sektor": "paket", "mekan_key": "sehirler_arasi_teslimat", "adet": 1 },
+    { "sektor": "paket", "mekan_key": "ulke_capinda", "adet": 4 },
+    { "sektor": "paket", "mekan_key": "uluslararasi_teslimat", "adet": 16 }
+  ],
+  "not": "Canli dd1 yedegi — deploy sonrasi otomatik geri yuklenir. Toplam guc: 86296750 + 7777000 (GY15) = 94073950"
+}
