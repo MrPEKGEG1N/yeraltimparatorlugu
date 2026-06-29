@@ -5,6 +5,8 @@ const {
   getDashboard,
   searchPlayers,
   getPlayerDetail,
+  exportPlayerSnapshot,
+  exportAllPlayers,
   banPlayer,
   unbanPlayer,
   kickPlayer,
@@ -26,6 +28,7 @@ const {
   purgeUserMessages,
   listSecurityEvents,
   listCanliAktivite,
+  listIcerikRaporlari,
   mapPlayerRow,
   fmtTs,
 } = require("../game/adminService");
@@ -66,6 +69,32 @@ function createAdminRouter(db) {
     }
   });
 
+  router.get("/borsa", async (req, res) => {
+    try {
+      const { adminBorsaOzet } = require("../game/borsaService");
+      const data = await adminBorsaOzet(db);
+      res.json({ ok: true, ...data });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ ok: false, error: "Borsa verisi yüklenemedi." });
+    }
+  });
+
+  router.get("/oyuncular/export", async (req, res) => {
+    try {
+      const q = req.query.q || "";
+      const limit = parseInt(req.query.limit, 10) || 500;
+      const data = await exportAllPlayers(db, q, limit);
+      const filename = `oyuncular-export-${Date.now()}.json`;
+      res.setHeader("Content-Type", "application/json; charset=utf-8");
+      res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+      res.send(JSON.stringify(data, null, 2));
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ ok: false, error: "Toplu dışa aktarma başarısız." });
+    }
+  });
+
   router.get("/oyuncular", async (req, res) => {
     try {
       const q = req.query.q || "";
@@ -77,24 +106,76 @@ function createAdminRouter(db) {
     }
   });
 
+  router.get("/oyuncular/:id/export", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.id, 10);
+      const data = await exportPlayerSnapshot(db, userId);
+      if (!data) return res.status(404).json({ ok: false, error: "Oyuncu bulunamadı." });
+      const safeName = String(data.kullanici?.username || userId).replace(/[^a-zA-Z0-9_-]/g, "_");
+      const filename = `oyuncu-${safeName}-${userId}.json`;
+      res.setHeader("Content-Type", "application/json; charset=utf-8");
+      res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+      res.send(JSON.stringify(data, null, 2));
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ ok: false, error: "Dışa aktarma başarısız." });
+    }
+  });
+
   router.get("/oyuncular/:id", async (req, res) => {
     try {
       const detail = await getPlayerDetail(db, parseInt(req.params.id, 10));
       if (!detail) return res.status(404).json({ ok: false, error: "Oyuncu bulunamadı." });
+      const extra = detail.extra || {};
       res.json({
         ok: true,
         oyuncu: {
           ...mapPlayerRow(detail.user),
           userAgent: detail.user.user_agent,
           createdAt: fmtTs(detail.user.created_at),
+          lakap: detail.user.lakap,
+          grup: detail.user.grup,
           smsHakki: detail.user.sms_hakki,
           mekanToplam: detail.mekanToplam,
           guvenliYer: detail.guvenliYer,
           istihbaratEleman: detail.istihbaratEleman,
+          bonusGuc: detail.user.bonus_guc || 0,
+          devletIliskisi: detail.user.devlet_iliskisi,
+          karaListede: !!detail.user.kara_listede,
+          sehirEfsane: !!detail.user.sehir_efsane,
+          sehreHukmetSayisi: detail.user.sehre_hukmet_sayisi || 0,
+          limanIstanbul: detail.user.liman_istanbul || 0,
         },
+        yetenekler: detail.yetenekler || null,
+        aktifMeslek: detail.aktifMeslek || null,
+        sirketCalisan: detail.sirketCalisan || null,
+        sahipSirket: detail.sahipSirket || null,
+        sirketPanel: extra.sirketPanel || null,
         mekanlar: detail.mekanlar || [],
         guvenliYer: detail.guvenliYer,
+        guvenliYerFull: extra.guvenliYerFull || null,
         istihbaratEleman: detail.istihbaratEleman,
+        profil: extra.profil || null,
+        ekonomi: extra.ekonomi || null,
+        sehirMeta: extra.sehirMeta || null,
+        sefirlikOzet: extra.sefirlikOzet || null,
+        sehirKontroller: extra.sehirKontroller || [],
+        sehirHukimiyetSahip: extra.sehirHakimiyetSahip || [],
+        sehirHukumranliklar: extra.sehirHukumranliklar || [],
+        envanter: extra.envanter || [],
+        limanlar: extra.limanlar || [],
+        babaMakamlari: extra.babaMakamlari || [],
+        sadakatOylari: extra.sadakatOylari || [],
+        gunlukGorevler: extra.gunlukGorevler || [],
+        mafyaBasvurulari: extra.mafyaBasvurulari || [],
+        mafyaIsleri: extra.mafyaIsleri || [],
+        mafyaSavaslari: extra.mafyaSavaslari || [],
+        medyaHaberleri: extra.medyaHaberleri || [],
+        statHareketleri: extra.statHareketleri || [],
+        mesajSayilari: extra.mesajSayilari || null,
+        profilZiyaretSayisi: extra.profilZiyaretSayisi || 0,
+        icerikRaporlari: extra.icerikRaporlari || [],
+        banka: extra.banka || null,
         fingerprints: detail.fingerprints.map((f) => ({
           visitorId: f.visitor_id,
           ip: f.son_ip,
@@ -111,6 +192,7 @@ function createAdminRouter(db) {
         mafya: detail.uyelik
           ? { grupId: detail.uyelik.grup_id, isim: detail.uyelik.isim, rutbe: detail.uyelik.rutbe }
           : null,
+        borsa: detail.borsa || null,
         aktiviteLog: detail.aktiviteLog || [],
       });
     } catch (err) {
@@ -357,6 +439,22 @@ function createAdminRouter(db) {
     } catch (err) {
       console.error(err);
       res.status(500).json({ ok: false, error: "Silinemedi." });
+    }
+  });
+
+  router.get("/raporlar", async (req, res) => {
+    try {
+      const liste = await listIcerikRaporlari(db, 150);
+      res.json({
+        ok: true,
+        liste: liste.map((r) => ({
+          ...r,
+          at: fmtTs(r.at),
+        })),
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ ok: false, error: "Raporlar yüklenemedi." });
     }
   });
 

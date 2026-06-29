@@ -1,0 +1,16 @@
+{
+  "name": "Yeraltı İmparatorluğu",
+  "short_name": "Yeraltı",
+  "description": "Yeraltı İmparatorluğu strateji oyunu",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0f",
+  "theme_color": "#7f1d1d",
+  "icons": [
+    {
+      "src": "/images/ui/sm-title-plaque.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}

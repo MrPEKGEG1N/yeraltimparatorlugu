@@ -3,12 +3,8 @@ const jwt = require("jsonwebtoken");
 const { run, get, ensureConfiguredAdmin } = require("../db/database");
 const { JWT_SECRET } = require("../config");
 const { rastgeleProfilResmi } = require("../game/profilPortreler");
-const {
-  recordFingerprint,
-  registerSecurityCheck,
-  isUserBanned,
-  logSecurityEvent,
-} = require("../game/securityService");
+const { recordFingerprint, registerSecurityCheck, isUserBanned, logSecurityEvent } = require("../game/securityService");
+const { ensureTercihler } = require("../game/bildirimService");
 
 const USERNAME_RE = /^[a-zA-Z0-9_]{3,20}$/;
 const PASS_MIN = 6;
@@ -92,6 +88,7 @@ async function registerUser(db, { username, password, reisAdi, lakap, website },
   const userId = result.lastID;
   const portre = rastgeleProfilResmi();
   await run(db, "INSERT INTO players (user_id, profil_resmi) VALUES (?, ?)", [userId, portre]);
+  await ensureTercihler(db, userId);
   await recordFingerprint(db, userId, clientMeta);
   await ensureConfiguredAdmin(db, u);
 

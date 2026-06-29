@@ -200,6 +200,40 @@ const GUNLUK_SLOT_SAYISI = 10;
 const MAX_KABUL = 3;
 const GUNLUK_DAGILIM = { kolay: 5, orta: 3, zor: 2 };
 
+/** Yeni oyuncu varsayılan saygınlığı (players.puan DEFAULT 1500) */
+const REFERANS_SAYGINLIK = 1500;
+const SAYGINLIK_KATSAYI_MIN = 0.6;
+const SAYGINLIK_KATSAYI_MAX = 3.5;
+
+function sayginlikKatsayiHesapla(puan) {
+  const p = Math.max(0, Number(puan) || 0);
+  const ham = p / REFERANS_SAYGINLIK;
+  const k = Math.sqrt(ham);
+  return Math.min(SAYGINLIK_KATSAYI_MAX, Math.max(SAYGINLIK_KATSAYI_MIN, k));
+}
+
+function gunlukDagilimHesapla(puan) {
+  const k = sayginlikKatsayiHesapla(puan);
+  if (k >= 2) return { kolay: 3, orta: 4, zor: 3 };
+  if (k >= 1.4) return { kolay: 4, orta: 4, zor: 2 };
+  if (k < 0.85) return { kolay: 6, orta: 3, zor: 1 };
+  return { ...GUNLUK_DAGILIM };
+}
+
+function gorevOlcekle(def, puan) {
+  const katsayi = sayginlikKatsayiHesapla(puan);
+  const hedefAdet = Math.max(1, Math.round(def.hedefAdet * katsayi));
+  return {
+    katsayi,
+    hedefAdet,
+    odul: {
+      puan: Math.round((def.odul.puan || 0) * katsayi),
+      icraat: Math.max(0, Math.round((def.odul.icraat || 0) * katsayi)),
+      kasa: Math.round((def.odul.kasa || 0) * katsayi),
+    },
+  };
+}
+
 function gorevBul(id) {
   return GOREV_HAVUZU[id] || null;
 }
@@ -231,11 +265,12 @@ function rastgeleSec(pool, adet) {
   return secilen;
 }
 
-function gunlukGorevSecimi() {
+function gunlukGorevSecimi(puan) {
+  const dagilim = gunlukDagilimHesapla(puan);
   const ids = [
-    ...rastgeleSec(ZORLUK_HAVUZLARI.kolay, GUNLUK_DAGILIM.kolay),
-    ...rastgeleSec(ZORLUK_HAVUZLARI.orta, GUNLUK_DAGILIM.orta),
-    ...rastgeleSec(ZORLUK_HAVUZLARI.zor, GUNLUK_DAGILIM.zor),
+    ...rastgeleSec(ZORLUK_HAVUZLARI.kolay, dagilim.kolay),
+    ...rastgeleSec(ZORLUK_HAVUZLARI.orta, dagilim.orta),
+    ...rastgeleSec(ZORLUK_HAVUZLARI.zor, dagilim.zor),
   ];
   for (let i = ids.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -256,8 +291,12 @@ module.exports = {
   GOREV_HAVUZU,
   GUNLUK_SLOT_SAYISI,
   MAX_KABUL,
+  REFERANS_SAYGINLIK,
   gorevBul,
   gunlukGorevSecimi,
+  gunlukDagilimHesapla,
+  sayginlikKatsayiHesapla,
+  gorevOlcekle,
   odulMetni,
   isMahalleIsi,
   isSemtIsi,

@@ -1,0 +1,124 @@
+.lang-mount {
+  position: relative;
+  z-index: 120;
+  flex-shrink: 0;
+}
+
+.lang-mount--auth {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+}
+
+.lang-picker {
+  position: relative;
+  font-family: 'Oswald', sans-serif;
+}
+
+.lang-picker-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 1px solid rgba(197, 160, 89, 0.55);
+  background: rgba(12, 10, 8, 0.88);
+  color: #e8dcc8;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.lang-picker-btn:hover,
+.lang-picker-btn.acik {
+  border-color: #c5a059;
+  color: #ffd76a;
+}
+
+.lang-picker-flag {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.lang-picker-code {
+  font-size: 11px;
+  opacity: 0.9;
+}
+
+.lang-picker-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 210px;
+  max-height: min(360px, 60vh);
+  overflow-y: auto;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  background: rgba(14, 11, 8, 0.98);
+  border: 1px solid #5a4a32;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.55);
+  border-radius: 2px;
+}
+
+.lang-picker-menu.gizli {
+  display: none;
+}
+
+.lang-picker-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  background: transparent;
+  color: #ddd4c4;
+  font-family: inherit;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 2px;
+}
+
+.lang-picker-item:hover {
+  background: rgba(197, 160, 89, 0.12);
+  color: #ffd76a;
+}
+
+.lang-picker-item.aktif {
+  background: rgba(197, 160, 89, 0.2);
+  color: #ffd76a;
+}
+
+.lang-picker-item-flag {
+  font-size: 20px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+#masterLayout .ml-header-right .lang-mount--game {
+  align-self: center;
+  margin-right: 4px;
+}
+
+html[dir='rtl'] .lang-picker-menu {
+  right: auto;
+  left: 0;
+}
+
+@media (max-width: 720px) {
+  .lang-mount--auth {
+    top: 8px;
+    right: 8px;
+  }
+
+  .lang-picker-code {
+    display: none;
+  }
+
+  .lang-picker-btn {
+    padding: 6px 8px;
+  }
+}

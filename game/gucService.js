@@ -9,6 +9,12 @@ function toplamGuc(row) {
 
 function savunmaGucu(row) {
   if (!row) return 0;
+  return toplamGuc(row);
+}
+
+/** Liman / Sözünü Geçir / Sadakat Yemini saldırılarında şehre hükmeden savunması yarı güç */
+function makamSavunmaGucu(row) {
+  if (!row) return 0;
   let t = toplamGuc(row);
   if (row.kara_listede) t = Math.floor(t * 0.5);
   return t;
@@ -52,6 +58,7 @@ async function gucKaybiOranliUygula(db, userId, row, kayipOrani) {
 module.exports = {
   toplamGuc,
   savunmaGucu,
+  makamSavunmaGucu,
   oyuncuGucBilgisi,
   gucKaybiOranliUygula,
 };

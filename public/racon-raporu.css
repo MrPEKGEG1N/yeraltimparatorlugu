@@ -9,10 +9,11 @@
   padding: max(14px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right))
     max(14px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
   background:
-    radial-gradient(ellipse 80% 60% at 50% 40%, rgba(40, 28, 14, 0.45), transparent 70%),
-    rgba(6, 5, 4, 0.92);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+    radial-gradient(ellipse 70% 55% at 50% 38%, rgba(90, 62, 22, 0.28), transparent 68%),
+    radial-gradient(ellipse 120% 80% at 50% 100%, rgba(0, 0, 0, 0.55), transparent 55%),
+    rgba(4, 3, 2, 0.94);
+  backdrop-filter: blur(12px) saturate(0.85);
+  -webkit-backdrop-filter: blur(12px) saturate(0.85);
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
@@ -30,29 +31,30 @@ html.racon-modal-acik body {
 .racon-kart {
   position: relative;
   flex-shrink: 0;
-  width: min(500px, 100%);
+  width: min(520px, 100%);
   margin: auto;
-  padding: clamp(22px, 4.5vw, 30px) clamp(20px, 4vw, 28px) clamp(20px, 3.5vw, 26px);
-  border: 1px solid rgba(184, 148, 42, 0.52);
-  border-radius: 12px;
+  padding: clamp(24px, 5vw, 32px) clamp(22px, 4.5vw, 30px) clamp(22px, 4vw, 28px);
+  border: 1px solid rgba(201, 168, 76, 0.42);
+  border-radius: 14px;
   background:
-    radial-gradient(ellipse 100% 55% at 50% -8%, rgba(120, 90, 36, 0.22), transparent 58%),
-    linear-gradient(168deg, rgba(34, 28, 22, 0.98) 0%, rgba(14, 11, 9, 0.99) 52%, rgba(8, 7, 6, 1) 100%);
+    radial-gradient(ellipse 110% 48% at 50% -6%, rgba(140, 100, 36, 0.2), transparent 58%),
+    radial-gradient(ellipse 80% 40% at 50% 110%, rgba(0, 0, 0, 0.45), transparent 60%),
+    linear-gradient(168deg, rgba(28, 22, 16, 0.99) 0%, rgba(12, 10, 8, 1) 48%, rgba(6, 5, 4, 1) 100%);
   box-shadow:
-    0 32px 72px rgba(0, 0, 0, 0.78),
-    0 0 0 1px rgba(0, 0, 0, 0.55) inset,
-    0 0 40px rgba(140, 90, 20, 0.1);
+    0 36px 80px rgba(0, 0, 0, 0.82),
+    0 0 0 1px rgba(0, 0, 0, 0.5) inset,
+    0 0 48px rgba(140, 90, 20, 0.12);
   overflow: visible;
 }
 
 .racon-modal:not(.gizli) .racon-kart {
-  animation: racon-kart-giris 0.38s cubic-bezier(0.22, 1, 0.36, 1);
+  animation: racon-kart-giris 0.42s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @keyframes racon-kart-giris {
   from {
     opacity: 0;
-    transform: translateY(14px) scale(0.97);
+    transform: translateY(18px) scale(0.975);
   }
   to {
     opacity: 1;
@@ -62,41 +64,75 @@ html.racon-modal-acik body {
 
 .racon-kart-cerceve {
   position: absolute;
-  inset: 8px;
-  border: 1px solid rgba(184, 148, 42, 0.2);
-  border-radius: 8px;
+  inset: 10px;
+  border: 1px solid rgba(201, 168, 76, 0.16);
+  border-radius: 10px;
   pointer-events: none;
+}
+
+.racon-kart-kose {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+  border-color: rgba(232, 200, 106, 0.55);
+  border-style: solid;
+  opacity: 0.85;
+}
+
+.racon-kart-kose--sol-ust {
+  top: 5px;
+  left: 5px;
+  border-width: 2px 0 0 2px;
+}
+
+.racon-kart-kose--sag-ust {
+  top: 5px;
+  right: 5px;
+  border-width: 2px 2px 0 0;
+}
+
+.racon-kart-kose--sol-alt {
+  bottom: 5px;
+  left: 5px;
+  border-width: 0 0 2px 2px;
+}
+
+.racon-kart-kose--sag-alt {
+  bottom: 5px;
+  right: 5px;
+  border-width: 0 2px 2px 0;
 }
 
 .racon-kart-parilti {
   position: absolute;
   top: 0;
-  left: 12%;
-  right: 12%;
+  left: 8%;
+  right: 8%;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(232, 200, 106, 0.75), transparent);
+  background: linear-gradient(90deg, transparent, rgba(232, 200, 106, 0.85), transparent);
   pointer-events: none;
 }
 
 .racon-baslik {
   display: flex;
   align-items: center;
-  gap: clamp(14px, 3.5vw, 20px);
-  margin-bottom: 14px;
-  padding-bottom: 14px;
-  border-bottom: 1px solid rgba(184, 148, 42, 0.28);
+  gap: clamp(16px, 3.5vw, 22px);
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(201, 168, 76, 0.22);
 }
 
 .racon-emblem {
   flex-shrink: 0;
-  width: clamp(62px, 15vw, 78px);
-  height: clamp(62px, 15vw, 78px);
+  width: clamp(72px, 16vw, 88px);
+  height: clamp(72px, 16vw, 88px);
   border-radius: 50%;
   padding: 3px;
-  background: linear-gradient(145deg, rgba(212, 175, 55, 0.55), rgba(120, 90, 30, 0.35));
+  background: linear-gradient(145deg, rgba(232, 200, 106, 0.65), rgba(110, 82, 28, 0.45));
   box-shadow:
-    0 0 22px rgba(201, 168, 76, 0.22),
-    0 4px 14px rgba(0, 0, 0, 0.45);
+    0 0 28px rgba(201, 168, 76, 0.28),
+    0 6px 18px rgba(0, 0, 0, 0.5);
 }
 
 .racon-emblem-ic {
@@ -104,40 +140,56 @@ html.racon-modal-acik body {
   height: 100%;
   border-radius: 50%;
   overflow: hidden;
-  background: radial-gradient(circle at 50% 35%, #2a2218 0%, #100e0c 72%);
-  border: 1px solid rgba(201, 168, 76, 0.35);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background: radial-gradient(circle at 50% 30%, #1e1810 0%, #080604 78%);
+  border: 1px solid rgba(201, 168, 76, 0.38);
 }
 
-.racon-emblem-ic svg {
-  width: 88%;
-  height: 88%;
+.racon-emblem-gorsel {
   display: block;
+  width: 168%;
+  height: 168%;
+  max-width: none;
+  object-fit: cover;
+  object-position: 10% 42%;
+  margin: -34% 0 0 -18%;
+  filter: saturate(1.05) contrast(1.06);
+}
+
+.racon-baslik-metin {
+  flex: 1;
+  min-width: 0;
 }
 
 .racon-baslik-yazi {
   margin: 0;
-  flex: 1;
-  min-width: 0;
   font-family: 'Cormorant Garamond', Georgia, serif;
-  font-size: clamp(30px, 7.2vw, 40px);
+  font-size: clamp(32px, 7.5vw, 44px);
   font-weight: 600;
-  line-height: 1.05;
-  color: #e8c86a;
-  letter-spacing: 0.03em;
-  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.75), 0 0 20px rgba(184, 148, 42, 0.15);
+  line-height: 1.02;
+  color: #edd06a;
+  letter-spacing: 0.02em;
+  text-shadow:
+    0 2px 14px rgba(0, 0, 0, 0.8),
+    0 0 24px rgba(184, 148, 42, 0.18);
+}
+
+.racon-baslik-cizgi {
+  width: min(120px, 55%);
+  height: 2px;
+  margin-top: 10px;
+  background: linear-gradient(90deg, rgba(232, 200, 106, 0.75), rgba(232, 200, 106, 0.08));
+  border-radius: 2px;
 }
 
 .racon-ust-metin {
-  margin: 0 0 18px;
+  margin: 0 0 20px;
+  padding: 0 4px;
   text-align: center;
   font-family: 'Oswald', sans-serif;
-  font-size: clamp(10px, 2.4vw, 12px);
+  font-size: clamp(10px, 2.3vw, 11px);
   font-weight: 600;
-  letter-spacing: 0.16em;
-  line-height: 1.5;
+  letter-spacing: 0.2em;
+  line-height: 1.55;
   text-transform: uppercase;
   color: #c9a84c;
 }
@@ -145,90 +197,117 @@ html.racon-modal-acik body {
 .racon-govde {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .racon-satir {
-  display: flex;
-  align-items: flex-start;
-  gap: clamp(12px, 3vw, 16px);
-  padding: clamp(12px, 2.8vw, 14px) clamp(12px, 2.5vw, 14px);
-  border-radius: 8px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(0, 0, 0, 0.22) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.04);
-  box-shadow: inset 0 1px 0 rgba(255, 220, 160, 0.04);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(14px, 3vw, 18px);
+  padding: clamp(14px, 3vw, 16px) clamp(14px, 2.8vw, 16px);
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.035) 0%, rgba(0, 0, 0, 0.24) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 1px 0 rgba(255, 220, 160, 0.05);
 }
 
 .racon-satir--saat {
-  background: linear-gradient(135deg, rgba(201, 168, 76, 0.08) 0%, rgba(0, 0, 0, 0.2) 100%);
-  border-color: rgba(201, 168, 76, 0.12);
+  background: linear-gradient(135deg, rgba(201, 168, 76, 0.1) 0%, rgba(0, 0, 0, 0.22) 100%);
+  border-color: rgba(201, 168, 76, 0.16);
+}
+
+.racon-satir--kazanc {
+  align-items: flex-start;
 }
 
 .racon-satir--uyari {
-  background: linear-gradient(135deg, rgba(80, 40, 40, 0.12) 0%, rgba(0, 0, 0, 0.18) 100%);
-  border-color: rgba(180, 80, 60, 0.1);
+  align-items: flex-start;
+  background: linear-gradient(135deg, rgba(72, 36, 32, 0.18) 0%, rgba(0, 0, 0, 0.2) 100%);
+  border-color: rgba(180, 80, 60, 0.12);
+  border-left: 3px solid rgba(200, 90, 70, 0.45);
+  padding-left: clamp(12px, 2.5vw, 14px);
 }
 
 .racon-ikon-kapsul {
   flex-shrink: 0;
-  width: clamp(44px, 11vw, 52px);
-  height: clamp(44px, 11vw, 52px);
+  width: clamp(48px, 11vw, 54px);
+  height: clamp(48px, 11vw, 54px);
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 10px;
+  border-radius: 12px;
   color: #d4af37;
-  background: linear-gradient(160deg, rgba(201, 168, 76, 0.14) 0%, rgba(12, 10, 8, 0.65) 100%);
-  border: 1px solid rgba(201, 168, 76, 0.26);
+  background: linear-gradient(160deg, rgba(201, 168, 76, 0.16) 0%, rgba(10, 8, 6, 0.72) 100%);
+  border: 1px solid rgba(201, 168, 76, 0.28);
   box-shadow:
-    inset 0 1px 0 rgba(255, 220, 160, 0.1),
-    0 4px 10px rgba(0, 0, 0, 0.25);
+    inset 0 1px 0 rgba(255, 220, 160, 0.12),
+    0 4px 12px rgba(0, 0, 0, 0.28);
+}
+
+.racon-ikon-kapsul--uyari {
+  color: #d08068;
+  border-color: rgba(200, 100, 80, 0.28);
+  background: linear-gradient(160deg, rgba(120, 50, 40, 0.16) 0%, rgba(10, 8, 6, 0.72) 100%);
 }
 
 .racon-ikon-kapsul svg {
-  width: 68%;
-  height: 68%;
+  width: 62%;
+  height: 62%;
   display: block;
 }
 
 .racon-satir-icerik {
-  flex: 1;
   min-width: 0;
-  padding-top: 2px;
 }
 
 .racon-satir-metin {
   margin: 0;
   font-family: 'Cormorant Garamond', Georgia, serif;
-  font-size: clamp(14px, 3.4vw, 16px);
-  line-height: 1.58;
-  color: #d8d2c8;
+  font-size: clamp(15px, 3.5vw, 17px);
+  line-height: 1.62;
+  color: #e2dcd2;
 }
 
 .racon-satir-metin--uyari {
-  color: #b8aea0;
+  color: #c4bab0;
   font-style: italic;
+  font-size: clamp(14px, 3.3vw, 16px);
+  line-height: 1.58;
 }
 
 .racon-stat-blok {
   display: flex;
-  align-items: baseline;
-  gap: 0.4em;
-  padding-top: 6px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
 }
 
 .racon-stat-deger {
   font-family: 'Cinzel', Georgia, serif;
-  font-size: clamp(24px, 5.5vw, 30px);
+  font-size: clamp(28px, 6vw, 36px);
   font-weight: 700;
   line-height: 1;
   font-variant-numeric: tabular-nums;
-  color: #f6f1e8;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.5);
+  color: #faf6ee;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.55);
+}
+
+.racon-stat-birim {
+  font-size: clamp(14px, 3.2vw, 16px);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .racon-deger-grup {
-  display: inline;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0;
+  margin: 6px 4px 4px 0;
+  padding: 3px 10px 4px;
+  border-radius: 6px;
+  background: rgba(232, 74, 58, 0.1);
+  border: 1px solid rgba(232, 74, 58, 0.22);
   white-space: nowrap;
 }
 
@@ -236,60 +315,60 @@ html.racon-modal-acik body {
   font-family: 'Cinzel', Georgia, serif;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  color: #f4efe6;
-  font-size: 1.05em;
+  color: #faf6ee;
+  font-size: 1.08em;
 }
 
 .racon-kirmizi {
   color: #e84a3a;
   font-family: 'Oswald', sans-serif;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
 }
 
 .racon-alt-bolum {
-  margin-top: 20px;
-  padding-top: 4px;
+  margin-top: 22px;
+  padding-top: 6px;
   text-align: center;
 }
 
 .racon-devam-btn {
   display: inline-block;
-  min-width: min(260px, 100%);
-  padding: 13px 28px;
-  border: 1px solid rgba(201, 168, 76, 0.65);
-  border-radius: 6px;
+  min-width: min(280px, 100%);
+  padding: 14px 32px;
+  border: 1px solid rgba(201, 168, 76, 0.58);
+  border-radius: 8px;
   background:
-    linear-gradient(180deg, rgba(201, 168, 76, 0.12) 0%, rgba(12, 10, 8, 0.92) 100%);
-  color: #e8c86a;
+    linear-gradient(180deg, rgba(201, 168, 76, 0.14) 0%, rgba(14, 11, 8, 0.94) 100%);
+  color: #edd06a;
   font-family: 'Oswald', sans-serif;
-  font-size: clamp(13px, 3.1vw, 15px);
+  font-size: clamp(13px, 3vw, 15px);
   font-weight: 600;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   cursor: pointer;
   touch-action: manipulation;
   box-shadow:
-    0 4px 18px rgba(0, 0, 0, 0.35),
-    inset 0 1px 0 rgba(255, 220, 160, 0.12);
-  transition: background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    0 6px 22px rgba(0, 0, 0, 0.38),
+    inset 0 1px 0 rgba(255, 220, 160, 0.14);
+  transition: background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, transform 0.12s ease;
 }
 
 .racon-devam-btn:hover,
 .racon-devam-btn:focus-visible {
-  background: linear-gradient(180deg, rgba(201, 168, 76, 0.22) 0%, rgba(24, 20, 14, 0.95) 100%);
-  color: #fff0c0;
-  border-color: rgba(232, 200, 106, 0.85);
+  background: linear-gradient(180deg, rgba(201, 168, 76, 0.24) 0%, rgba(22, 18, 12, 0.96) 100%);
+  color: #fff0c8;
+  border-color: rgba(232, 200, 106, 0.82);
   box-shadow:
-    0 6px 24px rgba(0, 0, 0, 0.4),
-    0 0 20px rgba(201, 168, 76, 0.22),
-    inset 0 1px 0 rgba(255, 220, 160, 0.18);
+    0 8px 28px rgba(0, 0, 0, 0.42),
+    0 0 24px rgba(201, 168, 76, 0.2),
+    inset 0 1px 0 rgba(255, 220, 160, 0.2);
   outline: none;
 }
 
 .racon-devam-btn:active {
   transform: translateY(1px);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.35);
 }
 
 @media (max-width: 420px) {
@@ -297,44 +376,67 @@ html.racon-modal-acik body {
     flex-direction: column;
     align-items: center;
     text-align: center;
-    gap: 12px;
+    gap: 14px;
+  }
+
+  .racon-baslik-cizgi {
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .racon-baslik-yazi {
-    font-size: clamp(28px, 8vw, 34px);
+    font-size: clamp(30px, 8.5vw, 38px);
+  }
+
+  .racon-satir {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: flex-start;
+  }
+
+  .racon-satir--saat {
+    align-items: center;
+  }
+
+  .racon-stat-blok {
+    align-items: flex-start;
   }
 
   .racon-satir-metin {
-    font-size: 13px;
-    line-height: 1.52;
+    font-size: 14px;
+    line-height: 1.55;
   }
 
   .racon-ust-metin {
-    letter-spacing: 0.1em;
+    letter-spacing: 0.14em;
   }
 
   .racon-stat-deger {
-    font-size: 22px;
+    font-size: 26px;
   }
 }
 
 @media (max-height: 520px) {
   .racon-kart {
-    padding-top: 16px;
-    padding-bottom: 16px;
+    padding-top: 18px;
+    padding-bottom: 18px;
   }
 
   .racon-govde {
-    gap: 8px;
+    gap: 9px;
   }
 
   .racon-satir {
-    padding-top: 10px;
-    padding-bottom: 10px;
+    padding-top: 11px;
+    padding-bottom: 11px;
   }
 
   .racon-alt-bolum {
-    margin-top: 14px;
+    margin-top: 16px;
+  }
+
+  .racon-emblem {
+    width: 64px;
+    height: 64px;
   }
 }
 

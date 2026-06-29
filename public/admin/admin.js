@@ -13,6 +13,169 @@
     return Number(n || 0).toLocaleString("tr-TR");
   }
 
+  function indirDosya(url, filename) {
+    fetch(url, { credentials: "include" })
+      .then(function (r) {
+        if (!r.ok) {
+          return r.json().catch(function () {
+            return { error: "HTTP " + r.status };
+          }).then(function (j) {
+            throw new Error((j && j.error) || "İndirme başarısız");
+          });
+        }
+        return r.blob();
+      })
+      .then(function (blob) {
+        var a = document.createElement("a");
+        var href = URL.createObjectURL(blob);
+        a.href = href;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(function () {
+          URL.revokeObjectURL(href);
+        }, 500);
+        toast("Dosya indirildi.");
+      })
+      .catch(function (e) {
+        toast(e.message || "İndirme başarısız", true);
+      });
+  }
+
+  function listeHtml(items, formatter, bosMetin) {
+    if (!items || !items.length) {
+      return "<p style='color:#6b7280;font-size:12px;margin:0'>" + esc(bosMetin || "—") + "</p>";
+    }
+    return (
+      "<ul style='font-size:12px;color:#9ca3af;padding-left:18px;margin:0;max-height:180px;overflow-y:auto'>" +
+      items.map(formatter).join("") +
+      "</ul>"
+    );
+  }
+
+  function oyuncuDetayEkstraHtml(res) {
+    var o = res.data.oyuncu || {};
+    var profil = res.data.profil || {};
+    var ekonomi = res.data.ekonomi || {};
+    var sehirMeta = res.data.sehirMeta || {};
+    var mafya = res.data.mafya;
+    var sef = res.data.sefirlikOzet || {};
+    var ms = res.data.mesajSayilari || {};
+    var gyFull = res.data.guvenliYerFull || {};
+    var sirketPanel = res.data.sirketPanel;
+    var yonetim = sirketPanel && sirketPanel.yonetim ? sirketPanel.yonetim : null;
+
+    var mafyaMetin = mafya
+      ? esc(mafya.isim) + " · " + esc(mafya.rutbe || "üye")
+      : "—";
+    var sefMetin = sef.ozet
+      ? fmt(sef.ozet.toplamKontrol || 0) + " toplam kontrol · " + fmt(sef.ozet.sahipSayisi || 0) + " şehir sahibi"
+      : "—";
+
+    var events = (res.data.events || [])
+      .map(function (e) {
+        return "<li style='margin-bottom:4px'><span style='color:#6b7280'>" + esc(e.at) + "</span> · " +
+          esc(e.type) + (e.detail ? " — " + esc(e.detail) : "") + "</li>";
+      })
+      .join("");
+
+    return (
+      "<p class='baslik-altin'>Ek Bilgiler</p>" +
+      "<div class='detay-grid'>" +
+      info("Lakap", o.lakap || "—") +
+      info("Grup", o.grup || "—") +
+      info("Kayıt", o.createdAt || "—") +
+      info("Bonus Güç", fmt(ekonomi.bonusGuc || o.bonusGuc || 0)) +
+      info("Devlet İlişkisi", fmt(o.devletIliskisi != null ? o.devletIliskisi : ekonomi.devletIliskisi || 0)) +
+      info("Kara Liste", o.karaListede ? "Evet" : "Hayır") +
+      info("Şehir Efsanesi", o.sehirEfsane ? "Evet" : "Hayır") +
+      info("Şehre Hükmet", fmt(sehirMeta.sehreHukmetSayisi || o.sehreHukmetSayisi || 0)) +
+      info("Liman İstanbul", fmt(ekonomi.limanIstanbul || o.limanIstanbul || 0)) +
+      info("Profil Ziyaret", fmt(res.data.profilZiyaretSayisi || 0)) +
+      "</div>" +
+      "<p class='baslik-altin'>Profil & Sosyal</p>" +
+      "<div class='detay-grid'>" +
+      info("Açıklama", profil.aciklama || "—") +
+      info("Dostlar", profil.dostlar || "—") +
+      info("Düşmanlar", profil.dusmanlar || "—") +
+      info("Profil Resmi", profil.resim || "—") +
+      "</div>" +
+      "<p class='baslik-altin'>Mafya & Dünya</p>" +
+      "<div class='detay-grid'>" +
+      info("Mafya Üyeliği", mafyaMetin) +
+      info("Sefirlik Özeti", sefMetin) +
+      info("Mesaj (Alınan)", fmt(ms.alinan || 0)) +
+      info("Mesaj (Gönderilen)", fmt(ms.gonderilen || 0)) +
+      info("Mafya Sohbet", fmt(ms.sohbet || 0)) +
+      info("Grup Mesajı", fmt(ms.grup_mesaj || 0)) +
+      "</div>" +
+      listeHtml(res.data.mafyaBasvurulari, function (b) {
+        return "<li>" + esc(b.grupAdi) + " · " + esc(b.durum) + "</li>";
+      }, "Mafya başvurusu yok") +
+      listeHtml(res.data.mafyaIsleri, function (i) {
+        return "<li>" + esc(i.grupAdi) + " · " + esc(i.isTuru) + " · " + esc(i.durum) + " · " + esc(i.baslangic) + "</li>";
+      }, "Mafya işi yok") +
+      listeHtml(res.data.mafyaSavaslari, function (s) {
+        return "<li>" + esc(s.saldiran) + " vs " + esc(s.hedef) + " · " + esc(s.durum) + " · " + esc(s.savasZamani) + "</li>";
+      }, "Mafya savaşı yok") +
+      "<p class='baslik-altin'>Envanter & Liman</p>" +
+      listeHtml(res.data.envanter, function (e) {
+        return "<li>" + esc(e.item_key) + " × " + fmt(e.adet) + "</li>";
+      }, "Envanter boş") +
+      listeHtml(res.data.limanlar, function (l) {
+        return "<li>" + esc(l.liman_id) + "</li>";
+      }, "Liman sahipliği yok") +
+      listeHtml(res.data.babaMakamlari, function (b) {
+        return "<li>" + esc(b.makam) + (b.baba_derki ? " — " + esc(b.baba_derki) : "") + "</li>";
+      }, "Baba makamı yok") +
+      borsaDetayHtml(res.data.borsa) +
+      "<p class='baslik-altin'>Sefirlik & Şehir</p>" +
+      listeHtml(res.data.sehirKontroller, function (s) {
+        return "<li>" + esc(s.sehirId) + " · %" + fmt(s.kontrol) + "</li>";
+      }, "Şehir kontrolü yok") +
+      listeHtml(res.data.sehirHukimiyetSahip, function (sid) {
+        return "<li>Sahip: " + esc(sid) + "</li>";
+      }, "Şehir sahipliği yok") +
+      listeHtml(res.data.sehirHukumranliklar, function (h) {
+        return "<li>#" + h.id + " · " + esc(h.baslangic) + (h.bitis ? " → " + esc(h.bitis) : " (aktif)") + "</li>";
+      }, "Hükümet kaydı yok") +
+      "<p class='baslik-altin'>Günlük Görevler</p>" +
+      listeHtml(res.data.gunlukGorevler, function (g) {
+        return "<li>" + esc(g.gunKey) + " S" + g.slot + " · " + esc(g.gorevId) + " · " + esc(g.durum) +
+          " · %" + fmt(g.ilerleme) + "</li>";
+      }, "Günlük görev yok") +
+      "<p class='baslik-altin'>Medya & Stat</p>" +
+      listeHtml(res.data.medyaHaberleri, function (h) {
+        return "<li>" + esc(h.at) + " · " + esc(h.haber) + (h.aktif ? "" : " (pasif)") + "</li>";
+      }, "Medya haberi yok") +
+      listeHtml(res.data.statHareketleri, function (s) {
+        return "<li>" + esc(s.at) + " · " + esc(s.tip) + " " + (s.delta >= 0 ? "+" : "") + fmt(s.delta) + "</li>";
+      }, "Stat hareketi yok") +
+      (yonetim
+        ? "<p class='baslik-altin'>Şirket Yönetimi</p><div class='detay-grid'>" +
+          info("Şirket", yonetim.isim || "—") +
+          info("Tür", yonetim.turAd || "—") +
+          info("Kasa", fmt(yonetim.kasa || 0) + " TL") +
+          info("Çalışan", fmt((yonetim.calisanlar || []).length) + "/" + fmt(yonetim.maxCalisan || 0)) +
+          info("Stok Dolu", fmt(yonetim.stokDolu || 0) + "/" + fmt(yonetim.depoKapasite || 0)) +
+          "</div>"
+        : "") +
+      "<p class='baslik-altin'>Güvenli Yer Modülleri</p>" +
+      "<div class='detay-grid'>" +
+      info("Bina", fmt(gyFull.buildingLvl || 0)) +
+      info("Duvar", fmt(gyFull.wallLvl || 0)) +
+      info("Bahçe", fmt(gyFull.gardenLvl || 0)) +
+      info("Yeraltı", fmt(gyFull.undergroundLvl || 0)) +
+      info("Bunker", fmt(gyFull.bunkerLvl || 0)) +
+      info("Gümüş Kasa", gyFull.kasaGumus ? "Var" : "Yok") +
+      info("Altın Kasa", gyFull.kasaAltin ? "Var" : "Yok") +
+      "</div>" +
+      "<p class='baslik-altin'>Güvenlik Olayları</p><ul style='max-height:160px;overflow-y:auto;padding-left:18px;font-size:12px;color:#9ca3af'>" +
+      (events || "<li style='color:#6b7280'>Kayıt yok</li>") + "</ul>"
+    );
+  }
+
   function toast(msg, hata) {
     var el = document.getElementById("toast");
     if (!el) return;
@@ -92,6 +255,8 @@
       aktivite: "Canlı Aktivite",
       multi: "Şüpheli Multi-Hesaplar",
       mesajlar: "Sohbet Kontrol",
+      raporlar: "İçerik Raporları",
+      borsa: "Borsa",
       guvenlik: "Güvenlik Günlüğü",
     };
     document.getElementById("sayfaBaslik").textContent = baslik[tab] || tab;
@@ -111,7 +276,12 @@
         statKart("Güvenlik (24s)", s.olay_24s, "⚠️") +
         statKart("Mesaj (24s)", s.mesaj_24s, "💬") +
         statKart("Mafya Grubu", s.mafya_grup, "🔫") +
-        statKart("Yönetici", s.admin_sayisi, "👑");
+        statKart("Rapor (24s)", s.rapor_24s, "🚩") +
+        statKart("Yönetici", s.admin_sayisi, "👑") +
+        statKart("Borsa Yatırımcı", s.borsa_yatirimci, "📈") +
+        statKart("Bekleyen Emir", s.borsa_bekleyen_emir, "⏳") +
+        statKart("Portföy Değeri", fmt(s.borsa_portfoy_deger), "💹") +
+        statKart("Borsa İşlem (24s)", s.borsa_islem_24s, "🔄");
     });
   }
 
@@ -128,7 +298,7 @@
   function oyuncuTabloCiz(liste) {
     var tb = document.getElementById("oyuncuTablo");
     if (!liste.length) {
-      tb.innerHTML = '<tr><td colspan="13" style="text-align:center;color:#6b7280;padding:16px">Sonuç yok.</td></tr>';
+      tb.innerHTML = '<tr><td colspan="15" style="text-align:center;color:#6b7280;padding:16px">Sonuç yok.</td></tr>';
       return;
     }
     tb.innerHTML = liste
@@ -148,6 +318,8 @@
           : '<span style="color:#4b5563">—</span>';
         return (
           "<tr><td>" + o.id + "</td><td><b>" + esc(o.reisAdi) + "</b></td><td>" + esc(o.username) +
+          "</td><td style='color:#c5a059'>" + fmt(o.kasa) +
+          "</td><td style='color:#93c5fd'>" + fmt(o.bankaBakiye) +
           "</td><td>" + fmt(o.smsHakki) + "</td><td>" + fmt(o.mekanToplam) +
           "</td><td title='" + esc(o.guvenliYerAd || "") + "'>" + fmt(o.guvenliYerSeviye) +
           "</td><td title='+" + fmt(o.istihbaratGuc || 0) + " güç'>" + fmt(o.istihbaratEleman) +
@@ -165,30 +337,45 @@
     });
   }
 
-  function oyuncuAra() {
+  function oyuncuAra(sessiz) {
     var q = document.getElementById("oyuncuAra").value.trim();
     var tb = document.getElementById("oyuncuTablo");
-    if (tb) tb.innerHTML = '<tr><td colspan="13" style="text-align:center;color:#6b7280;padding:16px">Yükleniyor…</td></tr>';
+    if (tb && !sessiz) {
+      tb.innerHTML = '<tr><td colspan="15" style="text-align:center;color:#6b7280;padding:16px">Yükleniyor…</td></tr>';
+    }
     api("/api/admin/oyuncular?q=" + encodeURIComponent(q)).then(function (res) {
       if (!res.ok) {
-        toast(res.data.error || "Arama hatası", true);
+        if (tb) {
+          tb.innerHTML =
+            '<tr><td colspan="15" style="text-align:center;color:#f87171;padding:16px">' +
+            esc(res.data.error || "Liste yüklenemedi") +
+            "</td></tr>";
+        }
+        if (!sessiz) toast(res.data.error || "Arama hatası", true);
         return;
       }
       oyuncuTabloCiz(res.data.liste || []);
-      document.getElementById("oyuncuDetay").classList.add("hidden");
+      if (!sessiz) document.getElementById("oyuncuDetay").classList.add("hidden");
+    }).catch(function () {
+      if (tb) {
+        tb.innerHTML =
+          '<tr><td colspan="15" style="text-align:center;color:#f87171;padding:16px">Liste isteği başarısız</td></tr>';
+      }
     });
   }
 
-  function oyuncuDetayYukle(id) {
+  function oyuncuDetayYukle(id, sessiz) {
     seciliOyuncuId = id;
     var el = document.getElementById("oyuncuDetay");
     if (!el) return;
     el.classList.remove("hidden");
-    el.innerHTML = "<p style='color:#9ca3af;padding:12px'>Detay yükleniyor…</p>";
-    el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    if (!sessiz) {
+      el.innerHTML = "<p style='color:#9ca3af;padding:12px'>Detay yükleniyor…</p>";
+      el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
     api("/api/admin/oyuncular/" + id).then(function (res) {
       if (!res.ok) {
-        toast(res.data.error || "Detay yüklenemedi", true);
+        if (!sessiz) toast(res.data.error || "Detay yüklenemedi", true);
         el.innerHTML = "<p style='color:#f87171;padding:12px'>" + esc(res.data.error || "Detay yüklenemedi") + "</p>";
         return;
       }
@@ -223,6 +410,21 @@
       var gyGuc = gy.gucBonus != null ? gy.gucBonus : "";
       var istEleman = res.data.istihbaratEleman != null ? res.data.istihbaratEleman : (o.istihbaratEleman || 0);
       var istGuc = istEleman * 100;
+      var yt = res.data.yetenekler || {};
+      var yetenekMetin = "Güç " + fmt(yt.guc || 0) + " · Zeka " + fmt(yt.zeka || 0) +
+        " · Dayanıklılık " + fmt(yt.dayaniklilik || 0) + " · Beceri " + fmt(yt.beceri || 0);
+      var meslek = res.data.aktifMeslek;
+      var meslekMetin = meslek
+        ? (meslek.isyeriAd || "") + " — " + (meslek.unvan || "") + " (" + fmt(meslek.gunlukGelir) + " TL/gün)"
+        : "—";
+      var sirketCalisan = res.data.sirketCalisan;
+      var sirketCalisanMetin = sirketCalisan
+        ? (sirketCalisan.sirket_adi || "") + " · " + fmt(sirketCalisan.gunluk_maas) + " TL/gün"
+        : "—";
+      var sahipSirket = res.data.sahipSirket;
+      var sahipSirketMetin = sahipSirket
+        ? (sahipSirket.isim || "") + " · kasa " + fmt(sahipSirket.kasa || 0) + " TL"
+        : "—";
       var mekanlar = res.data.mekanlar || [];
       var mekanSatirlari = mekanlar
         .map(function (m) {
@@ -243,15 +445,28 @@
         btn("Banı Kaldır", "unban", "admin-btn-gri") +
         btn("Oturumu Kes", "kick", "admin-btn-gri") +
         btn("Mesajları Sil", "purge-msg", "admin-btn-gri") +
+        '<button type="button" id="oyuncuIndirBtn" class="admin-btn admin-btn-altin">⬇ Veriyi İndir</button>' +
         "</div>" +
         "<div class='detay-grid'>" +
-        info("Kasa", fmt(o.kasa)) + info("Güç", fmt(o.guc)) + info("Saygınlık", fmt(o.puan)) +
+        info("Kasa", fmt(o.kasa) + " TL") +
+        info("Banka", fmt(o.bankaBakiye) + " TL") +
+        info("Borsa Portföy", fmt(o.borsaPortfoyDeger || 0) + " TL") +
+        info("Toplam Varlık", fmt(o.toplamVarlik != null ? o.toplamVarlik : (o.kasa || 0) + (o.bankaBakiye || 0) + (o.borsaPortfoyDeger || 0)) + " TL") +
+        info("Faiz Bekleyen", fmt(o.faizBekleyen) + " TL") +
+        info("Banka Hakkı", fmt(o.bankaHakki)) +
+        info("Güç", fmt(o.guc)) + info("Saygınlık", fmt(o.puan)) +
         info("İcraat", fmt(o.icraat)) + info("SMS Hakkı", fmt(o.smsHakki)) +
         info("Mekan Toplam", fmt(o.mekanToplam)) +
         info("Güvenli Yer", "Seviye " + fmt(gySeviye) + (gyAd ? " — " + esc(gyAd) : "") + (gyGuc !== "" ? " (+" + fmt(gyGuc) + " güç)" : "")) +
         info("İstihbarat", fmt(istEleman) + " eleman (+" + fmt(istGuc) + " güç)") +
+        info("Yetenekler", yetenekMetin) +
+        info("NPC Meslek", meslekMetin) +
+        info("Şirket Çalışanı", sirketCalisanMetin) +
+        info("Şirket Sahibi", sahipSirketMetin) +
+        info("Son Görülme", o.lastSeen || "—") +
         info("Son IP", o.sonIp || "—") +
         "</div>" +
+        oyuncuDetayEkstraHtml(res) +
         "<form id='statForm' class='detay-grid' style='grid-template-columns:repeat(5,1fr)'>" +
         inputStat("kasa", o.kasa, "Kasa") + inputStat("guc", o.guc, "Güç") + inputStat("puan", o.puan, "Saygınlık") +
         inputStat("icraat", o.icraat, "İcraat") + inputStat("sms_hakki", o.smsHakki, "SMS") +
@@ -344,6 +559,13 @@
               oyuncuAra();
             }
           });
+        });
+      }
+      var indirBtn = document.getElementById("oyuncuIndirBtn");
+      if (indirBtn) {
+        indirBtn.addEventListener("click", function () {
+          var safeName = String(o.username || id).replace(/[^a-zA-Z0-9_-]/g, "_");
+          indirDosya("/api/admin/oyuncular/" + id + "/export", "oyuncu-" + safeName + "-" + id + ".json");
         });
       }
     }).catch(function () {
@@ -603,6 +825,131 @@
     });
   }
 
+  function yukleRaporlar() {
+    var tb = document.getElementById("raporTablo");
+    if (!tb) return;
+    tb.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#6b7280;padding:16px">Yükleniyor…</td></tr>';
+    api("/api/admin/raporlar").then(function (res) {
+      if (!res.ok) {
+        tb.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#f87171;padding:16px">' + esc(res.data.error || "Yüklenemedi") + "</td></tr>";
+        return;
+      }
+      var liste = res.data.liste || [];
+      if (!liste.length) {
+        tb.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#6b7280;padding:16px">Henüz rapor yok.</td></tr>';
+        return;
+      }
+      tb.innerHTML = liste.map(function (r) {
+        var hedefBtn = "";
+        if (r.hedefUserId) {
+          hedefBtn = '<button type="button" class="admin-btn admin-btn-altin rapor-hedef-btn" data-uid="' + r.hedefUserId + '" style="min-height:32px;padding:4px 10px">' + esc(r.hedefBaslik) + "</button>";
+        } else {
+          hedefBtn = esc(r.hedefBaslik || "—");
+        }
+        return "<tr><td>" + r.id + "</td><td style='white-space:nowrap;font-size:12px'>" + esc(r.at) +
+          "</td><td><b>" + esc(r.raporlayanAdi) + "</b><br><span style='font-size:11px;color:#6b7280'>@" + esc(r.raporlayanUsername) +
+          "</span></td><td>" + esc(r.tipLabel) + "</td><td>" + hedefBtn +
+          "</td><td style='max-width:320px;white-space:pre-wrap;font-size:12px'>" + esc(r.sebep) +
+          '</td><td><button type="button" class="admin-btn admin-btn-gri rapor-raporlayan-btn" data-uid="' + r.raporlayanId +
+          '" style="min-height:32px;padding:4px 10px">Raporlayan</button></td></tr>';
+      }).join("");
+      tb.querySelectorAll(".rapor-hedef-btn, .rapor-raporlayan-btn").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          aktifNav("oyuncular");
+          oyuncuDetayYukle(parseInt(btn.getAttribute("data-uid"), 10));
+        });
+      });
+    });
+  }
+
+  function borsaDetayHtml(borsa) {
+    var pozLen = borsa && borsa.pozisyonlar ? borsa.pozisyonlar.length : 0;
+    var emirLen = borsa && borsa.emirler ? borsa.emirler.length : 0;
+    var islemLen = borsa && borsa.sonIslemler ? borsa.sonIslemler.length : 0;
+    if (!borsa || (!pozLen && !emirLen && !islemLen)) {
+      return "<p class='baslik-altin'>Borsa</p><p style='color:#6b7280;font-size:13px'>Portföy veya emir yok.</p>";
+    }
+    var oz = borsa.ozet || {};
+    var pozisyonlar = borsa.pozisyonlar || [];
+    var emirler = borsa.emirler || [];
+    var islemler = borsa.sonIslemler || [];
+    var pozSatir = pozisyonlar.map(function (p) {
+      return "<tr><td>" + esc(p.sirketId) + "</td><td>" + esc(p.ad) + "</td><td>" + fmt(p.adet) +
+        "</td><td>" + fmt(p.fiyat) + " TL</td><td>" + fmt(p.deger) + " TL</td><td>" + fmt(p.karZarar) + " TL</td></tr>";
+    }).join("");
+    var emirSatir = emirler.map(function (e) {
+      return "<tr><td>" + e.id + "</td><td>" + esc(e.sirketId) + "</td><td>" + esc(e.tur) +
+        "</td><td>" + fmt(e.adet) + "</td><td>" + fmt(e.hedefFiyat) + " TL</td><td>" + fmt(e.guncelFiyat) + " TL</td></tr>";
+    }).join("");
+    return (
+      "<p class='baslik-altin'>Borsa</p>" +
+      "<div class='detay-grid'>" +
+      info("Portföy Değeri", fmt(oz.toplamDeger || 0) + " TL") +
+      info("Portföy K/Z", fmt(oz.karZarar || 0) + " TL") +
+      info("Pozisyon", fmt(oz.pozisyonSayisi || 0)) +
+      info("Bekleyen Emir", fmt(oz.emirSayisi || 0)) +
+      "</div>" +
+      "<div class='admin-tablo-wrap' style='max-height:220px;overflow:auto;margin:10px 0'>" +
+      "<table class='admin-tablo'><thead><tr><th>Kod</th><th>Hisse</th><th>Adet</th><th>Fiyat</th><th>Değer</th><th>K/Z</th></tr></thead>" +
+      "<tbody>" + (pozSatir || "<tr><td colspan='6' style='color:#6b7280'>Pozisyon yok</td></tr>") + "</tbody></table></div>" +
+      "<p class='baslik-altin' style='margin-top:12px'>Bekleyen Emirler</p>" +
+      "<div class='admin-tablo-wrap' style='max-height:180px;overflow:auto;margin-bottom:10px'>" +
+      "<table class='admin-tablo'><thead><tr><th>ID</th><th>Kod</th><th>Tür</th><th>Adet</th><th>Hedef</th><th>Güncel</th></tr></thead>" +
+      "<tbody>" + (emirSatir || "<tr><td colspan='6' style='color:#6b7280'>Emir yok</td></tr>") + "</tbody></table></div>" +
+      listeHtml(islemler, function (l) {
+        return "<li>" + esc(l.tur) + " · " + esc(l.ad) + " · " + fmt(l.adet) + " @ " + fmt(l.fiyat) +
+          " TL = " + fmt(l.toplam) + " TL</li>";
+      }, "Son işlem yok")
+    );
+  }
+
+  function yukleBorsa() {
+    api("/api/admin/borsa").then(function (res) {
+      if (!res.ok) {
+        toast(res.data.error || "Borsa verisi yüklenemedi", true);
+        return;
+      }
+      var stats = res.data.stats || {};
+      var statEl = document.getElementById("borsaStatGrid");
+      if (statEl) {
+        statEl.innerHTML =
+          statKart("Yatırımcı", stats.yatirimci_sayisi, "👥") +
+          statKart("Bekleyen Emir", stats.bekleyen_emir, "⏳") +
+          statKart("Toplam Portföy", fmt(stats.toplam_portfoy_deger), "💹") +
+          statKart("İşlem (24s)", stats.islem_24s, "🔄");
+      }
+      var sirketler = res.data.sirketler || [];
+      var sEl = document.getElementById("borsaSirketTablo");
+      if (sEl) {
+        sEl.innerHTML = sirketler.map(function (s) {
+          var deg = Number(s.degisim) || 0;
+          var degCls = deg >= 0 ? "color:#4ade80" : "color:#f87171";
+          return "<tr><td><b>" + esc(s.id) + "</b></td><td>" + esc(s.ad) + "</td><td>" + esc(s.sektor) +
+            "</td><td style='color:#c5a059'>" + fmt(s.fiyat) + " TL</td><td style='" + degCls + "'>" +
+            (deg >= 0 ? "+" : "") + deg.toFixed(1) + "%</td><td>%" + fmt(s.temettuYuzde) +
+            "</td><td>" + (s.volatilite != null ? (Number(s.volatilite) * 100).toFixed(1) + "%" : "—") + "</td></tr>";
+        }).join("") || "<tr><td colspan='7' style='color:#6b7280'>Hisse yok</td></tr>";
+      }
+      var emirler = res.data.sonEmirler || [];
+      var eEl = document.getElementById("borsaEmirTablo");
+      if (eEl) {
+        eEl.innerHTML = emirler.map(function (e) {
+          return "<tr><td>" + e.id + "</td><td><button type='button' class='admin-btn admin-btn-gri borsa-oyuncu-btn' data-uid='" +
+            e.userId + "' style='min-height:30px;padding:4px 8px;font-size:11px'>" + esc(e.reisAdi || e.userId) +
+            "</button></td><td>" + esc(e.tur) + "</td><td>" + esc(e.sirketAd) + "</td><td>" + fmt(e.adet) +
+            "</td><td>" + fmt(e.hedefFiyat) + " TL</td><td>" + esc(e.durum) + "</td><td>" +
+            (e.createdAt ? new Date(e.createdAt * 1000).toLocaleString("tr-TR") : "—") + "</td></tr>";
+        }).join("") || "<tr><td colspan='8' style='color:#6b7280'>Emir kaydı yok</td></tr>";
+        eEl.querySelectorAll(".borsa-oyuncu-btn").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            aktifNav("oyuncular");
+            oyuncuDetayYukle(parseInt(btn.getAttribute("data-uid"), 10));
+          });
+        });
+      }
+    });
+  }
+
   function bagla() {
     document.querySelectorAll(".nav-btn").forEach(function (btn) {
       btn.addEventListener("click", function () {
@@ -614,10 +961,20 @@
         if (tab === "aktivite") yukleAktivite();
         if (tab === "multi") yukleMulti();
         if (tab === "mesajlar") msgTab("kutu");
+        if (tab === "raporlar") yukleRaporlar();
+        if (tab === "borsa") yukleBorsa();
         if (tab === "guvenlik") yukleGuvenlik();
       });
     });
     document.getElementById("oyuncuAraBtn").addEventListener("click", oyuncuAra);
+    var tumIndirBtn = document.getElementById("tumOyuncularIndirBtn");
+    if (tumIndirBtn) {
+      tumIndirBtn.addEventListener("click", function () {
+        var q = (document.getElementById("oyuncuAra") || {}).value || "";
+        var url = "/api/admin/oyuncular/export" + (q.trim() ? "?q=" + encodeURIComponent(q.trim()) : "");
+        indirDosya(url, "oyuncular-export-" + Date.now() + ".json");
+      });
+    }
     document.getElementById("oyuncuAra").addEventListener("keydown", function (e) {
       if (e.key === "Enter") oyuncuAra();
     });

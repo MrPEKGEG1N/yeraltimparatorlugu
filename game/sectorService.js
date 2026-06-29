@@ -3,23 +3,6 @@ const { mekanTanim, sonrakiFiyat } = require("./sectorsCatalog");
 const { logStatHareket } = require("./statService");
 const { elitFiyatCarpani } = require("./elitFiyatService");
 
-function turkeyHourStamp() {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Europe/Istanbul",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    hour12: false,
-  })
-    .formatToParts(new Date())
-    .reduce((acc, p) => {
-      acc[p.type] = p.value;
-      return acc;
-    }, {});
-  return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}`;
-}
-
 async function getSahiplik(db, userId) {
   const rows = await all(
     db,
@@ -49,30 +32,8 @@ function saatlikToplam(sahiplik) {
 }
 
 async function processSectorIncome(db, userId, player) {
-  const sahiplik = await getSahiplik(db, userId);
-  const hourKey = turkeyHourStamp();
-  let toplam = 0;
-
-  for (const key of Object.keys(sahiplik)) {
-    const row = sahiplik[key];
-    if (!row.adet) continue;
-    if (row.lastIncomeHour === hourKey) continue;
-    const [sektor, mekanKey] = key.split(":");
-    const m = mekanTanim(sektor, mekanKey);
-    if (!m) continue;
-    toplam += m.saatlik * row.adet;
-    await run(
-      db,
-      `UPDATE sektor_sahiplik SET last_income_hour = ? WHERE user_id = ? AND sektor = ? AND mekan_key = ?`,
-      [hourKey, userId, sektor, mekanKey]
-    );
-  }
-
-  if (toplam > 0) {
-    player.kasa += toplam;
-    await run(db, `UPDATE players SET kasa = ? WHERE user_id = ?`, [player.kasa, userId]);
-  }
-  return player;
+  const { processSaatlikGelir } = require("./saatlikGelirService");
+  return (await processSaatlikGelir(db, userId, player)).player;
 }
 
 async function sektorPanel(db, userId) {
@@ -202,6 +163,8 @@ async function mekanDevret(db, fromUserId, toUserId, sektor, mekanKey, adet) {
   }
 
   const hedefAd = await get(db, `SELECT reis_adi FROM users WHERE id = ?`, [toUserId]);
+  const { syncSaatlikGelirSaati } = require("./saatlikGelirService");
+  await syncSaatlikGelirSaati(db, fromUserId);
   return {
     ok: true,
     mesaj: `${miktar} adet ${m.ad}, ${hedefAd.reis_adi}'a devredildi.`,

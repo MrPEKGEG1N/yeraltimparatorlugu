@@ -1,0 +1,43 @@
+# Google Play mağaza listesi — kopyala-yapıştır
+
+## Uygulama adı
+Yeraltı İmparatorluğu
+
+## Kısa açıklama (max 80 karakter)
+Yeraltı dünyasında imparatorluğunu kur, savaş, ticaret yap ve yüksel.
+
+## Tam açıklama
+Yeraltı İmparatorluğu, strateji ve rol yapma öğelerini bir araya getiren çevrimiçi bir mafya imparatorluğu oyunudur.
+
+Mekanlar aç, gelir elde et, rakiplerine saldır, mafya savaşlarına katıl ve liderlik tablosunda zirveye oyna. Kumarhane, borsa, günlük görevler ve çok daha fazlası seni bekliyor.
+
+Özellikler:
+• Gerçek zamanlı çok oyunculu dünya
+• Mekan yönetimi ve pasif gelir
+• Mafya savaşları ve PvP
+• Kumarhane ve mini oyunlar
+• Günlük görevler ve etkinlikler
+• Liderlik tablosu ve saygı sistemi
+
+İnternet bağlantısı gerektirir.
+
+## Kategori
+Oyunlar → Strateji
+
+## Gizlilik politikası URL
+https://yeraltimparatorlugu-production.up.railway.app/gizlilik
+
+## Paket adı
+com.yeralti.imparatorlugu
+
+## İletişim e-postası
+(Oyun sahibinin e-postasını girin)
+
+## Ekran görüntüsü notu
+Telefonda oyunu açıp Ana sayfa, Profil, Kumarhane, Liderlik ekranlarından 4-8 screenshot alın (min 1080px kısa kenar).
+
+## Feature graphic
+1024×500 px — `public/images/mafya/savas-banner.png` kırpılarak kullanılabilir.
+
+## Yüksek çözünürlüklü ikon
+512×512 — `resources/icon.png` dosyasından export edin.

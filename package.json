@@ -6,14 +6,29 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
+    "cap:sync": "cap sync",
+    "cap:copy": "cap copy",
+    "cap:open:android": "cap open android",
+    "cap:run:android": "cap run android",
+    "android:debug": "powershell -ExecutionPolicy Bypass -File tools/run-android-debug.ps1",
+    "android:apk": "powershell -ExecutionPolicy Bypass -File tools/build-share-apk.ps1",
+    "android:assets": "python tools/generate-app-icon.py && npx @capacitor/assets generate --android --iconBackgroundColor \"#0a0604\" --splashBackgroundColor \"#0a0604\"",
+    "android:sync": "cap sync android",
+    "android:prepare": "powershell -ExecutionPolicy Bypass -File tools/prepare-google-play.ps1",
+    "android:release": "powershell -ExecutionPolicy Bypass -File tools/build-release-full.ps1",
+    "android:finalize": "powershell -ExecutionPolicy Bypass -File tools/finalize-play-release.ps1",
     "liderlik": "python app.py",
-    "railway:volume": "powershell -ExecutionPolicy Bypass -File tools/setup-railway-volume.ps1"
+    "railway:volume": "powershell -ExecutionPolicy Bypass -File tools/setup-railway-volume.ps1",
+    "i18n:complete": "node scripts/apply-manual-missing.js && node scripts/seed-message-templates.js && node scripts/generate-errors-module.js",
+    "i18n:generate": "node scripts/generate-errors-module.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@capacitor/android": "^8.4.1",
+    "@capacitor/core": "^8.4.1",
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
     "express": "^5.2.1",
@@ -21,6 +36,12 @@
     "helmet": "^8.2.0",
     "jsonwebtoken": "^9.0.3",
     "sanitize-html": "^2.17.5",
-    "sqlite3": "^6.0.1"
+    "sqlite3": "^6.0.1",
+    "web-push": "^3.6.7"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^8.4.1",
+    "google-translate-api-x": "^10.7.3"
   }
 }

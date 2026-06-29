@@ -2,7 +2,6 @@ const express = require("express");
 const rateLimit = require("express-rate-limit");
 const { registerUser, loginUser, changePassword } = require("../services/authService");
 const { createRequireAuth } = require("../middleware/auth");
-const { loadPlayer, publicPlayerFull } = require("../game/playerService");
 const { COOKIE_NAME, TOKEN_MAX_AGE_MS } = require("../config");
 const { attachClientMeta, ipRateLimit } = require("../middleware/security");
 const { extractClientMeta } = require("../game/securityService");
@@ -87,7 +86,6 @@ function createAuthRouter(db) {
 
   router.get("/me", requireAuth, async (req, res) => {
     try {
-      const player = await loadPlayer(db, req.user.id);
       const u = await dbGetLakap(db, req.user.id);
       res.json({
         ok: true,
@@ -97,7 +95,6 @@ function createAuthRouter(db) {
           reisAdi: req.user.reisAdi,
           lakap: u?.lakap || "Mafya",
         },
-        player: await publicPlayerFull(db, req.user.id, player),
       });
     } catch (err) {
       console.error(err);

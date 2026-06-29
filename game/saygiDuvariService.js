@@ -24,10 +24,14 @@ async function ensureSaygiTables(db) {
       gun_sayisi INTEGER NOT NULL,
       onceki_reis_adi TEXT,
       kaybeden_reis_adi TEXT,
+      yeni_reis_adi TEXT,
       created_at INTEGER NOT NULL DEFAULT (strftime('%s','now')),
       FOREIGN KEY (hukumdar_user_id) REFERENCES users(id) ON DELETE CASCADE
     )`
   );
+  try {
+    await run(db, `ALTER TABLE sehir_tarihi ADD COLUMN yeni_reis_adi TEXT`);
+  } catch (_) {}
   try {
     await run(db, `ALTER TABLE players ADD COLUMN sehir_efsane INTEGER NOT NULL DEFAULT 0`);
   } catch (_) {}
@@ -93,7 +97,7 @@ async function temizleHukumranlikKopyalari(db) {
 async function aktifHukumdarKaydi(db) {
   let row = await get(
     db,
-    `SELECT u.reis_adi AS hukumdar_adi, h.baslangic, h.onceki_user_id, h.id
+    `SELECT h.user_id, u.reis_adi AS hukumdar_adi, h.baslangic, h.onceki_user_id, h.id
      FROM players p
      JOIN users u ON u.id = p.user_id
      JOIN sehir_hukumranlik h ON h.user_id = p.user_id AND h.bitis IS NULL
@@ -105,7 +109,7 @@ async function aktifHukumdarKaydi(db) {
 
   return get(
     db,
-    `SELECT u.reis_adi AS hukumdar_adi, h.baslangic, h.onceki_user_id, h.id
+    `SELECT h.user_id, u.reis_adi AS hukumdar_adi, h.baslangic, h.onceki_user_id, h.id
      FROM sehir_hukumranlik h
      JOIN users u ON u.id = h.user_id
      WHERE h.bitis IS NULL
@@ -117,7 +121,7 @@ async function aktifHukumdarKaydi(db) {
 async function hukumranlikKapat(db, userId, kaybedenId, yeniId) {
   const row = await get(
     db,
-    `SELECT h.id, h.baslangic, u.reis_adi
+    `SELECT h.id, h.baslangic, h.onceki_user_id, u.reis_adi
      FROM sehir_hukumranlik h
      JOIN users u ON u.id = h.user_id
      WHERE h.user_id = ? AND h.bitis IS NULL
@@ -129,23 +133,26 @@ async function hukumranlikKapat(db, userId, kaybedenId, yeniId) {
   await run(db, `UPDATE sehir_hukumranlik SET bitis = ? WHERE id = ?`, [now, row.id]);
   await run(db, `UPDATE players SET aktif_hukumranlik_id = NULL WHERE user_id = ?`, [userId]);
 
-  const onceki = kaybedenId
-    ? await get(db, `SELECT reis_adi FROM users WHERE id = ?`, [kaybedenId])
-    : null;
+  let oncekiReisAdi = null;
+  if (row.onceki_user_id) {
+    const onceki = await get(db, `SELECT reis_adi FROM users WHERE id = ?`, [row.onceki_user_id]);
+    oncekiReisAdi = onceki?.reis_adi || null;
+  }
   const yeni = yeniId ? await get(db, `SELECT reis_adi FROM users WHERE id = ?`, [yeniId]) : null;
 
   await run(
     db,
-    `INSERT INTO sehir_tarihi (hukumdar_user_id, hukumdar_adi, baslangic, bitis, gun_sayisi, onceki_reis_adi, kaybeden_reis_adi)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO sehir_tarihi (hukumdar_user_id, hukumdar_adi, baslangic, bitis, gun_sayisi, onceki_reis_adi, kaybeden_reis_adi, yeni_reis_adi)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       userId,
       row.reis_adi,
       row.baslangic,
       now,
       gunFarki(row.baslangic, now),
-      onceki?.reis_adi || null,
+      oncekiReisAdi,
       row.reis_adi,
+      yeni?.reis_adi || null,
     ]
   );
 }
@@ -230,46 +237,71 @@ async function sehirTarihiniGetir(db) {
   const now = Math.floor(Date.now() / 1000);
   const gecmis = await all(
     db,
-    `SELECT hukumdar_adi, baslangic, bitis, gun_sayisi, onceki_reis_adi, kaybeden_reis_adi
+    `SELECT hukumdar_user_id, hukumdar_adi, baslangic, bitis, gun_sayisi, onceki_reis_adi, kaybeden_reis_adi, yeni_reis_adi
      FROM sehir_tarihi
-     ORDER BY baslangic DESC
-     LIMIT 50`
+     ORDER BY baslangic ASC`
   );
   const aktifRow = await aktifHukumdarKaydi(db);
-  const liste = [];
+  const ham = [];
+
+  gecmis.forEach((g) => {
+    ham.push({
+      userId: g.hukumdar_user_id,
+      hukumdarAdi: g.hukumdar_adi,
+      baslangic: g.baslangic,
+      bitis: g.bitis,
+      gunSayisi: g.gun_sayisi,
+      oncekiReisAdi: g.onceki_reis_adi,
+      yeniReisAdi: g.yeni_reis_adi,
+      aktif: false,
+    });
+  });
+
   if (aktifRow) {
     let oncekiAdi = null;
     if (aktifRow.onceki_user_id) {
       const o = await get(db, `SELECT reis_adi FROM users WHERE id = ?`, [aktifRow.onceki_user_id]);
       oncekiAdi = o?.reis_adi || null;
     }
-    const gunSayisi = gunFarki(aktifRow.baslangic, now);
-    liste.push({
+    ham.push({
+      userId: aktifRow.user_id,
       hukumdarAdi: aktifRow.hukumdar_adi,
       baslangic: aktifRow.baslangic,
       bitis: null,
-      gunSayisi: gunSayisi,
+      gunSayisi: gunFarki(aktifRow.baslangic, now),
       oncekiReisAdi: oncekiAdi,
-      kaybedenReisAdi: null,
+      yeniReisAdi: null,
       aktif: true,
-      baslangicMetin: trTarih(aktifRow.baslangic),
-      bitisMetin: null,
     });
   }
-  gecmis.forEach((g) => {
-    liste.push({
-      hukumdarAdi: g.hukumdar_adi,
-      baslangic: g.baslangic,
-      bitis: g.bitis,
-      gunSayisi: g.gun_sayisi,
-      oncekiReisAdi: g.onceki_reis_adi,
-      kaybedenReisAdi: g.kaybeden_reis_adi,
-      aktif: false,
-      baslangicMetin: trTarih(g.baslangic),
-      bitisMetin: trTarih(g.bitis),
-    });
-  });
-  return liste;
+
+  ham.sort((a, b) => (a.baslangic || 0) - (b.baslangic || 0));
+
+  for (let i = 0; i < ham.length; i++) {
+    if (!ham[i].yeniReisAdi && !ham[i].aktif && ham[i + 1]) {
+      ham[i].yeniReisAdi = ham[i + 1].hukumdarAdi;
+      ham[i].yeniReisUserId = ham[i + 1].userId;
+    }
+    if (!ham[i].oncekiReisAdi && i > 0) {
+      ham[i].oncekiReisAdi = ham[i - 1].hukumdarAdi;
+      ham[i].oncekiReisUserId = ham[i - 1].userId;
+    }
+  }
+
+  return ham.map((k) => ({
+    userId: k.userId,
+    hukumdarAdi: k.hukumdarAdi,
+    baslangic: k.baslangic,
+    bitis: k.bitis,
+    gunSayisi: k.gunSayisi || gunFarki(k.baslangic, k.bitis || now),
+    oncekiReisAdi: k.oncekiReisAdi || null,
+    oncekiReisUserId: k.oncekiReisUserId || null,
+    yeniReisAdi: k.yeniReisAdi || null,
+    yeniReisUserId: k.yeniReisUserId || null,
+    aktif: !!k.aktif,
+    baslangicMetin: trTarih(k.baslangic),
+    bitisMetin: k.bitis ? trTarih(k.bitis) : null,
+  }));
 }
 
 module.exports = {

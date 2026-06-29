@@ -1,5 +1,7 @@
 const { run, get, all } = require("../db/database");
 const { gucKaybiOranliUygula, toplamGuc } = require("./gucService");
+const { icraatHarca, syncIcraatRegen } = require("./icraatService");
+const { logStatHareket } = require("./statService");
 
 const ONLINE_WINDOW_SEC = 5 * 60; // 5 dk içinde aktifse online say
 
@@ -9,8 +11,9 @@ const ISLER = [
     ad: "Şehrin Lüks Oto Galerisini Soy",
     minOnline: 3,
     minGuc: 50_000,
-    kazancKisi: 300_000,
-    sayginlikKisi: 20,
+    icraat: 12,
+    kazancKisi: 350_000,
+    sayginlikKisi: 140,
     devletDus: 4,
     gorselKey: "mafya_oto",
   },
@@ -19,8 +22,9 @@ const ISLER = [
     ad: "Şehrin Lüks Kuyumcusunu Soy",
     minOnline: 5,
     minGuc: 100_000,
-    kazancKisi: 750_000,
-    sayginlikKisi: 45,
+    icraat: 16,
+    kazancKisi: 900_000,
+    sayginlikKisi: 300,
     devletDus: 7,
     gorselKey: "mafya_kuyumcu",
   },
@@ -29,8 +33,9 @@ const ISLER = [
     ad: "Şehrin En İşlek Bankasını Soy",
     minOnline: 7,
     minGuc: 500_000,
-    kazancKisi: 4_000_000,
-    sayginlikKisi: 120,
+    icraat: 20,
+    kazancKisi: 5_200_000,
+    sayginlikKisi: 520,
     devletDus: 12,
     gorselKey: "mafya_banka",
   },
@@ -39,8 +44,9 @@ const ISLER = [
     ad: "Ülke Darphanesini Soy",
     minOnline: 15,
     minGuc: 2_500_000,
-    kazancKisi: 25_000_000,
-    sayginlikKisi: 300,
+    icraat: 25,
+    kazancKisi: 30_000_000,
+    sayginlikKisi: 850,
     devletDus: 18,
     gorselKey: "mafya_darphane",
   },
@@ -169,6 +175,14 @@ async function isKatil(db, userId, grupId, isTuru) {
   if (p.last_seen_at < now - ONLINE_WINDOW_SEC) return { ok: false, error: "Online değilsin. Sayfayı açık tut ve tekrar dene." };
   if (toplamGuc(p) < isDef.minGuc) return { ok: false, error: "Yeterli gereksinimlere sahip değilsin! (Güç yetersiz)" };
 
+  const icraatSync = await syncIcraatRegen(db, userId);
+  if (icraatSync.icraat < isDef.icraat) {
+    return {
+      ok: false,
+      error: `Bu soygun için en az ${isDef.icraat} icraat gerekir. (Mevcut: ${icraatSync.icraat})`,
+    };
+  }
+
   // Katılım kaydı
   try {
     await run(db, `INSERT INTO mafya_is_katilim (is_id, user_id) VALUES (?, ?)`, [aktif.id, userId]);
@@ -191,8 +205,23 @@ async function isGerceklestir(db, grupId, isId) {
     return { ok: false, error: "Şartlar sağlanmadı. Online + güç gereksinimleri eksik." };
   }
 
-  // Ödül/ceza: katılan uygun oyunculara uygula
+  const odulAlacaklar = [];
   for (const k of uygun) {
+    const icraatSync = await syncIcraatRegen(db, k.userId);
+    if (icraatSync.icraat >= isDef.icraat) odulAlacaklar.push(k);
+  }
+  if (odulAlacaklar.length < isDef.minOnline) {
+    return {
+      ok: false,
+      error: `Şartlar sağlanmadı. Katılan üyelerde en az ${isDef.minOnline} kişide ${isDef.icraat} icraat olmalı.`,
+    };
+  }
+
+  // Ödül/ceza: icraat ödeyip şartları sağlayan katılımcılara uygula
+  for (const k of odulAlacaklar) {
+    const icraatSonuc = await icraatHarca(db, k.userId, isDef.icraat);
+    if (!icraatSonuc.ok) continue;
+
     const row = await get(
       db,
       `SELECT kasa, guc, COALESCE(bonus_guc, 0) AS bonus_guc, puan, devlet_iliskisi FROM players WHERE user_id = ?`,
@@ -205,16 +234,17 @@ async function isGerceklestir(db, grupId, isId) {
     const yeniKasa = row.kasa + isDef.kazancKisi;
     await run(
       db,
-      `UPDATE players SET kasa = ?, guc = ?, puan = ?, devlet_iliskisi = ? WHERE user_id = ?`,
-      [yeniKasa, gucSync.guc, yeniPuan, yeniDevlet, k.userId]
+      `UPDATE players SET kasa = ?, guc = ?, puan = ?, devlet_iliskisi = ?, icraat = ? WHERE user_id = ?`,
+      [yeniKasa, gucSync.guc, yeniPuan, yeniDevlet, icraatSonuc.icraat, k.userId]
     );
+    await logStatHareket(db, k.userId, "sayginlik", isDef.sayginlikKisi);
   }
 
   await run(db, `UPDATE mafya_isleri SET durum = 'tamamlandi' WHERE id = ?`, [isId]);
 
   const { gorevOlayIsle } = require("./gunlukGorevService");
   const gorevTamamlananByUser = {};
-  for (const k of uygun) {
+  for (const k of odulAlacaklar) {
     const gorevSonuc = await gorevOlayIsle(db, k.userId, "mafya_is", {});
     gorevTamamlananByUser[k.userId] = gorevSonuc.yeniTamamlanan || 0;
   }
@@ -227,7 +257,8 @@ async function isGerceklestir(db, grupId, isId) {
       " TL dağıtıldı.",
     kazancKisi: isDef.kazancKisi,
     sayginlikKisi: isDef.sayginlikKisi,
-    katilim: uygun.length,
+    icraat: isDef.icraat,
+    katilim: odulAlacaklar.length,
     gorevTamamlananByUser,
   };
 }

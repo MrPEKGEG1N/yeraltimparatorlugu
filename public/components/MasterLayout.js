@@ -7,10 +7,14 @@
   var PLAQUE_TITLES = {
     liderlik: 'LİDERLİK TABLOSU',
     profilim: 'PROFİLİM',
+    guvenliYer: 'GÜVENLİ YER',
     gunlukGorevler: 'GÜNLÜK GÖREVLER',
+    guclen: 'GÜÇLENME',
     korumaEkibi: 'EKİP KİRALA',
     silahlan: 'SİLAHLAN',
     luksYasam: 'LÜKS YAŞAM',
+    buyume: 'BÜYÜME ADIMLARI',
+    mekan: 'SEKTÖRLER',
     mahalle: 'MAHALLE İŞLERİ',
     semt: 'SEMT İŞLERİ',
     sehir: 'ŞEHİR İŞLERİ',
@@ -21,18 +25,23 @@
     istihbarat: 'İSTİHBARAT',
     banka: 'BANKA',
     medya: 'MEDYA',
-    gazete: 'GAZETE OKU',
+    gazete: 'ŞEHİR GAZETESİ',
     sehreHukmet: 'ŞEHRE HÜKMET',
     baba_soz: 'SÖZÜNÜ GEÇİR',
     baba_sadakat: 'SADAKAT YEMİNİ',
     liman: 'LİMAN İŞLETMELERİ',
     mesajKutusu: 'MESAJ KUTUSU',
-    mafyaSohbet: 'MAFYA SOHBETLERİ',
+    mafyaSohbet: 'MAFYA SOHBETİ',
     dusmanaCok: 'DÜŞMANA ÇÖK',
+    sabotaj: 'SABOTAJ',
+    borsa: 'BORSA',
+    kumarhane: 'KUMARHANE',
     karaListe: 'KARA LİSTE',
     devletIliskisi: 'AVUKAT',
     sehirTarihi: 'ŞEHİR TARİHİ',
-    mafya: 'MAFYA GRUBU'
+    turkiyeSefirlik: 'TÜRKİYE SEFİRLİĞİ',
+    meslekler: 'MESLEKLER',
+    mafya: 'MAFYA'
   };
 
   function root() {
@@ -74,8 +83,11 @@
   function setPlaque(tip) {
     var plaque = document.getElementById('masterFramePlaque');
     if (!plaque) return;
-    var baslik = PLAQUE_TITLES[tip] || '';
-    if (tip && tip.indexOf('sektor_') === 0) baslik = PLAQUE_TITLES[tip] || 'MEKAN SAHİBİ';
+    var baslik = '';
+    if (typeof global.screenTitle === 'function') baslik = global.screenTitle(tip);
+    else if (typeof global.I18n !== 'undefined' && global.I18n.screenTitle) baslik = global.I18n.screenTitle(tip);
+    else baslik = PLAQUE_TITLES[tip] || '';
+    if (tip && tip.indexOf('sektor_') === 0 && !baslik) baslik = PLAQUE_TITLES[tip] || PLAQUE_TITLES.mekan || '';
     if (baslik) {
       plaque.textContent = baslik;
       plaque.classList.remove('gizli');

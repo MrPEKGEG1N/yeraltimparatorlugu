@@ -1,5 +1,7 @@
 const { get, all, run } = require("../db/database");
 const { ensureEvi, kapasite } = require("./mafyaEviService");
+const { sanitizeProfilAciklama } = require("./profilAciklamaSanitize");
+const { syncBonusGuc } = require("./bonusGucService");
 
 const CIKIS_UCRET = 1_000_000;
 
@@ -61,18 +63,22 @@ async function grupOlustur(db, userId, isim, aciklama) {
   ]);
   if (varMi) return { ok: false, error: "Bu isimde grup zaten var." };
 
+  const acik = sanitizeProfilAciklama(aciklama);
+
   const ins = await run(
     db,
     `INSERT INTO mafya_gruplari (isim, aciklama, lider_user_id) VALUES (?, ?, ?)`,
-    [temizIsim, String(aciklama || "").slice(0, 200), userId]
+    [temizIsim, acik, userId]
   );
   const grupId = ins.lastID;
+  await ensureEvi(db, grupId);
   await run(db, `INSERT INTO mafya_uyeleri (grup_id, user_id, rutbe) VALUES (?, ?, ?)`, [
     grupId,
     userId,
     "Mafya Lideri",
   ]);
   await run(db, `UPDATE users SET grup = ? WHERE id = ?`, [temizIsim, userId]);
+  await syncBonusGuc(db, userId);
   return { ok: true, grupId, isim: temizIsim };
 }
 
@@ -131,6 +137,7 @@ async function basvuruKabul(db, liderId, basvuruId) {
   ]);
   const grup = await get(db, `SELECT isim FROM mafya_gruplari WHERE id = ?`, [b.grup_id]);
   await run(db, `UPDATE users SET grup = ? WHERE id = ?`, [grup.isim, b.user_id]);
+  await syncBonusGuc(db, b.user_id);
   return { ok: true };
 }
 
@@ -174,6 +181,7 @@ async function uyeCikar(db, liderId, hedefUserId) {
     hedefUserId,
   ]);
   await run(db, `UPDATE users SET grup = 'Bağımsız Reis' WHERE id = ?`, [hedefUserId]);
+  await syncBonusGuc(db, hedefUserId);
   return { ok: true };
 }
 
@@ -207,6 +215,7 @@ async function gurupDagit(db, liderId) {
   await run(db, `DELETE FROM mafya_gruplari WHERE id = ?`, [grup.id]);
   for (const u of uyeler) {
     await run(db, `UPDATE users SET grup = 'Bağımsız Reis' WHERE id = ?`, [u.user_id]);
+    await syncBonusGuc(db, u.user_id);
   }
   return { ok: true };
 }
@@ -232,6 +241,7 @@ async function guruptanCik(db, userId, player) {
   ]);
   await run(db, `UPDATE users SET grup = 'Bağımsız Reis' WHERE id = ?`, [userId]);
   await run(db, `UPDATE players SET kasa = ? WHERE user_id = ?`, [player.kasa, userId]);
+  await syncBonusGuc(db, userId);
   return { ok: true, player };
 }
 
@@ -240,7 +250,7 @@ async function grupAciklamaDegistir(db, liderId, yeniAciklama) {
   if (!grup || grup.lider_user_id !== liderId) {
     return { ok: false, error: "Sadece Mafya Grubu lideri açıklamayı değiştirebilir." };
   }
-  const acik = String(yeniAciklama || "").trim().slice(0, 200);
+  const acik = sanitizeProfilAciklama(yeniAciklama);
   await run(db, `UPDATE mafya_gruplari SET aciklama = ? WHERE id = ?`, [acik, grup.id]);
   return { ok: true, aciklama: acik };
 }
@@ -289,6 +299,8 @@ async function mafyaPanel(db, userId) {
       [uyelik.id]
     );
   }
+  const { getGrupSampiyonluklari } = require("./aylikMafyaSampiyonService");
+  const sampiyonluklar = await getGrupSampiyonluklari(db, uyelik.id);
   return {
     uyelik: {
       id: uyelik.id,
@@ -301,10 +313,11 @@ async function mafyaPanel(db, userId) {
     uyeler,
     basvurular,
     bekleyenBasvuru: bekleyenSayisi,
+    sampiyonluklar,
   };
 }
 
-async function grupProfil(db, grupId) {
+async function grupProfil(db, grupId, viewerUserId) {
   const grup = await get(
     db,
     `SELECT id, isim, aciklama FROM mafya_gruplari WHERE id = ?`,
@@ -314,8 +327,20 @@ async function grupProfil(db, grupId) {
 
   const uyeler = await grupUyeleri(db, grupId);
   const { eviGetir } = require("./mafyaEviService");
+  const { getGrupSampiyonluklari } = require("./aylikMafyaSampiyonService");
   const ev = await eviGetir(db, grupId);
   const toplamSayginlik = uyeler.reduce((s, u) => s + (u.puan || 0), 0);
+  const sampiyonluklar = await getGrupSampiyonluklari(db, grupId);
+
+  let benimGrubum = false;
+  if (viewerUserId) {
+    const uyem = await get(
+      db,
+      `SELECT 1 FROM mafya_uyeleri WHERE grup_id = ? AND user_id = ?`,
+      [grupId, viewerUserId]
+    );
+    benimGrubum = !!uyem;
+  }
 
   return {
     id: grup.id,
@@ -325,6 +350,9 @@ async function grupProfil(db, grupId) {
     toplamSayginlik,
     evSeviye: ev.seviye,
     evKapasite: ev.kapasite,
+    evUyeGucBonusu: ev.uyeGucBonusu,
+    sampiyonluklar,
+    benimGrubum,
   };
 }
 

@@ -1,0 +1,240 @@
+/* Şehir Tarihi — hükümdar kronolojisi */
+#masterLayout #anaIcerik .st-sayfa {
+  display: flex;
+  justify-content: center;
+  padding: 10px 14px 32px;
+}
+
+#masterLayout #anaIcerik .st-cerceve {
+  position: relative;
+  width: min(720px, 100%);
+  border: 2px solid rgba(184, 148, 42, 0.52);
+  border-radius: 8px;
+  background: linear-gradient(175deg, rgba(20, 14, 10, 0.98) 0%, rgba(8, 6, 5, 0.99) 100%);
+  box-shadow:
+    0 22px 60px rgba(0, 0, 0, 0.72),
+    inset 0 0 80px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 220, 140, 0.08);
+  overflow: hidden;
+}
+
+#masterLayout #anaIcerik .st-cerceve::before {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  border: 1px solid rgba(184, 148, 42, 0.18);
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+#masterLayout #anaIcerik .st-banner {
+  position: relative;
+  padding: 22px 24px 18px;
+  text-align: center;
+  background:
+    radial-gradient(ellipse 70% 100% at 50% 100%, rgba(120, 80, 20, 0.28) 0%, transparent 60%),
+    linear-gradient(180deg, rgba(32, 22, 14, 0.95) 0%, rgba(10, 7, 5, 0.98) 100%);
+  border-bottom: 1px solid rgba(184, 148, 42, 0.22);
+}
+
+#masterLayout #anaIcerik .st-banner-ikon {
+  font-size: 28px;
+  line-height: 1;
+  margin-bottom: 6px;
+  filter: drop-shadow(0 0 10px rgba(255, 200, 80, 0.35));
+}
+
+#masterLayout #anaIcerik .st-banner h2 {
+  margin: 0;
+  font-family: 'Cinzel', 'Georgia', serif;
+  font-size: clamp(18px, 3.5vw, 24px);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #e8c875;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.8);
+}
+
+#masterLayout #anaIcerik .st-banner-alt {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: #9a8a70;
+  letter-spacing: 0.06em;
+}
+
+#masterLayout #anaIcerik .st-govde {
+  position: relative;
+  z-index: 1;
+  padding: 18px 20px 24px;
+}
+
+#masterLayout #anaIcerik .st-baslik-satir {
+  margin: 0 0 14px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #c5a059;
+  text-align: center;
+}
+
+#masterLayout #anaIcerik .st-bos {
+  text-align: center;
+  color: #7a7060;
+  font-size: 14px;
+  padding: 28px 12px;
+}
+
+#masterLayout #anaIcerik .st-zaman-cizgi {
+  position: relative;
+  padding-left: 28px;
+}
+
+#masterLayout #anaIcerik .st-zaman-cizgi::before {
+  content: "";
+  position: absolute;
+  left: 9px;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background: linear-gradient(180deg, rgba(197, 160, 89, 0.15), rgba(197, 160, 89, 0.45), rgba(197, 160, 89, 0.15));
+}
+
+#masterLayout #anaIcerik .st-donem {
+  position: relative;
+  margin-bottom: 14px;
+  padding: 12px 14px 12px 16px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transition: border-color 0.15s, background 0.15s;
+}
+
+#masterLayout #anaIcerik .st-donem:last-child {
+  margin-bottom: 0;
+}
+
+#masterLayout #anaIcerik .st-donem--aktif {
+  border-color: rgba(255, 215, 120, 0.45);
+  background: linear-gradient(135deg, rgba(80, 50, 12, 0.35), rgba(30, 18, 8, 0.5));
+  box-shadow: 0 0 20px rgba(255, 190, 60, 0.08);
+}
+
+#masterLayout #anaIcerik .st-donem-nokta {
+  position: absolute;
+  left: -22px;
+  top: 18px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #ffe9a8, #b8862e);
+  border: 2px solid rgba(20, 14, 8, 0.9);
+  box-shadow: 0 0 8px rgba(255, 200, 80, 0.4);
+}
+
+#masterLayout #anaIcerik .st-donem--aktif .st-donem-nokta {
+  animation: stNoktaParla 2.4s ease-in-out infinite;
+}
+
+@keyframes stNoktaParla {
+  0%, 100% { box-shadow: 0 0 8px rgba(255, 200, 80, 0.4); }
+  50% { box-shadow: 0 0 16px rgba(255, 215, 120, 0.85); }
+}
+
+#masterLayout #anaIcerik .st-donem-ana {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  margin-bottom: 8px;
+}
+
+#masterLayout #anaIcerik .st-donem-isim {
+  font-family: 'Cinzel', 'Georgia', serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: #ffe8b8;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+}
+
+#masterLayout #anaIcerik .st-donem--aktif .st-donem-isim {
+  color: #fff4d0;
+}
+
+#masterLayout #anaIcerik .st-donem-isim .oyuncu-link-btn {
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  color: inherit !important;
+  background: none !important;
+  border: none !important;
+  padding: 0;
+  cursor: pointer;
+  text-shadow: inherit;
+}
+
+#masterLayout #anaIcerik .st-donem-isim .oyuncu-link-btn:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+#masterLayout #anaIcerik .st-donem-ok {
+  color: #8a7a60;
+  font-size: 14px;
+}
+
+#masterLayout #anaIcerik .st-donem-gun {
+  font-family: 'Oswald', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: #c5a059;
+  letter-spacing: 0.04em;
+}
+
+#masterLayout #anaIcerik .st-donem-rozet {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(255, 200, 80, 0.15);
+  color: #ffd700;
+  border: 1px solid rgba(255, 215, 120, 0.35);
+}
+
+#masterLayout #anaIcerik .st-donem-detay {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: #9a9080;
+  line-height: 1.45;
+}
+
+#masterLayout #anaIcerik .st-donem-detay span {
+  display: block;
+}
+
+#masterLayout #anaIcerik .st-donem-detay b {
+  color: #d4c4a8;
+  font-weight: 600;
+}
+
+#masterLayout #anaIcerik .st-donem-tarih {
+  margin-top: 6px;
+  font-size: 11px;
+  color: #6a6050;
+}
+
+@media (max-width: 520px) {
+  #masterLayout #anaIcerik .st-govde {
+    padding: 14px 12px 20px;
+  }
+
+  #masterLayout #anaIcerik .st-donem-isim {
+    font-size: 15px;
+  }
+}

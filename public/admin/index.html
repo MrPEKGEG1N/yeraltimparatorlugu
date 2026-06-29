@@ -32,6 +32,8 @@
           <button type="button" data-tab="aktivite" class="nav-btn">📡 Canlı Aktivite</button>
           <button type="button" data-tab="multi" class="nav-btn">🕵️ Şüpheli Hesaplar</button>
           <button type="button" data-tab="mesajlar" class="nav-btn">💬 Sohbet Kontrol</button>
+          <button type="button" data-tab="raporlar" class="nav-btn">🚩 İçerik Raporları</button>
+          <button type="button" data-tab="borsa" class="nav-btn">📈 Borsa</button>
           <button type="button" data-tab="guvenlik" class="nav-btn">🛡️ Güvenlik Günlüğü</button>
         </nav>
         <div class="admin-sidebar-foot">
@@ -51,15 +53,16 @@
           </section>
 
           <section id="tab-oyuncular" class="tab-panel hidden">
-            <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px">
+            <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:8px">
               <input id="oyuncuAra" type="search" placeholder="Ara… (boş bırakınca tüm oyuncular)" class="admin-input" style="flex:1;min-width:200px">
               <button type="button" id="oyuncuAraBtn" class="admin-btn admin-btn-kirmizi">Ara</button>
+              <button type="button" id="tumOyuncularIndirBtn" class="admin-btn admin-btn-gri">⬇ Tüm Oyuncuları İndir</button>
             </div>
             <div class="admin-tablo-wrap">
               <table class="admin-tablo">
                 <thead>
                   <tr>
-                    <th>ID</th><th>Reis</th><th>Kullanıcı</th><th>SMS</th><th>Mekan</th><th>Güvenli Yer</th><th>İstihbarat</th><th>Ekran</th><th>Son İşlem</th><th>Güç</th><th>Saygınlık</th><th>Durum</th><th></th>
+                    <th>ID</th><th>Reis</th><th>Kullanıcı</th><th>Kasa</th><th>Banka</th><th>SMS</th><th>Mekan</th><th>Güvenli Yer</th><th>İstihbarat</th><th>Ekran</th><th>Son İşlem</th><th>Güç</th><th>Saygınlık</th><th>Durum</th><th></th>
                   </tr>
                 </thead>
                 <tbody id="oyuncuTablo"></tbody>
@@ -120,6 +123,46 @@
             <div id="mesajListe" class="kart-liste" style="max-height:65vh;overflow-y:auto"></div>
           </section>
 
+          <section id="tab-raporlar" class="tab-panel hidden">
+            <p style="color:#6b7280;font-size:13px;margin:0 0 12px">Oyuncuların profil ve mafya grubu açıklamalarına yönelik raporlar.</p>
+            <div class="admin-tablo-wrap">
+              <table class="admin-tablo">
+                <thead>
+                  <tr>
+                    <th>ID</th><th>Tarih</th><th>Raporlayan</th><th>Tür</th><th>Hedef</th><th>Sebep</th><th></th>
+                  </tr>
+                </thead>
+                <tbody id="raporTablo"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section id="tab-borsa" class="tab-panel hidden">
+            <div id="borsaStatGrid" class="stat-grid" style="margin-bottom:16px"></div>
+            <p class="baslik-altin" style="margin-top:0">Piyasa Fiyatları</p>
+            <div class="admin-tablo-wrap" style="margin-bottom:20px">
+              <table class="admin-tablo">
+                <thead>
+                  <tr>
+                    <th>Kod</th><th>Şirket</th><th>Sektör</th><th>Fiyat</th><th>Değişim</th><th>Temettü</th><th>Volatilite</th>
+                  </tr>
+                </thead>
+                <tbody id="borsaSirketTablo"></tbody>
+              </table>
+            </div>
+            <p class="baslik-altin">Son Emirler</p>
+            <div class="admin-tablo-wrap">
+              <table class="admin-tablo">
+                <thead>
+                  <tr>
+                    <th>ID</th><th>Oyuncu</th><th>Tür</th><th>Hisse</th><th>Adet</th><th>Hedef</th><th>Durum</th><th>Tarih</th>
+                  </tr>
+                </thead>
+                <tbody id="borsaEmirTablo"></tbody>
+              </table>
+            </div>
+          </section>
+
           <section id="tab-guvenlik" class="tab-panel hidden">
             <div id="guvenlikListe" class="kart-liste" style="max-height:75vh;overflow-y:auto"></div>
           </section>
@@ -128,6 +171,6 @@
     </div>
   </div>
 
-  <script src="/admin/admin.js?v=9"></script>
+  <script src="/admin/admin.js?v=16"></script>
 </body>
 </html>

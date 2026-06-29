@@ -6,6 +6,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <title>Yeraltı İmparatorluğu</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="stylesheet" href="/bildirim.css?v=3">
   <script>
     (function () {
       function authAktifMi() {
@@ -49,17 +51,19 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,300;1,400&family=Oswald:wght@400;600;700&family=Roboto+Condensed:wght@300;400;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="components/MasterLayout.module.css?v=120">
+  <link rel="stylesheet" href="components/MasterLayout.module.css?v=128">
   <link rel="stylesheet" href="liderlik.css?v=105">
-  <link rel="stylesheet" href="ekran-icerik.css?v=112">
-  <link rel="stylesheet" href="gazete.css?v=104">
-  <link rel="stylesheet" href="profil.css?v=117">
-  <link rel="stylesheet" href="menu-hub.css?v=104">
+  <link rel="stylesheet" href="ekran-icerik.css?v=114">
+  <link rel="stylesheet" href="gazete.css?v=112">
+  <link rel="stylesheet" href="profil.css?v=120">
+  <link rel="stylesheet" href="menu-hub.css?v=107">
   <link rel="stylesheet" href="dusman.css?v=105">
   <link rel="stylesheet" href="banka.css?v=108">
-  <link rel="stylesheet" href="gunluk-gorevler.css?v=110">
-  <link rel="stylesheet" href="racon-raporu.css?v=3">
-  <link rel="stylesheet" href="guvenli-yer.css?v=13">
+  <link rel="stylesheet" href="gunluk-gorevler.css?v=111">
+  <link rel="stylesheet" href="racon-raporu.css?v=4">
+  <link rel="stylesheet" href="guvenli-yer.css?v=14">
+  <link rel="stylesheet" href="sefirlik.css?v=1">
+  <link rel="stylesheet" href="meslek.css?v=15">
   <link rel="stylesheet" href="istihbarat.css?v=102">
   <link rel="stylesheet" href="sadakat-yemini.css?v=3">
   <link rel="stylesheet" href="sehre-hukmet.css?v=2">
@@ -68,66 +72,57 @@
   <link rel="stylesheet" href="sohbet.css?v=2">
   <link rel="stylesheet" href="avukat.css?v=2">
   <link rel="stylesheet" href="kara-liste.css?v=6">
-  <link rel="stylesheet" href="egitim.css?v=8">
+  <link rel="stylesheet" href="sehir-tarihi.css?v=1">
+  <link rel="stylesheet" href="sabotaj.css?v=4">
+  <link rel="stylesheet" href="borsa.css?v=4">
+  <link rel="stylesheet" href="kumarhane.css?v=15">
+  <link rel="stylesheet" href="egitim.css?v=10">
   <link rel="stylesheet" href="kurallar.css?v=1">
-  <link rel="stylesheet" href="responsive.css?v=106">
+  <link rel="stylesheet" href="responsive.css?v=107">
+  <link rel="stylesheet" href="i18n/lang-picker.css?v=1">
   <link href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css" rel="stylesheet">
 </head>
 <body>
 
 <!-- GİRİŞ / KAYIT -->
 <div id="authEkran" class="auth-ekran gizli">
+  <div id="authLangMount" class="lang-mount lang-mount--auth"></div>
   <div class="auth-kutu">
     <div class="auth-kutu-cerceve" aria-hidden="true"></div>
     <header class="auth-baslik">
-      <h1 class="auth-logo">👑 YERALTİ İMPARATORLUĞU</h1>
-      <p class="auth-alt">Hesabınla giriş yap veya yeni reis olarak kayıt ol.</p>
+      <h1 class="auth-logo" data-i18n="auth.title">👑 YERALTİ İMPARATORLUĞU</h1>
+      <p class="auth-alt" data-i18n="auth.subtitle">Hesabınla giriş yap veya yeni reis olarak kayıt ol.</p>
     </header>
 
     <div class="auth-sekmeler">
-      <button type="button" id="sekmeGiris" class="auth-sekme aktif-sekme">GİRİŞ</button>
-      <button type="button" id="sekmeKayit" class="auth-sekme">KAYIT OL</button>
+      <button type="button" id="sekmeGiris" class="auth-sekme aktif-sekme" data-i18n="auth.login">GİRİŞ</button>
+      <button type="button" id="sekmeKayit" class="auth-sekme" data-i18n="auth.register">KAYIT OL</button>
     </div>
 
     <form id="authForm" class="auth-form" novalidate action="#" method="post" autocomplete="on"
       aria-label="Giriş ve kayıt" data-auth-form="1"
       onsubmit="event.preventDefault();return false;">
       <div id="reisAdiAlan" class="auth-alan gizli">
-        <label for="reisAdi">Reis Adın</label>
-        <input type="text" id="reisAdi" maxlength="24" placeholder="Örn: Doğan" autocomplete="nickname">
+        <label for="reisAdi" data-i18n="auth.reisAdi">Reis Adın</label>
+        <input type="text" id="reisAdi" maxlength="24" data-i18n-placeholder="auth.placeholderReis" placeholder="Örn: Doğan" autocomplete="nickname">
       </div>
       <div id="lakapAlan" class="auth-alan gizli">
-        <label for="lakap">Lakap (kalıcı)</label>
-        <select id="lakap">
-          <option>Tetikçi</option>
-          <option>Soyguncu</option>
-          <option>İşlemeci</option>
-          <option>Satıcı</option>
-          <option>İş Adamı</option>
-          <option selected>Mafya</option>
-          <option>Şehre Hükmet</option>
-          <option>Baron</option>
-          <option>Aslan</option>
-          <option>Tilki</option>
-          <option>Çakal</option>
-        </select>
+        <label for="lakap" data-i18n="auth.lakap">Lakap (kalıcı)</label>
+        <select id="lakap"></select>
       </div>
       <div class="auth-alan">
-        <label for="username">Kullanıcı Adı</label>
-        <input type="text" id="username" minlength="3" maxlength="20" placeholder="Kullanıcı Adını Yaz" autocomplete="username" autocapitalize="off" spellcheck="false">
+        <label for="username" data-i18n="auth.username">Kullanıcı Adı</label>
+        <input type="text" id="username" minlength="3" maxlength="20" data-i18n-placeholder="auth.placeholderUsername" placeholder="Kullanıcı Adını Yaz" autocomplete="username" autocapitalize="off" spellcheck="false">
       </div>
       <div class="auth-alan">
-        <label for="password">Şifre</label>
+        <label for="password" data-i18n="auth.password">Şifre</label>
         <input type="password" id="password" minlength="6" placeholder="••••••" autocomplete="new-password">
       </div>
       <input type="text" id="authHoneypot" tabindex="-1" autocomplete="off" class="gizli" aria-hidden="true">
       <div id="kurallarKabulAlan" class="auth-alan auth-kural-kabul gizli">
         <label class="auth-kural-kabul-label" for="kurallarKabul">
           <input type="checkbox" id="kurallarKabul">
-          <span>18 yaşından büyüğüm ve
-            <button type="button" class="auth-kural-inline" data-kural="kullanim">Kullanım Şartları</button>,
-            <button type="button" class="auth-kural-inline" data-kural="gizlilik">Gizlilik Politikası</button> ile
-            <button type="button" class="auth-kural-inline" data-kural="topluluk">Topluluk Kuralları</button>'nı kabul ediyorum.</span>
+          <span id="authKuralKabulMetin" class="auth-kural-kabul-text"></span>
         </label>
       </div>
       <p id="authHata" class="auth-hata gizli"></p>
@@ -135,11 +130,11 @@
     </form>
 
     <nav class="auth-kurallar" aria-label="Yasal metinler">
-      <button type="button" class="auth-kural-link" data-kural="kullanim">Kullanım Şartları</button>
+      <button type="button" class="auth-kural-link" data-kural="kullanim" data-i18n="auth.rules.terms">Kullanım Şartları</button>
       <span class="auth-kural-ayrac" aria-hidden="true">·</span>
-      <button type="button" class="auth-kural-link" data-kural="gizlilik">Gizlilik Politikası</button>
+      <button type="button" class="auth-kural-link" data-kural="gizlilik" data-i18n="auth.rules.privacy">Gizlilik Politikası</button>
       <span class="auth-kural-ayrac" aria-hidden="true">·</span>
-      <button type="button" class="auth-kural-link" data-kural="topluluk">Topluluk Kuralları</button>
+      <button type="button" class="auth-kural-link" data-kural="topluluk" data-i18n="auth.rules.community">Topluluk Kuralları</button>
     </nav>
   </div>
 </div>
@@ -148,40 +143,47 @@
   <div class="kurallar-modal-ortu" aria-hidden="true"></div>
   <div class="kurallar-panel">
     <header class="kurallar-baslik">
-      <h2 id="kurallarBaslik">Kurallar</h2>
-      <button type="button" id="kurallarKapat" class="kurallar-kapat" aria-label="Kapat">×</button>
+      <h2 id="kurallarBaslik" data-i18n="auth.rules.modalDefault">Kurallar</h2>
+      <button type="button" id="kurallarKapat" class="kurallar-kapat" data-i18n-aria="auth.rules.close" aria-label="Kapat">×</button>
     </header>
     <div id="kurallarIcerik" class="kurallar-icerik"></div>
   </div>
 </div>
 
-<div id="yukleniyor" class="yukleniyor">⏳ İMPARATORLUK YÜKLENİYOR...</div>
+<div id="yukleniyor" class="yukleniyor" data-i18n="auth.loadingEmpire">⏳ İMPARATORLUK YÜKLENİYOR...</div>
 
 <div id="masterLayout" class="gizli">
   <header class="ml-header" id="headerStatsBar">
     <div class="stats-bar">
-      <button type="button" class="ml-btn-red" onclick="ekranDegistir('liderlik')">LİDERLİK TABLOSU</button>
-      <div class="ml-stat-chip ml-stat-chip--tip" id="chipIcraat" data-tip="Saatlik +25 hak kazanılır"><span>⏳</span><span class="ml-stat-label">İcraat:</span><span class="ml-stat-val icraat-vurgu" id="icraat">25</span></div>
-      <div class="ml-stat-chip ml-stat-chip--tip" id="chipSms" data-tip="Günlük +50 sms hak kazanılır"><span>📱</span><span class="ml-stat-label">SMS:</span><span class="ml-stat-val" id="smsHakki">50</span></div>
-      <div class="ml-stat-chip ml-stat-chip--tip" id="chipAvukat" data-tip="İlişkin düşerse icraat yapamazsın"><span>⚖️</span><span class="ml-stat-label">Avukat:</span><span class="ml-stat-val" id="devletIliskisi">100</span></div>
-      <div class="ml-stat-chip ml-stat-chip--tip" id="chipSayginlik" data-tip="Sıralamadaki durumunu belirler"><span>🕶️</span><span class="ml-stat-label">Saygınlık:</span><span class="ml-stat-val" id="puan">1.500</span></div>
-      <div class="ml-stat-chip"><span>⚔️</span><span class="ml-stat-label">Güç:</span><span class="ml-stat-val" id="guc">500</span></div>
-      <div class="ml-stat-chip ml-stat-chip--tip" id="chipBonusGuc" data-tip="Güvenli Yer'den kalıcı bonus güç"><span>🛡️</span><span class="ml-stat-label">Bonus Güç:</span><span class="ml-stat-val" id="bonusGuc">0</span></div>
-      <div class="ml-stat-chip"><span>💵</span><span class="ml-stat-label">Kasa:</span><span class="ml-stat-val kasa-val" id="kasa">10.000 TL</span></div>
-      <button type="button" class="ml-stat-chip ml-stat-chip--banka ml-stat-chip--tip" onclick="ekranDegistir('banka')" data-tip="Bankaya yatırdığın toplam miktar"><span>🏦</span><span class="ml-stat-label">Banka:</span><span class="ml-stat-val" id="bankaUst">0 TL</span></button>
+      <button type="button" class="ml-btn-liderlik" onclick="ekranDegistir('liderlik')" title="Liderlik Tablosu">
+        <span class="ml-btn-liderlik-ikon" aria-hidden="true">🏆</span>
+        <span class="ml-btn-liderlik-txt" data-i18n="header.leaderboard">Liderlik Tablosu</span>
+      </button>
+      <div class="ml-stat-chip ml-stat-chip--tip" id="chipIcraat" data-i18n-tip="header.tip.icraat"><span>⏳</span><span class="ml-stat-label" data-i18n="header.icraat">İcraat:</span><span class="ml-stat-val icraat-vurgu" id="icraat">25</span></div>
+      <div class="ml-stat-chip ml-stat-chip--tip" id="chipSms" data-i18n-tip="header.tip.sms"><span>📱</span><span class="ml-stat-label" data-i18n="header.sms">SMS:</span><span class="ml-stat-val" id="smsHakki">50</span></div>
+      <div class="ml-stat-chip ml-stat-chip--tip" id="chipAvukat" data-i18n-tip="header.tip.lawyer"><span>⚖️</span><span class="ml-stat-label" data-i18n="header.lawyer">Avukat:</span><span class="ml-stat-val" id="devletIliskisi">100</span></div>
+      <div class="ml-stat-chip ml-stat-chip--tip" id="chipSayginlik" data-i18n-tip="header.tip.respect"><span>🕶️</span><span class="ml-stat-label" data-i18n="header.respect">Saygınlık:</span><span class="ml-stat-val" id="puan">1.500</span></div>
+      <div class="ml-stat-chip"><span>⚔️</span><span class="ml-stat-label" data-i18n="header.power">Güç:</span><span class="ml-stat-val" id="guc">500</span></div>
+      <div class="ml-stat-chip ml-stat-chip--tip" id="chipBonusGuc" data-i18n-tip="header.tip.bonusPower"><span>🛡️</span><span class="ml-stat-label" data-i18n="header.bonusPower">Bonus Güç:</span><span class="ml-stat-val" id="bonusGuc">0</span></div>
+      <div class="ml-stat-chip"><span>💵</span><span class="ml-stat-label" data-i18n="header.cash">Kasa:</span><span class="ml-stat-val kasa-val" id="kasa">10.000 TL</span></div>
+      <button type="button" class="ml-stat-chip ml-stat-chip--banka ml-stat-chip--tip" onclick="ekranDegistir('banka')" data-i18n-tip="header.tip.bank"><span>🏦</span><span class="ml-stat-label" data-i18n="header.bank">Banka:</span><span class="ml-stat-val" id="bankaUst">0 TL</span></button>
       <span class="gizli" id="onlineSayisi">0</span>
     </div>
     <div class="ml-header-right ml-header-profile">
-      <div id="saygiDuvariKutu"><ul class="ml-saygi-liste" id="saygiDuvariListe"><li style="color:#888;">Yükleniyor...</li></ul></div>
-      <button type="button" onclick="ekranDegistir('profilim')">👤 <span id="reisEtiket"></span></button>
-      <button type="button" onclick="ekranDegistir('sehirTarihi')">ŞEHİR TARİHİ</button>
-      <button type="button" onclick="cikisYap()">ÇIKIŞ</button>
+      <div id="gameLangMount" class="lang-mount lang-mount--game"></div>
+      <div id="saygiDuvariKutu"><ul class="ml-saygi-liste" id="saygiDuvariListe"><li style="color:#888;" data-i18n="header.loading">Yükleniyor...</li></ul></div>
+      <button type="button" onclick="ekranDegistir('profilim')" data-i18n-title="header.profile">👤 <span id="reisEtiket"></span></button>
+      <button type="button" onclick="ekranDegistir('sehirTarihi')" data-i18n="header.cityHistory">ŞEHİR TARİHİ</button>
+      <button type="button" onclick="cikisYap()" data-i18n="header.logout">ÇIKIŞ</button>
     </div>
   </header>
 
   <div class="ml-top-ribbon">
     <img class="ml-top-ribbon-img" src="/images/ui/top-ribbon-full.png?v=85" alt="" aria-hidden="true">
-    <span class="ml-top-ribbon-txt" id="masterFramePlaque">LİDERLİK TABLOSU</span>
+    <div class="ml-top-ribbon-center">
+      <span class="ml-top-ribbon-glow" aria-hidden="true"></span>
+      <span class="ml-top-ribbon-txt" id="masterFramePlaque">LİDERLİK TABLOSU</span>
+    </div>
   </div>
 
   <nav class="ml-sidebar" id="sidebarMenu">
@@ -197,41 +199,45 @@
       <div class="g2-body mafya-sidebar-panel">
         <div class="sidebar-title">
           <img class="sm-title-bg" src="/images/ui/sm-title-plaque.png?v=85" alt="" aria-hidden="true">
-          <span class="sm-title-txt">YERALTI DÜNYASI</span>
+          <span class="sm-title-txt" data-i18n="sidebar.world">YERALTI DÜNYASI</span>
         </div>
         <ul class="menu-list ml-sidebar-nav">
-      <li><button type="button" class="ml-menu-item" id="profilMenuBtn" onclick="ekranDegistir('profilim')">👤 Profilim</button></li>
-      <li><button type="button" class="ml-menu-item" id="guvenliYerMenuBtn" onclick="ekranDegistir('guvenliYer')">🏠 Güvenli Yer</button></li>
-      <li><button type="button" class="ml-menu-item" id="gunlukGorevlerMenuBtn" onclick="ekranDegistir('gunlukGorevler')">📜 Günlük Görevler</button></li>
-      <li><button type="button" class="ml-menu-item" id="guclenMenuBtn" onclick="ekranDegistir('guclen')">💪 Güçlen</button></li>
-      <li><button type="button" class="ml-menu-item" id="buyumeMenuBtn" onclick="ekranDegistir('buyume')">⭐ Büyüme Adımları</button></li>
-      <li><button type="button" class="ml-menu-item" id="mekanMenuBtn" onclick="ekranDegistir('mekan')">🏢 Mekan Sahibi</button></li>
-      <li><button type="button" class="ml-menu-item" id="mekanDevriMenuBtn" onclick="ekranDegistir('mekan_devri')">🔄 Mekan Devri</button></li>
-      <li><button type="button" class="ml-menu-item" onclick="ekranDegistir('istihbarat')">🕵️ İstihbarat</button></li>
-      <li><button type="button" class="ml-menu-item" onclick="ekranDegistir('banka')">🏦 Banka</button></li>
-      <li><button type="button" class="ml-menu-item" onclick="ekranDegistir('medya')">📰 Medya</button></li>
-      <li><button type="button" class="ml-menu-item" id="gazeteMenuBtn" onclick="ekranDegistir('gazete')">📰 Gazete Oku</button></li>
-      <li><button type="button" class="ml-menu-item" id="babaMenuBtn" onclick="ekranDegistir('sehreHukmet')">👑 Şehre Hükmet</button></li>
+      <li><button type="button" class="ml-menu-item" id="profilMenuBtn" onclick="ekranDegistir('profilim')"><span class="ml-menu-emoji" aria-hidden="true">👤</span><span class="ml-menu-label" data-i18n="menu.profilim">Profilim</span></button></li>
+      <li><button type="button" class="ml-menu-item" id="guvenliYerMenuBtn" onclick="ekranDegistir('guvenliYer')"><span class="ml-menu-emoji" aria-hidden="true">🏠</span><span class="ml-menu-label" data-i18n="menu.guvenliYer">Güvenli Yer</span></button></li>
+      <li><button type="button" class="ml-menu-item" id="gunlukGorevlerMenuBtn" onclick="ekranDegistir('gunlukGorevler')"><span class="ml-menu-emoji" aria-hidden="true">📜</span><span class="ml-menu-label" data-i18n="menu.gunlukGorevler">Günlük Görevler</span></button></li>
+      <li><button type="button" class="ml-menu-item" id="guclenMenuBtn" onclick="ekranDegistir('guclen')"><span class="ml-menu-emoji" aria-hidden="true">💪</span><span class="ml-menu-label" data-i18n="menu.guclen">Güçlenme</span></button></li>
+      <li><button type="button" class="ml-menu-item" id="buyumeMenuBtn" onclick="ekranDegistir('buyume')"><span class="ml-menu-emoji" aria-hidden="true">⭐</span><span class="ml-menu-label" data-i18n="menu.buyume">Büyüme</span></button></li>
+      <li><button type="button" class="ml-menu-item" id="mekanMenuBtn" onclick="ekranDegistir('mekan')"><span class="ml-menu-emoji" aria-hidden="true">🏢</span><span class="ml-menu-label" data-i18n="menu.sektorler">Sektörler</span></button></li>
+      <li><button type="button" class="ml-menu-item" id="meslekMenuBtn" onclick="ekranDegistir('meslekler')"><span class="ml-menu-emoji" aria-hidden="true">💼</span><span class="ml-menu-label" data-i18n="menu.meslekler">Meslekler</span></button></li>
+      <li><button type="button" class="ml-menu-item" id="babaMenuBtn" onclick="ekranDegistir('sehreHukmet')"><span class="ml-menu-emoji" aria-hidden="true">👑</span><span class="ml-menu-label" data-i18n="menu.sehreHukmet">Şehre Hükmet</span></button></li>
+      <li><button type="button" class="ml-menu-item" onclick="ekranDegistir('medya')"><span class="ml-menu-emoji" aria-hidden="true">📰</span><span class="ml-menu-label" data-i18n="menu.medya">Medya</span></button></li>
+      <li><button type="button" class="ml-menu-item" id="gazeteMenuBtn" onclick="ekranDegistir('gazete')"><span class="ml-menu-emoji" aria-hidden="true">📄</span><span class="ml-menu-label" data-i18n="menu.gazete">Şehir Gazetesi</span></button></li>
       <li class="ml-menu-grup">
-        <button type="button" class="ml-menu-item" id="sohbetMenuBtn" onclick="toggleMenu('sohbetMenu', this)">💬 Sohbet</button>
-        <ul id="sohbetMenu" class="ml-alt-menu">
-          <li><button type="button" class="ml-menu-item" id="mesajKutuBtn" onclick="ekranDegistir('mesajKutusu')">📬 Mesaj Kutusu</button></li>
-          <li><button type="button" class="ml-menu-item" onclick="ekranDegistir('mafyaSohbet')">🕶️ Mafya Sohbetleri</button></li>
-        </ul>
-      </li>
-      <li><button type="button" class="ml-menu-item" onclick="ekranDegistir('dusmanaCok')">🎯 Düşmana Çök</button></li>
-      <li><button type="button" class="ml-menu-item" onclick="ekranDegistir('karaListe')">💀 Kara Liste</button></li>
-      <li class="ml-menu-grup">
-        <button type="button" class="ml-menu-item" id="mafyaMenuBtn" onclick="toggleMenu('mafyaMenu', this)">🕶️ Mafya Grubu</button>
+        <button type="button" class="ml-menu-item" id="mafyaMenuBtn" onclick="toggleMenu('mafyaMenu', this)"><span class="ml-menu-emoji" aria-hidden="true">🕶️</span><span class="ml-menu-label" data-i18n="menu.mafya">Mafya</span></button>
         <ul id="mafyaMenu" class="ml-alt-menu">
-          <li><button type="button" class="ml-menu-item" onclick="mafyaMenuSec('olustur')">Mafya Grubu Oluştur</button></li>
-          <li><button type="button" class="ml-menu-item" onclick="mafyaMenuSec('katil')">Mafya Grubuna Katıl</button></li>
-          <li><button type="button" class="ml-menu-item" onclick="mafyaMenuSec('gurubum')">Mafya Grubum</button></li>
-          <li><button type="button" class="ml-menu-item" onclick="mafyaMenuSec('isler')">Mafya İşleri</button></li>
+          <li><button type="button" class="ml-menu-item" onclick="mafyaMenuSec('olustur')"><span class="ml-menu-emoji" aria-hidden="true">➕</span><span class="ml-menu-label" data-i18n="menu.mafyaOlustur">Grup Kur</span></button></li>
+          <li><button type="button" class="ml-menu-item" onclick="mafyaMenuSec('katil')"><span class="ml-menu-emoji" aria-hidden="true">🤝</span><span class="ml-menu-label" data-i18n="menu.mafyaKatil">Gruba Katıl</span></button></li>
+          <li><button type="button" class="ml-menu-item" onclick="mafyaMenuSec('gurubum')"><span class="ml-menu-emoji" aria-hidden="true">👥</span><span class="ml-menu-label" data-i18n="menu.mafyaGrubum">Grubum</span></button></li>
+          <li><button type="button" class="ml-menu-item" onclick="mafyaMenuSec('isler')"><span class="ml-menu-emoji" aria-hidden="true">💼</span><span class="ml-menu-label" data-i18n="menu.mafyaIsler">Grup İşleri</span></button></li>
         </ul>
       </li>
-      <li><button type="button" class="ml-menu-item" onclick="ekranDegistir('devletIliskisi')">⚖️ Avukat</button></li>
-      <li><button type="button" class="ml-menu-item" onclick="egitimAc()">📖 Oyun Eğitimi</button></li>
+      <li><button type="button" class="ml-menu-item" id="mekanDevriMenuBtn" onclick="ekranDegistir('mekan_devri')"><span class="ml-menu-emoji" aria-hidden="true">🔄</span><span class="ml-menu-label" data-i18n="menu.mekanDevri">Mekan Devri</span></button></li>
+      <li><button type="button" class="ml-menu-item" onclick="ekranDegistir('istihbarat')"><span class="ml-menu-emoji" aria-hidden="true">🕵️</span><span class="ml-menu-label" data-i18n="menu.istihbarat">İstihbarat</span></button></li>
+      <li><button type="button" class="ml-menu-item" onclick="ekranDegistir('banka')"><span class="ml-menu-emoji" aria-hidden="true">🏦</span><span class="ml-menu-label" data-i18n="menu.banka">Banka</span></button></li>
+      <li><button type="button" class="ml-menu-item" onclick="ekranDegistir('borsa')"><span class="ml-menu-emoji" aria-hidden="true">📈</span><span class="ml-menu-label" data-i18n="menu.borsa">Borsa</span></button></li>
+      <li><button type="button" class="ml-menu-item" onclick="ekranDegistir('kumarhane')"><span class="ml-menu-emoji" aria-hidden="true">🎰</span><span class="ml-menu-label" data-i18n="menu.kumarhane">Kumarhane</span></button></li>
+      <li class="ml-menu-grup">
+        <button type="button" class="ml-menu-item" id="sohbetMenuBtn" onclick="toggleMenu('sohbetMenu', this)"><span class="ml-menu-emoji" aria-hidden="true">💬</span><span class="ml-menu-label" data-i18n="menu.iletisim">İletişim</span></button>
+        <ul id="sohbetMenu" class="ml-alt-menu">
+          <li><button type="button" class="ml-menu-item" id="mesajKutuBtn" onclick="ekranDegistir('mesajKutusu')"><span class="ml-menu-emoji" aria-hidden="true">📬</span><span class="ml-menu-label" data-i18n="menu.mesajKutusu">Mesaj Kutusu</span></button></li>
+          <li><button type="button" class="ml-menu-item" onclick="ekranDegistir('mafyaSohbet')"><span class="ml-menu-emoji" aria-hidden="true">🕶️</span><span class="ml-menu-label" data-i18n="menu.mafyaSohbet">Mafya Sohbeti</span></button></li>
+        </ul>
+      </li>
+      <li><button type="button" class="ml-menu-item" onclick="ekranDegistir('dusmanaCok')"><span class="ml-menu-emoji" aria-hidden="true">🎯</span><span class="ml-menu-label" data-i18n="menu.dusmanaCok">Düşmana Çök</span></button></li>
+      <li><button type="button" class="ml-menu-item" onclick="ekranDegistir('sabotaj')"><span class="ml-menu-emoji" aria-hidden="true">💣</span><span class="ml-menu-label" data-i18n="menu.sabotaj">Sabotaj</span></button></li>
+      <li><button type="button" class="ml-menu-item" onclick="ekranDegistir('karaListe')"><span class="ml-menu-emoji" aria-hidden="true">💀</span><span class="ml-menu-label" data-i18n="menu.karaListe">Kara Liste</span></button></li>
+      <li><button type="button" class="ml-menu-item" onclick="ekranDegistir('devletIliskisi')"><span class="ml-menu-emoji" aria-hidden="true">⚖️</span><span class="ml-menu-label" data-i18n="menu.avukat">Avukat</span></button></li>
+      <li><button type="button" class="ml-menu-item" onclick="egitimAc()"><span class="ml-menu-emoji" aria-hidden="true">📖</span><span class="ml-menu-label" data-i18n="menu.egitim">Oyun Eğitimi</span></button></li>
     </ul>
       </div>
     </div>
@@ -288,29 +294,28 @@
   </div>
 </div>
 
-<div id="hosgeldinModal" class="racon-modal gizli" role="dialog" aria-modal="true" aria-labelledby="raconBaslik" aria-label="Racon Raporu">
+<div id="hosgeldinModal" class="racon-modal gizli" role="dialog" aria-modal="true" aria-labelledby="raconBaslik" data-i18n-aria="game.welcome.title">
   <div class="racon-kart">
     <div class="racon-kart-cerceve" aria-hidden="true"></div>
+    <div class="racon-kart-kose racon-kart-kose--sol-ust" aria-hidden="true"></div>
+    <div class="racon-kart-kose racon-kart-kose--sag-ust" aria-hidden="true"></div>
+    <div class="racon-kart-kose racon-kart-kose--sol-alt" aria-hidden="true"></div>
+    <div class="racon-kart-kose racon-kart-kose--sag-alt" aria-hidden="true"></div>
     <div class="racon-kart-parilti" aria-hidden="true"></div>
 
     <header class="racon-baslik">
       <div class="racon-emblem" aria-hidden="true">
         <div class="racon-emblem-ic">
-          <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="40" cy="40" r="36" stroke="#c9a84c" stroke-width="1.2" opacity="0.45"/>
-            <path d="M26 34c0-7 6-12 14-12s14 5 14 12v4H26v-4z" fill="#c9a84c"/>
-            <ellipse cx="40" cy="34" rx="15" ry="4.5" fill="#1a1612"/>
-            <rect x="34" y="28" width="12" height="3" rx="1" fill="#8a7030"/>
-            <path d="M22 48l8-3 10 8 10-8 8 3" stroke="#c9a84c" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M18 46l6 2M56 46l-6 2" stroke="#c9a84c" stroke-width="1.4" stroke-linecap="round"/>
-            <path d="M30 52l4 6M50 52l-4 6" stroke="#a08030" stroke-width="1.2" stroke-linecap="round"/>
-          </svg>
+          <img src="/images/racon-raporu.png?v=2" alt="" class="racon-emblem-gorsel" width="96" height="96" decoding="async">
         </div>
       </div>
-      <h2 id="raconBaslik" class="racon-baslik-yazi">Racon Raporu</h2>
+      <div class="racon-baslik-metin">
+        <h2 id="raconBaslik" class="racon-baslik-yazi" data-i18n="game.welcome.title">Racon Raporu</h2>
+        <div class="racon-baslik-cizgi" aria-hidden="true"></div>
+      </div>
     </header>
 
-    <p class="racon-ust-metin">Sen yokken sokaklar hareketliydi.</p>
+    <p class="racon-ust-metin" data-i18n="game.welcome.intro">Sen yokken sokaklar hareketliydi.</p>
 
     <div class="racon-govde">
       <div class="racon-satir racon-satir--saat">
@@ -324,12 +329,12 @@
         <div class="racon-satir-icerik">
           <div class="racon-stat-blok">
             <span id="raconSaat" class="racon-stat-deger">0</span>
-            <span class="racon-kirmizi">Saat</span>
+            <span class="racon-kirmizi racon-stat-birim" data-i18n="game.welcome.hoursLabel">Saat</span>
           </div>
         </div>
       </div>
 
-      <div class="racon-satir">
+      <div class="racon-satir racon-satir--kazanc">
         <div class="racon-ikon-kapsul" aria-hidden="true">
           <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
             <circle cx="24" cy="21" r="9" stroke="currentColor" stroke-width="1.4"/>
@@ -340,17 +345,17 @@
         </div>
         <div class="racon-satir-icerik">
           <p class="racon-satir-metin">
-            Mekanlar tam kapasite çalıştı, payımıza düşen
+            <span data-i18n="game.welcome.earningsText">Mekanlar tam kapasite çalıştı, payımıza düşen</span>
             <span class="racon-deger-grup">
               <span id="raconKazanc" class="racon-deger">0</span><span class="racon-kirmizi"> TL</span>
             </span>
-            kasaya girdi.
+            <span data-i18n="game.welcome.earningsSuffix">kasaya girdi.</span>
           </p>
         </div>
       </div>
 
       <div class="racon-satir racon-satir--uyari">
-        <div class="racon-ikon-kapsul" aria-hidden="true">
+        <div class="racon-ikon-kapsul racon-ikon-kapsul--uyari" aria-hidden="true">
           <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
             <ellipse cx="24" cy="15" rx="9" ry="5.5" stroke="currentColor" stroke-width="1.4"/>
             <circle cx="24" cy="15" r="2.5" fill="currentColor"/>
@@ -359,7 +364,7 @@
           </svg>
         </div>
         <div class="racon-satir-icerik">
-          <p class="racon-satir-metin racon-satir-metin--uyari">
+          <p class="racon-satir-metin racon-satir-metin--uyari" data-i18n="game.welcome.warning">
             Yalnız, dikkat et; rakipler senin yokluğunu fırsat bilip mekanları yoklamışlar, gücünü artırman şart.
           </p>
         </div>
@@ -367,9 +372,24 @@
     </div>
 
     <div class="racon-alt-bolum">
-      <button type="button" id="raconDevamBtn" class="racon-devam-btn" onclick="hosgeldinKapat()">[ DEVAM ET ]</button>
+      <button type="button" id="raconDevamBtn" class="racon-devam-btn" onclick="hosgeldinKapat()" data-i18n="game.welcome.continue">[ DEVAM ET ]</button>
     </div>
   </div>
+</div>
+
+<div id="bildirimKontrol" class="bildirim-kontrol">
+  <div id="bildirimPanel" class="bildirim-panel gizli">
+    <div class="bildirim-panel-baslik">
+      <span data-i18n="bildirim.panel.title">Bildirimler</span>
+      <button type="button" id="bildirimKapatBtn" style="background:none;border:none;color:#9ca3af;cursor:pointer;font-size:18px" aria-label="Kapat">×</button>
+    </div>
+    <div class="bildirim-sekmeler">
+      <button type="button" class="bildirim-sekme aktif" data-sekme="liste" data-i18n="bildirim.tab.inbox">Gelen</button>
+      <button type="button" class="bildirim-sekme" data-sekme="ayarlar" data-i18n="bildirim.tab.settings">Ayarlar</button>
+    </div>
+    <div id="bildirimIcerik" class="bildirim-icerik"></div>
+  </div>
+  <button type="button" id="bildirimBtn" class="bildirim-btn" title="Bildirimler" aria-label="Bildirimler">🔔<span id="bildirimBadge" class="bildirim-badge gizli">0</span></button>
 </div>
 
 <div id="sesKontrol" class="ses-kontrol" title="Ses ayarları">
@@ -384,22 +404,35 @@
   <div class="eg-modal-ortu" aria-hidden="true"></div>
   <div class="eg-panel">
     <img src="/images/egitim/egitim-panel.png?v=3" alt="" class="eg-panel-img">
-    <h2 id="tutorialBaslik" class="eg-sr-only">Oyun Eğitimi</h2>
+    <h2 id="tutorialBaslik" class="eg-sr-only" data-i18n="tutorial.srTitle">Oyun Eğitimi</h2>
     <p id="tutorialMetin"></p>
-    <button type="button" id="tutorialIleri" class="eg-btn eg-btn--ileri">İleri</button>
-    <button type="button" id="tutorialKapat" class="eg-btn eg-btn--kapat">Kapat</button>
+    <div class="eg-panel-btns">
+      <button type="button" id="tutorialIleri" class="eg-btn eg-btn--ileri" data-i18n="tutorial.next">İleri</button>
+      <button type="button" id="tutorialKapat" class="eg-btn eg-btn--kapat" data-i18n="tutorial.close">Kapat</button>
+      <button type="button" id="tutorialBitir" class="eg-btn eg-btn--bitir" data-i18n="tutorial.finish">BİTİR</button>
+    </div>
   </div>
 </div>
-<button type="button" id="tutorialResumeBtn" class="eg-devam-btn gizli" title="Eğitime kaldığın yerden devam et">📖 Eğitime Devam</button>
+<button type="button" id="tutorialResumeBtn" class="eg-devam-btn gizli" data-i18n-title="tutorial.resumeTitle" title="Eğitime kaldığın yerden devam et">📖 Eğitime Devam</button>
 
 <script src="https://openfpcdn.io/fingerprintjs/v4/iife.min.js"></script>
 <script src="security.js?v=1"></script>
-<script src="kurallar.js?v=1"></script>
-<script src="auth.js?v=102"></script>
+<script src="kurallar.js?v=2"></script>
+<script src="i18n/languages.js?v=2"></script>
+<script src="i18n/locales.js?v=22"></script>
+<script src="i18n/catalog.js?v=5"></script>
+<script src="i18n/i18n.js?v=5"></script>
+<script src="auth.js?v=104"></script>
 <script src="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js"></script>
 <script src="profilFFormat.js?v=3"></script>
 <script src="mekanlar-data.js?v=85"></script>
-<script src="tutorialEngine.js?v=7"></script>
-<script src="script.js?v=227"></script>
+<script src="tutorialEngine.js?v=9"></script>
+<script src="sefirlik.js?v=3"></script>
+<script src="sabotaj.js?v=5"></script>
+<script src="borsa.js?v=6"></script>
+<script src="kumarhane.js?v=14"></script>
+<script src="meslek.js?v=24"></script>
+<script src="script.js?v=260"></script>
+<script src="bildirim.js?v=4"></script>
 </body>
 </html>

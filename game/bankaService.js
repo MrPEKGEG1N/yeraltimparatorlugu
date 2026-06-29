@@ -217,6 +217,17 @@ async function paraCek(db, userId, player, cekMiktari) {
   return { ok: true, cekilen: cek, yeniKasa: player.kasa, bankaHakki: hak.kalan };
 }
 
+/** Banka hakkı harcamadan doğrudan bakiyeye ekler (faiz, temettü vb.) */
+async function bankaDogrudanYatir(db, userId, miktar) {
+  const tutar = Math.floor(miktar || 0);
+  if (tutar < 1) return { ok: true, yatirilan: 0, toplam: 0 };
+
+  const row = await ensureBankaRow(db, userId);
+  const yeni = (row.yatirilan_miktar || 0) + tutar;
+  await run(db, `UPDATE banka_hesaplari SET yatirilan_miktar = ? WHERE user_id = ?`, [yeni, userId]);
+  return { ok: true, yatirilan: tutar, toplam: yeni };
+}
+
 module.exports = {
   BANKA_HAK_GUNLUK,
   getBanka,
@@ -224,4 +235,5 @@ module.exports = {
   paraYatir,
   paraCek,
   faizIsle,
+  bankaDogrudanYatir,
 };

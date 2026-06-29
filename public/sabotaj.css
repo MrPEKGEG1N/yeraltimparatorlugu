@@ -1,0 +1,339 @@
+/* Sabotaj — The Crims tarzı panel */
+#masterLayout #anaIcerik .sb-sayfa {
+  display: flex;
+  justify-content: center;
+  padding: 8px 12px 28px;
+}
+
+#masterLayout #anaIcerik .sb-cerceve {
+  width: min(900px, 100%);
+  border: 2px solid rgba(184, 148, 42, 0.5);
+  border-radius: 8px;
+  background: linear-gradient(175deg, rgba(14, 10, 8, 0.98), rgba(6, 4, 3, 0.99));
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+  overflow: hidden;
+}
+
+#masterLayout #anaIcerik .sb-hero {
+  position: relative;
+  height: clamp(160px, 28vw, 240px);
+  overflow: hidden;
+}
+
+#masterLayout #anaIcerik .sb-hero-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 35%;
+  filter: saturate(0.92) contrast(1.08);
+}
+
+#masterLayout #anaIcerik .sb-hero-ortu {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(8, 6, 4, 0.08) 0%,
+    rgba(8, 6, 4, 0.45) 45%,
+    rgba(6, 4, 3, 0.96) 100%
+  );
+  pointer-events: none;
+}
+
+#masterLayout #anaIcerik .sb-hero-baslik {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  padding: 18px 22px 16px;
+  text-align: center;
+}
+
+#masterLayout #anaIcerik .sb-hero-baslik h2 {
+  margin: 0;
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: clamp(20px, 3.5vw, 28px);
+  color: #e8c875;
+  letter-spacing: 0.08em;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.85);
+}
+
+#masterLayout #anaIcerik .sb-banner-alt {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: #c4b498;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
+}
+
+#masterLayout #anaIcerik .sb-guc-satir {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 14px 18px;
+  background: rgba(0, 0, 0, 0.25);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+#masterLayout #anaIcerik .sb-guc-kutu {
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  text-align: center;
+}
+
+#masterLayout #anaIcerik .sb-guc-etiket {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #8a7a60;
+  margin-bottom: 4px;
+}
+
+#masterLayout #anaIcerik .sb-guc-deger {
+  font-family: 'Oswald', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: #ffd700;
+}
+
+#masterLayout #anaIcerik .sb-guc-kutu--savunma .sb-guc-deger {
+  color: #7ec8e3;
+}
+
+#masterLayout #anaIcerik .sb-guc-ipucu {
+  padding: 10px 18px 12px;
+  background: rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+#masterLayout #anaIcerik .sb-guc-ipucu p {
+  margin: 0 0 6px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: #8a8070;
+}
+
+#masterLayout #anaIcerik .sb-guc-ipucu p:last-child {
+  margin-bottom: 0;
+}
+
+#masterLayout #anaIcerik .sb-guc-ipucu b {
+  color: #c5a059;
+  font-weight: 600;
+}
+
+#masterLayout #anaIcerik .sb-hedef-alan {
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+#masterLayout #anaIcerik .sb-hedef-satir {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+#masterLayout #anaIcerik .sb-hedef-input {
+  flex: 1;
+  min-width: 160px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(184, 148, 42, 0.35);
+  background: rgba(0, 0, 0, 0.45);
+  color: #f0e6d0;
+  font-size: 14px;
+}
+
+#masterLayout #anaIcerik .sb-aktif-kart {
+  margin: 14px 18px 0;
+  padding: 14px 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 200, 80, 0.45);
+  background: linear-gradient(135deg, rgba(80, 40, 10, 0.35), rgba(30, 15, 5, 0.5));
+}
+
+#masterLayout #anaIcerik .sb-aktif-kart h3 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  color: #ffe8b8;
+}
+
+#masterLayout #anaIcerik .sb-aktif-kart p {
+  margin: 4px 0;
+  font-size: 12px;
+  color: #b0a090;
+}
+
+#masterLayout #anaIcerik .sb-sekmeler {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 12px 18px 0;
+}
+
+#masterLayout #anaIcerik .sb-sekme {
+  padding: 8px 14px;
+  border-radius: 6px 6px 0 0;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: none;
+  background: rgba(255, 255, 255, 0.04);
+  color: #a09080;
+  font-family: 'Oswald', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+#masterLayout #anaIcerik .sb-sekme--aktif {
+  background: rgba(120, 30, 30, 0.45);
+  border-color: rgba(220, 100, 80, 0.45);
+  color: #ffe0c0;
+}
+
+#masterLayout #anaIcerik .sb-sekme-icerik {
+  padding: 14px 18px 20px;
+  border-top: 1px solid rgba(184, 148, 42, 0.2);
+  min-height: 200px;
+}
+
+#masterLayout #anaIcerik .sb-kat-aciklama {
+  margin: 0 0 14px;
+  font-size: 12px;
+  color: #8a8070;
+  line-height: 1.5;
+}
+
+#masterLayout #anaIcerik .sb-tur-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+#masterLayout #anaIcerik .sb-tur-kart {
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#masterLayout #anaIcerik .sb-tur-kart h4 {
+  margin: 0;
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: 15px;
+  color: #ffe8b8;
+}
+
+#masterLayout #anaIcerik .sb-tur-karakter {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #c5a059;
+}
+
+#masterLayout #anaIcerik .sb-tur-aciklama {
+  margin: 0;
+  font-size: 12px;
+  color: #9a9080;
+  line-height: 1.45;
+  flex: 1;
+}
+
+#masterLayout #anaIcerik .sb-plan-satir {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+#masterLayout #anaIcerik .sb-plan-btn {
+  flex: 1;
+  min-width: 110px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(184, 148, 42, 0.35);
+  background: linear-gradient(180deg, rgba(80, 20, 20, 0.6), rgba(40, 8, 8, 0.8));
+  color: #ffe0c0;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  line-height: 1.35;
+}
+
+#masterLayout #anaIcerik .sb-plan-btn:hover:not(:disabled) {
+  border-color: rgba(255, 200, 120, 0.6);
+  background: linear-gradient(180deg, rgba(110, 28, 28, 0.7), rgba(50, 10, 10, 0.9));
+}
+
+#masterLayout #anaIcerik .sb-plan-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+#masterLayout #anaIcerik .sb-plan-maliyet {
+  display: block;
+  font-size: 10px;
+  margin-top: 3px;
+  line-height: 1.35;
+}
+
+#masterLayout #anaIcerik .sb-plan-maliyet--ucret {
+  color: #c5a059;
+}
+
+#masterLayout #anaIcerik .sb-plan-maliyet--hedef {
+  color: #8fd4a0;
+}
+
+#masterLayout #anaIcerik .sb-sonuc {
+  margin: 12px 18px 18px;
+  padding: 12px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+#masterLayout #anaIcerik .sb-sonuc--ok {
+  border: 1px solid rgba(80, 180, 100, 0.45);
+  background: rgba(20, 60, 30, 0.35);
+  color: #b8e8c0;
+}
+
+#masterLayout #anaIcerik .sb-sonuc--hata {
+  border: 1px solid rgba(200, 80, 80, 0.45);
+  background: rgba(60, 15, 15, 0.4);
+  color: #f0b0b0;
+}
+
+#masterLayout #anaIcerik .sb-sonuc--uyari {
+  border: 1px solid rgba(200, 160, 60, 0.45);
+  background: rgba(50, 40, 10, 0.35);
+  color: #e8d8a0;
+}
+
+#masterLayout #anaIcerik .sb-iptal-btn {
+  margin-top: 8px;
+  padding: 6px 12px;
+  border-radius: 5px;
+  border: 1px solid rgba(200, 80, 80, 0.4);
+  background: rgba(60, 10, 10, 0.5);
+  color: #ffb0b0;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+@media (max-width: 600px) {
+  #masterLayout #anaIcerik .sb-guc-satir {
+    grid-template-columns: 1fr;
+  }
+
+  #masterLayout #anaIcerik .sb-tur-grid {
+    grid-template-columns: 1fr;
+  }
+}

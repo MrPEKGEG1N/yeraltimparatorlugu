@@ -38,7 +38,7 @@
   height: 100%;
   object-fit: fill;
   border-radius: 4px;
-  filter: drop-shadow(0 24px 48px rgba(0, 0, 0, 0.75));
+  filter: none;
   pointer-events: none;
   user-select: none;
 }
@@ -102,22 +102,41 @@
   border-radius: 4px;
 }
 
-/* Gri alt çerçeve içi (px: 81,559 → 941,650) */
-#tutorialModal .eg-btn {
+/* Gri alt şerit — panel görselindeki orta bölüm (≈81–559 px / 1024×682) */
+#tutorialModal .eg-panel-btns {
   position: absolute;
-  top: 84.2%;
-  width: 14%;
-  height: 8.6%;
+  left: 34.8%;
+  top: 81.9%;
+  width: 53.8%;
+  height: 9.2%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3.5%;
+  z-index: 2;
+  box-sizing: border-box;
+  padding: 0 2%;
+}
+
+#tutorialModal .eg-btn {
+  position: relative;
+  flex: 1 1 0;
+  width: auto;
+  max-width: 31%;
+  height: 88%;
   min-width: 0;
-  padding: 0 6px;
+  top: auto;
+  left: auto;
+  transform: none;
+  padding: 0 4px;
   margin: 0;
   border: none;
   border-radius: 2px;
   background: rgba(72, 68, 62, 0.55);
   font-family: "Cinzel", Georgia, serif;
-  font-size: clamp(10px, 1.05vw, 13px);
+  font-size: clamp(8px, 0.95vw, 12px);
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #ece4d6;
   cursor: pointer;
@@ -135,14 +154,14 @@
   cursor: wait;
 }
 
-#tutorialModal .eg-btn--ileri {
-  left: 39%;
-  transform: translateX(-50%);
+#tutorialModal .eg-btn--bitir {
+  background: rgba(58, 42, 28, 0.72);
+  color: #f4e0a8;
 }
 
-#tutorialModal .eg-btn--kapat {
-  left: 61%;
-  transform: translateX(-50%);
+#tutorialModal .eg-btn--bitir:hover:not(:disabled) {
+  background: rgba(82, 58, 32, 0.88);
+  color: #fff8e8;
 }
 
 #tutorialResumeBtn.eg-devam-btn {
@@ -188,11 +207,18 @@
     padding: 8px 10px;
   }
 
+  #tutorialModal .eg-panel-btns {
+    left: 36%;
+    top: 81.5%;
+    width: 54%;
+    height: 9%;
+    gap: 2.5%;
+    padding: 0 1.5%;
+  }
+
   #tutorialModal .eg-btn {
-    top: 83%;
-    width: 17%;
-    height: 8%;
-    font-size: 9px;
-    letter-spacing: 0.08em;
+    font-size: 7px;
+    letter-spacing: 0.04em;
+    max-width: 32%;
   }
 }

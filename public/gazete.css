@@ -362,6 +362,249 @@
   color: #28a745;
 }
 
+#masterLayout .gazete-is-ilanlari {
+  padding: 14px 16px 16px;
+  background: rgba(12, 10, 8, 0.92);
+  border-top: 2px solid #7a1010;
+  border-bottom: 1px solid #2a2220;
+}
+
+#masterLayout .gazete-is-ilanlari-baslik {
+  font-family: 'Oswald', serif;
+  color: #d4af37;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  margin: 0 0 6px;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+#masterLayout .gazete-is-ilanlari-not {
+  margin: 0 0 12px;
+  text-align: center;
+  font-size: 11px;
+  color: #888;
+  font-style: italic;
+}
+
+#masterLayout .gazete-is-uyari {
+  margin: 0 0 10px;
+  padding: 8px 10px;
+  background: rgba(139, 0, 0, 0.2);
+  border: 1px solid rgba(139, 0, 0, 0.45);
+  color: #e8a0a0;
+  font-size: 11px;
+  text-align: center;
+}
+
+#masterLayout .gazete-is-kart {
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid #3a3430;
+  border-left: 3px solid #d4af37;
+}
+
+#masterLayout .gazete-is-kart:last-child {
+  margin-bottom: 0;
+}
+
+#masterLayout .gazete-is-kart-bas {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+#masterLayout .gazete-is-emoji {
+  font-size: 28px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+#masterLayout .gazete-is-kart-ozet {
+  min-width: 0;
+  flex: 1;
+}
+
+#masterLayout .gazete-is-sirket-ad {
+  display: block;
+  color: #f3f0ea;
+  font-size: 14px;
+  margin-bottom: 2px;
+}
+
+#masterLayout .gazete-is-sirket-btn {
+  display: block;
+  padding: 0;
+  margin: 0 0 2px;
+  border: none;
+  background: none;
+  color: #d4af37;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+#masterLayout .gazete-is-sirket-btn:hover {
+  color: #f0d080;
+}
+
+#masterLayout .gazete-is-tikla-not {
+  display: block;
+  margin-top: 6px;
+  font-size: 10px;
+  color: #888;
+  font-style: italic;
+}
+
+#masterLayout .gazete-is-kart .gazete-is-pozisyonlar {
+  display: none;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(212, 175, 55, 0.25);
+}
+
+#masterLayout .gazete-is-kart--acik .gazete-is-pozisyonlar {
+  display: grid;
+}
+
+#masterLayout .gazete-is-meta {
+  display: block;
+  font-size: 11px;
+  color: #a8a098;
+  line-height: 1.45;
+}
+
+#masterLayout .gazete-is-aciklama {
+  margin: 6px 0 0;
+  font-size: 11px;
+  color: #c0b8b0;
+  line-height: 1.45;
+}
+
+#masterLayout .gazete-is-durum {
+  margin: 0;
+  font-size: 11px;
+  color: #888;
+  font-style: italic;
+}
+
+#masterLayout .gazete-is-durum--yayin {
+  color: #9ef0b0;
+  font-style: normal;
+  font-weight: 600;
+}
+
+#masterLayout .gazete-is-poz {
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+#masterLayout .gazete-is-poz--kapali {
+  opacity: 0.65;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+#masterLayout .gazete-is-poz-bas {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 12px;
+}
+
+#masterLayout .gazete-is-poz-bas strong {
+  color: #ece8e0;
+}
+
+#masterLayout .gazete-is-maas {
+  color: #28a745;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+#masterLayout .gazete-is-gereksinim {
+  font-size: 10px;
+  color: #888;
+  line-height: 1.4;
+}
+
+#masterLayout .gazete-is-btn {
+  align-self: flex-start;
+  padding: 5px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #1a1208;
+  background: linear-gradient(180deg, #e8c547 0%, #c9a227 100%);
+  border: 1px solid #a08020;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: filter 0.15s;
+}
+
+#masterLayout .gazete-is-btn:hover {
+  filter: brightness(1.08);
+}
+
+#masterLayout .gazete-is-etiket-yetersiz {
+  font-size: 10px;
+  color: #c06060;
+  font-weight: 600;
+}
+
+#masterLayout .gazete-is-etiket-basvuru {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 4px 10px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #7ec87e;
+  background: rgba(80, 160, 80, 0.15);
+  border: 1px solid rgba(100, 180, 100, 0.4);
+  border-radius: 4px;
+}
+
+#masterLayout .gazete-is-patron-cta {
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  background: rgba(212, 175, 55, 0.12);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  font-size: 12px;
+  color: #e8dcc8;
+  line-height: 1.5;
+}
+
+#masterLayout .gazete-is-patron-btn {
+  margin-left: 6px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #1a1208;
+  background: linear-gradient(180deg, #e8c547 0%, #c9a227 100%);
+  border: 1px solid #a08020;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+#masterLayout .gazete-is-patron-btn:hover {
+  filter: brightness(1.08);
+}
+
 #masterLayout .gazete-dekor {
   height: 200px;
   background: url('/images/gazete/gazete-sayfa.png') center bottom / 100% auto no-repeat;
@@ -408,5 +651,87 @@
 
   #masterLayout .gazete-dekor {
     height: 140px;
+  }
+}
+
+#masterLayout .gazete-aylik-sampiyon {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin: 0;
+  padding: 18px 20px;
+  background: linear-gradient(135deg, rgba(90, 28, 12, 0.55) 0%, rgba(18, 12, 8, 0.95) 100%);
+  border-top: 1px solid rgba(197, 160, 89, 0.35);
+  border-bottom: 2px solid rgba(197, 160, 89, 0.5);
+}
+
+#masterLayout .gazete-aylik-sampiyon-rozet {
+  flex: 0 0 auto;
+  width: 128px;
+  height: 128px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 2px solid rgba(197, 160, 89, 0.65);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5), 0 0 24px rgba(240, 208, 96, 0.15);
+  background: #2a1810;
+}
+
+#masterLayout .gazete-aylik-sampiyon-kupa {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+#masterLayout .gazete-aylik-sampiyon-etiket {
+  display: inline-block;
+  margin-bottom: 6px;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #1a1008;
+  background: linear-gradient(180deg, #f0d060, #b8942a);
+  border-radius: 2px;
+}
+
+#masterLayout .gazete-aylik-sampiyon-baslik {
+  margin: 0 0 8px;
+  font-family: 'Cinzel', serif;
+  font-size: clamp(17px, 2.4vw, 22px);
+  font-weight: 700;
+  color: #f5e6c8;
+  line-height: 1.25;
+}
+
+#masterLayout .gazete-aylik-sampiyon-grup {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+#masterLayout .gazete-aylik-sampiyon-ozet {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: #c8bdb0;
+}
+
+@media (max-width: 640px) {
+  #masterLayout .gazete-aylik-sampiyon {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 16px 14px;
+  }
+
+  #masterLayout .gazete-aylik-sampiyon-rozet {
+    width: 112px;
+    height: 112px;
   }
 }

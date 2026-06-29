@@ -69,6 +69,14 @@
   font-weight: 600;
 }
 
+#masterLayout #anaIcerik .gunluk-gorev-olcek-notu {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 11px;
+  color: #a8b8a0;
+  letter-spacing: 0.02em;
+}
+
 #masterLayout #anaIcerik .gunluk-gorevler-ozet {
   flex-shrink: 0;
   display: flex;
@@ -385,16 +393,100 @@
     min-width: 0;
   }
 
-  #masterLayout #anaIcerik .gunluk-gorev-satir {
-    grid-template-columns: 28px minmax(0, 1.35fr) 58px minmax(0, 1fr) 52px 78px;
-    gap: 5px;
-    padding: 0 8px;
-    min-height: 35px;
+  #masterLayout #anaIcerik .gunluk-gorev-satir--baslik {
+    display: none;
   }
 
-  #masterLayout #anaIcerik .gg-gorev,
+  #masterLayout #anaIcerik .gunluk-gorevler-govde .gunluk-gorev-satir {
+    grid-template-columns: 36px 1fr 1fr;
+    grid-template-areas:
+      "no gorev gorev"
+      "adet odul sure"
+      "aksiyon aksiyon aksiyon";
+    gap: 6px 10px;
+    padding: 10px 12px;
+    margin: 0 8px 6px;
+    min-height: auto;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.018);
+  }
+
+  #masterLayout #anaIcerik .gunluk-gorevler-govde .gunluk-gorev-satir:last-child {
+    margin-bottom: 8px;
+  }
+
+  #masterLayout #anaIcerik .gg-no {
+    grid-area: no;
+    align-self: start;
+  }
+
+  #masterLayout #anaIcerik .gg-gorev {
+    grid-area: gorev;
+    font-size: 12px;
+    text-align: left;
+    -webkit-line-clamp: 3;
+  }
+
+  #masterLayout #anaIcerik .gg-adet {
+    grid-area: adet;
+    text-align: left;
+  }
+
   #masterLayout #anaIcerik .gg-odul {
-    font-size: 10px;
+    grid-area: odul;
+    text-align: left;
+    font-size: 11px;
+  }
+
+  #masterLayout #anaIcerik .gg-sure {
+    grid-area: sure;
+    text-align: right;
+    white-space: normal;
+  }
+
+  #masterLayout #anaIcerik .gg-aksiyon {
+    grid-area: aksiyon;
+    justify-content: stretch;
+  }
+
+  #masterLayout #anaIcerik .gunluk-gorev-kabul,
+  #masterLayout #anaIcerik .gunluk-gorev-odul {
+    max-width: none;
+    min-height: 40px;
+    font-size: 11px;
+  }
+
+  #masterLayout #anaIcerik .gg-durum {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  #masterLayout #anaIcerik .gunluk-gorevler-govde .gunluk-gorev-satir {
+    grid-template-columns: 32px 1fr;
+    grid-template-areas:
+      "no gorev"
+      "adet adet"
+      "odul odul"
+      "sure sure"
+      "aksiyon aksiyon";
+    gap: 5px 8px;
+    padding: 10px;
+    margin: 0 6px 6px;
+  }
+
+  #masterLayout #anaIcerik .gg-gorev {
+    font-size: 13px;
+  }
+
+  #masterLayout #anaIcerik .gg-sure {
+    text-align: left;
+  }
+
+  #masterLayout #anaIcerik .gg-ilerleme-cubuk {
+    max-width: 56px;
   }
 }
 

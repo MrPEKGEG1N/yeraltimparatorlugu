@@ -9,7 +9,7 @@
     {
       "title": "1. Taraflar ve Kapsam",
       "body": [
-        "Bu Kullanim Sartlari, Yeraltı İmparatorluğu Yönetimi tarafindan isletilen yeraltimparatorlugu.com adresinde sunulan \"Yeralti Imparatorlugu\" cevrimici oyununu kullaniminiza iliskin kosullari duzenlemektedir.",
+        "Bu Kullanim Sartlari, Yeraltı İmparatorluğu Yönetimi tarafindan isletilen yeraltimparatorlugu-production.up.railway.app adresinde sunulan \"Yeralti Imparatorlugu\" cevrimici oyununu kullaniminiza iliskin kosullari duzenlemektedir.",
         "Platforma erisim saglayarak veya hesap olusturarak bu Sartlari okudugunuzu, anladiginizi ve kabul ettiginizi beyan edersiniz. Sartlari kabul etmiyorsaniz Platformu kullanmayiniz."
       ]
     },
@@ -35,7 +35,7 @@
       "title": "3.2 Hesap Guvenligi",
       "body": [
         "Hesabinizin guvenliginden siz sorumlusunuz. Sifrenizi kimseyle paylasmayiniz.",
-        "Yetkisiz erisim tespit ettiginizde destek@yeraltimparatorlugu.com adresine derhal bildiriniz.",
+        "Yetkisiz erisim tespit ettiginizde destek@yeraltimparatorlugu-production.up.railway.app adresine derhal bildiriniz.",
         "Hesabiniz uzerinden gerceklesen tum islemler size ait sayilir."
       ]
     },
@@ -60,7 +60,7 @@
       "body": [
         "Dijital icerik ve oyun ici satin alimlar, 6502 sayili Tuketicinin Korunmasi Hakkinda Kanun kapsaminda teslimden itibaren cayma hakki kullanilmis sayilir.",
         "Icerigin teknik olarak kullanilamamasi halinde 14 gun icinde tarafimiza basvurabilirsiniz.",
-        "Iade talepleri destek@yeraltimparatorlugu.com adresine iletilir ve 7 is gunu icinde yanitlanir."
+        "Iade talepleri destek@yeraltimparatorlugu-production.up.railway.app adresine iletilir ve 7 is gunu icinde yanitlanir."
       ]
     },
     {
@@ -111,8 +111,8 @@
     {
       "title": "10. Degisiklikler",
       "body": [
-        "Sartlari guncelleme hakkimizi sakli tutariz. Onemli degisiklikler kayitli e-posta adresinize bildirilir. Guncel Sartlar her zaman yeraltimparatorlugu.com/kullanim-sartlari adresinde yayinlanir.",
-        "Iletisim: destek@yeraltimparatorlugu.com"
+        "Sartlari guncelleme hakkimizi sakli tutariz. Onemli degisiklikler kayitli e-posta adresinize bildirilir. Guncel Sartlar her zaman yeraltimparatorlugu-production.up.railway.app/kullanim-sartlari adresinde yayinlanir.",
+        "Iletisim: destek@yeraltimparatorlugu-production.up.railway.app"
       ]
     }
   ],
@@ -126,7 +126,7 @@
     {
       "title": "1. Veri Sorumlusu",
       "body": [
-        "6698 sayili KVKK kapsaminda veri sorumlusu Yeraltı İmparatorluğu Yönetimi'dir. Iletisim: destek@yeraltimparatorlugu.com"
+        "6698 sayili KVKK kapsaminda veri sorumlusu Yeraltı İmparatorluğu Yönetimi'dir. Iletisim: destek@yeraltimparatorlugu-production.up.railway.app"
       ]
     },
     {
@@ -203,7 +203,7 @@
         "Eksik veya yanlis islenmisse duzeltilmesini isteme",
         "Yasal kosullar cercevesinde silinmesini veya yok edilmesini isteme",
         "Islemin otomatik sistemler araciligiyla yapilmasi halinde itiraz etme",
-        "Bu haklarinizi destek@yeraltimparatorlugu.com adresine yazili basvuru yaparak kullanabilirsiniz."
+        "Bu haklarinizi destek@yeraltimparatorlugu-production.up.railway.app adresine yazili basvuru yaparak kullanabilirsiniz."
       ]
     },
     {
@@ -215,8 +215,8 @@
     {
       "title": "9. Politika Degisiklikleri",
       "body": [
-        "Bu Politika guncellendiginde kayitli e-posta adresinize bildirim gonderilir. Guncel Politika her zaman yeraltimparatorlugu.com/gizlilik adresinde yayinlanir.",
-        "Iletisim: destek@yeraltimparatorlugu.com"
+        "Bu Politika guncellendiginde kayitli e-posta adresinize bildirim gonderilir. Guncel Politika her zaman yeraltimparatorlugu-production.up.railway.app/gizlilik adresinde yayinlanir.",
+        "Iletisim: destek@yeraltimparatorlugu-production.up.railway.app"
       ]
     }
   ],
@@ -285,13 +285,13 @@
     {
       "title": "7. Sikayet ve Bildiri",
       "body": [
-        "Kural ihlali gordugunuzde oyun ici \"Bildir\" butonunu kullanin veya destek@yeraltimparatorlugu.com adresine yaziniz. Ekibimiz bildirimleri en gec 48 saat icinde inceler."
+        "Kural ihlali gordugunuzde oyun ici \"Bildir\" butonunu kullanin veya destek@yeraltimparatorlugu-production.up.railway.app adresine yaziniz. Ekibimiz bildirimleri en gec 48 saat icinde inceler."
       ]
     },
     {
       "title": "8. Kurallarin Guncellenmesi",
       "body": [
-        "Bu kurallar zaman icinde guncellenebilir. Degisiklikler yeraltimparatorlugu.com/topluluk-kurallari adresinde yayinlanir.",
+        "Bu kurallar zaman icinde guncellenebilir. Degisiklikler yeraltimparatorlugu-production.up.railway.app/topluluk-kurallari adresinde yayinlanir.",
         "Iyi oyunlar! - Yeralti Imparatorlugu Yonetim Ekibi"
       ]
     }

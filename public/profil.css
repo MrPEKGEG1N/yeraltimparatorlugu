@@ -240,6 +240,136 @@
   gap: 14px;
 }
 
+#masterLayout .profil-adi-degistir {
+  margin-bottom: 16px;
+}
+
+#masterLayout .profil-adi-degistir-satir {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+
+#masterLayout .profil-adi-degistir-satir input {
+  flex: 1;
+  min-width: 0;
+}
+
+#masterLayout .profil-adi-degistir-btn {
+  flex-shrink: 0;
+  min-width: 110px;
+  padding: 10px 14px;
+  border: 1px solid #6b4a1a;
+  background: linear-gradient(180deg, #3d2e1a 0%, #2a1f12 100%);
+  color: #e8c872;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+#masterLayout .profil-adi-degistir-btn:hover {
+  border-color: #b8942a;
+  color: #fff3c4;
+}
+
+#masterLayout .profil-aciklama-baslik-satir {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+  position: relative;
+}
+
+#masterLayout .profil-aciklama-baslik-satir > label,
+#masterLayout .profil-aciklama-baslik-satir > .mafya-grup-aciklama-baslik {
+  margin: 0;
+  flex: 1;
+}
+
+#masterLayout .icerik-rapor-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+#masterLayout .icerik-rapor-btn {
+  font-family: 'Oswald', sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  border: 1px solid #6b3030;
+  background: rgba(40, 12, 12, 0.75);
+  color: #f0a0a0;
+  cursor: pointer;
+}
+
+#masterLayout .icerik-rapor-btn:hover {
+  border-color: #c04040;
+  color: #ffd0d0;
+}
+
+#masterLayout .icerik-rapor-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 5;
+  width: min(320px, 92vw);
+  padding: 12px;
+  background: rgba(18, 14, 10, 0.97);
+  border: 1px solid #5a4030;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+#masterLayout .icerik-rapor-baslik {
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: #c9b89a;
+  line-height: 1.4;
+}
+
+#masterLayout .icerik-rapor-textarea {
+  width: 100%;
+  min-height: 88px;
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  border: 1px solid #4a3c2a;
+  background: rgba(0, 0, 0, 0.35);
+  color: #ddd4c4;
+  font-size: 13px;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+#masterLayout .icerik-rapor-aksiyon {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+#masterLayout .icerik-rapor-gonder-btn,
+#masterLayout .icerik-rapor-iptal-btn {
+  font-family: 'Oswald', sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 7px 12px;
+  border: 1px solid #5a4a32;
+  cursor: pointer;
+}
+
+#masterLayout .icerik-rapor-gonder-btn {
+  background: linear-gradient(180deg, #5a2020 0%, #3a1010 100%);
+  border-color: #8a3030;
+  color: #ffd0d0;
+}
+
+#masterLayout .icerik-rapor-iptal-btn {
+  background: rgba(0, 0, 0, 0.35);
+  color: #a89880;
+}
+
 #masterLayout .profil-alan-not {
   display: block;
   margin-top: 4px;
@@ -553,6 +683,84 @@
 #masterLayout .profil-alt-btn.koyu {
   background: linear-gradient(180deg, #2a2218 0%, #1a1410 100%);
   color: #d8ccb8;
+}
+
+#masterLayout .profil-alt-btn.mavi {
+  background: linear-gradient(180deg, #1a4a7a 0%, #0f2d4d 100%);
+  border-color: #2a6aaa;
+  color: #e8f4ff;
+}
+
+#masterLayout .profil-ziyaret-aksiyon {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(138, 115, 72, 0.35);
+}
+
+#masterLayout .profil-saldir-sonuc {
+  max-width: 640px;
+  margin: 16px auto 0;
+}
+
+#masterLayout .profil-saldir-sonuc .saldiri-sonuc {
+  text-align: left;
+}
+
+#masterLayout .profil-saldir-sonuc .saldiri-sonuc--basari {
+  border-color: rgba(80, 160, 90, 0.55);
+  background: rgba(20, 50, 25, 0.55);
+  color: #d8f0dc;
+}
+
+#masterLayout .profil-saldir-sonuc .saldiri-sonuc--hata {
+  border-color: rgba(180, 70, 70, 0.55);
+  background: rgba(50, 15, 15, 0.55);
+  color: #f0d0d0;
+}
+
+#masterLayout .profil-saldir-sonuc .saldiri-sonuc--kayip {
+  border-color: rgba(180, 120, 40, 0.55);
+  background: rgba(50, 35, 10, 0.55);
+  color: #f0e0c8;
+}
+
+#masterLayout .profil-saldir-sonuc .saldiri-sonuc--bekliyor {
+  border-color: rgba(138, 115, 72, 0.45);
+  color: #c8b890;
+  text-align: center;
+}
+
+#masterLayout .profil-ziyaret-mesaj {
+  max-width: 520px;
+  margin: 14px auto 0;
+  padding: 14px;
+  border: 1px solid rgba(138, 115, 72, 0.45);
+  background: rgba(0, 0, 0, 0.4);
+  text-align: left;
+}
+
+#masterLayout .profil-ziyaret-mesaj label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #b8942a;
+}
+
+#masterLayout .profil-ziyaret-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  background: #1a1410;
+  border: 1px solid #5a4a32;
+  color: #f2ebe0;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  resize: vertical;
 }
 
 #masterLayout .profil-alt-btn:hover {

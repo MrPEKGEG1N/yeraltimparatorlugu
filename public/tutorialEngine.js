@@ -4,62 +4,62 @@
   var tutorialData = [
     {
       step: 1,
-      text: 'Karanlık dünyaya hoşgeldin evlat. Burada sana birkaç ipucu vereceğim. Sonra kendi başınasın. Önce Profilim sayfasına git. Orada bilgilerin olacak ve karakter resmini/cinsiyetini değiştirebilirsin.',
+      textKey: 'tutorial.step.1',
       targetPage: '/profilim',
     },
     {
       step: 2,
-      text: 'Şimdi Güçlen/Ekip Kirala kısmından yanına bir mahalle delikanlısı al.',
+      textKey: 'tutorial.step.2',
       targetPage: '/ekip-kirala',
     },
     {
       step: 3,
-      text: 'Bravo! Artık arkan ve gücün daha sağlam. Şimdi Büyüme Adımları sayfasını incele. Burada gücüne göre işler yapabilir ve nakit+saygınlık kazanabilirsin.',
+      textKey: 'tutorial.step.3',
       targetPage: '/buyume-adimlari',
     },
     {
       step: 4,
-      text: 'Şimdi Mekan Sahibi kısmını incele! Orada saatlik kazanç sağlayabileceğin mekanlar alabilirsin.',
+      textKey: 'tutorial.step.4',
       targetPage: '/mekan-sahibi',
     },
     {
       step: 5,
-      text: 'Çok iyi gidiyorsun. Şimdi istihbarat kısmına bir göz at! İstihbarat gücün rakibinden fazla olmalı, elemanlarını arttırmayı unutma.',
+      textKey: 'tutorial.step.5',
       targetPage: '/istihbarat',
     },
     {
       step: 6,
-      text: 'Şimdi sıra Banka kısmında. Burada paranı düşmanlarından saklayabilir ve faiz kazanabilirsin.',
+      textKey: 'tutorial.step.6',
       targetPage: '/banka',
     },
     {
       step: 7,
-      text: "Şimdi Medya kısmına göz at ve Gazete Oku. Medya'da haber yaptırabilir, Gazete'den düşmanlarını takip edebilirsin.",
+      textKey: 'tutorial.step.7',
       targetPage: '/medya',
     },
     {
       step: 8,
-      text: 'Buraya kadar çok iyi geldin! Şimdi Şehre Hükmet! Limanları, Sözünü Geçir ve Sadakat Yemini makamlarını ele geçirirsen herkes gücünü görür.',
+      textKey: 'tutorial.step.8',
       targetPage: '/sehre-hukmet',
     },
     {
       step: 9,
-      text: 'Sohbet sayfasında Mesaj Kutun var. Mafya Sohbetleri ise herkesin yazabildiği yerdir.',
+      textKey: 'tutorial.step.9',
       targetPage: '/sohbet',
     },
     {
       step: 10,
-      text: "Düşmana Çök kısmında düşmanlarına saldırı gerçekleştirip paralarının %10'una, saygınlıklarının %1'ine çökebilirsin!",
+      textKey: 'tutorial.step.10',
       targetPage: '/dusmana-cok',
     },
     {
       step: 11,
-      text: "Şehre Hükmetmek istediğin için Kara Liste'ye alınmış olursun. Devlet İlişkin yüksek olmalı ki İcraat yapabilesin. Avukatına para vermeyi unutma! Mafya Grubu lideri ya da üyesi olmak daha avantajlıdır.",
+      textKey: 'tutorial.step.11',
       targetPage: '/devlet-iliskileri',
     },
     {
       step: 12,
-      text: 'Sana söyleyeceklerim ve eğitimin bu kadardı. Başarıyla tamamladın. Şehir seni bekliyor!',
+      textKey: 'tutorial.step.12',
       targetPage: 'close-tutorial',
     },
   ];
@@ -125,6 +125,11 @@
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;');
+  }
+
+  function stepText(step) {
+    if (!step) return '';
+    return typeof t === 'function' && step.textKey ? t(step.textKey) : (step.text || '');
   }
 
   function getStep() {
@@ -216,7 +221,9 @@
     var show = isPaused();
     btn.classList.toggle('gizli', !show);
     if (show) {
-      btn.textContent = '📖 Eğitime Devam (Adım ' + currentStep + '/' + tutorialData.length + ')';
+      btn.textContent = typeof t === 'function'
+        ? t('tutorial.resume', { step: currentStep, total: tutorialData.length })
+        : '';
     }
   }
 
@@ -238,25 +245,30 @@
     var ileri = document.getElementById('tutorialIleri');
     if (!modal || !metin) return false;
 
+    var text = stepText(step);
     if (baslik) {
       baslik.textContent =
         currentStep === 1
-          ? 'Oyun Eğitimi: Hoşgeldiniz'
-          : 'Oyun Eğitimi: Adım ' + currentStep + ' / ' + tutorialData.length;
+          ? (typeof t === 'function' ? t('tutorial.title.welcome') : '')
+          : (typeof t === 'function'
+            ? t('tutorial.title.step', { step: currentStep, total: tutorialData.length })
+            : '');
     }
     if (currentStep > 1) {
       metin.innerHTML =
-        '<span class="eg-adim-etiket">Adım ' + currentStep + ' / ' + tutorialData.length + '</span>'
-        + escTutorial(step.text || '');
+        '<span class="eg-adim-etiket">' + escTutorial(typeof t === 'function'
+          ? t('tutorial.stepLabel', { step: currentStep, total: tutorialData.length })
+          : '') + '</span>'
+        + escTutorial(text || '');
     } else {
-      metin.textContent = step.text || '';
+      metin.textContent = text || '';
     }
     if (ileri) {
       ileri.disabled = !!busy;
       if (step.targetPage === 'close-tutorial') {
-        ileri.textContent = 'Bitir';
+        ileri.textContent = typeof t === 'function' ? t('tutorial.finish') : '';
       } else {
-        ileri.textContent = 'Sayfaya Git';
+        ileri.textContent = typeof t === 'function' ? t('tutorial.goToPage') : '';
       }
     }
 
@@ -363,12 +375,18 @@
     updateResumeButton();
   }
 
+  function finishTutorial() {
+    close(true);
+  }
+
   function init() {
     var ileri = document.getElementById('tutorialIleri');
     var kapat = document.getElementById('tutorialKapat');
+    var bitir = document.getElementById('tutorialBitir');
     var devam = document.getElementById('tutorialResumeBtn');
     if (ileri) ileri.addEventListener('click', forward);
     if (kapat) kapat.addEventListener('click', function () { pause(); });
+    if (bitir) bitir.addEventListener('click', finishTutorial);
     if (devam) devam.addEventListener('click', resume);
     syncVisibility();
   }
@@ -387,6 +405,7 @@
     pause: pause,
     resume: resume,
     forward: forward,
+    finish: finishTutorial,
     render: render,
     reset: reset,
     isComplete: isComplete,

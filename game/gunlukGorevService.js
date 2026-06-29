@@ -7,6 +7,9 @@ const {
   MAX_KABUL,
   gorevBul,
   gunlukGorevSecimi,
+  gunlukDagilimHesapla,
+  sayginlikKatsayiHesapla,
+  gorevOlcekle,
   odulMetni,
   isMahalleIsi,
   isSemtIsi,
@@ -44,6 +47,21 @@ async function ensureGunlukGorevTables(db) {
   } catch (_) {}
   try {
     await run(db, `ALTER TABLE gunluk_gorev_atama ADD COLUMN onizleme_sure_dk INTEGER`);
+  } catch (_) {}
+  try {
+    await run(db, `ALTER TABLE gunluk_gorev_atama ADD COLUMN hedef_adet_olcekli INTEGER`);
+  } catch (_) {}
+  try {
+    await run(db, `ALTER TABLE gunluk_gorev_atama ADD COLUMN odul_puan_olcekli INTEGER`);
+  } catch (_) {}
+  try {
+    await run(db, `ALTER TABLE gunluk_gorev_atama ADD COLUMN odul_icraat_olcekli INTEGER`);
+  } catch (_) {}
+  try {
+    await run(db, `ALTER TABLE gunluk_gorev_atama ADD COLUMN odul_kasa_olcekli INTEGER`);
+  } catch (_) {}
+  try {
+    await run(db, `ALTER TABLE gunluk_gorev_atama ADD COLUMN sayginlik_katsayi REAL`);
   } catch (_) {}
   await run(
     db,
@@ -127,18 +145,55 @@ function sureMetniOlustur(row, def) {
   return `${dk} dk`;
 }
 
-function satirDonustur(row) {
+function olcekliVeriFromRow(row) {
+  return {
+    katsayi: row.sayginlik_katsayi || 1,
+    hedefAdet: row.hedef_adet_olcekli,
+    odul: {
+      puan: row.odul_puan_olcekli || 0,
+      icraat: row.odul_icraat_olcekli || 0,
+      kasa: row.odul_kasa_olcekli || 0,
+    },
+  };
+}
+
+function olcekliVeriHazirMi(row) {
+  return row.hedef_adet_olcekli != null && row.hedef_adet_olcekli > 0;
+}
+
+async function olcekliVeriGaranti(db, row, def) {
+  if (olcekliVeriHazirMi(row)) return olcekliVeriFromRow(row);
+  const playerRow = await get(db, `SELECT puan FROM players WHERE user_id = ?`, [row.user_id]);
+  const olcek = gorevOlcekle(def, playerRow ? playerRow.puan : 1500);
+  await run(
+    db,
+    `UPDATE gunluk_gorev_atama
+     SET hedef_adet_olcekli = ?, odul_puan_olcekli = ?, odul_icraat_olcekli = ?, odul_kasa_olcekli = ?, sayginlik_katsayi = ?
+     WHERE id = ?`,
+    [olcek.hedefAdet, olcek.odul.puan, olcek.odul.icraat, olcek.odul.kasa, olcek.katsayi, row.id]
+  );
+  row.hedef_adet_olcekli = olcek.hedefAdet;
+  row.odul_puan_olcekli = olcek.odul.puan;
+  row.odul_icraat_olcekli = olcek.odul.icraat;
+  row.odul_kasa_olcekli = olcek.odul.kasa;
+  row.sayginlik_katsayi = olcek.katsayi;
+  return olcek;
+}
+
+async function satirDonustur(db, row) {
   const def = gorevBul(row.gorev_id);
   if (!def) return null;
+  const olcek = await olcekliVeriGaranti(db, row, def);
   return {
     slot: row.slot,
     gorevId: row.gorev_id,
     ad: def.ad,
     zorluk: def.zorluk,
-    hedefAdet: def.hedefAdet,
+    hedefAdet: olcek.hedefAdet,
     ilerleme: row.ilerleme,
-    odul: def.odul,
-    odulMetni: odulMetni(def.odul),
+    odul: olcek.odul,
+    odulMetni: odulMetni(olcek.odul),
+    sayginlikKatsayi: olcek.katsayi,
     durum: row.durum,
     kabulEdildi: !!row.kabul_edildi,
     sureMetni: sureMetniOlustur(row, def),
@@ -185,18 +240,27 @@ async function kabulSayisi(db, userId, gunKey) {
 }
 
 async function gunlukAtamaOlustur(db, userId, gunKey) {
-  const secim = gunlukGorevSecimi();
+  const playerRow = await get(db, `SELECT puan FROM players WHERE user_id = ?`, [userId]);
+  const puan = playerRow ? playerRow.puan : 1500;
+  const secim = gunlukGorevSecimi(puan);
   for (let slot = 1; slot <= GUNLUK_SLOT_SAYISI; slot++) {
     const gorevId = secim[slot - 1];
     const def = gorevBul(gorevId);
     const oniz = def
       ? onizlemeSureHesapla(def, `${userId}:${gunKey}:${slot}:${gorevId}`)
       : { metin: "—", dk: null };
+    const olcek = def ? gorevOlcekle(def, puan) : { hedefAdet: 1, odul: { puan: 0, icraat: 0, kasa: 0 }, katsayi: 1 };
     await run(
       db,
-      `INSERT INTO gunluk_gorev_atama (user_id, gun_key, slot, gorev_id, durum, onizleme_sure_metni, onizleme_sure_dk)
-       VALUES (?, ?, ?, ?, 'panoda', ?, ?)`,
-      [userId, gunKey, slot, gorevId, oniz.metin, oniz.dk]
+      `INSERT INTO gunluk_gorev_atama (
+         user_id, gun_key, slot, gorev_id, durum, onizleme_sure_metni, onizleme_sure_dk,
+         hedef_adet_olcekli, odul_puan_olcekli, odul_icraat_olcekli, odul_kasa_olcekli, sayginlik_katsayi
+       )
+       VALUES (?, ?, ?, ?, 'panoda', ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        userId, gunKey, slot, gorevId, oniz.metin, oniz.dk,
+        olcek.hedefAdet, olcek.odul.puan, olcek.odul.icraat, olcek.odul.kasa, olcek.katsayi,
+      ]
     );
   }
 }
@@ -210,6 +274,7 @@ async function ensureGunlukAtama(db, userId) {
     return gunlukSatirlariGetir(db, userId, gunKey);
   }
 
+  const yeniGun = true;
   if (rows.length > 0) {
     await run(
       db,
@@ -220,6 +285,14 @@ async function ensureGunlukAtama(db, userId) {
   await gunlukAtamaOlustur(db, userId, gunKey);
   rows = await gunlukSatirlariGetir(db, userId, gunKey);
   await onizlemeEksikleriTamamla(db, rows);
+  if (yeniGun) {
+    const { bildirimGonder } = require("./bildirimService");
+    bildirimGonder(db, userId, "gunluk_gorev", {
+      baslik: "Günlük Görevler Yenilendi",
+      icerik: "Yeni günlük görevler panonda seni bekliyor.",
+      url: "/?ekran=gunlukGorevler",
+    }).catch(() => {});
+  }
   return rows;
 }
 
@@ -240,7 +313,8 @@ async function suresiDolanlariKontrol(db, userId) {
   for (const row of rows) {
     const def = gorevBul(row.gorev_id);
     if (!def) continue;
-    if (row.ilerleme >= def.hedefAdet) {
+    const olcek = await olcekliVeriGaranti(db, row, def);
+    if (row.ilerleme >= olcek.hedefAdet) {
       await run(db, `UPDATE gunluk_gorev_atama SET durum = 'tamamlandi' WHERE id = ?`, [row.id]);
     } else {
       await run(db, `UPDATE gunluk_gorev_atama SET durum = 'basarisiz' WHERE id = ?`, [row.id]);
@@ -254,7 +328,15 @@ async function panelGetir(db, userId) {
   const rows = await ensureGunlukAtama(db, userId);
   const kabul = await kabulSayisi(db, userId, gunKey);
   const tamamlanan = await tamamlananGorevSayisi(db, userId);
-  const gorevler = rows.map(satirDonustur).filter(Boolean);
+  const gorevler = [];
+  for (const row of rows) {
+    const g = await satirDonustur(db, row);
+    if (g) gorevler.push(g);
+  }
+  const playerRow = await get(db, `SELECT puan FROM players WHERE user_id = ?`, [userId]);
+  const sayginlik = playerRow ? playerRow.puan : 1500;
+  const sayginlikKatsayi = sayginlikKatsayiHesapla(sayginlik);
+  const zorlukDagilimi = gunlukDagilimHesapla(sayginlik);
   return {
     ok: true,
     gunKey,
@@ -262,6 +344,9 @@ async function panelGetir(db, userId) {
     kabulSayisi: kabul,
     tamamlananSayisi: tamamlanan,
     gunlukGorevBildirim: tamamlanan > 0,
+    sayginlik,
+    sayginlikKatsayi,
+    zorlukDagilimi,
     gorevler,
   };
 }
@@ -328,13 +413,14 @@ async function gorevKabul(db, userId, slot) {
   }
 
   const guncel = await get(db, `SELECT * FROM gunluk_gorev_atama WHERE id = ?`, [row.id]);
-  return { ok: true, gorev: satirDonustur(guncel), kabulSayisi: yeniKabul };
+  return { ok: true, gorev: await satirDonustur(db, guncel), kabulSayisi: yeniKabul };
 }
 
 async function ilerlemeArtir(db, row, def, artis, extraGuncelle = null) {
   if (row.durum !== "aktif") return;
-  const yeni = Math.min(def.hedefAdet, row.ilerleme + artis);
-  const yeniDurum = yeni >= def.hedefAdet ? "tamamlandi" : "aktif";
+  const olcek = await olcekliVeriGaranti(db, row, def);
+  const yeni = Math.min(olcek.hedefAdet, row.ilerleme + artis);
+  const yeniDurum = yeni >= olcek.hedefAdet ? "tamamlandi" : "aktif";
   if (extraGuncelle) {
     await run(
       db,
@@ -424,8 +510,9 @@ async function gorevOlayIsle(db, userId, olay, meta = {}) {
     const oncekiDurum = row.durum;
     const oncekiIlerleme = row.ilerleme;
     await ilerlemeArtir(db, row, def, artis, yeniExtra);
-    const yeniIlerleme = Math.min(def.hedefAdet, oncekiIlerleme + artis);
-    if (oncekiDurum === "aktif" && yeniIlerleme >= def.hedefAdet) {
+    const olcek = await olcekliVeriGaranti(db, row, def);
+    const yeniIlerleme = Math.min(olcek.hedefAdet, oncekiIlerleme + artis);
+    if (oncekiDurum === "aktif" && yeniIlerleme >= olcek.hedefAdet) {
       yeniTamamlanan += 1;
     }
   }
@@ -451,19 +538,21 @@ async function gorevOdulAl(db, userId, slot, player) {
   const def = gorevBul(row.gorev_id);
   if (!def) return { ok: false, error: "Görev tanımı bulunamadı." };
 
-  player.kasa += def.odul.kasa || 0;
-  player.puan += def.odul.puan || 0;
-  if (def.odul.icraat) {
+  const olcek = await olcekliVeriGaranti(db, row, def);
+
+  player.kasa += olcek.odul.kasa || 0;
+  player.puan += olcek.odul.puan || 0;
+  if (olcek.odul.icraat) {
     const icraatSync = await syncIcraatRegen(db, userId);
-    player.icraat = Math.min(ICRAAT_MAX, icraatSync.icraat + def.odul.icraat);
+    player.icraat = Math.min(ICRAAT_MAX, icraatSync.icraat + olcek.odul.icraat);
   }
   await run(
     db,
     `UPDATE players SET kasa = ?, puan = ?, icraat = ? WHERE user_id = ?`,
     [player.kasa, player.puan, player.icraat, userId]
   );
-  if (def.odul.puan) {
-    await logStatHareket(db, userId, "sayginlik", def.odul.puan);
+  if (olcek.odul.puan) {
+    await logStatHareket(db, userId, "sayginlik", olcek.odul.puan);
   }
   await run(
     db,
@@ -473,9 +562,9 @@ async function gorevOdulAl(db, userId, slot, player) {
 
   return {
     ok: true,
-    odul: def.odul,
-    odulMetni: odulMetni(def.odul),
-    gorev: satirDonustur({ ...row, durum: "teslim_edildi", odul_alindi: 1 }),
+    odul: olcek.odul,
+    odulMetni: odulMetni(olcek.odul),
+    gorev: await satirDonustur(db, { ...row, durum: "teslim_edildi", odul_alindi: 1 }),
   };
 }
 

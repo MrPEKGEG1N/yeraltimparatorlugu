@@ -1,0 +1,1046 @@
+[
+  {
+    "code": "AD_DEĞIŞTIRMEK_IÇIN_YETERLI_KAZANCIN_YOK",
+    "msg": "Ad değiştirmek için yeterli kazancın yok."
+  },
+  {
+    "code": "ADAY_BAŞKA_ŞIRKETTE_ÇALIŞIYOR",
+    "msg": "Aday başka şirkette çalışıyor."
+  },
+  {
+    "code": "ADAYIN_NPC_IŞI_VAR",
+    "msg": "Adayın NPC işi var."
+  },
+  {
+    "code": "ADAYIN_YETENEKLERI_ARTIK_BU_POZISYON_IÇIN_YETERSIZ",
+    "msg": "Adayın yetenekleri artık bu pozisyon için yetersiz."
+  },
+  {
+    "code": "AKSIYON_BELIRTILMEDI",
+    "msg": "Aksiyon belirtilmedi."
+  },
+  {
+    "code": "AKTIF_BIR_IŞIN_YOK",
+    "msg": "Aktif bir işin yok."
+  },
+  {
+    "code": "AKTIVITE_KAYDEDILEMEDI",
+    "msg": "Aktivite kaydedilemedi."
+  },
+  {
+    "code": "ALICI_REIS_ADI_GEREKLI",
+    "msg": "Alıcı reis adı gerekli."
+  },
+  {
+    "code": "ANTRENMAN_IÇIN_MALIYET_TL_GEREKLI",
+    "msg": "Antrenman için ${maliyet} TL gerekli."
+  },
+  {
+    "code": "ANTRENMAN_IŞLEMI_TAMAMLANAMADI_TEKRAR_DENE",
+    "msg": "Antrenman işlemi tamamlanamadı. Tekrar dene."
+  },
+  {
+    "code": "ANTRENMAN_PUANI_KULLANILAMADI_TEKRAR_DENE",
+    "msg": "Antrenman puanı kullanılamadı. Tekrar dene."
+  },
+  {
+    "code": "ARAMA_BAŞARISIZ",
+    "msg": "Arama başarısız."
+  },
+  {
+    "code": "AVUKAT_ILIŞKIN_ZATEN_MAKSIMUMDA_AVUKAT_ILISKI_MAX_DAHA_FAZLA",
+    "msg": "Avukat ilişkin zaten maksimumda (${AVUKAT_ILISKI_MAX}). Daha fazla rüşvet veremezsin."
+  },
+  {
+    "code": "BAN_IŞLEMI_BAŞARISIZ",
+    "msg": "Ban işlemi başarısız."
+  },
+  {
+    "code": "BAN_KALDIRMA_BAŞARISIZ",
+    "msg": "Ban kaldırma başarısız."
+  },
+  {
+    "code": "BANKA_HAKKIN_KALMADI_HER_24_SAATTE_20_HAK_YENILENIR",
+    "msg": "Banka hakkın kalmadı! Her 24 saatte +20 hak yenilenir."
+  },
+  {
+    "code": "BANKADA_YETERLI_PARA_YOK_BANKADA_MEVCUT_TOLOCALESTRING",
+    "msg": "Bankada yeterli para yok. (Bankada: ${mevcut.toLocaleString("
+  },
+  {
+    "code": "BAŞKA_BIR_ŞIRKETTE_ÇALIŞIYORSUN",
+    "msg": "Başka bir şirkette çalışıyorsun."
+  },
+  {
+    "code": "BAŞVURU_BULUNAMADI",
+    "msg": "Başvuru bulunamadı."
+  },
+  {
+    "code": "BILINMEYEN_AKSIYON",
+    "msg": "Bilinmeyen aksiyon."
+  },
+  {
+    "code": "BIR_OYUNCU_ŞIRKETINDE_ÇALIŞIYORSUN_ÖNCE_ORADAN_ISTIFA_ETMELI",
+    "msg": "Bir oyuncu şirketinde çalışıyorsun. Önce oradan istifa etmelisin."
+  },
+  {
+    "code": "BIR_ŞIRKETTE_ÇALIŞMIYORSUN",
+    "msg": "Bir şirkette çalışmıyorsun."
+  },
+  {
+    "code": "BÖYLE_BIR_OYUNCU_YOK",
+    "msg": "Böyle bir oyuncu yok!"
+  },
+  {
+    "code": "BU_CIHAZDAN_EN_FAZLA_MAX_ACCOUNTS_PER_VISITOR_HESAP_AÇILABIL",
+    "msg": "Bu cihazdan en fazla ${MAX_ACCOUNTS_PER_VISITOR} hesap açılabilir."
+  },
+  {
+    "code": "BU_GÖREV_ARTIK_GEÇERLI_DEĞIL",
+    "msg": "Bu görev artık geçerli değil."
+  },
+  {
+    "code": "BU_GÖREV_HENÜZ_TAMAMLANMADI_VEYA_ÖDÜL_ALINAMAZ",
+    "msg": "Bu görev henüz tamamlanmadı veya ödül alınamaz."
+  },
+  {
+    "code": "BU_GÖREVI_ZATEN_KABUL_ETTIN",
+    "msg": "Bu görevi zaten kabul ettin."
+  },
+  {
+    "code": "BU_GRUBA_MESAJ_GÖNDEREMEZSIN",
+    "msg": "Bu gruba mesaj gönderemezsin."
+  },
+  {
+    "code": "BU_GRUPLAR_ARASINDA_ZATEN_AKTIF_BIR_SAVAŞ_VAR",
+    "msg": "Bu gruplar arasında zaten aktif bir savaş var."
+  },
+  {
+    "code": "BU_IÇERIĞI_KISA_SÜRE_ÖNCE_RAPORLADIN",
+    "msg": "Bu içeriği kısa süre önce raporladın."
+  },
+  {
+    "code": "BU_IP_ADRESINDEN_ÇOK_FAZLA_KAYIT_DENEMESI_YAPILDI",
+    "msg": "Bu IP adresinden çok fazla kayıt denemesi yapıldı."
+  },
+  {
+    "code": "BU_ISIM_ZATEN_KULLANILIYOR",
+    "msg": "Bu isim zaten kullanılıyor."
+  },
+  {
+    "code": "BU_ISIMDE_GRUP_ZATEN_VAR",
+    "msg": "Bu isimde grup zaten var."
+  },
+  {
+    "code": "BU_ISIMDE_MAFYA_GRUBU_BULUNAMADI",
+    "msg": "Bu isimde mafya grubu bulunamadı."
+  },
+  {
+    "code": "BU_ISIMDE_OYUNCU_BULUNAMADI",
+    "msg": "Bu isimde oyuncu bulunamadı."
+  },
+  {
+    "code": "BU_KASA_ZATEN_SENDE",
+    "msg": "Bu kasa zaten sende."
+  },
+  {
+    "code": "BU_KIŞI_SENIN_ŞIRKETINDE_DEĞIL",
+    "msg": "Bu kişi senin şirketinde değil."
+  },
+  {
+    "code": "BU_KULLANICI_ADI_ZATEN_ALINMIŞ",
+    "msg": "Bu kullanıcı adı zaten alınmış."
+  },
+  {
+    "code": "BU_LIMAN_ZATEN_SIZIN",
+    "msg": "Bu liman zaten sizin!"
+  },
+  {
+    "code": "BU_MAKAM_ZATEN_SIZIN",
+    "msg": "Bu makam zaten sizin!"
+  },
+  {
+    "code": "BU_MALZEME_ŞIRKET_TÜRÜNE_UYGUN_DEĞIL",
+    "msg": "Bu malzeme şirket türüne uygun değil."
+  },
+  {
+    "code": "BU_MESAJA_CEVAP_VERILEMEZ",
+    "msg": "Bu mesaja cevap verilemez."
+  },
+  {
+    "code": "BU_SAVAŞA_KATILAMAZSIN",
+    "msg": "Bu savaşa katılamazsın."
+  },
+  {
+    "code": "BU_ŞEHIRDE_TEKRAR_KONTROL_TOPLAMAK_IÇIN_MATH_CEIL_KALAN_60_D",
+    "msg": "Bu şehirde tekrar kontrol toplamak için ${Math.ceil(kalan / 60)} dk bekle."
+  },
+  {
+    "code": "BU_ŞIRKET_IŞE_ALIM_YAPMIYOR",
+    "msg": "Bu şirket işe alım yapmıyor."
+  },
+  {
+    "code": "BUGÜN_EN_FAZLA_3_GÖREV_KABUL_EDEBILIRSIN",
+    "msg": "Bugün en fazla 3 görev kabul edebilirsin."
+  },
+  {
+    "code": "CANLI_AKTIVITE_YÜKLENEMEDI",
+    "msg": "Canlı aktivite yüklenemedi."
+  },
+  {
+    "code": "COL_GEÇERSIZ",
+    "msg": "${col} geçersiz."
+  },
+  {
+    "code": "ÇALIŞAN_BULUNAMADI",
+    "msg": "Çalışan bulunamadı."
+  },
+  {
+    "code": "ÇIKMAK_IÇIN_CIKIS_UCRET_TOLOCALESTRING",
+    "msg": "Çıkmak için ${CIKIS_UCRET.toLocaleString("
+  },
+  {
+    "code": "ÇOK_FAZLA_BAŞARISIZ_GIRIŞ_DAHA_SONRA_TEKRAR_DENE_VEYA_ŞIFREN",
+    "msg": "Çok fazla başarısız giriş. Daha sonra tekrar dene veya şifreni sıfırla."
+  },
+  {
+    "code": "ÇOK_FAZLA_GIRIŞ_DENEMESI_15_DAKIKA_SONRA_TEKRAR_DENE",
+    "msg": "Çok fazla giriş denemesi. 15 dakika sonra tekrar dene."
+  },
+  {
+    "code": "ÇOK_FAZLA_YÖNETIM_ISTEĞI",
+    "msg": "Çok fazla yönetim isteği."
+  },
+  {
+    "code": "DEPO_DOLU_MATH_FLOOR_STOKDOLU_DEPOKAPASITE_DEPO_YÜKSELT_VEYA",
+    "msg": "Depo dolu (${Math.floor(stokDolu)}/${depoKapasite}). Depo yükselt veya stok tüket."
+  },
+  {
+    "code": "DETAY_YÜKLENEMEDI",
+    "msg": "Detay yüklenemedi."
+  },
+  {
+    "code": "DEVLET_ILIŞKIN_ÇOK_KÖTÜ_HAPISTESIN_İCRAATA_ÇIKAMAZSIN_RÜŞVET",
+    "msg": "Devlet ilişkin çok kötü — hapistesin! İcraata çıkamazsın. Rüşvet vererek ilişkini düzelt."
+  },
+  {
+    "code": "DEVREDILECEK_MEKAN_SEÇ",
+    "msg": "Devredilecek mekan seç."
+  },
+  {
+    "code": "DOST_REIS_ADI_GEREKLI",
+    "msg": "Dost reis adı gerekli."
+  },
+  {
+    "code": "DÜŞMAN_ADINI_YAZ",
+    "msg": "Düşman adını yaz."
+  },
+  {
+    "code": "EĞITIM_IÇIN_KASADA_EGITIM_MALIYET_TL_GEREKLI",
+    "msg": "Eğitim için kasada ${EGITIM_MALIYET} TL gerekli."
+  },
+  {
+    "code": "EN_AZ_1_BIRIM_ALMALISIN",
+    "msg": "En az 1 birim almalısın."
+  },
+  {
+    "code": "EN_AZ_100_TL_ÇEKEBILIRSIN",
+    "msg": "En az 100 TL çekebilirsin."
+  },
+  {
+    "code": "EN_AZ_100_TL_YATIRABILIRSIN",
+    "msg": "En az 100 TL yatırabilirsin."
+  },
+  {
+    "code": "EN_FAZLA_ROW_ROW_ADET_0_ADET_DEVREDEBILIRSIN",
+    "msg": "En fazla ${row ? row.adet : 0} adet devredebilirsin."
+  },
+  {
+    "code": "GAZETE_YÜKLENEMEDI",
+    "msg": "Gazete yüklenemedi."
+  },
+  {
+    "code": "GEÇERLI_BIR_ADET_GIR",
+    "msg": "Geçerli bir adet gir."
+  },
+  {
+    "code": "GEÇERLI_BIR_LAKAP_SEÇMELISIN",
+    "msg": "Geçerli bir lakap seçmelisin."
+  },
+  {
+    "code": "GEÇERLI_BIR_MIKTAR_GIR",
+    "msg": "Geçerli bir miktar gir."
+  },
+  {
+    "code": "GEÇERSIZ_GÖREV_SLOTU",
+    "msg": "Geçersiz görev slotu."
+  },
+  {
+    "code": "GEÇERSIZ_GRUP",
+    "msg": "Geçersiz grup."
+  },
+  {
+    "code": "GEÇERSIZ_HEDEF",
+    "msg": "Geçersiz hedef."
+  },
+  {
+    "code": "GEÇERSIZ_IŞ",
+    "msg": "Geçersiz iş."
+  },
+  {
+    "code": "GEÇERSIZ_KASA",
+    "msg": "Geçersiz kasa."
+  },
+  {
+    "code": "GEÇERSIZ_LIMAN",
+    "msg": "Geçersiz liman."
+  },
+  {
+    "code": "GEÇERSIZ_MAFYA_IŞI",
+    "msg": "Geçersiz mafya işi."
+  },
+  {
+    "code": "GEÇERSIZ_MAKAM",
+    "msg": "Geçersiz makam."
+  },
+  {
+    "code": "GEÇERSIZ_MEKAN",
+    "msg": "Geçersiz mekan."
+  },
+  {
+    "code": "GEÇERSIZ_MEKAN_KEY",
+    "msg": "Geçersiz mekan: ${key}"
+  },
+  {
+    "code": "GEÇERSIZ_OY",
+    "msg": "Geçersiz oy."
+  },
+  {
+    "code": "GEÇERSIZ_OYUNCU",
+    "msg": "Geçersiz oyuncu."
+  },
+  {
+    "code": "GEÇERSIZ_POZISYON",
+    "msg": "Geçersiz pozisyon."
+  },
+  {
+    "code": "GEÇERSIZ_PROFIL_RESMI",
+    "msg": "Geçersiz profil resmi."
+  },
+  {
+    "code": "GEÇERSIZ_REKLAM_SEVIYESI",
+    "msg": "Geçersiz reklam seviyesi."
+  },
+  {
+    "code": "GEÇERSIZ_SATIN_ALMA",
+    "msg": "Geçersiz satın alma."
+  },
+  {
+    "code": "GEÇERSIZ_ŞEHIR",
+    "msg": "Geçersiz şehir."
+  },
+  {
+    "code": "GEÇERSIZ_ŞIRKET_TÜRÜ",
+    "msg": "Geçersiz şirket türü."
+  },
+  {
+    "code": "GEÇERSIZ_YETENEK",
+    "msg": "Geçersiz yetenek."
+  },
+  {
+    "code": "GEÇERSIZ_YÜKSELTME",
+    "msg": "Geçersiz yükseltme."
+  },
+  {
+    "code": "GEÇERSIZ_YÜKSELTME_TÜRÜ",
+    "msg": "Geçersiz yükseltme türü."
+  },
+  {
+    "code": "GIRIŞ_SIRASINDA_HATA_OLUŞTU",
+    "msg": "Giriş sırasında hata oluştu."
+  },
+  {
+    "code": "GÖREV_BULUNAMADI",
+    "msg": "Görev bulunamadı."
+  },
+  {
+    "code": "GÖREV_TANIMI_BULUNAMADI",
+    "msg": "Görev tanımı bulunamadı."
+  },
+  {
+    "code": "GRUBUN_ŞU_AN_BAŞKA_BIR_SOYGUN_IÇIN_HAZIRLANIYOR",
+    "msg": "Grubun şu an başka bir soygun için hazırlanıyor."
+  },
+  {
+    "code": "GRUP_ADI_EN_AZ_2_KARAKTER",
+    "msg": "Grup adı en az 2 karakter."
+  },
+  {
+    "code": "GRUP_BILGILERI_YÜKLENEMEDI",
+    "msg": "Grup bilgileri yüklenemedi."
+  },
+  {
+    "code": "GRUP_BULUNAMADI",
+    "msg": "Grup bulunamadı."
+  },
+  {
+    "code": "GRUP_DETAYI_YÜKLENEMEDI",
+    "msg": "Grup detayı yüklenemedi."
+  },
+  {
+    "code": "GRUP_MESAJI_BULUNAMADI",
+    "msg": "Grup mesajı bulunamadı."
+  },
+  {
+    "code": "GRUP_MESAJLARI_YÜKLENEMEDI",
+    "msg": "Grup mesajları yüklenemedi."
+  },
+  {
+    "code": "GRUPTA_DEĞILSIN",
+    "msg": "Grupta değilsin."
+  },
+  {
+    "code": "GÜCÜN_YETERSIZ_EN_AZ_JOB_MINGUC_TOLOCALESTRING",
+    "msg": "Gücün yetersiz! En az ${job.minGuc.toLocaleString("
+  },
+  {
+    "code": "GÜNCELLENECEK_ALAN_YOK",
+    "msg": "Güncellenecek alan yok."
+  },
+  {
+    "code": "GÜNCELLENECEK_MEKAN_YOK",
+    "msg": "Güncellenecek mekan yok."
+  },
+  {
+    "code": "GÜNLÜK_ANTRENMAN_HAKKIN_DOLDU_GUNLUK_ANTRENMAN_LIMIT_GÜN_YAR",
+    "msg": "Günlük antrenman hakkın doldu (${GUNLUK_ANTRENMAN_LIMIT}/gün). Yarın tekrar dene."
+  },
+  {
+    "code": "GÜNLÜK_EĞITIM_SLOTU_DOLDU_SLOTLIMIT_GÜN_PERSONEL_ODASINI_YÜK",
+    "msg": "Günlük eğitim slotu doldu (${slotLimit}/gün). Personel odasını yükselt."
+  },
+  {
+    "code": "GÜNLÜK_GÖREVLER_YÜKLENEMEDI",
+    "msg": "Günlük görevler yüklenemedi."
+  },
+  {
+    "code": "GÜVENLI_YER_GÜNCELLENEMEDI",
+    "msg": "Güvenli Yer güncellenemedi."
+  },
+  {
+    "code": "GÜVENLI_YER_SEVIYESI_1_MAX_SEVIYE_ARASINDA_OLMALI",
+    "msg": "Güvenli Yer seviyesi 1-${MAX_SEVIYE} arasında olmalı."
+  },
+  {
+    "code": "GÜVENLI_YER_YÜKLENEMEDI",
+    "msg": "Güvenli Yer yüklenemedi."
+  },
+  {
+    "code": "GÜVENLIK_AYNI_CIHAZ_VEYA_AĞ_ÜZERINDEN_KAYITLI_HESAPLAR_ARASI",
+    "msg": "Güvenlik: Aynı cihaz veya ağ üzerinden kayıtlı hesaplar arasında bu işlem yapılamaz."
+  },
+  {
+    "code": "GÜVENLIK_GÜNLÜĞÜ_YÜKLENEMEDI",
+    "msg": "Güvenlik günlüğü yüklenemedi."
+  },
+  {
+    "code": "HABER_METNI_ÇOK_KISA",
+    "msg": "Haber metni çok kısa."
+  },
+  {
+    "code": "HABER_METNI_ÇOK_UZUN_MAX_200_KARAKTER",
+    "msg": "Haber metni çok uzun (max 200 karakter)."
+  },
+  {
+    "code": "HABERLER_YÜKLENEMEDI",
+    "msg": "Haberler yüklenemedi."
+  },
+  {
+    "code": "HEDEF_GRUBUN_EN_AZ_3_ÜYESI_OLMALI_SAVAŞ_ILAN_EDILEMEZ",
+    "msg": "Hedef grubun en az 3 üyesi olmalı (savaş ilan edilemez)."
+  },
+  {
+    "code": "HEDEF_MAFYA_GRUBU_ADI_GEREKLI",
+    "msg": "Hedef mafya grubu adı gerekli."
+  },
+  {
+    "code": "HESABINIZ_ASKIYA_ALINDI",
+    "msg": "Hesabınız askıya alındı."
+  },
+  {
+    "code": "HIBE_GEÇMIŞI_YÜKLENEMEDI",
+    "msg": "Hibe geçmişi yüklenemedi."
+  },
+  {
+    "code": "HIBE_MIKTARI_GEÇERSIZ",
+    "msg": "Hibe miktarı geçersiz."
+  },
+  {
+    "code": "İSTATISTIK_GÜNCELLENEMEDI",
+    "msg": "İstatistik güncellenemedi."
+  },
+  {
+    "code": "İSTIHBARAT_ELEMAN_SAYISI_0_100000_ARASINDA_OLMALI",
+    "msg": "İstihbarat eleman sayısı 0-100000 arasında olmalı."
+  },
+  {
+    "code": "İSTIHBARAT_ELEMANIN_YOK_ÖNCE_ELEMAN_AL",
+    "msg": "İstihbarat elemanın yok. Önce eleman al."
+  },
+  {
+    "code": "İSTIHBARAT_GÜNCELLENEMEDI",
+    "msg": "İstihbarat güncellenemedi."
+  },
+  {
+    "code": "İŞLEM_BAŞARISIZ",
+    "msg": "İşlem başarısız."
+  },
+  {
+    "code": "KADRO_DOLU",
+    "msg": "Kadro dolu."
+  },
+  {
+    "code": "KARA_LISTE_YÜKLENEMEDI",
+    "msg": "Kara liste yüklenemedi."
+  },
+  {
+    "code": "KASAN_YETERSIZ_GEREKLI",
+    "msg": "Kasan yetersiz. Gerekli:"
+  },
+  {
+    "code": "KASANDA_SEHIR_KONTROLMALIYET_TOLOCALESTRING",
+    "msg": "Kasanda ${sehir.kontrolMaliyet.toLocaleString("
+  },
+  {
+    "code": "KASANDA_YETERLI_NAKIT_YOK",
+    "msg": "Kasanda yeterli nakit yok!"
+  },
+  {
+    "code": "KASANDA_YETERLI_NAKIT_YOK_1",
+    "msg": "Kasanda yeterli nakit yok."
+  },
+  {
+    "code": "KASANDA_YETERLI_NAKIT_YOK_ADET_ADET_IÇIN_TOPLAMMALIYET_TOLOC",
+    "msg": "Kasanda yeterli nakit yok! ${adet} adet için ${toplamMaliyet.toLocaleString("
+  },
+  {
+    "code": "KASANDA_YETERLI_NAKIT_YOK_HABER_IÇIN",
+    "msg": "Kasanda yeterli nakit yok! Haber için"
+  },
+  {
+    "code": "KASANDA_YETERLI_NAKIT_YOK_MIKTAR_ELEMAN_IÇIN_TOPLAMMALIYET_T",
+    "msg": "Kasanda yeterli nakit yok! ${miktar} eleman için ${toplamMaliyet.toLocaleString("
+  },
+  {
+    "code": "KASANDA_YETERLI_NAKIT_YOK_SATINALINACAKADET_ADET_IÇIN_TOPLAM",
+    "msg": "Kasanda yeterli nakit yok! ${satinAlinacakAdet} adet için ${toplamMaliyet.toLocaleString("
+  },
+  {
+    "code": "KAYIT_REDDEDILDI",
+    "msg": "Kayıt reddedildi."
+  },
+  {
+    "code": "KAYIT_SIRASINDA_HATA_OLUŞTU",
+    "msg": "Kayıt sırasında hata oluştu."
+  },
+  {
+    "code": "KENDI_GRUBUNA_SAVAŞ_ILAN_EDEMEZSIN",
+    "msg": "Kendi grubuna savaş ilan edemezsin."
+  },
+  {
+    "code": "KENDI_GRUBUNU_RAPORLAYAMAZSIN",
+    "msg": "Kendi grubunu raporlayamazsın."
+  },
+  {
+    "code": "KENDI_PROFILINI_RAPORLAYAMAZSIN",
+    "msg": "Kendi profilini raporlayamazsın."
+  },
+  {
+    "code": "KENDI_ŞIRKETINE_BAŞVURAMAZSIN",
+    "msg": "Kendi şirketine başvuramazsın."
+  },
+  {
+    "code": "KENDINE_MEKAN_DEVREDEMEZSIN",
+    "msg": "Kendine mekan devredemezsin."
+  },
+  {
+    "code": "KENDINE_MESAJ_ATAMAZSIN",
+    "msg": "Kendine mesaj atamazsın."
+  },
+  {
+    "code": "KENDINE_PARA_GÖNDEREMEZSIN",
+    "msg": "Kendine para gönderemezsin."
+  },
+  {
+    "code": "KENDINE_SALDIRAMAZSIN_REIS",
+    "msg": "Kendine saldıramazsın Reis!"
+  },
+  {
+    "code": "KENDINI_BANLAYAMAZSIN",
+    "msg": "Kendini banlayamazsın."
+  },
+  {
+    "code": "KENDINI_ÇIKARAMAZSIN",
+    "msg": "Kendini çıkaramazsın."
+  },
+  {
+    "code": "KENDINI_DÜŞMAN_OLARAK_ARAYAMAZSIN_REIS",
+    "msg": "Kendini düşman olarak arayamazsın Reis!"
+  },
+  {
+    "code": "KENDININ_OTURUMUNU_SONLANDIRAMAZSIN",
+    "msg": "Kendinin oturumunu sonlandıramazsın."
+  },
+  {
+    "code": "KONTROL_TOPLAMAK_IÇIN_1_İCRAAT_HAKKI_GEREKIR",
+    "msg": "Kontrol toplamak için 1 İcraat Hakkı gerekir!"
+  },
+  {
+    "code": "KULLANICI_ADI_3_20_KARAKTER_HARF_RAKAM_VE_OLABILIR",
+    "msg": "Kullanıcı adı 3-20 karakter; harf, rakam ve _ olabilir."
+  },
+  {
+    "code": "KULLANICI_ADI_VEYA_ŞIFRE_HATALI",
+    "msg": "Kullanıcı adı veya şifre hatalı."
+  },
+  {
+    "code": "KULLANICI_BULUNAMADI",
+    "msg": "Kullanıcı bulunamadı."
+  },
+  {
+    "code": "KULLANILABILIR_MAAŞ_ANTRENMAN_PUANIN_YOK",
+    "msg": "Kullanılabilir maaş antrenman puanın yok."
+  },
+  {
+    "code": "KURULUŞ_IÇIN_TUR_KURULUSUCRETI_TL_GEREKLI",
+    "msg": "Kuruluş için ${tur.kurulusUcreti} TL gerekli."
+  },
+  {
+    "code": "LIDER_ÖNCE_LIDERLIĞI_DEVRETMELI_VEYA_GRUBU_DAĞITMALI",
+    "msg": "Lider önce liderliği devretmeli veya grubu dağıtmalı."
+  },
+  {
+    "code": "LIDER_REISADI_SENDEN_GÜÇLÜ_ÖNCE_GÜÇLEN_VEYA_DAHA_FAZLA_KONTR",
+    "msg": "${lider.reisAdi} senden güçlü! Önce güçlen veya daha fazla kontrol topla."
+  },
+  {
+    "code": "LIDERIN_RÜTBESI_SABITTIR",
+    "msg": "Liderin rütbesi sabittir."
+  },
+  {
+    "code": "LIDERLIK_TABLOSU_YÜKLENEMEDI",
+    "msg": "Liderlik tablosu yüklenemedi."
+  },
+  {
+    "code": "LIMAN_BASKINI_IÇIN_1_İCRAAT_HAKKI_GEREKIR",
+    "msg": "Liman baskını için 1 İcraat Hakkı gerekir!"
+  },
+  {
+    "code": "MAFYA_EVI_KAPASITESI_DOLU_MAX_CAP_SEVIYE_YÜKSELTIN",
+    "msg": "Mafya Evi kapasitesi dolu (max ${cap}). Seviye yükseltin."
+  },
+  {
+    "code": "MAFYA_EVI_YÜKLENEMEDI",
+    "msg": "Mafya evi yüklenemedi."
+  },
+  {
+    "code": "MAFYA_GRUBU_ÜYESI_DEĞILSIN",
+    "msg": "Mafya grubu üyesi değilsin."
+  },
+  {
+    "code": "MAFYA_GRUBUNA_ÜYE_DEĞILSIN",
+    "msg": "Mafya grubuna üye değilsin."
+  },
+  {
+    "code": "MAFYA_GRUPLARI_YÜKLENEMEDI",
+    "msg": "Mafya grupları yüklenemedi."
+  },
+  {
+    "code": "MAFYA_IŞI_IÇIN_GRUBUNDA_EN_AZ_3_ÜYE_OLMALI",
+    "msg": "Mafya işi için grubunda en az 3 üye olmalı."
+  },
+  {
+    "code": "MAFYA_IŞLERI_YÜKLENEMEDI",
+    "msg": "Mafya işleri yüklenemedi."
+  },
+  {
+    "code": "MAFYA_VERISI_YÜKLENEMEDI",
+    "msg": "Mafya verisi yüklenemedi:"
+  },
+  {
+    "code": "MAKAM_BASKINI_IÇIN_1_İCRAAT_HAKKI_GEREKIR",
+    "msg": "Makam baskını için 1 İcraat Hakkı gerekir!"
+  },
+  {
+    "code": "MAKSIMUM_SEVIYEYE_ULAŞILDI",
+    "msg": "Maksimum seviyeye ulaşıldı."
+  },
+  {
+    "code": "MALZEME_MALIYETI_MALIYET_TL_KASADA_YETERLI_PARA_YOK",
+    "msg": "Malzeme maliyeti ${maliyet} TL — kasada yeterli para yok."
+  },
+  {
+    "code": "MEKANKEY_ADEDI_GEÇERSIZ",
+    "msg": "${mekanKey} adedi geçersiz."
+  },
+  {
+    "code": "MEKANLAR_GÜNCELLENEMEDI",
+    "msg": "Mekanlar güncellenemedi."
+  },
+  {
+    "code": "MESAJ_BOŞ_OLAMAZ",
+    "msg": "Mesaj boş olamaz."
+  },
+  {
+    "code": "MESAJ_BULUNAMADI",
+    "msg": "Mesaj bulunamadı."
+  },
+  {
+    "code": "MESAJ_TEMIZLEME_BAŞARISIZ",
+    "msg": "Mesaj temizleme başarısız."
+  },
+  {
+    "code": "MESAJLAR_YÜKLENEMEDI",
+    "msg": "Mesajlar yüklenemedi."
+  },
+  {
+    "code": "MESLEK_PANELI_YÜKLENEMEDI",
+    "msg": "Meslek paneli yüklenemedi."
+  },
+  {
+    "code": "MEVCUT_ŞIFRE_HATALI",
+    "msg": "Mevcut şifre hatalı."
+  },
+  {
+    "code": "MINIMUM_IHALE_TEKLIFI_SEHIR_IHALEMIN_TOLOCALESTRING",
+    "msg": "Minimum ihale teklifi ${sehir.ihaleMin.toLocaleString("
+  },
+  {
+    "code": "MULTI_HESAP_LISTESI_YÜKLENEMEDI",
+    "msg": "Multi-hesap listesi yüklenemedi."
+  },
+  {
+    "code": "NPC_IŞINDESIN_ÖNCE_ISTIFA_ET",
+    "msg": "NPC işindesin. Önce istifa et."
+  },
+  {
+    "code": "ONLINE_DEĞILSIN_SAYFAYI_AÇIK_TUT_VE_TEKRAR_DENE",
+    "msg": "Online değilsin. Sayfayı açık tut ve tekrar dene."
+  },
+  {
+    "code": "OTURUM_DOĞRULANAMADI",
+    "msg": "Oturum doğrulanamadı."
+  },
+  {
+    "code": "OTURUM_SONLANDIRMA_BAŞARISIZ",
+    "msg": "Oturum sonlandırma başarısız."
+  },
+  {
+    "code": "OYUNCU_ADI_1_OYUNCU_ADI_MAX_KARAKTER_OLMALI",
+    "msg": "Oyuncu adı 1-${OYUNCU_ADI_MAX} karakter olmalı."
+  },
+  {
+    "code": "OYUNCU_BULUNAMADI",
+    "msg": "Oyuncu bulunamadı."
+  },
+  {
+    "code": "OYUNCU_BULUNAMADI_REIS_ADINI_DOĞRU_YAZ",
+    "msg": "Oyuncu bulunamadı. Reis adını doğru yaz."
+  },
+  {
+    "code": "OYUNCU_VERISI_YÜKLENEMEDI",
+    "msg": "Oyuncu verisi yüklenemedi."
+  },
+  {
+    "code": "ÖDÜL_ZATEN_ALINDI",
+    "msg": "Ödül zaten alındı."
+  },
+  {
+    "code": "ÖNCE_ONCEKI_AD_SATIN_ALMALISIN",
+    "msg": "Önce ${onceki.ad} satın almalısın."
+  },
+  {
+    "code": "PANEL_VERISI_YÜKLENEMEDI",
+    "msg": "Panel verisi yüklenemedi."
+  },
+  {
+    "code": "PROFIL_KAYDEDILEMEDI",
+    "msg": "Profil kaydedilemedi."
+  },
+  {
+    "code": "PROFIL_YÜKLENEMEDI",
+    "msg": "Profil yüklenemedi."
+  },
+  {
+    "code": "RAKIP_LISTESI_YÜKLENEMEDI",
+    "msg": "Rakip listesi yüklenemedi."
+  },
+  {
+    "code": "RAPOR_GÖNDERILEMEDI",
+    "msg": "Rapor gönderilemedi."
+  },
+  {
+    "code": "RAPORLAR_YÜKLENEMEDI",
+    "msg": "Raporlar yüklenemedi."
+  },
+  {
+    "code": "REIS_ADI_1_REIS_MAX_KARAKTER_OLMALI",
+    "msg": "Reis adı 1-${REIS_MAX} karakter olmalı."
+  },
+  {
+    "code": "RÜŞVET_EN_AZ_MIN_TOLOCALESTRING",
+    "msg": "Rüşvet en az ${min.toLocaleString("
+  },
+  {
+    "code": "SADECE_GRUP_LIDERI_SAVAŞ_ILAN_EDEBILIR",
+    "msg": "Sadece grup lideri savaş ilan edebilir."
+  },
+  {
+    "code": "SADECE_LIDER_RÜTBE_VERIR",
+    "msg": "Sadece lider rütbe verir."
+  },
+  {
+    "code": "SADECE_MAFYA_GRUBU_LIDERI_AÇIKLAMAYI_DEĞIŞTIREBILIR",
+    "msg": "Sadece Mafya Grubu lideri açıklamayı değiştirebilir."
+  },
+  {
+    "code": "SADECE_MAFYA_GRUBU_LIDERI_GRUP_ADINI_DEĞIŞTIREBILIR",
+    "msg": "Sadece Mafya Grubu lideri grup adını değiştirebilir."
+  },
+  {
+    "code": "SADECE_MAFYA_LIDERI_SEVIYE_YÜKSELTEBILIR",
+    "msg": "Sadece Mafya Lideri seviye yükseltebilir."
+  },
+  {
+    "code": "SADECE_MAKAM_SAHIBI_YAZABILIR",
+    "msg": "Sadece makam sahibi yazabilir."
+  },
+  {
+    "code": "SALDIRI_IÇIN_1_İCRAAT_HAKKI_GEREKIR",
+    "msg": "Saldırı için 1 İcraat Hakkı gerekir!"
+  },
+  {
+    "code": "SAVAŞ_BULUNAMADI",
+    "msg": "Savaş bulunamadı."
+  },
+  {
+    "code": "SAVAŞ_ILAN_ETMEK_IÇIN_GRUBUNDA_EN_AZ_3_ÜYE_OLMALI",
+    "msg": "Savaş ilan etmek için grubunda en az 3 üye olmalı."
+  },
+  {
+    "code": "SAVAŞ_KATILMAYA_KAPALI",
+    "msg": "Savaş katılmaya kapalı."
+  },
+  {
+    "code": "SAVAŞLAR_YÜKLENEMEDI",
+    "msg": "Savaşlar yüklenemedi."
+  },
+  {
+    "code": "SAYGI_DUVARI_YÜKLENEMEDI",
+    "msg": "Saygı duvarı yüklenemedi."
+  },
+  {
+    "code": "SAYGINLIĞINA_GÖRE_BU_TUR_EN_FAZLA_MAX_TOLOCALESTRING",
+    "msg": "Saygınlığına göre bu tur en fazla ${max.toLocaleString("
+  },
+  {
+    "code": "SEBEP_EN_AZ_SEBEP_MIN_KARAKTER_OLMALI",
+    "msg": "Sebep en az ${SEBEP_MIN} karakter olmalı."
+  },
+  {
+    "code": "SEHIR_AD_BOŞ_ÖNCE_KONTROL_TOPLA_VEYA_IHALEYE_GIR",
+    "msg": "${sehir.ad} boş — önce kontrol topla veya ihaleye gir."
+  },
+  {
+    "code": "SEHIR_AD_STRATEJIK_ŞEHIRDIR_ÖNCE_BIR_MAFYA_GRUBUNA_KATILMALI",
+    "msg": "${sehir.ad} stratejik şehirdir. Önce bir mafya grubuna katılmalısın."
+  },
+  {
+    "code": "SILINEMEDI",
+    "msg": "Silinemedi."
+  },
+  {
+    "code": "SMS_HAKKIN_KALMADI_YARIN_50_HAK_YENILENIR",
+    "msg": "SMS hakkın kalmadı! Yarın 50 hak yenilenir."
+  },
+  {
+    "code": "SOHBET_YÜKLENEMEDI",
+    "msg": "Sohbet yüklenemedi."
+  },
+  {
+    "code": "SOYGUN_BULUNAMADI_VEYA_KAPALI",
+    "msg": "Soygun bulunamadı veya kapalı."
+  },
+  {
+    "code": "SOYGUN_TANIMI_BULUNAMADI",
+    "msg": "Soygun tanımı bulunamadı."
+  },
+  {
+    "code": "SUNUCU_HATASI",
+    "msg": "Sunucu hatası."
+  },
+  {
+    "code": "ŞARTLAR_SAĞLANMADI_ONLINE_GÜÇ_GEREKSINIMLERI_EKSIK",
+    "msg": "Şartlar sağlanmadı. Online + güç gereksinimleri eksik."
+  },
+  {
+    "code": "ŞEHIR_BULUNAMADI",
+    "msg": "Şehir bulunamadı."
+  },
+  {
+    "code": "ŞEHIR_TARIHI_YÜKLENEMEDI",
+    "msg": "Şehir tarihi yüklenemedi."
+  },
+  {
+    "code": "ŞIFRE_EN_AZ_PASS_MIN_KARAKTER_OLMALI",
+    "msg": "Şifre en az ${PASS_MIN} karakter olmalı."
+  },
+  {
+    "code": "ŞIFRE_GÜNCELLENEMEDI",
+    "msg": "Şifre güncellenemedi."
+  },
+  {
+    "code": "ŞIRKET_ADI_EN_AZ_3_KARAKTER_OLMALI",
+    "msg": "Şirket adı en az 3 karakter olmalı."
+  },
+  {
+    "code": "ŞIRKET_KADROSU_DOLU",
+    "msg": "Şirket kadrosu dolu."
+  },
+  {
+    "code": "ŞIRKET_KASASINDA_YETERLI_PARA_YOK",
+    "msg": "Şirket kasasında yeterli para yok."
+  },
+  {
+    "code": "ŞIRKET_PANELI_YÜKLENEMEDI",
+    "msg": "Şirket paneli yüklenemedi."
+  },
+  {
+    "code": "ŞIRKET_SAHIBI_IKEN_NPC_IŞINE_GIREMEZSIN",
+    "msg": "Şirket sahibi iken NPC işine giremezsin."
+  },
+  {
+    "code": "ŞIRKET_TÜRÜ_GEÇERSIZ",
+    "msg": "Şirket türü geçersiz."
+  },
+  {
+    "code": "ŞIRKETIN_YOK",
+    "msg": "Şirketin yok."
+  },
+  {
+    "code": "TEK_SEFERDE_EN_FAZLA_5000_BIRIM",
+    "msg": "Tek seferde en fazla 5000 birim."
+  },
+  {
+    "code": "TEK_SEFERDE_EN_FAZLA_999_999_999_TL_ÇEKEBILIRSIN",
+    "msg": "Tek seferde en fazla 999.999.999 TL çekebilirsin."
+  },
+  {
+    "code": "TEK_SEFERDE_EN_FAZLA_999_999_999_TL_YATIRABILIRSIN",
+    "msg": "Tek seferde en fazla 999.999.999 TL yatırabilirsin."
+  },
+  {
+    "code": "TÜRKIYE_SEFIRLIĞI_YÜKLENEMEDI",
+    "msg": "Türkiye Sefirliği yüklenemedi."
+  },
+  {
+    "code": "ÜS_SEVIYESI_EN_AZ_KASA_MINBASESEVIYE_OLMALI",
+    "msg": "Üs seviyesi en az ${kasa.minBaseSeviye} olmalı."
+  },
+  {
+    "code": "ÜSSÜN_ZATEN_MAKSIMUM_SEVIYEDE",
+    "msg": "Üssün zaten maksimum seviyede."
+  },
+  {
+    "code": "ÜYE_BULUNAMADI",
+    "msg": "Üye bulunamadı."
+  },
+  {
+    "code": "YENI_LIDER_GRUPTA_OLMALI",
+    "msg": "Yeni lider grupta olmalı."
+  },
+  {
+    "code": "YENI_ŞIFRE_EN_AZ_PASS_MIN_KARAKTER_OLMALI",
+    "msg": "Yeni şifre en az ${PASS_MIN} karakter olmalı."
+  },
+  {
+    "code": "YETENEKLERIN_BU_POZISYON_IÇIN_YETERSIZ",
+    "msg": "Yeteneklerin bu pozisyon için yetersiz."
+  },
+  {
+    "code": "YETERLI_GEREKSINIMLERE_SAHIP_DEĞILSIN_GÜÇ_YETERSIZ",
+    "msg": "Yeterli gereksinimlere sahip değilsin! (Güç yetersiz)"
+  },
+  {
+    "code": "YETERLI_İCRAAT_HAKKIN_KALMADI_BIRAZ_BEKLE",
+    "msg": "Yeterli İcraat Hakkın kalmadı! Biraz bekle."
+  },
+  {
+    "code": "YETERLI_PARAN_YOK",
+    "msg": "Yeterli paran yok."
+  },
+  {
+    "code": "YETERLI_PARAN_YOK_KASANDA_PLAYER_KASA_TOLOCALESTRING",
+    "msg": "Yeterli paran yok. (Kasanda: ${player.kasa.toLocaleString("
+  },
+  {
+    "code": "YETERSIZ_BIRIKIM_KALAN",
+    "msg": "Yetersiz birikim. Kalan:"
+  },
+  {
+    "code": "YETKISIZ",
+    "msg": "Yetkisiz."
+  },
+  {
+    "code": "YÖNETICI_HESABI_BANLANAMAZ",
+    "msg": "Yönetici hesabı banlanamaz."
+  },
+  {
+    "code": "YÖNETICI_OTURUMU_SONLANDIRILAMAZ",
+    "msg": "Yönetici oturumu sonlandırılamaz."
+  },
+  {
+    "code": "YÜKSELTME_HESAPLANAMADI",
+    "msg": "Yükseltme hesaplanamadı."
+  },
+  {
+    "code": "YÜKSELTME_MALIYET_TL_YETERSIZ_KASA",
+    "msg": "Yükseltme ${maliyet} TL — yetersiz kasa."
+  },
+  {
+    "code": "ZATEN_BEKLEYEN_BIR_BAŞVURUN_VAR",
+    "msg": "Zaten bekleyen bir başvurun var."
+  },
+  {
+    "code": "ZATEN_BIR_GRUPTASIN",
+    "msg": "Zaten bir gruptasın."
+  },
+  {
+    "code": "ZATEN_BIR_IŞTE_ÇALIŞIYORSUN_ÖNCE_ISTIFA_ETMELISIN",
+    "msg": "Zaten bir işte çalışıyorsun. Önce istifa etmelisin."
+  },
+  {
+    "code": "ZATEN_BIR_MAFYA_GRUBUNDASIN",
+    "msg": "Zaten bir Mafya Grubundasın."
+  },
+  {
+    "code": "ZATEN_BIR_ŞIRKETIN_VAR",
+    "msg": "Zaten bir şirketin var."
+  },
+  {
+    "code": "ZATEN_BIR_ŞIRKETTE_ÇALIŞIYORSUN",
+    "msg": "Zaten bir şirkette çalışıyorsun."
+  },
+  {
+    "code": "ZATEN_BU_ISMI_KULLANIYORSUN",
+    "msg": "Zaten bu ismi kullanıyorsun."
+  },
+  {
+    "code": "ZATEN_BU_SAVAŞA_KATILDIN",
+    "msg": "Zaten bu savaşa katıldın."
+  },
+  {
+    "code": "ZATEN_BU_ŞEHIRDE_LIDERSIN",
+    "msg": "Zaten bu şehirde lidersin."
+  }
+]

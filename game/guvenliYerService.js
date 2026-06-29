@@ -1,16 +1,31 @@
 const { run, get } = require("../db/database");
 const { logStatHareket } = require("./statService");
+const { syncBonusGuc } = require("./bonusGucService");
 const {
   BASE_GENISLIK,
   BASE_YUKSEKLIK,
   MAX_SEVIYE,
   SEVIYELER,
   MODUL_ALAN,
+  KASALAR,
+  kasaBul,
+  kasaKorumaOrani,
   seviyeGorselYolu,
   seviyeBul,
   sonrakiSeviye,
   toplamGucBonusu,
 } = require("./guvenliYerCatalog");
+
+async function migrateGuvenliYerKasalar(db) {
+  for (const [col, def] of [
+    ["kasa_gumus", "INTEGER NOT NULL DEFAULT 0"],
+    ["kasa_altin", "INTEGER NOT NULL DEFAULT 0"],
+  ]) {
+    try {
+      await run(db, `ALTER TABLE user_base ADD COLUMN ${col} ${def}`);
+    } catch (_) {}
+  }
+}
 
 async function ensureUserBaseTable(db) {
   await run(
@@ -28,10 +43,13 @@ async function ensureUserBaseTable(db) {
       helipad INTEGER NOT NULL DEFAULT 0,
       bunker_lvl INTEGER NOT NULL DEFAULT 0,
       bunker_entrance INTEGER NOT NULL DEFAULT 0,
+      kasa_gumus INTEGER NOT NULL DEFAULT 0,
+      kasa_altin INTEGER NOT NULL DEFAULT 0,
       updated_at INTEGER NOT NULL DEFAULT (strftime('%s','now')),
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     )`
   );
+  await migrateGuvenliYerKasalar(db);
 }
 
 async function ensureUserBase(db, userId) {
@@ -59,8 +77,45 @@ function baseOzeti(row) {
     helipad: row.helipad,
     bunkerLvl: row.bunker_lvl,
     bunkerEntrance: row.bunker_entrance,
+    kasaGumus: !!row.kasa_gumus,
+    kasaAltin: !!row.kasa_altin,
+    kasaKorumaOrani: kasaKorumaOrani(row),
     gucBonus: toplamGucBonusu(s),
   };
+}
+
+function kasaPanelOzeti(row, player) {
+  const baseSev = Math.max(1, row.base_seviye || 1);
+  return KASALAR.map((k) => {
+    const sahip = !!row[k.alan];
+    let kilitli = false;
+    let kilitNedeni = "";
+    if (!sahip && k.minBaseSeviye > baseSev) {
+      kilitli = true;
+      kilitNedeni = `Üs seviyesi ${k.minBaseSeviye}+ gerekir`;
+    }
+    if (!sahip && k.onkosul) {
+      const onceki = kasaBul(k.onkosul);
+      if (onceki && !row[onceki.alan]) {
+        kilitli = true;
+        kilitNedeni = `Önce ${onceki.ad} gerekir`;
+      }
+    }
+    return {
+      id: k.id,
+      ad: k.ad,
+      aciklama: k.aciklama,
+      maliyet: k.maliyet,
+      korumaOrani: k.korumaOrani,
+      gorsel: k.gorsel,
+      minBaseSeviye: k.minBaseSeviye,
+      onkosul: k.onkosul,
+      sahip,
+      kilitli,
+      kilitNedeni,
+      yeterliPara: player.kasa >= k.maliyet,
+    };
+  });
 }
 
 async function panelGetir(db, userId, player) {
@@ -96,6 +151,7 @@ async function panelGetir(db, userId, player) {
       acik: m.seviye <= s,
       gorselSrc: seviyeGorselYolu(m.seviye),
     })),
+    kasalar: kasaPanelOzeti(row, player),
   };
 }
 
@@ -122,9 +178,8 @@ async function gelistir(db, userId, player) {
   await run(db, `UPDATE user_base SET ${sets.join(", ")} WHERE user_id = ?`, params);
 
   if (sonraki.gucBonus > 0) {
-    const yeniBonus = toplamGucBonusu(sonraki.seviye);
-    player.bonus_guc = yeniBonus;
-    await run(db, `UPDATE players SET bonus_guc = ? WHERE user_id = ?`, [yeniBonus, userId]);
+    const bonusSync = await syncBonusGuc(db, userId);
+    player.bonus_guc = bonusSync.toplam;
     await logStatHareket(db, userId, "bonus_guc", sonraki.gucBonus, "guvenli_yer");
   }
 
@@ -135,6 +190,46 @@ async function gelistir(db, userId, player) {
     base: baseOzeti(guncel),
     gorselSrc: seviyeGorselYolu(sonraki.seviye),
     mesaj: `Seviye ${sonraki.seviye}: ${sonraki.ad} tamamlandı!`,
+  };
+}
+
+async function kasaSatinAl(db, userId, player, kasaId) {
+  const kasa = kasaBul(String(kasaId || "").trim());
+  if (!kasa) return { ok: false, error: "Geçersiz kasa." };
+
+  const row = await ensureUserBase(db, userId);
+  if (row[kasa.alan]) return { ok: false, error: "Bu kasa zaten sende." };
+
+  const baseSev = Math.max(1, row.base_seviye || 1);
+  if (kasa.minBaseSeviye > baseSev) {
+    return { ok: false, error: `Üs seviyesi en az ${kasa.minBaseSeviye} olmalı.` };
+  }
+  if (kasa.onkosul) {
+    const onceki = kasaBul(kasa.onkosul);
+    if (onceki && !row[onceki.alan]) {
+      return { ok: false, error: `Önce ${onceki.ad} satın almalısın.` };
+    }
+  }
+  if (player.kasa < kasa.maliyet) {
+    return { ok: false, error: "Kasanda yeterli nakit yok!" };
+  }
+
+  player.kasa -= kasa.maliyet;
+  await run(db, `UPDATE players SET kasa = ? WHERE user_id = ?`, [player.kasa, userId]);
+  await logStatHareket(db, userId, "kasa", -kasa.maliyet, "guvenli_yer_kasa");
+  await run(
+    db,
+    `UPDATE user_base SET ${kasa.alan} = 1, updated_at = strftime('%s','now') WHERE user_id = ?`,
+    [userId]
+  );
+
+  const guncel = await ensureUserBase(db, userId);
+  const korumaYuzde = Math.round(kasa.korumaOrani * 100);
+  return {
+    ok: true,
+    kasa,
+    base: baseOzeti(guncel),
+    mesaj: `${kasa.ad} satın alındı! Kasandaki nakitin %${korumaYuzde}'i saldırıdan korunur.`,
   };
 }
 
@@ -157,32 +252,15 @@ async function adminSeviyeAyarla(db, userId, seviye) {
     if (!alan) continue;
     await run(db, `UPDATE user_base SET ${alan} = 1 WHERE user_id = ?`, [userId]);
   }
-  const bonus = toplamGucBonusu(s);
-  await run(db, `UPDATE players SET bonus_guc = ? WHERE user_id = ?`, [bonus, userId]);
+  const bonusSync = await syncBonusGuc(db, userId);
+  await run(db, `UPDATE players SET bonus_guc = ? WHERE user_id = ?`, [bonusSync.toplam, userId]);
   const row = await ensureUserBase(db, userId);
   return { ok: true, base: baseOzeti(row) };
 }
 
 async function migrateGuvenliYerBonusGuc(db) {
-  const { all, run: dbRun } = require("../db/database");
-  const rows = await all(
-    db,
-    `SELECT ub.user_id, ub.base_seviye, p.guc, COALESCE(p.bonus_guc, 0) AS bonus_guc
-     FROM user_base ub
-     JOIN players p ON p.user_id = ub.user_id`
-  );
-  for (const r of rows) {
-    const expected = toplamGucBonusu(r.base_seviye);
-    const currentBonus = r.bonus_guc || 0;
-    if (expected <= currentBonus) continue;
-    const delta = expected - currentBonus;
-    const newGuc = Math.max(0, (r.guc || 0) - delta);
-    await dbRun(db, `UPDATE players SET bonus_guc = ?, guc = ? WHERE user_id = ?`, [
-      expected,
-      newGuc,
-      r.user_id,
-    ]);
-  }
+  const { migrateTumBonusGuc } = require("./bonusGucService");
+  await migrateTumBonusGuc(db);
 }
 
 module.exports = {
@@ -190,6 +268,7 @@ module.exports = {
   ensureUserBase,
   panelGetir,
   gelistir,
+  kasaSatinAl,
   baseOzeti,
   adminSeviyeAyarla,
   migrateGuvenliYerBonusGuc,

@@ -44,6 +44,26 @@ async function savasIlanEt(db, saldiranGrupId, hedefGrupId) {
   try {
     await mafyaSavasIlanHaber(db, saldiran?.isim || "?", hedef?.isim || "?");
   } catch (_) {}
+
+  const { grupUyelerineBildir } = require("./bildirimService");
+  const saldiranAd = saldiran?.isim || "Grubun";
+  const hedefAd = hedef?.isim || "Düşman";
+  grupUyelerineBildir(
+    db,
+    saldiranGrupId,
+    "mafya_savas_baslatildi",
+    "Mafya Grubun Savaş Başlattı",
+    `${saldiranAd}, ${hedefAd} grubuna karşı savaş ilan etti.`,
+    "/?ekran=mafya"
+  ).catch(() => {});
+  grupUyelerineBildir(
+    db,
+    hedefGrupId,
+    "mafya_savas_acildi",
+    "Mafya Grubuna Savaş Açıldı",
+    `${saldiranAd} grubu size karşı savaş açtı.`,
+    "/?ekran=mafya"
+  ).catch(() => {});
   
   return { ok: true, mesaj: "Savaş ilan edildi! 8 saat sonra başlayacak." };
 }
@@ -232,50 +252,9 @@ async function savasiCoz(db) {
   }
 }
 
-async function aylikMafyaOzeti(db) {
-  // En güçlü mafya ailesi (toplam güç)
-  const enGuclu = await get(
-    db,
-    `SELECT g.id, g.isim, SUM(p.guc) AS toplam_guc
-     FROM mafya_gruplari g
-     JOIN mafya_uyeler u ON u.grup_id = g.id
-     JOIN players p ON p.user_id = u.user_id
-     GROUP BY g.id
-     ORDER BY toplam_guc DESC
-     LIMIT 1`
-  );
-
-  // En çok savaş kazanan mafya ailesi (bu ay)
-  const ayBasi = Math.floor(new Date(new Date().getFullYear(), new Date().getMonth(), 1).getTime());
-  const enCokKazanan = await get(
-    db,
-    `SELECT g.id, g.isim, COUNT(*) AS kazanilan
-     FROM mafya_savaslar s
-     JOIN mafya_gruplari g ON g.id = s.kazanan_grup_id
-     WHERE s.durum = 'tamamlandi' AND s.savas_zamani >= ?
-     GROUP BY g.id
-     ORDER BY kazanilan DESC
-     LIMIT 1`,
-    [ayBasi]
-  );
-
-  const { gazeteEkle } = require("./sehirGazeteService");
-  
-  if (enGuclu) {
-    await gazeteEkle(db, `📰 AYLIK RAPOR: En Güçlü Mafya Ailesi — [${enGuclu.isim}] (Toplam Güç: ${enGuclu.toplam_guc})`);
-  }
-  if (enCokKazanan) {
-    await gazeteEkle(db, `📰 AYLIK RAPOR: En Çok Savaş Kazanan Aile — [${enCokKazanan.isim}] (${enCokKazanan.kazanilan} zafer)`);
-  }
-  if (!enGuclu && !enCokKazanan) {
-    await gazeteEkle(db, `📰 AYLIK RAPOR: Bu ay henüz savaş yapılmadı ve güç sıralaması oluşmadı.`);
-  }
-}
-
 module.exports = {
   savasIlanEt,
   savasaKatil,
   savaslariListele,
   savasiCoz,
-  aylikMafyaOzeti,
 };

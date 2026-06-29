@@ -3,3 +3,23 @@ db/*.db
 .env
 *.log
 node_modules/
+
+# Capacitor / Android
+android/.gradle/
+android/app/build/
+android/build/
+android/.idea/
+android/local.properties
+android/captures/
+android/keystore.properties
+android/release/
+android/release/SIGNING-CREDENTIALS.txt
+*.apk
+*.aab
+*.keystore
+*.jks
+
+# Capacitor / iOS
+ios/App/build/
+ios/App/Pods/
+ios/DerivedData/

@@ -159,14 +159,55 @@ function toplamGucBonusu(baseSeviye) {
   return SEVIYELER.filter((x) => x.seviye <= s).reduce((t, x) => t + (x.gucBonus || 0), 0);
 }
 
+/** Güvenli Yer altında satın alınabilir gizli kasalar — saldırıda nakit korur */
+const KASALAR = [
+  {
+    id: "gumus",
+    ad: "Gizli Para Kasası",
+    aciklama: "Üssün altına gömülü gümüş kasa. Kasandaki nakitin %25'ini saldırıdan korur.",
+    maliyet: 750_000,
+    korumaOrani: 0.25,
+    gorsel: "/images/guvenli-yer/kasa-gumus.png",
+    alan: "kasa_gumus",
+    minBaseSeviye: 3,
+    onkosul: null,
+  },
+  {
+    id: "altin",
+    ad: "Altın Hazine Kasası",
+    aciklama: "Taç, mücevher ve külçe altın dolu hazine. Kasandaki nakitin %50'sini saldırıdan korur.",
+    maliyet: 3_500_000,
+    korumaOrani: 0.5,
+    gorsel: "/images/guvenli-yer/kasa-altin.png",
+    alan: "kasa_altin",
+    minBaseSeviye: 6,
+    onkosul: "gumus",
+  },
+];
+
+function kasaBul(id) {
+  return KASALAR.find((k) => k.id === id) || null;
+}
+
+/** Sahip olunan en yüksek kasa koruma oranı (altın gümüşün üzerine yazar) */
+function kasaKorumaOrani(row) {
+  if (!row) return 0;
+  if (row.kasa_altin) return 0.5;
+  if (row.kasa_gumus) return 0.25;
+  return 0;
+}
+
 module.exports = {
   BASE_GENISLIK,
   BASE_YUKSEKLIK,
   MAX_SEVIYE,
   SEVIYELER,
   MODUL_ALAN,
+  KASALAR,
   seviyeGorselYolu,
   seviyeBul,
   sonrakiSeviye,
   toplamGucBonusu,
+  kasaBul,
+  kasaKorumaOrani,
 };

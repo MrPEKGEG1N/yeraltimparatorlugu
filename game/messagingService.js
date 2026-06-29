@@ -105,6 +105,12 @@ async function saldiriMesajiEkle(
      VALUES (?, ?, 'saldiri', ?, ?, 0, strftime('%s','now'))`,
     [hedefUserId, saldiran?.id || null, "Saldırı - " + saldiranAdi, icerik]
   );
+  const { bildirimGonder } = require("./bildirimService");
+  await bildirimGonder(db, hedefUserId, "saldiri", {
+    baslik: "Saldırıya Uğradın",
+    icerik: `${saldiranAdi} saldırdı. ${paraStr} TL kaybettin${puanKaybi > 0 ? `, ${puanKaybi} saygınlık gitti` : ""}.`,
+    url: "/?ekran=mesajKutusu",
+  });
 }
 
 async function ozelMesajGonder(db, fromUserId, hedefAd, metin) {
@@ -390,12 +396,57 @@ async function mafyaSohbetGonder(db, userId, metin) {
   return { ok: true };
 }
 
+async function sabotajMesajiEkle(
+  db,
+  { hedefUserId, saldiranUserId, hedefAdi, saldiranAdi, turAdi, basari, ozet, hedefOzet, kazanilanPara }
+) {
+  await ensureMessagingTables(db);
+  const kurbanMetin = hedefOzet || ozet;
+  if (basari) {
+    const icerik =
+      `Gölgelerden bir saldırı! ${turAdi} operasyonu başarıyla tamamlandı. ` +
+      `Kim yaptı bilinmiyor ama zarar açık: ${kurbanMetin}. Hemen önlem al!`;
+    await run(
+      db,
+      `INSERT INTO oyuncu_mesajlari (to_user_id, from_user_id, tip, konu, icerik, okundu, created_at)
+       VALUES (?, NULL, 'sabotaj', ?, ?, 0, strftime('%s','now'))`,
+      [hedefUserId, "Sabotaj — Gizli Saldırı", icerik]
+    );
+    const saldiranIcerik =
+      `${hedefAdi} hedefine ${turAdi} sabotajın başarılı oldu. ${ozet}` +
+      (kazanilanPara > 0 ? ` Kasana ${kazanilanPara.toLocaleString("tr-TR")} TL eklendi.` : "");
+    await run(
+      db,
+      `INSERT INTO oyuncu_mesajlari (to_user_id, from_user_id, tip, konu, icerik, okundu, created_at)
+       VALUES (?, NULL, 'sabotaj', ?, ?, 0, strftime('%s','now'))`,
+      [saldiranUserId, "Sabotaj — Başarılı", saldiranIcerik]
+    );
+  } else {
+    const hedefIcerik =
+      `${saldiranAdi} seni ${turAdi} ile sabote etmeye kalktı ama planı tutmadı. Sokaklar konuşuyor!`;
+    await run(
+      db,
+      `INSERT INTO oyuncu_mesajlari (to_user_id, from_user_id, tip, konu, icerik, okundu, created_at)
+       VALUES (?, ?, 'sabotaj', ?, ?, 0, strftime('%s','now'))`,
+      [hedefUserId, saldiranUserId, "Sabotaj — Girişim", hedefIcerik]
+    );
+    const saldiranIcerik = `${hedefAdi} hedefine ${turAdi} tutmadı. Plan ifşa oldu.`;
+    await run(
+      db,
+      `INSERT INTO oyuncu_mesajlari (to_user_id, from_user_id, tip, konu, icerik, okundu, created_at)
+       VALUES (?, NULL, 'sabotaj', ?, ?, 0, strftime('%s','now'))`,
+      [saldiranUserId, "Sabotaj — Başarısız", saldiranIcerik]
+    );
+  }
+}
+
 module.exports = {
   SMS_GUNLUK,
   turkeyDayKey,
   getSmsHakki,
   ensureMessagingTables,
   saldiriMesajiEkle,
+  sabotajMesajiEkle,
   ozelMesajGonder,
   tumMesajlariOkundu,
   mesajlariGetir,

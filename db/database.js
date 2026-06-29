@@ -420,6 +420,7 @@ async function initDatabase() {
     ["dusmanlar", "TEXT NOT NULL DEFAULT ''"],
     ["profil_resmi", "TEXT NOT NULL DEFAULT ''"],
     ["bonus_guc", "INTEGER NOT NULL DEFAULT 0"],
+    ["last_saatlik_gelir_hour", "TEXT"],
   ];
   for (const [col, def] of playerCols) {
     try {
@@ -678,6 +679,20 @@ async function initDatabase() {
     )`
   );
 
+  await run(
+    db,
+    `CREATE TABLE IF NOT EXISTS mafya_aylik_sampiyon (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      yil INTEGER NOT NULL,
+      ay INTEGER NOT NULL,
+      grup_id INTEGER NOT NULL,
+      toplam_guc INTEGER NOT NULL DEFAULT 0,
+      created_at INTEGER NOT NULL DEFAULT (strftime('%s','now')),
+      UNIQUE(yil, ay),
+      FOREIGN KEY (grup_id) REFERENCES mafya_gruplari(id) ON DELETE CASCADE
+    )`
+  );
+
   // Mafya işleri (soygunlar)
   await run(
     db,
@@ -721,6 +736,8 @@ async function initDatabase() {
     ["sehir_efsane", "INTEGER NOT NULL DEFAULT 0"],
     ["aktif_hukumranlik_id", "INTEGER"],
     ["profil_ziyaret_okundu_at", "INTEGER NOT NULL DEFAULT 0"],
+    ["meslek_sirket_bildirim", "INTEGER NOT NULL DEFAULT 0"],
+    ["yetenek_maas_antrenman_puani", "INTEGER NOT NULL DEFAULT 0"],
   ];
   for (const [col, def] of playerCols2) {
     try {
@@ -890,6 +907,18 @@ async function initDatabase() {
 
   const { restoreOyuncuSnapshots } = require("../game/oyuncuRestoreService");
   await restoreOyuncuSnapshots(db);
+
+  const { ensureSefirlikTables } = require("../game/turkiyeSefirlikService");
+  await ensureSefirlikTables(db);
+
+  const { ensureMeslekTables } = require("../game/meslekService");
+  await ensureMeslekTables(db);
+
+  const { ensureSirketTables } = require("../game/sirketService");
+  await ensureSirketTables(db);
+
+  const { ensureRaporTables } = require("../game/raporService");
+  await ensureRaporTables(db);
 
   await logDatabaseStats(db);
   await backupDbFile(DB_PATH);

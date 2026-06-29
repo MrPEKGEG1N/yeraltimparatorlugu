@@ -7,7 +7,8 @@ const { ZAYIF_HAMLE_MSG } = require("./saygiDuvariService");
 const { limanHaberEkle, makamHaberEkle } = require("./sehirGazeteService");
 const { logStatHareket } = require("./statService");
 const { temizGrupAdi } = require("./grupAdi");
-const { toplamGuc, savunmaGucu, oyuncuGucBilgisi, gucKaybiOranliUygula } = require("./gucService");
+const { kasaKorumaOrani } = require("./guvenliYerCatalog");
+const { toplamGuc, savunmaGucu, makamSavunmaGucu, gucKaybiOranliUygula } = require("./gucService");
 const { icraatHarca } = require("./icraatService");
 const {
   LIMAN_IDS,
@@ -18,33 +19,28 @@ const {
 } = require("./worldConstants");
 
 const SALDIRI_PARA_ORAN = 0.1;
+/** Rakip en az saldıranın bu oranı kadar güçlü olmalı */
+const SALDIRI_MIN_RAKIP_ORAN = 0.5;
+/** Rakip en fazla saldıranın bu oranı kadar güçlü olabilir */
+const SALDIRI_MAX_RAKIP_ORAN = 1.5;
+const SALDIRI_GUCSUZ_HEDEF_MSG =
+  "Kendinden güçsüz birine saldırmak büyüklüğün şanına yakışmaz!";
+const SALDIRI_GUCLU_HEDEF_MSG =
+  "Rakibin senden daha güçlü! Gücün yetersiz!\n\n💪 Daha fazla güçlenmen gerekiyor! Silah al, koruma kirala veya lüks eşyalar satın alarak gücünü artır.\n\nSenden daha güçlü birine saldırırsan alemde rezil olursun!";
 const SALDIRI_SAYGINLIK_ORAN = 0.01;
 const SALDIRI_SAYGINLIK_MIN_KASA = 50000;
 
-function saldiriOdulHesapla(hedefKasa, hedefPuan) {
-  const paraKazanc = Math.floor(Math.max(0, hedefKasa) * SALDIRI_PARA_ORAN);
-  const sayginlikAlinabilir = hedefKasa >= SALDIRI_SAYGINLIK_MIN_KASA;
+function saldiriOdulHesapla(hedefKasa, hedefPuan, korumaOrani = 0) {
+  const kasa = Math.max(0, hedefKasa);
+  const koruma = Math.max(0, Math.min(1, Number(korumaOrani) || 0));
+  const korunanMiktar = Math.floor(kasa * koruma);
+  const calinabilirKasa = Math.max(0, kasa - korunanMiktar);
+  const paraKazanc = Math.floor(calinabilirKasa * SALDIRI_PARA_ORAN);
+  const sayginlikAlinabilir = kasa >= SALDIRI_SAYGINLIK_MIN_KASA;
   const puanKazanc = sayginlikAlinabilir
     ? Math.floor(Math.max(0, hedefPuan) * SALDIRI_SAYGINLIK_ORAN)
     : 0;
-  return { paraKazanc, puanKazanc, sayginlikAlinabilir };
-}
-
-function turkeyHourStamp() {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Europe/Istanbul",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    hour12: false,
-  })
-    .formatToParts(new Date())
-    .reduce((acc, p) => {
-      acc[p.type] = p.value;
-      return acc;
-    }, {});
-  return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}`;
+  return { paraKazanc, puanKazanc, sayginlikAlinabilir, korunanMiktar };
 }
 
 async function ensureWorldRows(db) {
@@ -152,48 +148,18 @@ async function getBabaDurumu(db) {
 }
 
 async function processLimanIncome(db, userId, player) {
-  await ensureWorldRows(db);
-  const hourKey = turkeyHourStamp();
-  const owned = await all(
-    db,
-    `SELECT liman_id, last_income_hour FROM liman_sahiplik WHERE owner_user_id = ?`,
-    [userId]
-  );
-  if (!owned.length) return player;
-
-  let toplam = 0;
-  for (const row of owned) {
-    if (row.last_income_hour === hourKey) continue;
-    toplam += LIMAN_SAATLIK;
-    await run(
-      db,
-      `UPDATE liman_sahiplik SET last_income_hour = ? WHERE liman_id = ? AND owner_user_id = ?`,
-      [hourKey, row.liman_id, userId]
-    );
-  }
-  if (owned.length === 3) {
-    const bonusRow = await get(db, `SELECT last_uc_bonus_hour FROM players WHERE user_id = ?`, [
-      userId,
-    ]);
-    if (bonusRow && bonusRow.last_uc_bonus_hour !== hourKey) {
-      toplam += LIMAN_UC_BONUS;
-      await run(db, `UPDATE players SET last_uc_bonus_hour = ? WHERE user_id = ?`, [
-        hourKey,
-        userId,
-      ]);
-    }
-  }
-  if (toplam > 0) {
-    player.kasa += toplam;
-    await run(db, `UPDATE players SET kasa = ? WHERE user_id = ?`, [player.kasa, userId]);
-  }
-  return player;
+  const { processSaatlikGelir } = require("./saatlikGelirService");
+  return (await processSaatlikGelir(db, userId, player)).player;
 }
 
 async function limanSahipSavunmaGucu(db, ownerId) {
   if (!ownerId) return 0;
-  const info = await oyuncuGucBilgisi(db, ownerId);
-  return info.savunmaGucu;
+  const row = await get(
+    db,
+    `SELECT guc, COALESCE(bonus_guc, 0) AS bonus_guc, kara_listede FROM players WHERE user_id = ?`,
+    [ownerId]
+  );
+  return makamSavunmaGucu(row);
 }
 
 async function limanCok(db, attackerId, attacker, limanId, securityMeta = {}) {
@@ -245,6 +211,10 @@ async function limanCok(db, attackerId, attacker, limanId, securityMeta = {}) {
   if (eskiSahip && eskiSahip !== attackerId) {
     try {
       await kaybedenHukumdariKontrol(db, eskiSahip);
+    } catch (_) {}
+    try {
+      const { syncSaatlikGelirSaati } = require("./saatlikGelirService");
+      await syncSaatlikGelirSaati(db, eskiSahip);
     } catch (_) {}
   }
   try {
@@ -372,17 +342,15 @@ async function dusmanaCok(db, attackerId, attacker, hedefAd, securityMeta = {}) 
 
   const saldiranToplam = toplamGuc(attacker);
   const hedefSavunma = savunmaGucu(hedef);
+  const minHedefGuc = saldiranToplam * SALDIRI_MIN_RAKIP_ORAN;
+  const maxHedefGuc = saldiranToplam * SALDIRI_MAX_RAKIP_ORAN;
 
-  if (saldiranToplam < hedefSavunma * 0.1) {
-    return { ok: false, error: ZAYIF_HAMLE_MSG };
+  if (hedefSavunma < minHedefGuc) {
+    return { ok: false, error: SALDIRI_GUCSUZ_HEDEF_MSG };
   }
 
-  if (saldiranToplam < hedefSavunma) {
-    return {
-      ok: false,
-      error:
-        "Rakibin senden daha güçlü! Gücün yetersiz!\n\n💪 Daha fazla güçlenmen gerekiyor! Silah al, koruma kirala veya lüks eşyalar satın alarak gücünü artır.",
-    };
+  if (hedefSavunma > maxHedefGuc) {
+    return { ok: false, error: SALDIRI_GUCLU_HEDEF_MSG };
   }
 
   const icraatSonuc = await icraatHarca(db, attackerId, 1);
@@ -400,9 +368,16 @@ async function dusmanaCok(db, attackerId, attacker, hedefAd, securityMeta = {}) 
   const yeniDevletIliski = await devletDusur(db, attackerId, devletDusus);
 
   if (saldiranToplam > hedefSavunma) {
+    const hedefBase = await get(
+      db,
+      `SELECT kasa_gumus, kasa_altin FROM user_base WHERE user_id = ?`,
+      [hedef.id]
+    );
+    const korumaOrani = kasaKorumaOrani(hedefBase);
     const { paraKazanc, puanKazanc, sayginlikAlinabilir } = saldiriOdulHesapla(
       hedef.kasa,
-      hedef.puan
+      hedef.puan,
+      korumaOrani
     );
 
     attacker.kasa += paraKazanc;
@@ -524,9 +499,9 @@ async function rakipListele(db, userId, limit = 5) {
   const guc = toplamGuc(row);
   if (guc <= 0) return [];
 
-  // Saldırı motoru: en az %10 güç, en fazla %150 güç farkı (dusmanaCok ile uyumlu)
-  const minGuc = Math.max(1, Math.floor(guc * 0.1));
-  const maxGuc = Math.ceil(guc * 1.5);
+  // Saldırı aralığı: %50 – %150 (dusmanaCok ile uyumlu)
+  const minGuc = Math.max(1, Math.floor(guc * SALDIRI_MIN_RAKIP_ORAN));
+  const maxGuc = Math.ceil(guc * SALDIRI_MAX_RAKIP_ORAN);
   const rows = await all(
     db,
     `SELECT u.id AS user_id, u.reis_adi, u.lakap, u.grup, p.puan

@@ -1,10 +1,24 @@
 /* Görsel menü hub — Güçlen, Büyüme Adımları & Mekan Sahibi */
 #masterLayout #anaIcerik .vizuel-menu-hub {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   min-height: min(72vh, 560px);
   padding: 12px 16px 24px;
+}
+
+#masterLayout #anaIcerik .vizuel-menu-ipucu {
+  width: min(980px, 100%);
+  margin: 0 0 10px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 215, 106, 0.22);
+  color: rgba(255, 230, 180, 0.88);
+  font-size: 12px;
+  line-height: 1.45;
+  text-align: center;
 }
 
 #masterLayout #anaIcerik .vizuel-menu-wrap {
@@ -27,8 +41,16 @@
   transition: filter 0.4s ease;
 }
 
+#masterLayout #anaIcerik .vizuel-menu-wrap--i18n .vizuel-menu-img {
+  filter: brightness(0.58) saturate(0.72);
+}
+
 #masterLayout #anaIcerik .vizuel-menu-wrap:has(.vizuel-menu-zone:hover) .vizuel-menu-img {
   filter: brightness(0.72) saturate(0.85);
+}
+
+#masterLayout #anaIcerik .vizuel-menu-wrap--i18n:has(.vizuel-menu-zone:hover) .vizuel-menu-img {
+  filter: brightness(0.64) saturate(0.78);
 }
 
 #masterLayout #anaIcerik .vizuel-menu-zone {
@@ -42,10 +64,54 @@
   overflow: visible;
 }
 
+#masterLayout #anaIcerik .vizuel-menu-wrap--i18n .vizuel-menu-zone-etiket,
+#masterLayout #anaIcerik .vizuel-menu-wrap--i18n .vizuel-menu-zone-alt {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 3;
+}
+
+#masterLayout #anaIcerik .vizuel-menu-wrap--i18n .vizuel-menu-zone-etiket {
+  bottom: 3.5%;
+  display: block;
+  padding: 7px 12px;
+  background: rgba(6, 4, 0, 0.96);
+  border: 1px solid rgba(255, 215, 106, 0.55);
+  border-radius: 6px;
+  color: #ffd76a;
+  font-family: 'Oswald', sans-serif;
+  font-size: clamp(12px, 1.55vw, 17px);
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.15;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+  max-width: 94%;
+  word-break: break-word;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.65);
+}
+
+#masterLayout #anaIcerik .vizuel-menu-wrap--i18n .vizuel-menu-zone-alt {
+  bottom: calc(3.5% + 2.4em);
+  display: block;
+  padding: 3px 8px;
+  background: rgba(0, 0, 0, 0.72);
+  border-radius: 4px;
+  color: rgba(230, 220, 200, 0.88);
+  font-size: clamp(9px, 1vw, 11px);
+  line-height: 1.2;
+  text-align: center;
+  max-width: 90%;
+}
+
 #masterLayout #anaIcerik .vizuel-menu-zone::after {
   content: "";
   position: absolute;
-  inset: -8% -4%;
+  left: -4%;
+  right: -4%;
+  top: 0;
+  bottom: 38%;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.38s ease;
@@ -83,23 +149,23 @@
 
 #masterLayout #anaIcerik .vizuel-menu--guclen .vizuel-menu-zone--ekip {
   left: 4.5%;
-  top: 20%;
+  top: 14%;
   width: 28%;
-  height: 42%;
+  height: 64%;
 }
 
 #masterLayout #anaIcerik .vizuel-menu--guclen .vizuel-menu-zone--silah {
   left: 35.5%;
-  top: 20%;
+  top: 14%;
   width: 28%;
-  height: 42%;
+  height: 64%;
 }
 
 #masterLayout #anaIcerik .vizuel-menu--guclen .vizuel-menu-zone--luks {
   left: 66.5%;
-  top: 20%;
+  top: 14%;
   width: 28%;
-  height: 42%;
+  height: 64%;
 }
 
 #masterLayout #anaIcerik .vizuel-menu--guclen .vizuel-menu-zone--ekip::after {
@@ -135,23 +201,23 @@
 
 #masterLayout #anaIcerik .vizuel-menu--buyume .vizuel-menu-zone--mahalle {
   left: 6%;
-  top: 14%;
+  top: 10%;
   width: 27%;
-  height: 44%;
+  height: 66%;
 }
 
 #masterLayout #anaIcerik .vizuel-menu--buyume .vizuel-menu-zone--semt {
   left: 36.5%;
-  top: 12%;
+  top: 8%;
   width: 27%;
-  height: 46%;
+  height: 68%;
 }
 
 #masterLayout #anaIcerik .vizuel-menu--buyume .vizuel-menu-zone--sehir {
   left: 67%;
-  top: 14%;
+  top: 10%;
   width: 27%;
-  height: 44%;
+  height: 66%;
 }
 
 #masterLayout #anaIcerik .vizuel-menu--buyume .vizuel-menu-zone--mahalle::after {
@@ -187,23 +253,23 @@
 
 #masterLayout #anaIcerik .vizuel-menu--mekan .vizuel-menu-zone--yeralti {
   left: 5%;
-  top: 16%;
+  top: 12%;
   width: 27%;
-  height: 46%;
+  height: 66%;
 }
 
 #masterLayout #anaIcerik .vizuel-menu--mekan .vizuel-menu-zone--silah {
   left: 36.5%;
-  top: 14%;
+  top: 10%;
   width: 27%;
-  height: 48%;
+  height: 68%;
 }
 
 #masterLayout #anaIcerik .vizuel-menu--mekan .vizuel-menu-zone--paket {
   left: 67%;
-  top: 16%;
+  top: 12%;
   width: 27%;
-  height: 46%;
+  height: 66%;
 }
 
 #masterLayout #anaIcerik .vizuel-menu--mekan .vizuel-menu-zone--yeralti::after {

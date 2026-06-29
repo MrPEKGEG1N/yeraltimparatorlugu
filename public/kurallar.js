@@ -1,13 +1,14 @@
 /** Giriş ekranı — kullanım şartları, gizlilik, topluluk kuralları */
 (function () {
-  var BASLIKLAR = {
-    kullanim: "Kullanım Şartları",
-    gizlilik: "Gizlilik Politikası",
-    topluluk: "Topluluk Kuralları",
+  var KURAL_I18N = {
+    kullanim: "auth.rules.terms",
+    gizlilik: "auth.rules.privacy",
+    topluluk: "auth.rules.community",
   };
 
   var veri = null;
   var yukleniyor = null;
+  var aktifKuralKey = null;
 
   function escapeHtml(s) {
     return String(s || "")
@@ -15,6 +16,22 @@
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;");
+  }
+
+  function baslikMetni(key) {
+    if (typeof t === "function") {
+      return t(KURAL_I18N[key] || "auth.rules.modalDefault");
+    }
+    var fallback = { kullanim: "Kullanım Şartları", gizlilik: "Gizlilik Politikası", topluluk: "Topluluk Kuralları" };
+    return fallback[key] || "Kurallar";
+  }
+
+  function yukleniyorMetni() {
+    return typeof t === "function" ? t("auth.rules.loading") : "Yükleniyor…";
+  }
+
+  function yuklenemediMetni() {
+    return typeof t === "function" ? t("auth.rules.loadFailed") : "İçerik yüklenemedi.";
   }
 
   function maddeHtml(section) {
@@ -38,7 +55,7 @@
   }
 
   function icerikHtml(key) {
-    if (!veri || !veri[key]) return "<p>İçerik yüklenemedi.</p>";
+    if (!veri || !veri[key]) return "<p>" + escapeHtml(yuklenemediMetni()) + "</p>";
     var sections = veri[key];
     var html = "";
     sections.forEach(function (section, i) {
@@ -76,6 +93,7 @@
     modal.classList.add("gizli");
     modal.setAttribute("aria-hidden", "true");
     document.body.style.overflow = "";
+    aktifKuralKey = null;
   }
 
   function modalAc(key) {
@@ -83,8 +101,9 @@
     var baslik = document.getElementById("kurallarBaslik");
     var icerik = document.getElementById("kurallarIcerik");
     if (!modal || !baslik || !icerik) return;
-    baslik.textContent = BASLIKLAR[key] || "Kurallar";
-    icerik.innerHTML = "<p>Yükleniyor…</p>";
+    aktifKuralKey = key;
+    baslik.textContent = baslikMetni(key);
+    icerik.innerHTML = "<p>" + escapeHtml(yukleniyorMetni()) + "</p>";
     modal.classList.remove("gizli");
     modal.setAttribute("aria-hidden", "false");
     document.body.style.overflow = "hidden";
@@ -113,6 +132,13 @@
         var modal = document.getElementById("kurallarModal");
         if (modal && !modal.classList.contains("gizli")) modalKapat();
       }
+    });
+
+    document.addEventListener("yi:langchange", function () {
+      var modal = document.getElementById("kurallarModal");
+      if (!modal || modal.classList.contains("gizli") || !aktifKuralKey) return;
+      var baslik = document.getElementById("kurallarBaslik");
+      if (baslik) baslik.textContent = baslikMetni(aktifKuralKey);
     });
   }
 

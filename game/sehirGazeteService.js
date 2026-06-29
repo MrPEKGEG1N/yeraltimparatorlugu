@@ -44,6 +44,10 @@ async function gazeteEkle(db, mesaj, ts) {
     full,
     ts || Math.floor(Date.now() / 1000),
   ]);
+  setImmediate(() => {
+    const { gazeteBildirimYayinla } = require("./bildirimService");
+    gazeteBildirimYayinla(db, full).catch(() => {});
+  });
 }
 
 async function gazeteyiGetir(db, limit = 30) {
@@ -72,7 +76,7 @@ async function getSehirBanner(db) {
   }
   const uid = [...owners][0];
   const u = await get(db, `SELECT reis_adi FROM users WHERE id = ?`, [uid]);
-  return { tip: "tek", reisAdi: u?.reis_adi || "Bilinmeyen" };
+  return { tip: "tek", reisAdi: u?.reis_adi || "Bilinmeyen", reisUserId: uid };
 }
 
 async function gunlukHaberUret(db) {
@@ -396,6 +400,7 @@ async function getGazetePanel(db, userId) {
         metin: `${l.limanAd} ${l.sahipAdi} kontrolünde.`,
         oyuncuAdi: l.sahipAdi,
         userId: l.userId,
+        limanId: l.limanId,
         limanAd: l.limanAd,
       });
     } else {
@@ -404,6 +409,7 @@ async function getGazetePanel(db, userId) {
         metin: `${l.limanAd} şu an sahipsiz.`,
         oyuncuAdi: null,
         userId: null,
+        limanId: l.limanId,
         limanAd: l.limanAd,
       });
     }
@@ -445,6 +451,11 @@ async function getGazetePanel(db, userId) {
     else sehirHakimiyeti += ` ${l.limanAd}: sahipsiz.`;
   });
 
+  const { getGazeteSampiyonu } = require("./aylikMafyaSampiyonService");
+  const { isIlanlariGetir } = require("./sirketService");
+  const { acikIlanlariGazeteSenkron } = require("./isIlaniGazete");
+  await acikIlanlariGazeteSenkron(db);
+  const aylikMafyaSampiyon = await getGazeteSampiyonu(db);
   const medyaHaberler = await haberleriGetir(db);
   const yeraltiManse = medyaHaberler.slice(0, 5).map((h) => ({
     userId: h.user_id,
@@ -453,6 +464,7 @@ async function getGazetePanel(db, userId) {
   }));
 
   const efsaneler24 = sayginlikLiderleri.slice(0, 3);
+  const isIlanlari = await isIlanlariGetir(db, userId);
 
   const oyuncuLinkleri = await oyuncuLinkleriTopla(db, [
     ...sonDakika,
@@ -460,6 +472,8 @@ async function getGazetePanel(db, userId) {
     mansetTpl.baslik2,
     mansetOzet,
     sehirHakimiyeti,
+    aylikMafyaSampiyon?.ozet,
+    aylikMafyaSampiyon?.baslik,
     ...yeraltiManse.map((h) => h.metin),
     ...hakimiyetSatirlari.map((h) => h.metin),
   ]);
@@ -467,6 +481,7 @@ async function getGazetePanel(db, userId) {
   return {
     tarihUst,
     sonDakika,
+    aylikMafyaSampiyon,
     manset: {
       baslik: mansetTpl.baslik,
       baslik2: mansetTpl.baslik2,
@@ -484,6 +499,7 @@ async function getGazetePanel(db, userId) {
     sehirHakimiyeti,
     yeraltiManse,
     efsaneler24,
+    isIlanlari,
     oyuncuLinkleri,
     arsiv: haberler.map((h) => ({ id: h.id, mesaj: h.mesaj, created_at: h.created_at })),
     sonHaberId,

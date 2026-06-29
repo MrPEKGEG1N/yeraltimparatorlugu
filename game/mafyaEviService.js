@@ -1,4 +1,5 @@
 const { run, get, all } = require("../db/database");
+const { syncGrupUyeBonusGuc, mafyaEviGucBonusu, mafyaEviSonrakiBonusArtisi } = require("./bonusGucService");
 
 function kapasite(seviye) {
   const s = Math.max(1, parseInt(seviye, 10) || 1);
@@ -46,6 +47,9 @@ async function eviGetir(db, grupId) {
     birikmisPara: row.birikmis_para,
     sonrakiMaliyet: nextCost,
     kalan: Math.max(0, nextCost - row.birikmis_para),
+    uyeGucBonusu: mafyaEviGucBonusu(row.seviye),
+    sonrakiUyeGucBonusu: mafyaEviGucBonusu(row.seviye + 1),
+    sonrakiBonusArtisi: mafyaEviSonrakiBonusArtisi(row.seviye),
   };
 }
 
@@ -109,12 +113,15 @@ async function seviyeYukselt(db, grupId) {
     maliyet,
     grupId,
   ]);
-  return { ok: true };
+  await syncGrupUyeBonusGuc(db, grupId);
+  const yeni = await ensureEvi(db, grupId);
+  return { ok: true, seviye: yeni.seviye, uyeGucBonusu: mafyaEviGucBonusu(yeni.seviye) };
 }
 
 module.exports = {
   kapasite,
   sonrakiSeviyeMaliyeti,
+  mafyaEviGucBonusu,
   ensureEvi,
   eviGetir,
   hibeEt,

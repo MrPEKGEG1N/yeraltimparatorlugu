@@ -5,6 +5,10 @@ const { SECTOR_KEYS, MEKANLAR } = require("./sectorsCatalog");
 const { ensureUserBase, adminSeviyeAyarla, baseOzeti } = require("./guvenliYerService");
 const { MAX_SEVIYE, seviyeBul } = require("./guvenliYerCatalog");
 const { ELEMAN_GUC } = require("./istihbaratService");
+const { meslekGetir, yetenekleriGetir } = require("./meslekService");
+const { panelGetir: sirketPanelGetir } = require("./sirketService");
+const { panelGetir: sefirlikPanelGetir } = require("./turkiyeSefirlikService");
+const { ensureGunlukGorevTables } = require("./gunlukGorevService");
 
 const SEKTOR_ETIKET = { yeralti: "Yeraltı", silah: "Silah", paket: "Paket" };
 
@@ -53,6 +57,8 @@ function fmtTs(ts) {
 }
 
 async function getDashboard(db) {
+  const { ensureBorsaTables } = require("./borsaService");
+  await ensureBorsaTables(db).catch(() => {});
   const row = await get(
     db,
     `SELECT
@@ -62,7 +68,12 @@ async function getDashboard(db) {
       (SELECT COUNT(*) FROM players WHERE last_seen_at > strftime('%s','now') - 900) AS online_15dk,
       (SELECT COUNT(*) FROM security_events WHERE created_at > strftime('%s','now') - 86400) AS olay_24s,
       (SELECT COUNT(*) FROM oyuncu_mesajlari WHERE created_at > strftime('%s','now') - 86400) AS mesaj_24s,
-      (SELECT COUNT(*) FROM mafya_gruplari) AS mafya_grup`
+      (SELECT COUNT(*) FROM mafya_gruplari) AS mafya_grup,
+      (SELECT COUNT(*) FROM icerik_raporlari WHERE created_at > strftime('%s','now') - 86400) AS rapor_24s,
+      (SELECT COUNT(DISTINCT user_id) FROM borsa_portfoy WHERE adet > 0) AS borsa_yatirimci,
+      (SELECT COUNT(*) FROM borsa_emirleri WHERE durum = 'beklemede') AS borsa_bekleyen_emir,
+      (SELECT COALESCE(SUM(p.adet * s.fiyat), 0) FROM borsa_portfoy p JOIN borsa_sirketleri s ON s.id = p.sirket_id) AS borsa_portfoy_deger,
+      (SELECT COUNT(*) FROM borsa_islem_log WHERE created_at > strftime('%s','now') - 86400) AS borsa_islem_24s`
   );
   return row || {};
 }
@@ -78,11 +89,16 @@ async function searchPlayers(db, q, limit = 200) {
               u.visitor_id, u.son_ip, u.user_agent, u.last_login_at, u.created_at,
               p.kasa, p.guc, p.puan, p.icraat, p.sms_hakki, p.last_seen_at, p.kara_listede,
               p.aktif_ekran, p.son_aksiyon, p.son_aksiyon_detay, p.son_aksiyon_at,
+              COALESCE(bh.yatirilan_miktar, 0) AS banka_bakiye,
+              COALESCE(bh.banka_hakki, 20) AS banka_hakki,
+              COALESCE(bh.faiz_bekleyen, 0) AS faiz_bekleyen,
               (SELECT COALESCE(SUM(adet), 0) FROM sektor_sahiplik s WHERE s.user_id = u.id) AS mekan_toplam,
               COALESCE(ub.base_seviye, 1) AS guvenli_yer_seviye,
-              COALESCE(i.eleman_sayisi, 0) AS istihbarat_eleman
+              COALESCE(i.eleman_sayisi, 0) AS istihbarat_eleman,
+              (SELECT COALESCE(SUM(p.adet * s.fiyat), 0) FROM borsa_portfoy p JOIN borsa_sirketleri s ON s.id = p.sirket_id WHERE p.user_id = u.id) AS borsa_deger
        FROM users u
        JOIN players p ON p.user_id = u.id
+       LEFT JOIN banka_hesaplari bh ON bh.user_id = u.id
        LEFT JOIN user_base ub ON ub.user_id = u.id
        LEFT JOIN istihbarat i ON i.user_id = u.id
        ORDER BY p.puan DESC
@@ -98,11 +114,16 @@ async function searchPlayers(db, q, limit = 200) {
             u.visitor_id, u.son_ip, u.user_agent, u.last_login_at, u.created_at,
             p.kasa, p.guc, p.puan, p.icraat, p.sms_hakki, p.last_seen_at, p.kara_listede,
             p.aktif_ekran, p.son_aksiyon, p.son_aksiyon_detay, p.son_aksiyon_at,
+            COALESCE(bh.yatirilan_miktar, 0) AS banka_bakiye,
+            COALESCE(bh.banka_hakki, 20) AS banka_hakki,
+            COALESCE(bh.faiz_bekleyen, 0) AS faiz_bekleyen,
             (SELECT COALESCE(SUM(adet), 0) FROM sektor_sahiplik s WHERE s.user_id = u.id) AS mekan_toplam,
             COALESCE(ub.base_seviye, 1) AS guvenli_yer_seviye,
-            COALESCE(i.eleman_sayisi, 0) AS istihbarat_eleman
+            COALESCE(i.eleman_sayisi, 0) AS istihbarat_eleman,
+            (SELECT COALESCE(SUM(p.adet * s.fiyat), 0) FROM borsa_portfoy p JOIN borsa_sirketleri s ON s.id = p.sirket_id WHERE p.user_id = u.id) AS borsa_deger
      FROM users u
      JOIN players p ON p.user_id = u.id
+     LEFT JOIN banka_hesaplari bh ON bh.user_id = u.id
      LEFT JOIN user_base ub ON ub.user_id = u.id
      LEFT JOIN istihbarat i ON i.user_id = u.id
      WHERE u.username LIKE ? COLLATE NOCASE
@@ -114,13 +135,360 @@ async function searchPlayers(db, q, limit = 200) {
   );
 }
 
+async function collectPlayerExtra(db, userId) {
+  await ensureGunlukGorevTables(db);
+
+  const [
+    playerRow,
+    bankaRow,
+    userBaseRow,
+    envanter,
+    limanlar,
+    babaMakamlari,
+    sadakatOylari,
+    gunlukGorevRows,
+    mafyaBasvurulari,
+    mafyaIsKatilimlari,
+    mafyaSavasKatilimlari,
+    medyaHaberleri,
+    statHareketleri,
+    sehirKontroller,
+    sehirHukumranliklar,
+    sehirHakimiyetSahip,
+    profilZiyaret,
+    mesajOzet,
+    icerikRaporlari,
+  ] = await Promise.all([
+    get(db, `SELECT * FROM players WHERE user_id = ?`, [userId]),
+    get(db, `SELECT * FROM banka_hesaplari WHERE user_id = ?`, [userId]),
+    ensureUserBase(db, userId),
+    all(
+      db,
+      `SELECT item_key, adet, fiyat_adet FROM oyuncu_kiralama WHERE user_id = ? AND adet > 0 ORDER BY item_key`,
+      [userId]
+    ),
+    all(
+      db,
+      `SELECT liman_id, last_income_hour FROM liman_sahiplik WHERE owner_user_id = ? ORDER BY liman_id`,
+      [userId]
+    ),
+    all(
+      db,
+      `SELECT makam, baba_derki FROM baba_makamlari WHERE owner_user_id = ? ORDER BY makam`,
+      [userId]
+    ),
+    all(db, `SELECT makam, oy FROM sadakat_oylari WHERE user_id = ? ORDER BY makam`, [userId]),
+    all(
+      db,
+      `SELECT id, gun_key, slot, gorev_id, kabul_edildi, durum, ilerleme, odul_alindi, bitis_zamani
+       FROM gunluk_gorev_atama WHERE user_id = ? ORDER BY gun_key DESC, slot LIMIT 24`,
+      [userId]
+    ),
+    all(
+      db,
+      `SELECT b.id, b.grup_id, b.durum, g.isim AS grup_adi
+       FROM mafya_basvurulari b
+       JOIN mafya_gruplari g ON g.id = b.grup_id
+       WHERE b.user_id = ?
+       ORDER BY b.id DESC`,
+      [userId]
+    ),
+    all(
+      db,
+      `SELECT ik.is_id, mi.is_turu, mi.durum, mi.baslangic_zamani, mg.isim AS grup_adi
+       FROM mafya_is_katilim ik
+       JOIN mafya_isleri mi ON mi.id = ik.is_id
+       JOIN mafya_gruplari mg ON mg.id = mi.grup_id
+       WHERE ik.user_id = ?
+       ORDER BY mi.baslangic_zamani DESC
+       LIMIT 20`,
+      [userId]
+    ),
+    all(
+      db,
+      `SELECT sk.savas_id, sk.grup_id, ms.durum, ms.savas_zamani,
+              sg.isim AS saldiran_isim, hg.isim AS hedef_isim
+       FROM mafya_savas_katilim sk
+       JOIN mafya_savaslar ms ON ms.id = sk.savas_id
+       JOIN mafya_gruplari sg ON sg.id = ms.saldiran_grup_id
+       JOIN mafya_gruplari hg ON hg.id = ms.hedef_grup_id
+       WHERE sk.user_id = ?
+       ORDER BY ms.savas_zamani DESC
+       LIMIT 20`,
+      [userId]
+    ),
+    all(
+      db,
+      `SELECT id, haber, created_at, aktif FROM medya_haberleri WHERE user_id = ? ORDER BY created_at DESC LIMIT 20`,
+      [userId]
+    ),
+    all(
+      db,
+      `SELECT tip, delta, created_at FROM stat_hareketleri WHERE user_id = ? ORDER BY created_at DESC LIMIT 50`,
+      [userId]
+    ),
+    all(
+      db,
+      `SELECT sehir_id, kontrol, son_aksiyon_at FROM sehir_kontrol WHERE user_id = ? AND kontrol > 0 ORDER BY kontrol DESC`,
+      [userId]
+    ),
+    all(
+      db,
+      `SELECT id, baslangic, bitis, onceki_user_id FROM sehir_hukumranlik WHERE user_id = ? ORDER BY baslangic DESC LIMIT 12`,
+      [userId]
+    ),
+    all(db, `SELECT sehir_id FROM sehir_hakimiyet WHERE sahip_user_id = ? ORDER BY sehir_id`, [userId]),
+    get(db, `SELECT COUNT(*) AS n FROM profil_ziyaretleri WHERE target_user_id = ?`, [userId]),
+    get(
+      db,
+      `SELECT
+        (SELECT COUNT(*) FROM oyuncu_mesajlari WHERE to_user_id = ?) AS alinan,
+        (SELECT COUNT(*) FROM oyuncu_mesajlari WHERE from_user_id = ?) AS gonderilen,
+        (SELECT COUNT(*) FROM mafya_sohbet WHERE user_id = ?) AS sohbet,
+        (SELECT COUNT(*) FROM mafya_grup_mesajlari WHERE from_user_id = ?) AS grup_mesaj`,
+      [userId, userId, userId, userId]
+    ),
+    all(
+      db,
+      `SELECT id, hedef_tip, sebep, created_at, raporlayan_user_id
+       FROM icerik_raporlari WHERE hedef_user_id = ?
+       ORDER BY created_at DESC LIMIT 15`,
+      [userId]
+    ),
+  ]);
+
+  let sirketPanel = null;
+  let sefirlikOzet = null;
+  try {
+    sirketPanel = await sirketPanelGetir(db, userId);
+  } catch (_) {}
+  try {
+    const panel = await sefirlikPanelGetir(db, userId);
+    if (panel && panel.ok) {
+      sefirlikOzet = {
+        ozet: panel.ozet,
+        sehirler: (panel.sehirler || [])
+          .filter((s) => (s.benimKontrol || 0) > 0 || s.benSahibim)
+          .map((s) => ({
+            id: s.id,
+            ad: s.ad,
+            benimKontrol: s.benimKontrol,
+            benSahibim: !!s.benSahibim,
+            liderReis: s.liderReis,
+            tier: s.tier,
+          })),
+      };
+    }
+  } catch (_) {}
+
+  return {
+    playerRow,
+    banka: bankaRow,
+    userBase: userBaseRow,
+    guvenliYerFull: baseOzeti(userBaseRow),
+    profil: playerRow
+      ? {
+          aciklama: playerRow.profil_aciklama || "",
+          resim: playerRow.profil_resmi || "",
+          dostlar: playerRow.dostlar || "",
+          dusmanlar: playerRow.dusmanlar || "",
+        }
+      : null,
+    ekonomi: playerRow
+      ? {
+          bonusGuc: playerRow.bonus_guc || 0,
+          devletIliskisi: playerRow.devlet_iliskisi,
+          limanIstanbul: playerRow.liman_istanbul || 0,
+          lastIcraatAt: fmtTs(playerRow.last_icraat_at),
+          lastUcBonusHour: playerRow.last_uc_bonus_hour,
+          lastSmsDay: playerRow.last_sms_day,
+          yetenekMaasAntrenmanPuani: playerRow.yetenek_maas_antrenman_puani || 0,
+        }
+      : null,
+    sehirMeta: playerRow
+      ? {
+          sehreHukmetSayisi: playerRow.sehre_hukmet_sayisi || 0,
+          sehirEfsane: !!playerRow.sehir_efsane,
+          aktifHukumranlikId: playerRow.aktif_hukumranlik_id,
+        }
+      : null,
+    envanter,
+    limanlar,
+    babaMakamlari,
+    sadakatOylari,
+    gunlukGorevler: (gunlukGorevRows || []).map((g) => ({
+      id: g.id,
+      gunKey: g.gun_key,
+      slot: g.slot,
+      gorevId: g.gorev_id,
+      kabulEdildi: !!g.kabul_edildi,
+      durum: g.durum,
+      ilerleme: g.ilerleme,
+      odulAlindi: !!g.odul_alindi,
+      bitisZamani: g.bitis_zamani ? fmtTs(g.bitis_zamani) : null,
+    })),
+    mafyaBasvurulari: (mafyaBasvurulari || []).map((b) => ({
+      id: b.id,
+      grupId: b.grup_id,
+      grupAdi: b.grup_adi,
+      durum: b.durum,
+    })),
+    mafyaIsleri: (mafyaIsKatilimlari || []).map((i) => ({
+      isId: i.is_id,
+      isTuru: i.is_turu,
+      durum: i.durum,
+      grupAdi: i.grup_adi,
+      baslangic: fmtTs(i.baslangic_zamani),
+    })),
+    mafyaSavaslari: (mafyaSavasKatilimlari || []).map((s) => ({
+      savasId: s.savas_id,
+      grupId: s.grup_id,
+      durum: s.durum,
+      saldiran: s.saldiran_isim,
+      hedef: s.hedef_isim,
+      savasZamani: fmtTs(s.savas_zamani),
+    })),
+    medyaHaberleri: (medyaHaberleri || []).map((h) => ({
+      id: h.id,
+      haber: h.haber,
+      aktif: !!h.aktif,
+      at: fmtTs(h.created_at),
+    })),
+    statHareketleri: (statHareketleri || []).map((s) => ({
+      tip: s.tip,
+      delta: s.delta,
+      at: fmtTs(s.created_at),
+    })),
+    sehirKontroller: (sehirKontroller || []).map((s) => ({
+      sehirId: s.sehir_id,
+      kontrol: s.kontrol,
+      sonAksiyon: fmtTs(s.son_aksiyon_at),
+    })),
+    sehirHukumranliklar: (sehirHukumranliklar || []).map((h) => ({
+      id: h.id,
+      baslangic: fmtTs(h.baslangic),
+      bitis: h.bitis ? fmtTs(h.bitis) : null,
+      oncekiUserId: h.onceki_user_id,
+    })),
+    sehirHakimiyetSahip: (sehirHakimiyetSahip || []).map((s) => s.sehir_id),
+    profilZiyaretSayisi: profilZiyaret?.n || 0,
+    mesajSayilari: mesajOzet || { alinan: 0, gonderilen: 0, sohbet: 0, grup_mesaj: 0 },
+    icerikRaporlari: (icerikRaporlari || []).map((r) => ({
+      id: r.id,
+      tip: r.hedef_tip,
+      sebep: r.sebep,
+      raporlayanUserId: r.raporlayan_user_id,
+      at: fmtTs(r.created_at),
+    })),
+    sirketPanel,
+    sefirlikOzet,
+  };
+}
+
+function mapPlayerExportSnapshot(detail, extra) {
+  const u = { ...detail.user };
+  delete u.password_hash;
+  return {
+    exportedAt: new Date().toISOString(),
+    exportVersion: 1,
+    oyuncuId: u.id,
+    kullanici: {
+      id: u.id,
+      username: u.username,
+      reisAdi: u.reis_adi,
+      lakap: u.lakap,
+      grup: u.grup,
+      banned: !!u.banned,
+      isAdmin: !!u.is_admin,
+      visitorId: u.visitor_id,
+      sonIp: u.son_ip,
+      userAgent: u.user_agent,
+      tokenVersion: u.token_version,
+      createdAt: fmtTs(u.created_at),
+      lastLoginAt: fmtTs(u.last_login_at),
+    },
+    istatistikler: mapPlayerRow(u),
+    mekanlar: detail.mekanlar,
+    mekanToplam: detail.mekanToplam,
+    guvenliYer: detail.guvenliYer,
+    guvenliYerFull: extra.guvenliYerFull,
+    userBase: extra.userBase,
+    banka: extra.banka,
+    yetenekler: detail.yetenekler,
+    aktifMeslek: detail.aktifMeslek,
+    sirketCalisan: detail.sirketCalisan,
+    sahipSirket: detail.sahipSirket,
+    sirketPanel: extra.sirketPanel,
+    mafyaUyelik: detail.uyelik
+      ? {
+          grupId: detail.uyelik.grup_id,
+          isim: detail.uyelik.isim,
+          rutbe: detail.uyelik.rutbe,
+        }
+      : null,
+    mafyaBasvurulari: extra.mafyaBasvurulari,
+    mafyaIsleri: extra.mafyaIsleri,
+    mafyaSavaslari: extra.mafyaSavaslari,
+    profil: extra.profil,
+    ekonomi: extra.ekonomi,
+    sehirMeta: extra.sehirMeta,
+    sefirlikOzet: extra.sefirlikOzet,
+    sehirKontroller: extra.sehirKontroller,
+    sehirHukimiyetSahip: extra.sehirHakimiyetSahip,
+    sehirHukumranliklar: extra.sehirHukumranliklar,
+    envanter: extra.envanter,
+    limanlar: extra.limanlar,
+    babaMakamlari: extra.babaMakamlari,
+    sadakatOylari: extra.sadakatOylari,
+    gunlukGorevler: extra.gunlukGorevler,
+    medyaHaberleri: extra.medyaHaberleri,
+    statHareketleri: extra.statHareketleri,
+    mesajSayilari: extra.mesajSayilari,
+    profilZiyaretSayisi: extra.profilZiyaretSayisi,
+    icerikRaporlari: extra.icerikRaporlari,
+    istihbaratEleman: detail.istihbaratEleman,
+    borsa: detail.borsa || null,
+    aktiviteLog: detail.aktiviteLog,
+    fingerprints: detail.fingerprints,
+    securityEvents: detail.events,
+  };
+}
+
+async function exportPlayerSnapshot(db, userId) {
+  const detail = await getPlayerDetail(db, userId);
+  if (!detail) return null;
+  return mapPlayerExportSnapshot(detail, detail.extra || {});
+}
+
+async function exportAllPlayers(db, q = "", limit = 500) {
+  const rows = await searchPlayers(db, q, limit);
+  const oyuncular = [];
+  for (const row of rows) {
+    const snap = await exportPlayerSnapshot(db, row.id);
+    if (snap) oyuncular.push(snap);
+  }
+  return {
+    exportedAt: new Date().toISOString(),
+    exportVersion: 1,
+    filtre: String(q || "").trim() || null,
+    oyuncuSayisi: oyuncular.length,
+    oyuncular,
+  };
+}
+
 async function getPlayerDetail(db, userId) {
   const user = await get(
     db,
     `SELECT u.*, p.kasa, p.guc, p.puan, p.icraat, p.last_seen_at, p.kara_listede, p.sms_hakki,
-            p.aktif_ekran, p.son_aksiyon, p.son_aksiyon_detay, p.son_aksiyon_at
+            p.bonus_guc, p.devlet_iliskisi, p.profil_aciklama, p.profil_resmi, p.dostlar, p.dusmanlar,
+            p.sehre_hukmet_sayisi, p.sehir_efsane, p.liman_istanbul,
+            p.aktif_ekran, p.son_aksiyon, p.son_aksiyon_detay, p.son_aksiyon_at,
+            COALESCE(bh.yatirilan_miktar, 0) AS banka_bakiye,
+            COALESCE(bh.banka_hakki, 20) AS banka_hakki,
+            COALESCE(bh.faiz_bekleyen, 0) AS faiz_bekleyen
      FROM users u
      JOIN players p ON p.user_id = u.id
+     LEFT JOIN banka_hesaplari bh ON bh.user_id = u.id
      WHERE u.id = ?`,
     [userId]
   );
@@ -157,6 +525,25 @@ async function getPlayerDetail(db, userId) {
   const guvenliYer = baseOzeti(baseRow);
   const istihbaratRow = await get(db, `SELECT eleman_sayisi FROM istihbarat WHERE user_id = ?`, [userId]);
   const istihbaratEleman = istihbaratRow ? istihbaratRow.eleman_sayisi || 0 : 0;
+  const yetenekler = await yetenekleriGetir(db, userId);
+  const aktifMeslek = await meslekGetir(db, userId);
+  const sirketCalisan = await get(
+    db,
+    `SELECT c.gunluk_maas, c.pozisyon_id, s.isim AS sirket_adi, s.tur_id
+     FROM sirket_calisanlari c
+     JOIN oyuncu_sirketleri s ON s.id = c.sirket_id
+     WHERE c.user_id = ?`,
+    [userId]
+  );
+  const sahipSirket = await get(
+    db,
+    `SELECT id, isim, tur_id, kasa, ise_alim_acik, kapasite_seviye, depo_seviye FROM oyuncu_sirketleri WHERE sahip_user_id = ?`,
+    [userId]
+  );
+
+  const extra = await collectPlayerExtra(db, userId);
+  const { oyuncuBorsaGetir } = require("./borsaService");
+  const borsa = await oyuncuBorsaGetir(db, userId).catch(() => null);
 
   return {
     user,
@@ -168,6 +555,12 @@ async function getPlayerDetail(db, userId) {
     mekanToplam: mekan.toplam,
     guvenliYer,
     istihbaratEleman,
+    yetenekler,
+    aktifMeslek,
+    sirketCalisan,
+    sahipSirket,
+    extra,
+    borsa,
   };
 }
 
@@ -627,6 +1020,11 @@ function mapPlayerRow(r) {
     visitorId: r.visitor_id,
     sonIp: r.son_ip,
     kasa: r.kasa,
+    bankaBakiye: r.banka_bakiye || 0,
+    borsaPortfoyDeger: r.borsa_deger || 0,
+    bankaHakki: r.banka_hakki != null ? r.banka_hakki : 20,
+    faizBekleyen: r.faiz_bekleyen || 0,
+    toplamVarlik: (r.kasa || 0) + (r.banka_bakiye || 0) + (r.borsa_deger || 0),
     guc: r.guc,
     puan: r.puan,
     icraat: r.icraat,
@@ -643,11 +1041,19 @@ function mapPlayerRow(r) {
   };
 }
 
+async function listIcerikRaporlari(db, limit = 100) {
+  const { raporlariListele, mapRaporRow } = require("./raporService");
+  const rows = await raporlariListele(db, limit);
+  return rows.map(mapRaporRow);
+}
+
 module.exports = {
   fmtTs,
   getDashboard,
   searchPlayers,
   getPlayerDetail,
+  exportPlayerSnapshot,
+  exportAllPlayers,
   banPlayer,
   unbanPlayer,
   kickPlayer,
@@ -670,5 +1076,6 @@ module.exports = {
   purgeUserMessages,
   listSecurityEvents,
   listCanliAktivite,
+  listIcerikRaporlari,
   mapPlayerRow,
 };
