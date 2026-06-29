@@ -6,12 +6,17 @@ const cookieParser = require("cookie-parser");
 
 const { initDatabase, get, DB_PATH, backupDbFile, getDbDiagnostics } = require("./db/database");
 const { ensureMessagingTables } = require("./game/messagingService");
+const { ensureBildirimTables, configureWebPush } = require("./game/bildirimService");
 const { createAuthRouter } = require("./routes/auth");
 const { createGameRouter } = require("./routes/game");
 const { createAdminRouter } = require("./routes/admin");
-const { savasiCoz, aylikMafyaOzeti } = require("./game/mafyaSavasService");
+const { savasiCoz } = require("./game/mafyaSavasService");
+const { aySonuKontrol } = require("./game/aylikMafyaSampiyonService");
 const { faizIsle } = require("./game/bankaService");
+const { gunlukMaasIsle } = require("./game/gunlukMaasService");
+const { saatlikGelirIsle } = require("./game/saatlikGelirService");
 const { JWT_SECRET } = require("./config");
+const { attachLang, localizeResponse } = require("./middleware/lang");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -64,15 +69,50 @@ const globalApiLimiter = rateLimit({
 });
 
 app.use("/api", globalApiLimiter);
+app.use("/api", attachLang);
+app.use("/api", localizeResponse);
 
 async function start() {
   const db = await initDatabase();
   await ensureMessagingTables(db);
+  await ensureBildirimTables(db);
+  configureWebPush();
 
   app.get("/api/health", async (req, res) => {
     try {
       const diag = await getDbDiagnostics();
       const row = await get(db, "SELECT COUNT(*) AS n FROM users");
+      let dd1 = null;
+      const dd1Row = await get(
+        db,
+        `SELECT u.id, p.kasa, p.puan, p.icraat, p.sms_hakki, COALESCE(p.bonus_guc,0) AS bonus_guc, p.guc
+         FROM users u JOIN players p ON p.user_id = u.id WHERE u.username = 'dd1'`
+      );
+      if (dd1Row) {
+        const mekan = await get(
+          db,
+          `SELECT COALESCE(SUM(adet),0) AS t FROM sektor_sahiplik WHERE user_id = ?`,
+          [dd1Row.id]
+        );
+        const gy = await get(db, `SELECT base_seviye FROM user_base WHERE user_id = ?`, [dd1Row.id]);
+        const ist = await get(db, `SELECT eleman_sayisi FROM istihbarat WHERE user_id = ?`, [dd1Row.id]);
+        dd1 = {
+          ok:
+            dd1Row.kasa === 580784000 &&
+            dd1Row.puan === 159850 &&
+            dd1Row.icraat === 250 &&
+            dd1Row.sms_hakki === 349 &&
+            (mekan?.t || 0) === 88 &&
+            (gy?.base_seviye || 0) === 15 &&
+            (ist?.eleman_sayisi || 0) === 2,
+          kasa: dd1Row.kasa,
+          puan: dd1Row.puan,
+          mekanToplam: mekan?.t || 0,
+          guvenliYer: gy?.base_seviye || 0,
+          istihbarat: ist?.eleman_sayisi || 0,
+          toplamGuc: (dd1Row.guc || 0) + (dd1Row.bonus_guc || 0),
+        };
+      }
       res.json({
         ok: true,
         name: "yeralti-imparatorlugu",
@@ -82,6 +122,7 @@ async function start() {
         db: DB_PATH,
         volume: diag.volumeMount,
         volumeOk: diag.volumeOk,
+        dd1,
         uyari: !diag.volumeMount
           ? "Railway Volume bagli degil — deployda oyuncu verileri silinir! Panelden servise Volume ekleyin (mount: /app/db)."
           : !diag.volumeOk
@@ -98,16 +139,44 @@ async function start() {
   }, 60 * 1000);
 
   setInterval(() => {
+    const { sabotajKuyrukIsle } = require("./game/sabotajService");
+    sabotajKuyrukIsle(db).catch((err) => console.error("Sabotaj kuyruk hatası:", err));
+  }, 60 * 1000);
+
+  const { ensureBorsaTables, fiyatGuncelle, temettuIsle } = require("./game/borsaService");
+  ensureBorsaTables(db)
+    .then(() => fiyatGuncelle(db))
+    .catch((err) => console.error("Borsa başlangıç hatası:", err));
+  temettuIsle(db).catch((err) => console.error("Borsa temettü telafi hatası:", err));
+  setInterval(() => {
+    fiyatGuncelle(db).catch((err) => console.error("Borsa fiyat hatası:", err));
+  }, 3 * 60 * 1000);
+  setInterval(() => {
+    temettuIsle(db).catch((err) => console.error("Borsa temettü hatası:", err));
+  }, 60 * 1000);
+
+  setInterval(() => {
     faizIsle(db).catch((err) => console.error("Banka faiz hatası:", err));
   }, 60 * 1000);
 
-  function aylikRaporKontrol() {
-    const now = new Date();
-    if (now.getDate() === 1 && now.getHours() === 0 && now.getMinutes() < 10) {
-      aylikMafyaOzeti(db).catch((err) => console.error("Aylık mafya raporu hatası:", err));
-    }
-  }
-  setInterval(aylikRaporKontrol, 5 * 60 * 1000);
+  setInterval(() => {
+    saatlikGelirIsle(db).catch((err) => console.error("Saatlik gelir hatası:", err));
+  }, 60 * 1000);
+
+  saatlikGelirIsle(db).catch((err) => console.error("Saatlik gelir telafi hatası:", err));
+
+  setInterval(() => {
+    gunlukMaasIsle(db).catch((err) => console.error("Günlük maaş/rapor hatası:", err));
+  }, 60 * 1000);
+
+  gunlukMaasIsle(db, { startup: true }).catch((err) =>
+    console.error("Günlük maaş telafi hatası:", err)
+  );
+
+  aySonuKontrol(db).catch((err) => console.error("Aylık mafya şampiyonu hatası:", err));
+  setInterval(() => {
+    aySonuKontrol(db).catch((err) => console.error("Aylık mafya şampiyonu hatası:", err));
+  }, 5 * 60 * 1000);
 
   setInterval(() => {
     backupDbFile(DB_PATH).catch((err) => console.warn("[db] Periyodik yedek hatasi:", err.message));

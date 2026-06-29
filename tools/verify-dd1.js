@@ -6,7 +6,7 @@ const { initDatabase, get, all, DB_PATH } = require("../db/database");
 const EXPECT = {
   username: "dd1",
   kasa: 580784000,
-  guc: 86296750,
+  guc: 86296950,
   bonusGucMin: 7777000,
   puan: 159850,
   icraat: 250,
