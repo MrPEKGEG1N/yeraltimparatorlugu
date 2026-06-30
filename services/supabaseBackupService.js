@@ -37,7 +37,7 @@ async function ensureBucket(supabase) {
   if ((buckets || []).some((b) => b.name === BUCKET)) return;
   const { error: createErr } = await supabase.storage.createBucket(BUCKET, {
     public: false,
-    fileSizeLimit: 512 * 1024 * 1024,
+    fileSizeLimit: 50 * 1024 * 1024,
   });
   if (createErr && !String(createErr.message || "").includes("already exists")) {
     throw createErr;
