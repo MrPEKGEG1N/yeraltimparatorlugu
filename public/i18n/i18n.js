@@ -53,12 +53,17 @@
   function lookup(code, key) {
     var locales = global.I18N_LOCALES || {};
     var bucket = locales[code];
-    if (bucket && bucket[key] != null && bucket[key] !== '') return bucket[key];
+    if (bucket && bucket[key] != null && bucket[key] !== '') {
+      var hit = bucket[key];
+      if (typeof hit === 'number') return String(hit);
+      return hit;
+    }
     return null;
   }
 
   function interpolate(val, vars) {
-    if (!val || !vars || typeof vars !== 'object') return val == null ? '' : String(val);
+    if (val == null) return '';
+    if (!vars || typeof vars !== 'object') return String(val);
     var out = String(val);
     Object.keys(vars).forEach(function (k) {
       out = out.split('{' + k + '}').join(String(vars[k]));
@@ -145,11 +150,26 @@
     document.title = t('auth.title');
   }
 
+  function isMobileMenu() {
+    try {
+      return global.matchMedia && global.matchMedia('(max-width: 768px)').matches;
+    } catch (_) {
+      return false;
+    }
+  }
+
   function applyNode(el) {
     var key = el.getAttribute('data-i18n');
     if (key) {
       var html = el.getAttribute('data-i18n-html') === '1';
-      var val = t(key);
+      var shortKey = el.getAttribute('data-i18n-short');
+      var useKey = isMobileMenu() && shortKey ? shortKey : key;
+      var val = t(useKey);
+      if (!val || val === useKey || val === key || val === '0') {
+        var fallback = el.getAttribute('data-i18n-fallback');
+        if (!fallback || !String(fallback).trim()) fallback = el.textContent;
+        if (fallback && String(fallback).trim() && String(fallback).trim() !== '0') val = fallback;
+      }
       if (html) el.innerHTML = val;
       else el.textContent = val;
     }
@@ -178,6 +198,10 @@
       global.masterFramePlaqueGuncelle(global.aktifEkran);
     }
     if (typeof global.guncelleBgIsim === 'function') global.guncelleBgIsim();
+  }
+
+  function onViewportChange() {
+    apply();
   }
 
   function pickerHTML() {
@@ -366,6 +390,11 @@
     apply();
     wrapToast();
     wrapConfirm();
+    if (global.matchMedia) {
+      var mq = global.matchMedia('(max-width: 768px)');
+      if (mq.addEventListener) mq.addEventListener('change', onViewportChange);
+      else if (mq.addListener) mq.addListener(onViewportChange);
+    }
   }
 
   global.I18n = {

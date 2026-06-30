@@ -130,7 +130,7 @@ async function makamHaberEkle(db, makam, kazananId, kaybedenId) {
 async function mafyaSavasIlanHaber(db, saldiranAd, hedefAd) {
   await gazeteEkle(
     db,
-    `[${saldiranAd}] Mafya Gurubu, [${hedefAd}] Mafya Gurubuna savaş açtı. Eski defterler açılıyor, kimin ayakta kalacağını zaman gösterecek.`
+    `[${saldiranAd}] Mafya Grubu, [${hedefAd}] Mafya Grubuna savaş açtı. Eski defterler açılıyor, kimin ayakta kalacağını zaman gösterecek.`
   );
 }
 

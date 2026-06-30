@@ -3528,7 +3528,7 @@ function gazeteHaberCevir(metin) {
   if ((m = s.match(/^(.+?),\s*(.+?)\s+makamını ele geçirdi\.?$/))) {
     return t('game.gazete.news.seatCaptured', { winner: m[1], seat: gazeteMakamAdi(m[2]) });
   }
-  if ((m = s.match(/^\[(.+?)\] Mafya Gurubu, \[(.+?)\] Mafya Gurubuna savaş açtı\./))) {
+  if ((m = s.match(/^\[(.+?)\] Mafya Gr[uü]bu, \[(.+?)\] Mafya Gr[uü]buna savaş açtı\./))) {
     return t('game.gazete.news.mafiaWarDeclared', { attacker: m[1], defender: m[2] });
   }
   if ((m = s.match(/^\[(.+?)\], \[(.+?)\]'a sahayı dar etti\./))) {
@@ -3547,6 +3547,9 @@ function gazeteHaberCevir(metin) {
   }
   if ((m = s.match(/^(.+?) oyuncusu (.+?) Sabotaja Uğradı\.$/))) {
     return t('game.gazete.news.sabotajVictim', { victim: m[1], category: m[2] });
+  }
+  if ((m = s.match(/^(.+?), (.+?)'e karşı BAŞARISIZ bir sabotaj gerçekleştirdi\.$/))) {
+    return t('game.gazete.news.sabotajFail', { attacker: m[1], target: m[2] });
   }
   if ((m = s.match(/^(.+?) - (.+?) ye karşı BAŞARISIZ bir sabotaj gerçekleştirdi\.$/))) {
     return t('game.gazete.news.sabotajFail', { attacker: m[1], target: m[2] });

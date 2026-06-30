@@ -483,7 +483,7 @@ async function sabotajGazeteHaberleri(db, { basari, saldiranAdi, hedefAdi, kateg
   } else {
     await gazeteEkle(
       db,
-      `${saldiranAdi} - ${hedefAdi} ye karşı BAŞARISIZ bir sabotaj gerçekleştirdi.`
+      `${saldiranAdi}, ${hedefAdi}'e karşı BAŞARISIZ bir sabotaj gerçekleştirdi.`
     );
   }
 }
