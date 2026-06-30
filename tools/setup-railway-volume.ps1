@@ -37,25 +37,18 @@ try {
 Write-Host "Mevcut volume'lar:" -ForegroundColor Gray
 Invoke-Railway @("volume", "list")
 
-$existing = (npx --yes @railway/cli volume list --json 2>$null | ConvertFrom-Json) | Where-Object { $_.name -eq $VolumeName }
+$volumes = @(npx --yes @railway/cli volume list --json 2>$null | ConvertFrom-Json)
+$existing = $volumes | Where-Object { $_.mountPath -eq $MountPath -or $_.name -match "yeralti" }
 if (-not $existing) {
-    Write-Host "Volume olusturuluyor: $VolumeName" -ForegroundColor Green
-    Invoke-Railway @("volume", "add", "--name", $VolumeName, "--mount-path", $MountPath, "-y")
+    Write-Host "Volume olusturuluyor (mount: $MountPath)..." -ForegroundColor Green
+    Invoke-Railway @("volume", "add", "--mount-path", $MountPath)
 } else {
-    Write-Host "Volume zaten var: $VolumeName" -ForegroundColor Green
-    $mount = $existing.mountPath
-    if ($mount -and $mount -ne $MountPath) {
-        Write-Host "Mount path guncelleniyor: $mount -> $MountPath" -ForegroundColor Yellow
-        Invoke-Railway @("volume", "update", "--volume", $VolumeName, "--mount-path", $MountPath, "-y")
-    } elseif (-not $mount) {
-        Write-Host "Volume servise baglaniyor..." -ForegroundColor Yellow
-        Invoke-Railway @("volume", "attach", "--volume", $VolumeName, "--mount-path", $MountPath, "-y")
-    }
+    Write-Host "Volume zaten var: $($existing.name) -> $($existing.mountPath)" -ForegroundColor Green
 }
 
 Write-Host ""
-Write-Host "Servis yeniden baslatiliyor (redeploy)..." -ForegroundColor Green
-Invoke-Railway @("up", "--detach")
+Write-Host "Servis yeniden baslatiliyor (git kaynagindan redeploy)..." -ForegroundColor Green
+Invoke-Railway @("redeploy", "--from-source", "-y")
 
 Write-Host ""
 Write-Host "Tamam. Kontrol:" -ForegroundColor Cyan
