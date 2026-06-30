@@ -19,6 +19,8 @@
     "android:finalize": "powershell -ExecutionPolicy Bypass -File tools/finalize-play-release.ps1",
     "liderlik": "python app.py",
     "railway:volume": "powershell -ExecutionPolicy Bypass -File tools/setup-railway-volume.ps1",
+    "deploy": "powershell -ExecutionPolicy Bypass -File tools/deploy-railway.ps1",
+    "deploy:apk": "powershell -ExecutionPolicy Bypass -File tools/deploy-railway.ps1 && npm run android:apk",
     "i18n:complete": "node scripts/apply-manual-missing.js && node scripts/seed-message-templates.js && node scripts/generate-errors-module.js",
     "i18n:generate": "node scripts/generate-errors-module.js"
   },

@@ -62,15 +62,17 @@ Pop-Location
 
 if (-not (Test-Path $src)) { throw "APK bulunamadi: $src" }
 Copy-Item -Force $src $dst
+$desktopApk = Join-Path $env:USERPROFILE "Desktop\Yeralti-Imparatorlugu.apk"
+Copy-Item -Force $dst $desktopApk
 $mb = [math]::Round((Get-Item $dst).Length / 1MB, 2)
 
 Write-Host ""
 Write-Host "=== APK HAZIR ===" -ForegroundColor Green
 Write-Host "Dosya: $dst"
+Write-Host "Masaustu: $desktopApk"
 Write-Host "Boyut: $mb MB"
 Write-Host ""
-Write-Host "ONEMLI paylasim:" -ForegroundColor Yellow
-Write-Host "  - Google Drive veya Telegram ile gonderin (WhatsApp buyuk APK bozabilir)"
+Write-Host "WhatsApp icin masaustundeki dosyayi gonderin (5 MB, uygun)." -ForegroundColor Green
 Write-Host "  - Telefonda once eski Yeralti Imparatorlugu varsa KALDIRIN, sonra kurun"
 Write-Host "  - Android 7.0+ ve en az 200 MB bos alan gerekir"
 Write-Host ""
