@@ -875,6 +875,22 @@
   color: #c8c0b8;
 }
 
+#masterLayout .meslek-btn--tehlike {
+  background: linear-gradient(180deg, rgba(140, 28, 36, 0.85), rgba(80, 12, 18, 0.95));
+  border-color: rgba(255, 90, 100, 0.45);
+  color: #ffd8dc;
+}
+
+#masterLayout .meslek-btn--tehlike:hover:not(:disabled) {
+  border-color: rgba(255, 120, 130, 0.65);
+  color: #fff;
+}
+
+#masterLayout .meslek-kapat-panel {
+  border-color: rgba(255, 90, 100, 0.22);
+  background: linear-gradient(180deg, rgba(40, 10, 14, 0.35), rgba(12, 4, 6, 0.2));
+}
+
 #masterLayout .meslek-btn--pasif {
   display: inline-block;
   margin-top: 8px;

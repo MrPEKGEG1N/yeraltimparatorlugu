@@ -961,6 +961,20 @@ function meslekYonetimHTML() {
       });
     }
     html += "</section>";
+
+    html +=
+      '<section class="meslek-bolum meslek-panel meslek-kapat-panel">' +
+      meslekBolumBaslik("⚠️", t("meslek.close.title")) +
+      '<p class="meslek-dim">' +
+      t("meslek.close.desc", {
+        name: escHtml(y.isim),
+        amount: fmt(y.kasa || 0),
+        employees: y.calisanlar ? y.calisanlar.length : 0,
+      }) +
+      "</p>" +
+      '<button type="button" class="meslek-btn meslek-btn--tehlike" onclick="sirketKapat()">' +
+      escHtml(t("meslek.close.btn")) +
+      "</button></section>";
     return html;
   }
 
@@ -1460,6 +1474,25 @@ async function sirketIstifa() {
   await meslekYukle();
 }
 
+async function sirketKapat() {
+  if (!sirketPanel || !sirketPanel.yonetim) {
+    toast(t("meslek.toast.noCompany"), "hata");
+    return;
+  }
+  var y = sirketPanel.yonetim;
+  var onay = t("meslek.confirm.closeCompany", {
+    name: y.isim,
+    amount: fmt(y.kasa || 0),
+    employees: y.calisanlar ? y.calisanlar.length : 0,
+  });
+  if (!confirm(onay)) return;
+  var ef = await sunucuAksiyon("sirket_kapat");
+  if (ef === null) return;
+  toast(ef.mesaj || t("meslek.toast.companyClosed"), "basari");
+  meslekSekme = "sirketler";
+  await meslekYukle();
+}
+
 async function yetenekAntrenman(yetenek) {
   if (!yetenek || ["guc", "zeka", "dayaniklilik", "beceri"].indexOf(yetenek) < 0) return;
   var ef = await sunucuAksiyon("yetenek_antrenman", null, null, { yetenek: yetenek });
@@ -1601,6 +1634,7 @@ window.sirketBasvuruRed = sirketBasvuruRed;
 window.sirketMaasGuncelle = sirketMaasGuncelle;
 window.sirketIstenCikar = sirketIstenCikar;
 window.sirketIstifa = sirketIstifa;
+window.sirketKapat = sirketKapat;
 window.sirketEgitim = sirketEgitim;
 window.sirketMalzemeAl = sirketMalzemeAl;
 window.sirketUpgrade = sirketUpgrade;

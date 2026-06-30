@@ -1165,6 +1165,40 @@ async function istenCikar(db, userId, calisanUserId) {
   return { ok: true, mesaj: "Çalışan işten çıkarıldı." };
 }
 
+async function kapat(db, userId, player) {
+  await ensureSirketTables(db);
+  const sirket = await sahipSirketGetir(db, userId);
+  if (!sirket) return { ok: false, error: "Şirketin yok." };
+
+  const calisanlar = await calisanlariGetir(db, sirket.id);
+  const kasa = Math.max(0, parseInt(sirket.kasa, 10) || 0);
+  const isim = sirket.isim;
+  const { bildirimGonder } = require("./bildirimService");
+
+  for (const c of calisanlar) {
+    await bildirimGonder(db, c.user_id, "sirket_kapandi", {
+      baslik: "Şirket Kapatıldı",
+      icerik: `${isim} şirketi patron tarafından kapatıldı. İşin sona erdi.`,
+      url: "/?ekran=meslekler",
+    });
+    await meslekSirketBildirimEkle(db, c.user_id);
+  }
+
+  await run(db, `DELETE FROM oyuncu_sirketleri WHERE id = ?`, [sirket.id]);
+
+  if (kasa > 0) {
+    await run(db, `UPDATE players SET kasa = kasa + ? WHERE user_id = ?`, [kasa, userId]);
+    player.kasa = (player.kasa || 0) + kasa;
+  }
+
+  const mesaj =
+    kasa > 0
+      ? `${isim} kapatıldı. Şirket kasasındaki ${kasa.toLocaleString("tr-TR")} TL hesabına aktarıldı.`
+      : `${isim} kapatıldı.`;
+
+  return { ok: true, mesaj, iadeKasa: kasa };
+}
+
 async function istifaEt(db, userId) {
   const emp = await get(
     db,
@@ -1425,6 +1459,7 @@ module.exports = {
   basvuruRed,
   maasGuncelle,
   istenCikar,
+  kapat,
   istifaEt,
   egitimVer,
   malzemeAl,

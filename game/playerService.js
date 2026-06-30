@@ -63,6 +63,7 @@ const {
   basvuruRed: sirketBasvuruRed,
   maasGuncelle: sirketMaasGuncelle,
   istenCikar: sirketIstenCikar,
+  kapat: sirketKapat,
   istifaEt: sirketIstifaEt,
   egitimVer: sirketEgitimVer,
   malzemeAl: sirketMalzemeAl,
@@ -1497,6 +1498,17 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
       ok: true,
       player: await publicPlayerFull(db, userId, player),
       effect: { type: "sirket_istifa", mesaj: sonuc.mesaj },
+    };
+  }
+
+  if (action === "sirket_kapat") {
+    const sonuc = await sirketKapat(db, userId, player);
+    if (!sonuc.ok) return sonuc;
+    player = await loadPlayer(db, userId);
+    return {
+      ok: true,
+      player: await publicPlayerFull(db, userId, player),
+      effect: { type: "sirket_kapat", mesaj: sonuc.mesaj, iadeKasa: sonuc.iadeKasa || 0 },
     };
   }
 
