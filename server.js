@@ -126,13 +126,15 @@ async function start() {
         volumeOk: diag.volumeOk,
         supabase: diag.supabase,
         seed: diag.seed,
-        kaliciVeri: diag.volumeOk
-          ? "railway-volume"
-          : diag.supabase?.configured
-            ? "supabase-yedek"
-            : diag.seed?.ok
-              ? "seed-yedek"
-              : "riskli",
+        kaliciVeri: diag.volumeOk && diag.supabase?.configured
+          ? "railway-volume+supabase"
+          : diag.volumeOk
+            ? "railway-volume"
+            : diag.supabase?.configured
+              ? "supabase-yedek"
+              : diag.seed?.ok
+                ? "seed-yedek"
+                : "riskli",
         dd1,
         uyari: !diag.volumeMount && !diag.supabase?.configured && !diag.seed?.ok
           ? "Kalici depolama yok! Railway Volume, Supabase veya seed/oyun.db gerekli."

@@ -8,14 +8,11 @@ Write-Host "1) RAILWAY VOLUME (birincil — deployda veri kalir)" -ForegroundCol
 Write-Host "   npx @railway/cli login"
 Write-Host "   npx @railway/cli link"
 Write-Host "   npm run railway:volume"
-Write-Host "   Volume: yeralti-db  |  Mount: /app/db"
+Write-Host "   Volume mount: /data  |  npm run railway:volume"
 Write-Host ""
 Write-Host "2) SUPABASE YEDEK (bulut — volume kaybolursa geri yukler)" -ForegroundColor Yellow
 Write-Host "   Supabase Dashboard > Project Settings > API"
-Write-Host "   Railway > Variables ekleyin:"
-Write-Host "     SUPABASE_URL=https://xxxx.supabase.co"
-Write-Host "     SUPABASE_SERVICE_ROLE_KEY=eyJ... (service_role, anon degil!)"
-Write-Host "   Opsiyonel: SUPABASE_DB_BUCKET=yeralti-db-backups"
+Write-Host "   npm run supabase:setup"
 Write-Host ""
 Write-Host "3) DEPLOY" -ForegroundColor Yellow
 Write-Host "   npm run deploy"

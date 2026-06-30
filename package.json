@@ -19,6 +19,8 @@
     "android:finalize": "powershell -ExecutionPolicy Bypass -File tools/finalize-play-release.ps1",
     "liderlik": "python app.py",
     "railway:volume": "powershell -ExecutionPolicy Bypass -File tools/setup-railway-volume.ps1",
+    "supabase:setup": "powershell -ExecutionPolicy Bypass -File tools/setup-supabase-backup.ps1",
+    "supabase:test": "node tools/test-supabase-backup.js",
     "setup:persistence": "powershell -ExecutionPolicy Bypass -File tools/setup-persistence.ps1",
     "export:players": "node tools/export-all-players.js",
     "deploy": "powershell -ExecutionPolicy Bypass -File tools/deploy-railway.ps1",
