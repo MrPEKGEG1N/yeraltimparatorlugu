@@ -837,6 +837,7 @@ async function updatePlayerStats(db, adminId, userId, patch) {
     ["puan", patch.puan],
     ["icraat", patch.icraat],
     ["sms_hakki", patch.sms_hakki],
+    ["elmas", patch.elmas],
   ]) {
     if (val === undefined || val === null || val === "") continue;
     const n = parseInt(val, 10);
@@ -1029,6 +1030,7 @@ function mapPlayerRow(r) {
     puan: r.puan,
     icraat: r.icraat,
     smsHakki: r.sms_hakki,
+    elmas: r.elmas || 0,
     mekanToplam: r.mekan_toplam || 0,
     guvenliYerSeviye: r.guvenli_yer_seviye || 1,
     guvenliYerAd: seviyeBul(r.guvenli_yer_seviye || 1).ad,

@@ -1048,6 +1048,16 @@ html, body {
   color: #fff;
 }
 
+#masterLayout .ml-stat-chip--elmas {
+  border-color: rgba(120, 210, 255, 0.35);
+  background: rgba(6, 18, 32, 0.62);
+}
+
+#masterLayout .elmas-val {
+  color: #7ee8ff;
+  text-shadow: 0 0 8px rgba(126, 232, 255, 0.35);
+}
+
 .icraat-vurgu { color: #ffd700; }
 .kazanc-yesil { color: #4caf50; }
 

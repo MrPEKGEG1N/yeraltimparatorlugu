@@ -20,6 +20,7 @@ var mafyaBildirim = false;
 var okunmamisMesaj = false;
 var oyuncuDevlet = 100;
 var oyuncuSms = 50;
+var oyuncuElmas = 0;
 var saatlikKazanc = 0;
 var karaListede = false;
 var sehirEfsane = false;
@@ -164,6 +165,7 @@ function oyuncuUygula(p, secenekler) {
   okunmamisMesaj = !!p.okunmamisMesaj;
   oyuncuDevlet = Math.min(AVUKAT_ILISKI_MAX, p.devletIliskisi != null ? p.devletIliskisi : 100);
   oyuncuSms = p.smsHakki != null ? p.smsHakki : 50;
+  oyuncuElmas = p.elmas != null ? p.elmas : 0;
   saatlikKazanc = p.saatlikKazanc || 0;
   sektorSahiplik = p.sektorSahiplik || {};
   rusvetBilgi = p.rusvet || rusvetBilgi;
@@ -767,6 +769,8 @@ function arayuzGuncelle() {
   if (kasaEl2) kasaEl2.style.color = '#ffffff';
   var bankaEl = document.getElementById('bankaUst');
   if (bankaEl) bankaEl.innerText = fmt(bankaBakiye) + ' TL';
+  var elmasEl = document.getElementById('elmas');
+  if (elmasEl) elmasEl.innerText = fmt(oyuncuElmas);
   var onlineEl = document.getElementById('onlineSayisi');
   if (onlineEl) onlineEl.innerText = String(onlineSayisi);
 }

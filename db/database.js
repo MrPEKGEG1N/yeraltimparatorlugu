@@ -482,6 +482,7 @@ async function initDatabase() {
     ["profil_resmi", "TEXT NOT NULL DEFAULT ''"],
     ["bonus_guc", "INTEGER NOT NULL DEFAULT 0"],
     ["last_saatlik_gelir_hour", "TEXT"],
+    ["elmas", "INTEGER NOT NULL DEFAULT 0"],
   ];
   for (const [col, def] of playerCols) {
     try {

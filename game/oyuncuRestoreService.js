@@ -23,6 +23,7 @@ const PLAYER_COLS = [
   "icraat",
   "devlet_iliskisi",
   "sms_hakki",
+  "elmas",
   "profil_aciklama",
   "profil_resmi",
   "aktif_ekran",
@@ -122,7 +123,7 @@ async function applyMekanlar(db, userId, mekanlar) {
   }
 }
 
-const FLOOR_COLS = new Set(["kasa", "guc", "puan", "icraat", "sms_hakki"]);
+const FLOOR_COLS = new Set(["kasa", "guc", "puan", "icraat", "sms_hakki", "elmas"]);
 const RECOVERY_RATIO = 0.92;
 
 async function playerNeedsRecovery(db, userId, snap, created) {
@@ -131,7 +132,7 @@ async function playerNeedsRecovery(db, userId, snap, created) {
 
   const p = await get(
     db,
-    `SELECT kasa, guc, puan, icraat, sms_hakki FROM players WHERE user_id = ?`,
+    `SELECT kasa, guc, puan, icraat, sms_hakki, elmas FROM players WHERE user_id = ?`,
     [userId]
   );
   if (!p) return true;
@@ -178,7 +179,7 @@ async function applyForceSnapshot(db, userId, snap) {
   const player = snap.player || {};
   const cur = await get(
     db,
-    `SELECT puan, kasa, guc, icraat, sms_hakki FROM players WHERE user_id = ?`,
+    `SELECT puan, kasa, guc, icraat, sms_hakki, elmas FROM players WHERE user_id = ?`,
     [userId]
   );
   const sets = [];
@@ -629,6 +630,7 @@ function mapExportToSeed(full) {
       puan: st.puan,
       icraat: st.icraat,
       sms_hakki: st.smsHakki,
+      elmas: st.elmas,
       profil_resmi: st.profilResmi,
       profil_aciklama: st.profilAciklama,
       devlet_iliskisi: st.devletIliskisi,

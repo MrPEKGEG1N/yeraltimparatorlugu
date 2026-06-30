@@ -171,6 +171,7 @@ function rowToPlayer(row) {
     dusmanlar: row.dusmanlar || "",
     profilResmi: row.profil_resmi || "",
     userId: row.user_id,
+    elmas: row.elmas || 0,
   };
 }
 
@@ -444,6 +445,7 @@ async function publicPlayerFull(db, userId, player) {
     bankaBakiye,
     bankaHakki: bankaPanel.bankaHakki,
     faizBekleyen: bankaPanel.faizBekleyen,
+    elmas: player.elmas || 0,
     kumarhaneChip,
     kiralamaEnvanter,
     kiralamaFiyatEnvanter,
