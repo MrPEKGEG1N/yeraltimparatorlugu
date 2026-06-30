@@ -128,7 +128,7 @@ async function recoverDbIfDegraded(targetPath = DB_PATH) {
 
 let _lastSnapshotExport = 0;
 
-async function maybeExportPlayerSnapshots(db, minIntervalMs = 60 * 60 * 1000) {
+async function maybeExportPlayerSnapshots(db, minIntervalMs = 5 * 60 * 1000) {
   const now = Date.now();
   if (now - _lastSnapshotExport < minIntervalMs) return;
   _lastSnapshotExport = now;

@@ -201,22 +201,16 @@ async function start() {
 
   const { maybeExportPlayerSnapshots } = require("./game/veriKorumaService");
 
+  const BACKUP_INTERVAL_MS = 5 * 60 * 1000;
+
   setInterval(() => {
     backupDbFile(DB_PATH)
       .then(() => maybeExportPlayerSnapshots(db))
       .catch((err) => console.warn("[db] Periyodik yedek hatasi:", err.message));
-  }, 30 * 60 * 1000);
+  }, BACKUP_INTERVAL_MS);
 
-  setInterval(() => {
-    const { uploadDbBackup } = require("./services/supabaseBackupService");
-    uploadDbBackup(DB_PATH)
-      .then(() => maybeExportPlayerSnapshots(db))
-      .catch((err) => console.warn("[supabase] Periyodik yedek hatasi:", err.message));
-  }, 15 * 60 * 1000);
-
-  // Ilk acilista Supabase'e yedekle + snapshot guncelle
-  const { uploadDbBackup } = require("./services/supabaseBackupService");
-  uploadDbBackup(DB_PATH)
+  // Ilk acilista yedekle + snapshot guncelle
+  backupDbFile(DB_PATH)
     .then(() => maybeExportPlayerSnapshots(db, 0))
     .catch(() => {});
 

@@ -250,10 +250,10 @@ async function backupDbFile(targetPath) {
     fs.copyFileSync(targetPath, bak);
     if (!fs.existsSync(backupDir)) fs.mkdirSync(backupDir, { recursive: true });
     const dayStamp = new Date().toISOString().slice(0, 10);
-    const hourStamp = new Date().toISOString().slice(0, 13).replace("T", "-");
+    const minuteStamp = new Date().toISOString().slice(0, 16).replace("T", "-");
     fs.copyFileSync(targetPath, path.join(backupDir, `oyun-${dayStamp}.db`));
-    fs.copyFileSync(targetPath, path.join(backupDir, `oyun-${hourStamp}.db`));
-    pruneOldBackups(backupDir, 72);
+    fs.copyFileSync(targetPath, path.join(backupDir, `oyun-${minuteStamp}.db`));
+    pruneOldBackups(backupDir, 144);
     console.log(`[db] Yedek alindi: ${bak} (${users} kullanici)`);
     try {
       const { uploadDbBackup } = require("../services/supabaseBackupService");
