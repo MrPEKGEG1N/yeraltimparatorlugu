@@ -3109,7 +3109,7 @@ function profilEkranSablonu(opts) {
     + '<div class="profil-detay-satir"><dt>' + escHtml(t('game.profil.company')) + '</dt><dd id="profilSirketDetay">' + profilSirketDetayHTML(opts.isDurumu, opts.userId || userId) + '</dd></div>'
     + '<div class="profil-detay-satir"><dt>' + escHtml(t('game.profil.respect')) + '</dt><dd id="profilPuanDetay">' + fmt(opts.puan || 0) + '</dd></div>'
     + '<div class="profil-detay-satir"><dt>' + escHtml(t('game.profil.rank')) + '</dt><dd id="profilSiraDetay">' + (opts.sira != null ? fmt(opts.sira) : '—') + '</dd></div>'
-    + '<div class="profil-detay-satir"><dt>' + escHtml(t('game.profil.groupRank')) + '</dt><dd id="profilGrupSiraDetay">' + (opts.grupSira != null ? fmt(opts.grupSira) : '—') + '</dd></div>'
+    + '<div class="profil-detay-satir"><dt>' + escHtml(t('game.profil.groupRank')) + '</dt><dd id="profilGrupSiraDetay">' + profilGrupSiraDetayHTML(opts.grupSira, opts.grup, opts.grupId) + '</dd></div>'
     + '<div class="profil-detay-satir"><dt>' + escHtml(t('game.profil.actionRegen')) + '</dt><dd id="profilIcraatKalan">' + (opts.icraatKalan || '—') + '</dd></div>'
     + '</dl>';
 
@@ -3341,6 +3341,18 @@ function escHtml(s) {
 function oyuncuLink(userId, isim) {
   if (!userId || !isim) return escHtml(isim || '—');
   return '<button type="button" class="oyuncu-link-btn" onclick="oyuncuProfilGoster(' + userId + ')">' + escHtml(isim) + '</button>';
+}
+
+function profilGrupSiraDetayHTML(grupSira, grup, grupId) {
+  if (grupSira == null && !grup) return '—';
+  var siraHtml = grupSira != null ? fmt(grupSira) : '—';
+  if (!grup || !grupId) return siraHtml;
+  return siraHtml + ' · ' + mafyaGrupLink(grupId, grup);
+}
+
+function profilGrupSiraDetayGuncelle(grupSira, grup, grupId) {
+  var el = document.getElementById('profilGrupSiraDetay');
+  if (el) el.innerHTML = profilGrupSiraDetayHTML(grupSira, grup, grupId);
 }
 
 function profilSirketDetayHTML(isDurumu, profilUserId) {
@@ -5491,6 +5503,7 @@ function profilAlanGuncelle(id, text) {
 async function profilSiralamaYedek(p) {
   var sira = p.sira;
   var grupSira = p.grupSira;
+  var grupId = p.grupId || null;
   try {
     if (sira == null) {
       var oRes = await apiFetch('/api/leaderboard?tip=oyuncu');
@@ -5505,30 +5518,32 @@ async function profilSiralamaYedek(p) {
         }
       }
     }
-    if (grupSira == null && p.grup) {
+    if ((grupSira == null || !grupId) && p.grup) {
       var gRes = await apiFetch('/api/leaderboard?tip=grup');
       var gData = await gRes.json().catch(function() { return {}; });
       if (gRes.ok && gData.ok && gData.liste) {
         var grupAdi = temizGrupAdi(p.grup);
         for (var j = 0; j < gData.liste.length; j++) {
           if (temizGrupAdi(gData.liste[j].isim) === grupAdi) {
-            grupSira = j + 1;
+            if (grupSira == null) grupSira = j + 1;
+            if (!grupId) grupId = gData.liste[j].grupId;
             break;
           }
         }
       }
     }
   } catch (_) {}
-  return { sira: sira, grupSira: grupSira };
+  return { sira: sira, grupSira: grupSira, grupId: grupId };
 }
 
 async function profilSiralamaAlanlariGuncelle(p) {
   var yedek = await profilSiralamaYedek(p);
   if (p.sira == null) p.sira = yedek.sira;
   if (p.grupSira == null) p.grupSira = yedek.grupSira;
+  if (!p.grupId) p.grupId = yedek.grupId;
   profilAlanGuncelle('profilPuanDetay', fmt(p.puan || 0));
   profilAlanGuncelle('profilSiraDetay', p.sira != null ? fmt(p.sira) : '—');
-  profilAlanGuncelle('profilGrupSiraDetay', p.grupSira != null ? fmt(p.grupSira) : '—');
+  profilGrupSiraDetayGuncelle(p.grupSira, p.grup, p.grupId);
 }
 
 async function profilYukle() {
@@ -5861,6 +5876,8 @@ async function oyuncuProfilGoster(userId) {
       puan: p.puan,
       sira: p.sira,
       grupSira: p.grupSira,
+      grup: p.grup,
+      grupId: p.grupId,
       aciklama: p.aciklama,
       dostlar: p.dostlar,
       dusmanlar: p.dusmanlar,

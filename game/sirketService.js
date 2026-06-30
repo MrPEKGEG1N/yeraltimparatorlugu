@@ -6,6 +6,8 @@ const {
   EGITIM_SLOT_BAZ,
   MAX_GUNLUK_TELAFI,
   MAX_UPGRADE_SEVIYE,
+  MAX_GUNLUK_MAAS,
+  MIN_GUNLUK_MAAS,
   UPGRADE_TIPLERI,
   REKLAM_SEVIYELERI,
   turBul,
@@ -776,7 +778,24 @@ async function zamTalepEt(db, userId, talepMaas) {
   if (!emp) return { ok: false, error: "Bir şirkette çalışmıyorsun." };
 
   const mevcut = emp.gunluk_maas || 0;
-  const talep = Math.min(50000, Math.max(500, Math.floor(Number(talepMaas) || 0)));
+  if (mevcut >= MAX_GUNLUK_MAAS) {
+    return {
+      ok: false,
+      error: `Günlük maaşın zaten maksimum (${MAX_GUNLUK_MAAS.toLocaleString("tr-TR")} TL).`,
+    };
+  }
+
+  const raw = Math.floor(Number(talepMaas) || 0);
+  if (!Number.isFinite(raw) || raw < MIN_GUNLUK_MAAS) {
+    return { ok: false, error: `Geçerli bir maaş gir (en az ${MIN_GUNLUK_MAAS.toLocaleString("tr-TR")} TL).` };
+  }
+  if (raw > MAX_GUNLUK_MAAS) {
+    return {
+      ok: false,
+      error: `Günlük maaş en fazla ${MAX_GUNLUK_MAAS.toLocaleString("tr-TR")} TL olabilir.`,
+    };
+  }
+  const talep = raw;
   if (talep <= mevcut) {
     return { ok: false, error: `Talep edilen maaş mevcut günlük maaştan (${mevcut.toLocaleString("tr-TR")} TL) yüksek olmalı.` };
   }
@@ -822,7 +841,7 @@ async function zamTalepOnayla(db, userId, talepId) {
   );
   if (!talep) return { ok: false, error: "Zam talebi bulunamadı." };
 
-  const maas = Math.min(50000, Math.max(500, talep.talep_maas));
+  const maas = Math.min(MAX_GUNLUK_MAAS, Math.max(MIN_GUNLUK_MAAS, talep.talep_maas));
   const sonuc = await run(
     db,
     `UPDATE sirket_calisanlari SET gunluk_maas = ? WHERE sirket_id = ? AND user_id = ?`,
@@ -1269,7 +1288,7 @@ async function basvuruKabul(db, userId, basvuruId, gunlukMaas) {
   const maxCalisan = maxCalisanHesapla(tur, sirket.kapasite_seviye || 0);
   if ((calisanSayisi?.n || 0) >= maxCalisan) return { ok: false, error: "Kadro dolu." };
 
-  const maas = Math.min(50000, Math.max(500, Math.floor(Number(gunlukMaas) || poz.varsayilanMaas)));
+  const maas = Math.min(MAX_GUNLUK_MAAS, Math.max(MIN_GUNLUK_MAAS, Math.floor(Number(gunlukMaas) || poz.varsayilanMaas)));
 
   const npcIs = await get(db, `SELECT user_id FROM oyuncu_meslek WHERE user_id = ?`, [
     basvuru.user_id,
@@ -1324,7 +1343,7 @@ async function basvuruRed(db, userId, basvuruId) {
 async function maasGuncelle(db, userId, calisanUserId, gunlukMaas) {
   const sirket = await sahipSirketGetir(db, userId);
   if (!sirket) return { ok: false, error: "Şirketin yok." };
-  const maas = Math.min(50000, Math.max(500, Math.floor(Number(gunlukMaas) || 0)));
+  const maas = Math.min(MAX_GUNLUK_MAAS, Math.max(MIN_GUNLUK_MAAS, Math.floor(Number(gunlukMaas) || 0)));
   const sonuc = await run(
     db,
     `UPDATE sirket_calisanlari SET gunluk_maas = ? WHERE sirket_id = ? AND user_id = ?`,

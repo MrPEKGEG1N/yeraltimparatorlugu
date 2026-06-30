@@ -6,6 +6,8 @@ const EGITIM_MALIYET = 5000;
 const EGITIM_KAZANC = 2;
 const MAX_GUNLUK_TELAFI = 7;
 const MAX_UPGRADE_SEVIYE = 6;
+const MAX_GUNLUK_MAAS = 50000;
+const MIN_GUNLUK_MAAS = 500;
 
 /** Günlük eğitim slotu = personel odası seviyesi + yıldız bonusu */
 const EGITIM_SLOT_BAZ = 1;
@@ -444,6 +446,8 @@ module.exports = {
   EGITIM_SLOT_BAZ,
   MAX_GUNLUK_TELAFI,
   MAX_UPGRADE_SEVIYE,
+  MAX_GUNLUK_MAAS,
+  MIN_GUNLUK_MAAS,
   UPGRADE_TIPLERI,
   REKLAM_SEVIYELERI,
   MALZEME_TANIM,

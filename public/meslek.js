@@ -270,7 +270,9 @@ function meslekAktifIsHTML(aktif) {
 
 function meslekSirketCalisanHTML(calisan) {
   if (!calisan) return "";
-  var varsayilanTalep = Math.min(50000, Math.max((calisan.gunlukMaas || 0) + 500, 501));
+  var maxMaas = 50000;
+  var mevcutMaas = calisan.gunlukMaas || 0;
+  var varsayilanTalep = Math.min(maxMaas, Math.max(mevcutMaas + 500, 501));
   var zamHtml = "";
   if (calisan.zamTalebi) {
     zamHtml =
@@ -280,13 +282,17 @@ function meslekSirketCalisanHTML(calisan) {
         requested: fmt(calisan.zamTalebi.talepMaas),
       }) +
       "</p>";
+  } else if (mevcutMaas >= maxMaas) {
+    zamHtml = '<p class="meslek-dim">' + escHtml(t("meslek.activeCo.raiseMax")) + "</p>";
   } else {
     zamHtml =
       '<input type="number" id="sirketZamTalepInput" class="meslek-input meslek-input--kucuk" value="' +
       varsayilanTalep +
       '" min="' +
-      Math.min(50000, (calisan.gunlukMaas || 0) + 1) +
-      '" max="50000" placeholder="' +
+      Math.min(maxMaas, mevcutMaas + 1) +
+      '" max="' +
+      maxMaas +
+      '" placeholder="' +
       escHtml(t("meslek.activeCo.raisePlaceholder")) +
       '" />' +
       '<button type="button" class="meslek-btn meslek-btn--altin" onclick="sirketZamTalep()">' +
@@ -1562,6 +1568,11 @@ async function sirketZamTalep() {
   var talepMaas = el ? el.value : null;
   if (!talepMaas) {
     toast(t("meslek.toast.enterRaiseAmount"), "hata");
+    return;
+  }
+  var n = Math.floor(Number(talepMaas) || 0);
+  if (n > 50000) {
+    toast(t("meslek.toast.raiseMax"), "hata");
     return;
   }
   var ef = await sunucuAksiyon("sirket_zam_talep", null, null, { talepMaas: talepMaas });

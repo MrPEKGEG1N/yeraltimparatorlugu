@@ -180,6 +180,7 @@ function createGameRouter(db) {
 
       const sira = await getOyuncuSira(db, targetId);
       const grupSira = await getGrupSira(db, targetId, p.grup);
+      const grupUyelik = await kullaniciGrubu(db, targetId);
       const isDurumu = await oyuncuIsDurumuMetni(db, targetId);
 
       let saatlikKazanc = null;
@@ -203,7 +204,8 @@ function createGameRouter(db) {
           userId: p.id,
           oyuncuAdi: p.reis_adi,
           lakap: p.lakap || "Mafya",
-          grup: temizGrupAdi(p.grup),
+          grup: temizGrupAdi(grupUyelik?.isim || p.grup),
+          grupId: grupUyelik?.id || null,
           puan: p.puan,
           guc: kendiProfili ? p.guc : null,
           sira,
