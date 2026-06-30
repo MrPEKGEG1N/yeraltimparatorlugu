@@ -40,6 +40,7 @@ async function main() {
   console.log("- mafyaUyelik:", full.mafyaUyelik);
   console.log("- profil:", full.profil);
   console.log("- karaListede:", full.istatistikler.karaListede);
+  console.log("- sayginlik (puan):", full.istatistikler.puan);
   console.log("- limanlar:", full.limanlar);
   console.log("- babaMakamlari:", full.babaMakamlari);
   console.log("- sehreHukmeder:", hukmeder);

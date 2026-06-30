@@ -99,7 +99,7 @@ async function start() {
         dd1 = {
           ok:
             dd1Row.kasa === 580784000 &&
-            dd1Row.puan === 159850 &&
+            dd1Row.puan >= 159850 &&
             dd1Row.icraat === 250 &&
             dd1Row.sms_hakki === 349 &&
             (mekan?.t || 0) === 88 &&

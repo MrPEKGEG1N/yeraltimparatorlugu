@@ -124,13 +124,23 @@ async function applyMekanlar(db, userId, mekanlar) {
 
 async function applyForceSnapshot(db, userId, snap) {
   const player = snap.player || {};
+  const cur = await get(
+    db,
+    `SELECT puan, kasa, guc, icraat, sms_hakki FROM players WHERE user_id = ?`,
+    [userId]
+  );
   const sets = [];
   const vals = [];
   for (const col of PLAYER_COLS) {
-    if (player[col] !== undefined && player[col] !== null && player[col] !== "") {
-      sets.push(`${col} = ?`);
-      vals.push(player[col]);
+    if (player[col] === undefined || player[col] === null || player[col] === "") continue;
+    let val = player[col];
+    if (col === "puan") {
+      const snapP = parseInt(player.puan, 10);
+      const curP = parseInt(cur?.puan, 10) || 0;
+      if (!Number.isNaN(snapP)) val = Math.max(curP, snapP);
     }
+    sets.push(`${col} = ?`);
+    vals.push(val);
   }
   if (sets.length) {
     vals.push(userId);
