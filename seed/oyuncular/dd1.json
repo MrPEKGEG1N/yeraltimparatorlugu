@@ -9,7 +9,19 @@
     "guc": 86296950,
     "puan": 159850,
     "icraat": 250,
-    "sms_hakki": 349
+    "sms_hakki": 349,
+    "profil_resmi": "kadin-04",
+    "profil_aciklama": "Gece kulübünün sahibi. Şehirde sözü geçen isim.",
+    "dostlar": "",
+    "dusmanlar": "",
+    "devlet_iliskisi": 100,
+    "kara_listede": 1,
+    "sehir_efsane": 1,
+    "sehre_hukmet_sayisi": 1,
+    "liman_istanbul": 1,
+    "aktif_ekran": "meslekler",
+    "son_aksiyon": "ekran_goruntule",
+    "son_aksiyon_detay": "meslekler"
   },
   "guvenli_yer": {
     "base_seviye": 15
@@ -17,77 +29,60 @@
   "istihbarat": {
     "eleman_sayisi": 2
   },
+  "yetenekler": {
+    "guc": 8,
+    "zeka": 8,
+    "dayaniklilik": 8,
+    "beceri": 8
+  },
+  "sirket": {
+    "tur_id": "gece_kulubu",
+    "isim": "Gece Kulübü dd1",
+    "aciklama": "Şehrin en gözde gece kulübü.",
+    "kasa": 3200000,
+    "ise_alim_acik": 1,
+    "kapasite_seviye": 5,
+    "depo_seviye": 5,
+    "personel_odasi_seviye": 4,
+    "reklam_seviye": 3,
+    "fiyat_carpani": 1,
+    "yildiz": 0,
+    "populerlik": 6,
+    "stok": [
+      { "malzeme_id": "icecek_stok", "miktar": 180 },
+      { "malzeme_id": "ses_isik", "miktar": 95 },
+      { "malzeme_id": "guvenlik_ekipman", "miktar": 45 },
+      { "malzeme_id": "ambalaj", "miktar": 70 }
+    ]
+  },
+  "mafya": {
+    "lider": true,
+    "isim": "$dd1$",
+    "aciklama": "Gece kulübünden sokağa uzanan aile.",
+    "rutbe": "Mafya Lideri"
+  },
+  "sehre_hukmet": {
+    "aktif": true,
+    "baslangic": 1782762119,
+    "sehre_hukmet_sayisi": 1,
+    "limanlar": ["istanbul", "izmir", "hatay"],
+    "makamlar": ["sozunu_gecir", "sadakat_yemini"]
+  },
   "mekanlar": [
-    {
-      "sektor": "yeralti",
-      "mekan_key": "kahvehane",
-      "adet": 1
-    },
-    {
-      "sektor": "yeralti",
-      "mekan_key": "bar",
-      "adet": 0
-    },
-    {
-      "sektor": "yeralti",
-      "mekan_key": "disco",
-      "adet": 1
-    },
-    {
-      "sektor": "yeralti",
-      "mekan_key": "lunapark",
-      "adet": 1
-    },
-    {
-      "sektor": "yeralti",
-      "mekan_key": "kumarhane",
-      "adet": 8
-    },
-    {
-      "sektor": "silah",
-      "mekan_key": "sokak_arasi",
-      "adet": 3
-    },
-    {
-      "sektor": "silah",
-      "mekan_key": "sehirler_arasi",
-      "adet": 1
-    },
-    {
-      "sektor": "silah",
-      "mekan_key": "kacakcilik",
-      "adet": 3
-    },
-    {
-      "sektor": "silah",
-      "mekan_key": "uluslararasi",
-      "adet": 4
-    },
-    {
-      "sektor": "silah",
-      "mekan_key": "atom",
-      "adet": 45
-    },
-    {
-      "sektor": "paket",
-      "mekan_key": "mahalle_teslimat",
-      "adet": 0
-    },
-    {
-      "sektor": "paket",
-      "mekan_key": "sehirler_arasi_teslimat",
-      "adet": 1
-    },
-    {
-      "sektor": "paket",
-      "mekan_key": "ulke_capinda",
-      "adet": 4
-    },
-    {
-      "sektor": "paket",
-      "mekan_key": "uluslararasi_teslimat",
-      "adet": 16
-    }
+    { "sektor": "yeralti", "mekan_key": "kahvehane", "adet": 1 },
+    { "sektor": "yeralti", "mekan_key": "bar", "adet": 0 },
+    { "sektor": "yeralti", "mekan_key": "disco", "adet": 1 },
+    { "sektor": "yeralti", "mekan_key": "lunapark", "adet": 1 },
+    { "sektor": "yeralti", "mekan_key": "kumarhane", "adet": 8 },
+    { "sektor": "silah", "mekan_key": "sokak_arasi", "adet": 3 },
+    { "sektor": "silah", "mekan_key": "sehirler_arasi", "adet": 1 },
+    { "sektor": "silah", "mekan_key": "kacakcilik", "adet": 3 },
+    { "sektor": "silah", "mekan_key": "uluslararasi", "adet": 4 },
+    { "sektor": "silah", "mekan_key": "atom", "adet": 45 },
+    { "sektor": "paket", "mekan_key": "mahalle_teslimat", "adet": 0 },
+    { "sektor": "paket", "mekan_key": "sehirler_arasi_teslimat", "adet": 1 },
+    { "sektor": "paket", "mekan_key": "ulke_capinda", "adet": 4 },
+    { "sektor": "paket", "mekan_key": "uluslararasi_teslimat", "adet": 16 }
   ],
   "son_ip": "78.180.30.95",
   "visitor_id": "957864a276d8be6d24bf0454f419c589",
