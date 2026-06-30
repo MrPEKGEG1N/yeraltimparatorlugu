@@ -4,6 +4,11 @@ const { run, get, ensureConfiguredAdmin } = require("../db/database");
 const { JWT_SECRET } = require("../config");
 const { rastgeleProfilResmi } = require("../game/profilPortreler");
 const { recordFingerprint, registerSecurityCheck, isUserBanned, logSecurityEvent } = require("../game/securityService");
+const {
+  normalizeGameLang,
+  resolveRegistrationCountry,
+  updateUserGameLang,
+} = require("../game/localeMetaService");
 const { ensureTercihler } = require("../game/bildirimService");
 
 const USERNAME_RE = /^[a-zA-Z0-9_]{3,20}$/;
@@ -79,10 +84,12 @@ async function registerUser(db, { username, password, reisAdi, lakap, website },
   }
 
   const hash = await bcrypt.hash(p, 10);
+  const kayitUlkesi = resolveRegistrationCountry(clientMeta, ulkeKodu);
+  const lang = normalizeGameLang(oyunDili || clientMeta.lang);
   const result = await run(
     db,
-    "INSERT INTO users (username, password_hash, reis_adi, lakap) VALUES (?, ?, ?, ?)",
-    [u, hash, reis, secilenLakap]
+    "INSERT INTO users (username, password_hash, reis_adi, lakap, kayit_ulkesi, oyun_dili) VALUES (?, ?, ?, ?, ?, ?)",
+    [u, hash, reis, secilenLakap, kayitUlkesi, lang]
   );
 
   const userId = result.lastID;
@@ -98,7 +105,7 @@ async function registerUser(db, { username, password, reisAdi, lakap, website },
   return { ok: true, user, token: signToken(user) };
 }
 
-async function loginUser(db, { username, password }, clientMeta = {}) {
+async function loginUser(db, { username, password, oyunDili }, clientMeta = {}) {
   const u = String(username || "").trim().toLowerCase();
   const p = String(password || "");
 
@@ -140,6 +147,9 @@ async function loginUser(db, { username, password }, clientMeta = {}) {
   }
 
   await run(db, `UPDATE users SET failed_login_count = 0 WHERE id = ?`, [user.id]);
+  if (oyunDili || clientMeta.lang) {
+    await updateUserGameLang(db, user.id, oyunDili || clientMeta.lang);
+  }
   await recordFingerprint(db, user.id, clientMeta);
   await ensureConfiguredAdmin(db, u);
 
@@ -166,4 +176,11 @@ async function changePassword(db, userId, { eskiSifre, yeniSifre }) {
   return { ok: true };
 }
 
-module.exports = { registerUser, loginUser, signToken, changePassword, isUserBanned };
+module.exports = {
+  registerUser,
+  loginUser,
+  signToken,
+  changePassword,
+  isUserBanned,
+  updateUserGameLang,
+};

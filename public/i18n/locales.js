@@ -1383,6 +1383,8 @@
     row("game.profil.power", ["⚔️ Güç", "⚔️ Power"]),
     row("game.profil.rank", ["Sıralama", "Rank"]),
     row("game.profil.registered", ["Kayıt:", "Registered:"]),
+    row("game.profil.regCountry", ["Kayıt ülkesi", "Registration country"]),
+    row("game.profil.gameLang", ["Oyun dili", "Game language"]),
     row("game.profil.respect", ["Saygınlık", "Respect"]),
     row("game.profil.savePassword", ["Kaydet", "Save"]),
     row("game.profil.saveProfile", ["👤 Profili Kaydet", "👤 Save Profile"]),

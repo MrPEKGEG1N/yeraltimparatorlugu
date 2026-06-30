@@ -79,11 +79,16 @@ function clientVisitorId(req) {
     .slice(0, 64);
 }
 
+const { extractCountryFromReq, normalizeGameLang } = require("./localeMetaService");
+
 function extractClientMeta(req) {
+  const body = req.body || {};
   return {
     ip: clientIp(req),
     userAgent: clientUserAgent(req),
     visitorId: clientVisitorId(req),
+    country: extractCountryFromReq(req),
+    lang: normalizeGameLang(body.oyunDili || body.lang),
   };
 }
 

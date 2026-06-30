@@ -142,7 +142,7 @@ function createGameRouter(db) {
 
       const p = await get(
         db,
-        `SELECT u.id, u.reis_adi, u.grup, u.lakap, u.created_at, pl.puan, pl.guc,
+        `SELECT u.id, u.reis_adi, u.grup, u.lakap, u.created_at, u.kayit_ulkesi, u.oyun_dili, pl.puan, pl.guc,
                 pl.profil_aciklama, pl.dostlar, pl.dusmanlar, pl.sehir_efsane,
                 pl.kara_listede, pl.icraat, pl.last_icraat_at, pl.profil_resmi
          FROM users u
@@ -222,6 +222,8 @@ function createGameRouter(db) {
           sehirEfsane: !!(p.sehir_efsane),
           karaListede: !!(p.kara_listede),
           kayitTarihi,
+          kayitUlkesi: p.kayit_ulkesi || "",
+          oyunDili: p.oyun_dili || "tr",
           ziyaretler: ziyaretler.map((x) => x.reis_adi),
           yetenekler,
           aktifMeslek,

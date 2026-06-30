@@ -146,6 +146,22 @@ function apiOpts(method, body) {
   return opts;
 }
 
+function authLocaleMeta() {
+  var meta = {};
+  if (typeof I18n !== "undefined" && I18n.getLang) meta.oyunDili = I18n.getLang();
+  try {
+    var loc = navigator.language || "";
+    var parts = loc.split("-");
+    if (parts.length >= 2 && /^[a-zA-Z]{2}$/.test(parts[1])) {
+      meta.ulkeKodu = parts[1].toUpperCase();
+    } else if (typeof Intl !== "undefined" && Intl.Locale) {
+      var region = new Intl.Locale(loc).region;
+      if (region) meta.ulkeKodu = String(region).toUpperCase();
+    }
+  } catch (_) {}
+  return meta;
+}
+
 function authHataGoster(mesaj) {
   var el = document.getElementById("authHata");
   if (!mesaj) {
@@ -286,6 +302,7 @@ async function urlParamGirisDene() {
     body.reisAdi = reisAdi;
     body.lakap = params.get("lakap") || "Mafya";
   }
+  Object.assign(body, authLocaleMeta());
 
   try {
     var url = kayit ? "/api/auth/register" : "/api/auth/login";
@@ -374,6 +391,8 @@ async function authGonderIslem() {
       return;
     }
   }
+
+  Object.assign(body, authLocaleMeta());
 
   authTaslakKaydet();
 

@@ -128,6 +128,13 @@
   color: #f0ece4;
 }
 
+#masterLayout #profilKayitUlke,
+#masterLayout #profilOyunDili,
+#masterLayout #profilKayitUlkeDetay,
+#masterLayout #profilOyunDiliDetay {
+  color: #e8ddc4;
+}
+
 #masterLayout .profil-ozet-bar {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));

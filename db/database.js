@@ -932,6 +932,8 @@ async function initDatabase() {
     ["banned", "INTEGER NOT NULL DEFAULT 0"],
     ["is_admin", "INTEGER NOT NULL DEFAULT 0"],
     ["token_version", "INTEGER NOT NULL DEFAULT 0"],
+    ["kayit_ulkesi", "TEXT NOT NULL DEFAULT ''"],
+    ["oyun_dili", "TEXT NOT NULL DEFAULT 'tr'"],
   ];
   for (const [col, def] of userSecurityCols) {
     try {

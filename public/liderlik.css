@@ -432,6 +432,24 @@
   text-shadow: 0 0 6px rgba(184, 146, 74, 0.5);
 }
 
+#masterLayout .lt-locale {
+  display: inline-flex;
+  gap: 4px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+#masterLayout .lt-locale-chip {
+  font-size: 13px;
+  line-height: 1;
+  opacity: 0.95;
+  cursor: default;
+}
+
+#masterLayout .lt-name-txt .lt-locale {
+  pointer-events: none;
+}
+
 #masterLayout .lt-foot {
   padding: 14px 32px 22px;
   text-align: center;

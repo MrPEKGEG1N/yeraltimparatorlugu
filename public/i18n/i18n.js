@@ -20,6 +20,45 @@
     return null;
   }
 
+  function countryFlag(code) {
+    var c = String(code || '').trim().toUpperCase();
+    if (!/^[A-Z]{2}$/.test(c)) return '';
+    var points = [];
+    for (var i = 0; i < 2; i++) points.push(0x1F1E6 - 65 + c.charCodeAt(i));
+    try {
+      return String.fromCodePoint.apply(String, points);
+    } catch (_) {
+      return c;
+    }
+  }
+
+  function countryLabel(code) {
+    var c = String(code || '').trim().toUpperCase();
+    if (!c) return '';
+    try {
+      var dn = new Intl.DisplayNames([currentLang], { type: 'region' });
+      return dn.of(c) || c;
+    } catch (_) {
+      return c;
+    }
+  }
+
+  function syncLangToServer(code) {
+    if (!global.__benimUserId) return;
+    try {
+      var opts = {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lang: code }),
+      };
+      if (typeof guvenlikMeta !== 'undefined') {
+        Object.assign(opts.headers, guvenlikMeta.securityHeaders());
+      }
+      fetch('/api/auth/lang', opts).catch(function () {});
+    } catch (_) {}
+  }
+
   function normalizeLang(code) {
     var c = String(code || '').trim();
     if (!c) return DEFAULT_LANG;
@@ -378,6 +417,7 @@
     try {
       document.dispatchEvent(new CustomEvent('yi:langchange', { detail: { lang: next } }));
     } catch (_) {}
+    syncLangToServer(next);
     if (changed) redrawActiveScreen();
     return next;
   }
@@ -408,7 +448,10 @@
     getLang: getLang,
     screenTitle: screenTitle,
     mafyaTitle: mafyaTitle,
-    redrawActiveScreen: redrawActiveScreen
+    redrawActiveScreen: redrawActiveScreen,
+    countryFlag: countryFlag,
+    countryLabel: countryLabel,
+    langMeta: meta,
   };
   global.t = t;
   global.tr = trPhrase;

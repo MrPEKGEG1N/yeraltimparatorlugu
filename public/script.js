@@ -144,6 +144,57 @@ function apiFetch(url, opts) {
   return fetch(url, o);
 }
 
+function oyuncuUlkeBayrak(kod) {
+  return typeof I18n !== 'undefined' && I18n.countryFlag ? I18n.countryFlag(kod) : '';
+}
+
+function oyuncuUlkeEtiket(kod) {
+  return typeof I18n !== 'undefined' && I18n.countryLabel ? I18n.countryLabel(kod) : (kod || '');
+}
+
+function oyuncuDilMeta(kod) {
+  if (typeof I18n !== 'undefined' && I18n.langMeta) return I18n.langMeta(kod) || {};
+  return {};
+}
+
+function oyuncuLocaleChipHtml(kayitUlkesi, oyunDili) {
+  if (!kayitUlkesi && !oyunDili) return '';
+  var bits = '';
+  if (kayitUlkesi) {
+    bits += '<span class="lt-locale-chip" title="' + escHtml(oyuncuUlkeEtiket(kayitUlkesi)) + '">' + oyuncuUlkeBayrak(kayitUlkesi) + '</span>';
+  }
+  if (oyunDili) {
+    var dm = oyuncuDilMeta(oyunDili);
+    bits += '<span class="lt-locale-chip lt-locale-chip--lang" title="' + escHtml(dm.label || oyunDili) + '">' + (dm.flag || '🌐') + '</span>';
+  }
+  return '<span class="lt-locale">' + bits + '</span>';
+}
+
+function profilLocaleMetinHtml(kayitUlkesi, oyunDili) {
+  if (kayitUlkesi) {
+    return oyuncuUlkeBayrak(kayitUlkesi) + ' ' + escHtml(oyuncuUlkeEtiket(kayitUlkesi));
+  }
+  return '—';
+}
+
+function profilDilMetinHtml(oyunDili) {
+  if (!oyunDili) return '—';
+  var dm = oyuncuDilMeta(oyunDili);
+  return (dm.flag || '') + ' ' + escHtml(dm.label || oyunDili);
+}
+
+function profilLocaleAlanGuncelle(p) {
+  p = p || {};
+  var ulkeEl = document.getElementById('profilKayitUlke');
+  if (ulkeEl) ulkeEl.innerHTML = profilLocaleMetinHtml(p.kayitUlkesi, p.oyunDili);
+  var dilEl = document.getElementById('profilOyunDili');
+  if (dilEl) dilEl.innerHTML = profilDilMetinHtml(p.oyunDili);
+  var ulkeDetay = document.getElementById('profilKayitUlkeDetay');
+  if (ulkeDetay) ulkeDetay.innerHTML = profilLocaleMetinHtml(p.kayitUlkesi, p.oyunDili);
+  var dilDetay = document.getElementById('profilOyunDiliDetay');
+  if (dilDetay) dilDetay.innerHTML = profilDilMetinHtml(p.oyunDili);
+}
+
 function oyuncuUygula(p, secenekler) {
   secenekler = secenekler || {};
   if (p.userId != null) window.__benimUserId = p.userId;
@@ -500,10 +551,11 @@ function ltTab(mod, label, on) {
 
 function ltIsimHtml(r) {
   var tag = r.benim ? '<span class="lt-tag">sen</span>' : '';
+  var locale = oyuncuLocaleChipHtml(r.kayitUlkesi, r.oyunDili);
   if (r.bot || !r.userId) {
-    return '<span class="lt-name-txt">' + escHtml(r.isim) + tag + '</span>';
+    return '<span class="lt-name-txt">' + escHtml(r.isim) + locale + tag + '</span>';
   }
-  return '<button type="button" class="oyuncu-link lt-name-txt" onclick="oyuncuProfilGoster(' + r.userId + ')">' + escHtml(r.isim) + tag + '</button>';
+  return '<button type="button" class="oyuncu-link lt-name-txt" onclick="oyuncuProfilGoster(' + r.userId + ')">' + escHtml(r.isim) + locale + tag + '</button>';
 }
 
 function ltGrupIsimHtml(r) {
@@ -3079,7 +3131,9 @@ function profilEkranSablonu(opts) {
   var avatarUrl = profilResmiUrl(userId, opts.profilResmi);
   var avatarCls = profilResmiOzelMi(avatarUrl) ? ' profil-avatar-ozel' : '';
 
-  var metaHtml = '<span id="profilKayitTarihiWrap">' + escHtml(t('game.profil.registered')) + ' <span id="profilKayitTarihi">' + escHtml(opts.kayitTarihi || '—') + '</span></span>';
+  var metaHtml = '<span id="profilKayitTarihiWrap">' + escHtml(t('game.profil.registered')) + ' <span id="profilKayitTarihi">' + escHtml(opts.kayitTarihi || '—') + '</span></span>'
+    + '<span id="profilKayitUlkeWrap">' + escHtml(t('game.profil.regCountry')) + ' <span id="profilKayitUlke">' + profilLocaleMetinHtml(opts.kayitUlkesi) + '</span></span>'
+    + '<span id="profilOyunDiliWrap">' + escHtml(t('game.profil.gameLang')) + ' <span id="profilOyunDili">' + profilDilMetinHtml(opts.oyunDili) + '</span></span>';
   if (opts.sehirEfsane) {
     metaHtml += '<span class="profil-rozet efsane">' + escHtml(t('game.profil.legendBadge')) + '</span>';
   }
@@ -3110,6 +3164,8 @@ function profilEkranSablonu(opts) {
     + '<div class="profil-detay-satir"><dt>' + escHtml(t('game.profil.respect')) + '</dt><dd id="profilPuanDetay">' + fmt(opts.puan || 0) + '</dd></div>'
     + '<div class="profil-detay-satir"><dt>' + escHtml(t('game.profil.rank')) + '</dt><dd id="profilSiraDetay">' + (opts.sira != null ? fmt(opts.sira) : '—') + '</dd></div>'
     + '<div class="profil-detay-satir"><dt>' + escHtml(t('game.profil.groupRank')) + '</dt><dd id="profilGrupSiraDetay">' + profilGrupSiraDetayHTML(opts.grupSira, opts.grup, opts.grupId) + '</dd></div>'
+    + '<div class="profil-detay-satir"><dt>' + escHtml(t('game.profil.regCountry')) + '</dt><dd id="profilKayitUlkeDetay">' + profilLocaleMetinHtml(opts.kayitUlkesi) + '</dd></div>'
+    + '<div class="profil-detay-satir"><dt>' + escHtml(t('game.profil.gameLang')) + '</dt><dd id="profilOyunDiliDetay">' + profilDilMetinHtml(opts.oyunDili) + '</dd></div>'
     + '<div class="profil-detay-satir"><dt>' + escHtml(t('game.profil.actionRegen')) + '</dt><dd id="profilIcraatKalan">' + (opts.icraatKalan || '—') + '</dd></div>'
     + '</dl>';
 
@@ -5566,6 +5622,7 @@ async function profilYukle() {
     if (x) x.value = p.dusmanlar || '';
 
     profilAlanGuncelle('profilKayitTarihi', p.kayitTarihi || '—');
+    profilLocaleAlanGuncelle(p);
     profilAlanGuncelle('profilOzOyuncu', p.oyuncuAdi || aktifReisAdi);
     profilAlanGuncelle('profilOzLakap', p.lakap || 'Mafya');
     profilAlanGuncelle('profilOyuncuIsmiDetay', p.oyuncuAdi || aktifReisAdi);
@@ -5885,11 +5942,14 @@ async function oyuncuProfilGoster(userId) {
       dostlar: p.dostlar,
       dusmanlar: p.dusmanlar,
       kayitTarihi: p.kayitTarihi,
+      kayitUlkesi: p.kayitUlkesi,
+      oyunDili: p.oyunDili,
       sehirEfsane: p.sehirEfsane,
       karaListede: p.karaListede,
       isDurumu: p.isDurumu
     });
     await profilSiralamaAlanlariGuncelle(p);
+    profilLocaleAlanGuncelle(p);
     profilAciklamaGosterUygula(p.aciklama);
     var z = document.getElementById('profilZiyaretlerBox');
     if (z) z.innerHTML = profilZiyaretleriHTML(p.ziyaretler);

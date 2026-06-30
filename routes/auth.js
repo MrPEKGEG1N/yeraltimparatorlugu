@@ -1,10 +1,11 @@
 const express = require("express");
 const rateLimit = require("express-rate-limit");
-const { registerUser, loginUser, changePassword } = require("../services/authService");
+const { registerUser, loginUser, changePassword, updateUserGameLang } = require("../services/authService");
 const { createRequireAuth } = require("../middleware/auth");
 const { COOKIE_NAME, TOKEN_MAX_AGE_MS } = require("../config");
 const { attachClientMeta, ipRateLimit } = require("../middleware/security");
 const { extractClientMeta } = require("../game/securityService");
+const { normalizeGameLang } = require("../game/localeMetaService");
 
 function setAuthCookie(res, token) {
   res.cookie(COOKIE_NAME, token, {
@@ -110,6 +111,17 @@ function createAuthRouter(db) {
     } catch (err) {
       console.error(err);
       res.status(500).json({ ok: false, error: "Şifre güncellenemedi." });
+    }
+  });
+
+  router.post("/lang", requireAuth, async (req, res) => {
+    try {
+      const lang = normalizeGameLang(req.body?.lang || req.body?.oyunDili);
+      await updateUserGameLang(db, req.user.id, lang);
+      res.json({ ok: true, lang });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ ok: false, error: "Dil tercihi kaydedilemedi." });
     }
   });
 
