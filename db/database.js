@@ -237,6 +237,12 @@ async function backupDbFile(targetPath) {
     const stamped = path.join(backupDir, `oyun-${new Date().toISOString().slice(0, 10)}.db`);
     fs.copyFileSync(targetPath, stamped);
     console.log(`[db] Yedek alindi: ${bak} (${users} kullanici)`);
+    try {
+      const { uploadDbBackup } = require("../services/supabaseBackupService");
+      await uploadDbBackup(targetPath);
+    } catch (err) {
+      console.warn("[supabase] Yedek yuklenemedi:", err.message);
+    }
   } catch (err) {
     console.warn("[db] Yedek alinamadi:", err.message);
   }
@@ -272,12 +278,18 @@ async function configureSqlitePragmas(db) {
 
 async function getDbDiagnostics() {
   const users = fs.existsSync(DB_PATH) ? await countSqliteUsers(DB_PATH) : 0;
+  let supabase = { configured: false };
+  try {
+    const { getStatus } = require("../services/supabaseBackupService");
+    supabase = getStatus();
+  } catch (_) {}
   return {
     path: DB_PATH,
     volumeMount: process.env.RAILWAY_VOLUME_MOUNT_PATH || null,
     volumeOk: isVolumeMounted(),
     users,
     sizeKb: fs.existsSync(DB_PATH) ? Math.round(fs.statSync(DB_PATH).size / 1024) : 0,
+    supabase,
   };
 }
 
@@ -357,6 +369,14 @@ async function migratePlayersTable(db) {
 async function initDatabase() {
   logDbEnvironment();
   ensureDbDirectory(DB_PATH);
+
+  try {
+    const { restoreDbFromSupabase } = require("../services/supabaseBackupService");
+    await restoreDbFromSupabase(DB_PATH);
+  } catch (err) {
+    console.warn("[supabase] Baslangic geri yukleme atlandi:", err.message);
+  }
+
   if (fs.existsSync(DB_PATH) && fs.statSync(DB_PATH).size >= 512) {
     const mevcut = await countSqliteUsers(DB_PATH);
     if (mevcut > 0) await backupDbFile(DB_PATH);

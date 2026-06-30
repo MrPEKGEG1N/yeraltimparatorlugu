@@ -124,12 +124,21 @@ async function start() {
         db: DB_PATH,
         volume: diag.volumeMount,
         volumeOk: diag.volumeOk,
+        supabase: diag.supabase,
+        kaliciVeri:
+          diag.volumeOk || diag.supabase?.configured
+            ? diag.volumeOk
+              ? "railway-volume"
+              : "supabase-yedek"
+            : "riskli",
         dd1,
-        uyari: !diag.volumeMount
-          ? "Railway Volume bagli degil — deployda oyuncu verileri silinir! Panelden servise Volume ekleyin (mount: /app/db)."
-          : !diag.volumeOk
-            ? "DB yolu volume mount ile uyusmuyor — DATABASE_PATH degiskenini kaldirin."
-            : null,
+        uyari: !diag.volumeMount && !diag.supabase?.configured
+          ? "Kalici depolama yok! Railway Volume (/app/db) veya Supabase yedek ayarlayin."
+          : !diag.volumeMount && diag.supabase?.configured
+            ? "Railway Volume yok; Supabase yedegi aktif. Volume eklemek onerilir."
+            : !diag.volumeOk
+              ? "DB yolu volume mount ile uyusmuyor — DATABASE_PATH degiskenini kaldirin."
+              : null,
       });
     } catch (err) {
       res.json({ ok: true, name: "yeralti-imparatorlugu", auth: true, mafya: true });
@@ -187,6 +196,17 @@ async function start() {
     backupDbFile(DB_PATH).catch((err) => console.warn("[db] Periyodik yedek hatasi:", err.message));
   }, 6 * 60 * 60 * 1000);
 
+  setInterval(() => {
+    const { uploadDbBackup } = require("./services/supabaseBackupService");
+    uploadDbBackup(DB_PATH).catch((err) =>
+      console.warn("[supabase] Periyodik yedek hatasi:", err.message)
+    );
+  }, 30 * 60 * 1000);
+
+  // Ilk acilista Supabase'e yedekle (volume varsa da bulut kopyasi)
+  const { uploadDbBackup } = require("./services/supabaseBackupService");
+  uploadDbBackup(DB_PATH).catch(() => {});
+
   app.use("/api/auth", createAuthRouter(db));
   app.use("/api/admin", createAdminRouter(db));
   app.use("/api", createGameRouter(db));
@@ -242,6 +262,8 @@ async function start() {
     console.log(`[db] ${signal} — yedek aliniyor...`);
     try {
       await backupDbFile(DB_PATH);
+      const { uploadDbBackup } = require("./services/supabaseBackupService");
+      await uploadDbBackup(DB_PATH);
       await new Promise((resolve) => db.close(() => resolve()));
     } catch (err) {
       console.warn("[db] Kapanis yedegi hatasi:", err.message);
