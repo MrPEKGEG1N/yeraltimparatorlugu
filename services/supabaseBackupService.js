@@ -100,6 +100,21 @@ async function downloadLatest(supabase, destPath) {
 }
 
 /**
+ * Uzak yedegi hedefin yanina indir (mevcut DB'yi degistirmez).
+ */
+async function downloadRemoteSnapshot(destPath) {
+  if (!isConfigured()) return false;
+  try {
+    const supabase = getClient();
+    await ensureBucket(supabase);
+    return await downloadLatest(supabase, destPath);
+  } catch (err) {
+    _lastError = err.message;
+    return false;
+  }
+}
+
+/**
  * Volume bos veya oyuncu yoksa Supabase'den geri yukle.
  */
 async function restoreDbFromSupabase(destPath) {
@@ -191,6 +206,7 @@ function getStatus() {
 module.exports = {
   isConfigured,
   restoreDbFromSupabase,
+  downloadRemoteSnapshot,
   uploadDbBackup,
   getStatus,
 };

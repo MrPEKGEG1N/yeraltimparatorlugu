@@ -120,15 +120,17 @@ function scoreDbFile(dbPath) {
             [],
             (e, row) => {
               db.close(() => {
-                if (e || !row) return resolve({ users: 0, score: 0, size });
+                if (e || !row) return resolve({ users: 0, players: 0, kasa: 0, puan: 0, score: 0, size });
                 const users = row.users || 0;
+                const players = row.players || 0;
+                const kasa = row.kasa || 0;
+                const puan = row.puan || 0;
                 const score =
-                  users * 1_000_000 +
-                  (row.players || 0) * 10_000 +
-                  (row.kasa || 0) +
-                  (row.puan || 0) +
-                  size;
-                resolve({ users, players: row.players || 0, score, size });
+                  users * 1_000_000_000 +
+                  players * 1_000_000 +
+                  kasa * 10 +
+                  puan;
+                resolve({ users, players, kasa, puan, score, size });
               });
             }
           );
@@ -224,6 +226,19 @@ async function consolidateLegacyDbCopies(targetPath) {
   }
 }
 
+function pruneOldBackups(backupDir, keepCount = 72) {
+  try {
+    const files = fs
+      .readdirSync(backupDir)
+      .filter((f) => f.startsWith("oyun-") && f.endsWith(".db"))
+      .map((f) => ({ name: f, mtime: fs.statSync(path.join(backupDir, f)).mtimeMs }))
+      .sort((a, b) => b.mtime - a.mtime);
+    for (const f of files.slice(keepCount)) {
+      fs.unlinkSync(path.join(backupDir, f.name));
+    }
+  } catch (_) {}
+}
+
 async function backupDbFile(targetPath) {
   if (!fs.existsSync(targetPath) || fs.statSync(targetPath).size < 512) return;
   const users = await countSqliteUsers(targetPath);
@@ -234,8 +249,11 @@ async function backupDbFile(targetPath) {
   try {
     fs.copyFileSync(targetPath, bak);
     if (!fs.existsSync(backupDir)) fs.mkdirSync(backupDir, { recursive: true });
-    const stamped = path.join(backupDir, `oyun-${new Date().toISOString().slice(0, 10)}.db`);
-    fs.copyFileSync(targetPath, stamped);
+    const dayStamp = new Date().toISOString().slice(0, 10);
+    const hourStamp = new Date().toISOString().slice(0, 13).replace("T", "-");
+    fs.copyFileSync(targetPath, path.join(backupDir, `oyun-${dayStamp}.db`));
+    fs.copyFileSync(targetPath, path.join(backupDir, `oyun-${hourStamp}.db`));
+    pruneOldBackups(backupDir, 72);
     console.log(`[db] Yedek alindi: ${bak} (${users} kullanici)`);
     try {
       const { uploadDbBackup } = require("../services/supabaseBackupService");
@@ -400,6 +418,14 @@ async function initDatabase() {
   await restoreDbFromBestCandidate(DB_PATH);
   await consolidateLegacyDbCopies(DB_PATH);
   await restoreFromSeed(DB_PATH);
+
+  try {
+    const { recoverDbIfDegraded } = require("../game/veriKorumaService");
+    await recoverDbIfDegraded(DB_PATH);
+  } catch (err) {
+    console.warn("[veri-koruma] Baslangic kontrolu atlandi:", err.message);
+  }
+
   const db = await openDb();
   await configureSqlitePragmas(db);
 
@@ -994,6 +1020,7 @@ module.exports = {
   initDatabase,
   DB_PATH,
   backupDbFile,
+  scoreDbFile,
   getDbDiagnostics,
   bootstrapAdminUser,
   ensureConfiguredAdmin,

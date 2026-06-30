@@ -122,6 +122,58 @@ async function applyMekanlar(db, userId, mekanlar) {
   }
 }
 
+const FLOOR_COLS = new Set(["kasa", "guc", "puan", "icraat", "sms_hakki"]);
+const RECOVERY_RATIO = 0.92;
+
+async function playerNeedsRecovery(db, userId, snap, created) {
+  if (!snap.force_restore) return false;
+  if (created) return true;
+
+  const p = await get(
+    db,
+    `SELECT kasa, guc, puan, icraat, sms_hakki FROM players WHERE user_id = ?`,
+    [userId]
+  );
+  if (!p) return true;
+
+  const sp = snap.player || {};
+  for (const col of FLOOR_COLS) {
+    if (sp[col] == null) continue;
+    const min = Math.floor(Number(sp[col]) * RECOVERY_RATIO);
+    if ((parseInt(p[col], 10) || 0) < min) return true;
+  }
+
+  const snapMekan = (snap.mekanlar || []).reduce((s, m) => s + (parseInt(m.adet, 10) || 0), 0);
+  if (snapMekan > 0) {
+    const row = await get(
+      db,
+      `SELECT COALESCE(SUM(adet), 0) AS t FROM sektor_sahiplik WHERE user_id = ?`,
+      [userId]
+    );
+    if ((row?.t || 0) < Math.floor(snapMekan * 0.85)) return true;
+  }
+
+  if (snap.guvenli_yer?.base_seviye != null) {
+    const gy = await get(db, `SELECT base_seviye FROM user_base WHERE user_id = ?`, [userId]);
+    if ((gy?.base_seviye || 0) < snap.guvenli_yer.base_seviye) return true;
+  }
+
+  if (snap.sirket?.tur_id) {
+    const owned = await get(db, `SELECT id FROM oyuncu_sirketleri WHERE sahip_user_id = ?`, [userId]);
+    if (!owned) return true;
+  }
+  if (snap.mafya) {
+    const m = await get(db, `SELECT 1 AS n FROM mafya_uyeleri WHERE user_id = ?`, [userId]);
+    if (!m) return true;
+  }
+  if (snap.sehre_hukmet?.aktif) {
+    const { sehreHukmediyorMu } = require("./karaListeService");
+    if (!(await sehreHukmediyorMu(db, userId))) return true;
+  }
+
+  return false;
+}
+
 async function applyForceSnapshot(db, userId, snap) {
   const player = snap.player || {};
   const cur = await get(
@@ -134,10 +186,10 @@ async function applyForceSnapshot(db, userId, snap) {
   for (const col of PLAYER_COLS) {
     if (player[col] === undefined || player[col] === null || player[col] === "") continue;
     let val = player[col];
-    if (col === "puan") {
-      const snapP = parseInt(player.puan, 10);
-      const curP = parseInt(cur?.puan, 10) || 0;
-      if (!Number.isNaN(snapP)) val = Math.max(curP, snapP);
+    if (FLOOR_COLS.has(col)) {
+      const snapN = parseInt(player[col], 10);
+      const curN = parseInt(cur?.[col], 10) || 0;
+      if (!Number.isNaN(snapN)) val = Math.max(curN, snapN);
     }
     sets.push(`${col} = ?`);
     vals.push(val);
@@ -513,8 +565,11 @@ async function restoreOneSnapshot(db, snap) {
   await restoreSecurityEvents(db, userId, snap.security_events);
 
   if (snap.force_restore) {
-    await applyForceSnapshot(db, userId, snap);
-    console.log(`[restore] Zorunlu guncelleme: ${username}`);
+    const need = await playerNeedsRecovery(db, userId, snap, created);
+    if (need) {
+      await applyForceSnapshot(db, userId, snap);
+      console.log(`[restore] Kurtarma uygulandi: ${username}`);
+    }
   }
 
   console.log(
@@ -544,4 +599,83 @@ async function restoreOyuncuSnapshots(db) {
   return results;
 }
 
-module.exports = { restoreOyuncuSnapshots, restoreOneSnapshot, applyForceSnapshot, applySirket, applyMafya };
+function mergeSnapshot(existing, exported) {
+  const out = { ...existing, ...exported, force_restore: true };
+  out.player = { ...(existing.player || {}), ...(exported.player || {}) };
+  out.guvenli_yer = { ...(existing.guvenli_yer || {}), ...(exported.guvenli_yer || {}) };
+  out.istihbarat = { ...(existing.istihbarat || {}), ...(exported.istihbarat || {}) };
+  if (!out.sirket && existing.sirket) out.sirket = existing.sirket;
+  if (!out.mafya && existing.mafya) out.mafya = existing.mafya;
+  if (!out.sehre_hukmet && existing.sehre_hukmet) out.sehre_hukmet = existing.sehre_hukmet;
+  if (!out.yetenekler && existing.yetenekler) out.yetenekler = existing.yetenekler;
+  if (exported.mekanlar?.length) out.mekanlar = exported.mekanlar;
+  else if (existing.mekanlar) out.mekanlar = existing.mekanlar;
+  return out;
+}
+
+function mapExportToSeed(full) {
+  const k = full.kullanici || {};
+  const st = full.istatistikler || {};
+  const gy = full.guvenliYer || {};
+  return {
+    id: k.username || String(full.oyuncuId || ""),
+    username: k.username,
+    reis_adi: k.reisAdi || k.username,
+    lakap: k.lakap || "Mafya",
+    force_restore: true,
+    player: {
+      kasa: st.kasa,
+      guc: st.guc,
+      puan: st.puan,
+      icraat: st.icraat,
+      sms_hakki: st.smsHakki,
+      profil_resmi: st.profilResmi,
+      profil_aciklama: st.profilAciklama,
+      devlet_iliskisi: st.devletIliskisi,
+      kara_listede: st.karaListede ? 1 : 0,
+      sehir_efsane: st.sehirEfsane ? 1 : 0,
+    },
+    guvenli_yer: { base_seviye: gy.baseSeviye != null ? gy.baseSeviye : 1 },
+    istihbarat: { eleman_sayisi: full.istihbaratEleman != null ? full.istihbaratEleman : 0 },
+    mekanlar: (full.mekanlar || []).map((m) => ({
+      sektor: m.sektor,
+      mekan_key: m.mekanKey || m.mekan_key,
+      adet: m.adet != null ? m.adet : 0,
+    })),
+    son_ip: k.sonIp || undefined,
+    visitor_id: k.visitorId || undefined,
+    user_agent: k.userAgent || undefined,
+  };
+}
+
+async function exportSnapshotsToSeed(db, { merge = true } = {}) {
+  const { exportPlayerSnapshot } = require("./adminService");
+  const users = await all(db, `SELECT id, username FROM users ORDER BY id`);
+  let n = 0;
+  for (const u of users) {
+    const full = await exportPlayerSnapshot(db, u.id);
+    if (!full) continue;
+    const exported = mapExportToSeed(full);
+    const file = path.join(SNAPSHOT_DIR, `${u.username}.json`);
+    let snap = exported;
+    if (merge && fs.existsSync(file)) {
+      try {
+        const existing = JSON.parse(fs.readFileSync(file, "utf8"));
+        snap = mergeSnapshot(existing, exported);
+      } catch (_) {}
+    }
+    fs.writeFileSync(file, JSON.stringify(snap, null, 2) + "\n", "utf8");
+    n++;
+  }
+  return n;
+}
+
+module.exports = {
+  restoreOyuncuSnapshots,
+  restoreOneSnapshot,
+  applyForceSnapshot,
+  applySirket,
+  applyMafya,
+  exportSnapshotsToSeed,
+  playerNeedsRecovery,
+};

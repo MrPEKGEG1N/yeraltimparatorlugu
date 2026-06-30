@@ -190,6 +190,7 @@ async function start() {
     console.error("Günlük maaş telafi hatası:", err)
   );
 
+  // Snapshot: ekonomi telafisinden sonra yalnizca eksik/bozuk veri kurtarilir
   const { restoreOyuncuSnapshots } = require("./game/oyuncuRestoreService");
   await restoreOyuncuSnapshots(db);
 
@@ -198,20 +199,26 @@ async function start() {
     aySonuKontrol(db).catch((err) => console.error("Aylık mafya şampiyonu hatası:", err));
   }, 5 * 60 * 1000);
 
+  const { maybeExportPlayerSnapshots } = require("./game/veriKorumaService");
+
   setInterval(() => {
-    backupDbFile(DB_PATH).catch((err) => console.warn("[db] Periyodik yedek hatasi:", err.message));
-  }, 6 * 60 * 60 * 1000);
+    backupDbFile(DB_PATH)
+      .then(() => maybeExportPlayerSnapshots(db))
+      .catch((err) => console.warn("[db] Periyodik yedek hatasi:", err.message));
+  }, 30 * 60 * 1000);
 
   setInterval(() => {
     const { uploadDbBackup } = require("./services/supabaseBackupService");
-    uploadDbBackup(DB_PATH).catch((err) =>
-      console.warn("[supabase] Periyodik yedek hatasi:", err.message)
-    );
-  }, 30 * 60 * 1000);
+    uploadDbBackup(DB_PATH)
+      .then(() => maybeExportPlayerSnapshots(db))
+      .catch((err) => console.warn("[supabase] Periyodik yedek hatasi:", err.message));
+  }, 15 * 60 * 1000);
 
-  // Ilk acilista Supabase'e yedekle (volume varsa da bulut kopyasi)
+  // Ilk acilista Supabase'e yedekle + snapshot guncelle
   const { uploadDbBackup } = require("./services/supabaseBackupService");
-  uploadDbBackup(DB_PATH).catch(() => {});
+  uploadDbBackup(DB_PATH)
+    .then(() => maybeExportPlayerSnapshots(db, 0))
+    .catch(() => {});
 
   app.use("/api/auth", createAuthRouter(db));
   app.use("/api/admin", createAdminRouter(db));
@@ -270,6 +277,8 @@ async function start() {
       await backupDbFile(DB_PATH);
       const { uploadDbBackup } = require("./services/supabaseBackupService");
       await uploadDbBackup(DB_PATH);
+      const { maybeExportPlayerSnapshots } = require("./game/veriKorumaService");
+      await maybeExportPlayerSnapshots(db, 0);
       await new Promise((resolve) => db.close(() => resolve()));
     } catch (err) {
       console.warn("[db] Kapanis yedegi hatasi:", err.message);
