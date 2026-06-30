@@ -5,7 +5,7 @@ const { ADMIN_USERNAME } = require("../config");
 const { temizGrupAdi } = require("../game/grupAdi");
 const { rastgeleProfilResmi, normalizeProfilResmi } = require("../game/profilPortreler");
 
-const PRODUCTION_DB_DIRS = ["/app/db", "/data"];
+const PRODUCTION_DB_DIRS = ["/data", "/app/db"];
 
 function resolveDbPath() {
   // Railway volume mount her zaman oncelikli — dashboard'daki gercek kalici yol

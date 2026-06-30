@@ -9,4 +9,4 @@ restartPolicyType = "on_failure"
 # Kalici SQLite — volume Railway panelinde de bu isimle baglanmali
 [[deploy.mounts]]
 volumeName = "yeralti-db"
-mountPath = "/app/db"
+mountPath = "/data"

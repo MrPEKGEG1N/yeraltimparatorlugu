@@ -6,7 +6,7 @@
 
 $ErrorActionPreference = "Stop"
 $VolumeName = "yeralti-db"
-$MountPath = "/app/db"
+$MountPath = "/data"
 
 function Invoke-Railway {
     param([string[]]$Args)
