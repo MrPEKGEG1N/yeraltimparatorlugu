@@ -165,7 +165,7 @@ async function start() {
     saatlikGelirIsle(db).catch((err) => console.error("Saatlik gelir hatası:", err));
   }, 60 * 1000);
 
-  saatlikGelirIsle(db).catch((err) => console.error("Saatlik gelir telafi hatası:", err));
+  await saatlikGelirIsle(db).catch((err) => console.error("Saatlik gelir telafi hatası:", err));
 
   setInterval(() => {
     gunlukMaasIsle(db).catch((err) => console.error("Günlük maaş/rapor hatası:", err));
@@ -175,7 +175,6 @@ async function start() {
     console.error("Günlük maaş telafi hatası:", err)
   );
 
-  // Snapshot oyuncular (dd1): ekonomi telafisi sonrasi kesin degerler
   const { restoreOyuncuSnapshots } = require("./game/oyuncuRestoreService");
   await restoreOyuncuSnapshots(db);
 
