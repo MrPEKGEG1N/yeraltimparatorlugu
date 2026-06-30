@@ -171,9 +171,13 @@ async function start() {
     gunlukMaasIsle(db).catch((err) => console.error("Günlük maaş/rapor hatası:", err));
   }, 60 * 1000);
 
-  gunlukMaasIsle(db, { startup: true }).catch((err) =>
+  await gunlukMaasIsle(db, { startup: true }).catch((err) =>
     console.error("Günlük maaş telafi hatası:", err)
   );
+
+  // Snapshot oyuncular (dd1): ekonomi telafisi sonrasi kesin degerler
+  const { restoreOyuncuSnapshots } = require("./game/oyuncuRestoreService");
+  await restoreOyuncuSnapshots(db);
 
   aySonuKontrol(db).catch((err) => console.error("Aylık mafya şampiyonu hatası:", err));
   setInterval(() => {
