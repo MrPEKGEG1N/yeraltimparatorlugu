@@ -152,24 +152,26 @@
 
   function isMobileMenu() {
     try {
-      return global.matchMedia && global.matchMedia('(max-width: 768px)').matches;
+      return global.matchMedia && global.matchMedia('(max-width: 767px)').matches;
     } catch (_) {
       return false;
     }
+  }
+
+  function menuLabelFallback(el, key, val) {
+    var fb = el.getAttribute('data-i18n-fallback') || el.getAttribute('data-menu-text') || '';
+    if (!fb || !String(fb).trim()) fb = el.textContent;
+    if (!val || val === key || val === '0' || val === 0 || String(val).length < 2) return fb;
+    if (key && key.indexOf('menu.') === 0 && /^[0-9]+$/.test(String(val))) return fb;
+    return val;
   }
 
   function applyNode(el) {
     var key = el.getAttribute('data-i18n');
     if (key) {
       var html = el.getAttribute('data-i18n-html') === '1';
-      var shortKey = el.getAttribute('data-i18n-short');
-      var useKey = isMobileMenu() && shortKey ? shortKey : key;
-      var val = t(useKey);
-      if (!val || val === useKey || val === key || val === '0') {
-        var fallback = el.getAttribute('data-i18n-fallback');
-        if (!fallback || !String(fallback).trim()) fallback = el.textContent;
-        if (fallback && String(fallback).trim() && String(fallback).trim() !== '0') val = fallback;
-      }
+      var val = t(key);
+      val = menuLabelFallback(el, key, val);
       if (html) el.innerHTML = val;
       else el.textContent = val;
     }

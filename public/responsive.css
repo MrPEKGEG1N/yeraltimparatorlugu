@@ -408,6 +408,14 @@
     flex: 0 1 auto;
   }
 
+  #masterLayout .ml-menu-label--long {
+    display: none;
+  }
+
+  #masterLayout .ml-menu-label--short {
+    display: block;
+  }
+
   #masterLayout .ml-menu-item::before {
     display: none;
   }
