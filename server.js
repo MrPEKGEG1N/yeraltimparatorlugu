@@ -134,13 +134,15 @@ async function start() {
               ? "seed-yedek"
               : "riskli",
         dd1,
-        uyari: !diag.volumeMount && !diag.supabase?.configured
-          ? "Kalici depolama yok! Railway Volume (/app/db) veya Supabase yedek ayarlayin."
-          : !diag.volumeMount && diag.supabase?.configured
-            ? "Railway Volume yok; Supabase yedegi aktif. Volume eklemek onerilir."
-            : !diag.volumeOk
-              ? "DB yolu volume mount ile uyusmuyor — DATABASE_PATH degiskenini kaldirin."
-              : null,
+        uyari: !diag.volumeMount && !diag.supabase?.configured && !diag.seed?.ok
+          ? "Kalici depolama yok! Railway Volume, Supabase veya seed/oyun.db gerekli."
+          : !diag.volumeMount && !diag.supabase?.configured && diag.seed?.ok
+            ? "Volume yok; deployda seed/oyun.db + oyuncu snapshotlari geri yuklenir. Volume onerilir."
+            : !diag.volumeMount && diag.supabase?.configured
+              ? "Railway Volume yok; Supabase yedegi aktif. Volume eklemek onerilir."
+              : !diag.volumeOk
+                ? "DB yolu volume mount ile uyusmuyor — DATABASE_PATH degiskenini kaldirin."
+                : null,
       });
     } catch (err) {
       res.json({ ok: true, name: "yeralti-imparatorlugu", auth: true, mafya: true });
