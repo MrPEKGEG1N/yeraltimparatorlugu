@@ -24,9 +24,13 @@ function getClient() {
   if (!isConfigured()) return null;
   if (!_client) {
     const { createClient } = require("@supabase/supabase-js");
-    _client = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, {
+    const options = {
       auth: { persistSession: false, autoRefreshToken: false },
-    });
+    };
+    if (typeof globalThis.WebSocket === "undefined") {
+      options.global = { WebSocket: require("ws") };
+    }
+    _client = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, options);
   }
   return _client;
 }
