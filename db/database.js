@@ -276,6 +276,17 @@ async function configureSqlitePragmas(db) {
   }
 }
 
+function seedDbPath() {
+  const candidates = [
+    path.join(process.cwd(), "seed", "oyun.db"),
+    path.join(__dirname, "..", "seed", "oyun.db"),
+  ];
+  for (const p of candidates) {
+    if (fs.existsSync(p) && fs.statSync(p).size >= 512) return path.resolve(p);
+  }
+  return null;
+}
+
 async function getDbDiagnostics() {
   const users = fs.existsSync(DB_PATH) ? await countSqliteUsers(DB_PATH) : 0;
   let supabase = { configured: false };
@@ -283,6 +294,9 @@ async function getDbDiagnostics() {
     const { getStatus } = require("../services/supabaseBackupService");
     supabase = getStatus();
   } catch (_) {}
+  const seed = seedDbPath();
+  let seedUsers = 0;
+  if (seed) seedUsers = await countSqliteUsers(seed);
   return {
     path: DB_PATH,
     volumeMount: process.env.RAILWAY_VOLUME_MOUNT_PATH || null,
@@ -290,6 +304,7 @@ async function getDbDiagnostics() {
     users,
     sizeKb: fs.existsSync(DB_PATH) ? Math.round(fs.statSync(DB_PATH).size / 1024) : 0,
     supabase,
+    seed: seed ? { path: seed, users: seedUsers, ok: seedUsers > 0 } : null,
   };
 }
 

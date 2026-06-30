@@ -125,12 +125,14 @@ async function start() {
         volume: diag.volumeMount,
         volumeOk: diag.volumeOk,
         supabase: diag.supabase,
-        kaliciVeri:
-          diag.volumeOk || diag.supabase?.configured
-            ? diag.volumeOk
-              ? "railway-volume"
-              : "supabase-yedek"
-            : "riskli",
+        seed: diag.seed,
+        kaliciVeri: diag.volumeOk
+          ? "railway-volume"
+          : diag.supabase?.configured
+            ? "supabase-yedek"
+            : diag.seed?.ok
+              ? "seed-yedek"
+              : "riskli",
         dd1,
         uyari: !diag.volumeMount && !diag.supabase?.configured
           ? "Kalici depolama yok! Railway Volume (/app/db) veya Supabase yedek ayarlayin."

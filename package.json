@@ -20,6 +20,7 @@
     "liderlik": "python app.py",
     "railway:volume": "powershell -ExecutionPolicy Bypass -File tools/setup-railway-volume.ps1",
     "setup:persistence": "powershell -ExecutionPolicy Bypass -File tools/setup-persistence.ps1",
+    "export:players": "node tools/export-all-players.js",
     "deploy": "powershell -ExecutionPolicy Bypass -File tools/deploy-railway.ps1",
     "deploy:apk": "powershell -ExecutionPolicy Bypass -File tools/deploy-railway.ps1 && npm run android:apk",
     "i18n:complete": "node scripts/apply-manual-missing.js && node scripts/seed-message-templates.js && node scripts/generate-errors-module.js",
