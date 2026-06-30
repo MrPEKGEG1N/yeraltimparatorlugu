@@ -254,10 +254,12 @@ async function backupDbFile(targetPath) {
     fs.copyFileSync(targetPath, path.join(backupDir, `oyun-${dayStamp}.db`));
     fs.copyFileSync(targetPath, path.join(backupDir, `oyun-${minuteStamp}.db`));
     pruneOldBackups(backupDir, 144);
-    console.log(`[db] Yedek alindi: ${bak} (${users} kullanici)`);
+      console.log(`[db] Yedek alindi: ${bak} (${users} kullanici)`);
     try {
       const { uploadDbBackup } = require("../services/supabaseBackupService");
-      await uploadDbBackup(targetPath);
+      uploadDbBackup(targetPath).catch((err) => {
+        console.warn("[supabase] Yedek yuklenemedi:", err.message);
+      });
     } catch (err) {
       console.warn("[supabase] Yedek yuklenemedi:", err.message);
     }
@@ -405,7 +407,12 @@ async function initDatabase() {
 
   try {
     const { restoreDbFromSupabase } = require("../services/supabaseBackupService");
-    await restoreDbFromSupabase(DB_PATH);
+    await Promise.race([
+      restoreDbFromSupabase(DB_PATH),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("supabase restore timeout (20s)")), 20000)
+      ),
+    ]);
   } catch (err) {
     console.warn("[supabase] Baslangic geri yukleme atlandi:", err.message);
   }

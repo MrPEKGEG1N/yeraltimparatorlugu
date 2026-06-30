@@ -22,6 +22,9 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.join(__dirname, "public");
 
+let db = null;
+let serverReady = false;
+
 if (process.env.NODE_ENV === "production" && JWT_SECRET.includes("dev-gizli")) {
   console.warn("⚠️  ÜRETİM: JWT_SECRET ortam değişkeni ile ayarlanmalı!");
 }
@@ -72,85 +75,131 @@ app.use("/api", globalApiLimiter);
 app.use("/api", attachLang);
 app.use("/api", localizeResponse);
 
-async function start() {
-  const db = await initDatabase();
-  await ensureMessagingTables(db);
-  await ensureBildirimTables(db);
-  configureWebPush();
+function sendNoCacheHtml(res, filePath) {
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
+  res.sendFile(filePath);
+}
 
-  app.get("/api/health", async (req, res) => {
-    try {
-      const diag = await getDbDiagnostics();
-      const row = await get(db, "SELECT COUNT(*) AS n FROM users");
-      let dd1 = null;
-      const dd1Row = await get(
-        db,
-        `SELECT u.id, p.kasa, p.puan, p.icraat, p.sms_hakki, COALESCE(p.bonus_guc,0) AS bonus_guc, p.guc
-         FROM users u JOIN players p ON p.user_id = u.id WHERE u.username = 'dd1'`
-      );
-      if (dd1Row) {
-        const mekan = await get(
-          db,
-          `SELECT COALESCE(SUM(adet),0) AS t FROM sektor_sahiplik WHERE user_id = ?`,
-          [dd1Row.id]
-        );
-        const gy = await get(db, `SELECT base_seviye FROM user_base WHERE user_id = ?`, [dd1Row.id]);
-        const ist = await get(db, `SELECT eleman_sayisi FROM istihbarat WHERE user_id = ?`, [dd1Row.id]);
-        dd1 = {
-          ok:
-            dd1Row.kasa === 580784000 &&
-            dd1Row.puan >= 159850 &&
-            dd1Row.icraat === 250 &&
-            dd1Row.sms_hakki === 349 &&
-            (mekan?.t || 0) === 88 &&
-            (gy?.base_seviye || 0) === 15 &&
-            (ist?.eleman_sayisi || 0) === 2,
-          kasa: dd1Row.kasa,
-          puan: dd1Row.puan,
-          mekanToplam: mekan?.t || 0,
-          guvenliYer: gy?.base_seviye || 0,
-          istihbarat: ist?.eleman_sayisi || 0,
-          toplamGuc: (dd1Row.guc || 0) + (dd1Row.bonus_guc || 0),
-        };
-      }
-      res.json({
-        ok: true,
-        name: "yeralti-imparatorlugu",
-        version: require("./package.json").version,
-        commit: process.env.RAILWAY_GIT_COMMIT_SHA || process.env.GIT_COMMIT || null,
-        auth: true,
-        mafya: true,
-        oyuncular: row?.n || 0,
-        db: DB_PATH,
-        volume: diag.volumeMount,
-        volumeOk: diag.volumeOk,
-        supabase: diag.supabase,
-        seed: diag.seed,
-        kaliciVeri: diag.volumeOk && diag.supabase?.configured
-          ? "railway-volume+supabase"
-          : diag.volumeOk
-            ? "railway-volume"
-            : diag.supabase?.configured
-              ? "supabase-yedek"
-              : diag.seed?.ok
-                ? "seed-yedek"
-                : "riskli",
-        dd1,
-        uyari: !diag.volumeMount && !diag.supabase?.configured && !diag.seed?.ok
-          ? "Kalici depolama yok! Railway Volume, Supabase veya seed/oyun.db gerekli."
-          : !diag.volumeMount && !diag.supabase?.configured && diag.seed?.ok
-            ? "Volume yok; deployda seed/oyun.db + oyuncu snapshotlari geri yuklenir. Volume onerilir."
-            : !diag.volumeMount && diag.supabase?.configured
-              ? "Railway Volume yok; Supabase yedegi aktif. Volume eklemek onerilir."
-              : !diag.volumeOk
-                ? "DB yolu volume mount ile uyusmuyor — DATABASE_PATH degiskenini kaldirin."
-                : null,
-      });
-    } catch (err) {
-      res.json({ ok: true, name: "yeralti-imparatorlugu", auth: true, mafya: true });
-    }
+function registerStaticRoutes() {
+  app.get(["/", "/index.html"], (req, res) => {
+    sendNoCacheHtml(res, path.join(PUBLIC_DIR, "index.html"));
   });
 
+  app.get("/admin", (req, res) => {
+    res.sendFile(path.join(PUBLIC_DIR, "admin", "index.html"));
+  });
+
+  app.get("/admin/", (req, res) => {
+    res.sendFile(path.join(PUBLIC_DIR, "admin", "index.html"));
+  });
+
+  app.use("/static", express.static(path.join(__dirname, "static")));
+  app.use(
+    express.static(PUBLIC_DIR, {
+      setHeaders(res, filePath) {
+        if (filePath.endsWith(".html")) {
+          res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+          res.setHeader("Pragma", "no-cache");
+          res.setHeader("Expires", "0");
+        }
+      },
+    })
+  );
+}
+
+async function sendHealth(res) {
+  if (!serverReady || !db) {
+    return res.json({
+      ok: true,
+      status: "starting",
+      name: "yeralti-imparatorlugu",
+      version: require("./package.json").version,
+      commit: process.env.RAILWAY_GIT_COMMIT_SHA || process.env.GIT_COMMIT || null,
+    });
+  }
+
+  try {
+    const diag = await getDbDiagnostics();
+    const row = await get(db, "SELECT COUNT(*) AS n FROM users");
+    let dd1 = null;
+    const dd1Row = await get(
+      db,
+      `SELECT u.id, p.kasa, p.puan, p.icraat, p.sms_hakki, COALESCE(p.bonus_guc,0) AS bonus_guc, p.guc
+       FROM users u JOIN players p ON p.user_id = u.id WHERE u.username = 'dd1'`
+    );
+    if (dd1Row) {
+      const mekan = await get(
+        db,
+        `SELECT COALESCE(SUM(adet),0) AS t FROM sektor_sahiplik WHERE user_id = ?`,
+        [dd1Row.id]
+      );
+      const gy = await get(db, `SELECT base_seviye FROM user_base WHERE user_id = ?`, [dd1Row.id]);
+      const ist = await get(db, `SELECT eleman_sayisi FROM istihbarat WHERE user_id = ?`, [dd1Row.id]);
+      dd1 = {
+        ok:
+          dd1Row.kasa === 580784000 &&
+          dd1Row.puan >= 159850 &&
+          dd1Row.icraat === 250 &&
+          dd1Row.sms_hakki === 349 &&
+          (mekan?.t || 0) === 88 &&
+          (gy?.base_seviye || 0) === 15 &&
+          (ist?.eleman_sayisi || 0) === 2,
+        kasa: dd1Row.kasa,
+        puan: dd1Row.puan,
+        mekanToplam: mekan?.t || 0,
+        guvenliYer: gy?.base_seviye || 0,
+        istihbarat: ist?.eleman_sayisi || 0,
+        toplamGuc: (dd1Row.guc || 0) + (dd1Row.bonus_guc || 0),
+      };
+    }
+    res.json({
+      ok: true,
+      status: "ready",
+      name: "yeralti-imparatorlugu",
+      version: require("./package.json").version,
+      commit: process.env.RAILWAY_GIT_COMMIT_SHA || process.env.GIT_COMMIT || null,
+      auth: true,
+      mafya: true,
+      oyuncular: row?.n || 0,
+      db: DB_PATH,
+      volume: diag.volumeMount,
+      volumeOk: diag.volumeOk,
+      supabase: diag.supabase,
+      seed: diag.seed,
+      kaliciVeri: diag.volumeOk && diag.supabase?.configured
+        ? "railway-volume+supabase"
+        : diag.volumeOk
+          ? "railway-volume"
+          : diag.supabase?.configured
+            ? "supabase-yedek"
+            : diag.seed?.ok
+              ? "seed-yedek"
+              : "riskli",
+      dd1,
+      uyari: !diag.volumeMount && !diag.supabase?.configured && !diag.seed?.ok
+        ? "Kalici depolama yok! Railway Volume, Supabase veya seed/oyun.db gerekli."
+        : !diag.volumeMount && !diag.supabase?.configured && diag.seed?.ok
+          ? "Volume yok; deployda seed/oyun.db + oyuncu snapshotlari geri yuklenir. Volume onerilir."
+          : !diag.volumeMount && diag.supabase?.configured
+            ? "Railway Volume yok; Supabase yedegi aktif. Volume eklemek onerilir."
+            : !diag.volumeOk
+              ? "DB yolu volume mount ile uyusmuyor — DATABASE_PATH degiskenini kaldirin."
+              : null,
+    });
+  } catch (err) {
+    res.json({ ok: true, name: "yeralti-imparatorlugu", auth: true, mafya: true, status: "degraded" });
+  }
+}
+
+app.get("/api/health", (req, res) => {
+  sendHealth(res).catch(() => {
+    res.json({ ok: true, name: "yeralti-imparatorlugu", status: "starting" });
+  });
+});
+
+function registerIntervals() {
   setInterval(() => {
     savasiCoz(db).catch((err) => console.error("Mafya savaşı çözüm hatası:", err));
   }, 60 * 1000);
@@ -180,27 +229,15 @@ async function start() {
     saatlikGelirIsle(db).catch((err) => console.error("Saatlik gelir hatası:", err));
   }, 60 * 1000);
 
-  await saatlikGelirIsle(db).catch((err) => console.error("Saatlik gelir telafi hatası:", err));
-
   setInterval(() => {
     gunlukMaasIsle(db).catch((err) => console.error("Günlük maaş/rapor hatası:", err));
   }, 60 * 1000);
 
-  await gunlukMaasIsle(db, { startup: true }).catch((err) =>
-    console.error("Günlük maaş telafi hatası:", err)
-  );
-
-  // Snapshot: ekonomi telafisinden sonra yalnizca eksik/bozuk veri kurtarilir
-  const { restoreOyuncuSnapshots } = require("./game/oyuncuRestoreService");
-  await restoreOyuncuSnapshots(db);
-
-  aySonuKontrol(db).catch((err) => console.error("Aylık mafya şampiyonu hatası:", err));
   setInterval(() => {
     aySonuKontrol(db).catch((err) => console.error("Aylık mafya şampiyonu hatası:", err));
   }, 5 * 60 * 1000);
 
   const { maybeExportPlayerSnapshots } = require("./game/veriKorumaService");
-
   const BACKUP_INTERVAL_MS = 5 * 60 * 1000;
 
   setInterval(() => {
@@ -208,79 +245,85 @@ async function start() {
       .then(() => maybeExportPlayerSnapshots(db))
       .catch((err) => console.warn("[db] Periyodik yedek hatasi:", err.message));
   }, BACKUP_INTERVAL_MS);
+}
 
-  // Ilk acilista yedekle + snapshot guncelle
-  backupDbFile(DB_PATH)
-    .then(() => maybeExportPlayerSnapshots(db, 0))
-    .catch(() => {});
-
+function registerApiRoutes() {
   app.use("/api/auth", createAuthRouter(db));
   app.use("/api/admin", createAdminRouter(db));
   app.use("/api", createGameRouter(db));
 
-  app.get("/admin", (req, res) => {
-    res.sendFile(path.join(PUBLIC_DIR, "admin", "index.html"));
-  });
-
-  app.get("/admin/", (req, res) => {
-    res.sendFile(path.join(PUBLIC_DIR, "admin", "index.html"));
-  });
-
   app.use("/api", (req, res) => {
+    if (!serverReady) {
+      return res.status(503).json({ ok: false, error: "Sunucu hazırlanıyor. Birkaç saniye sonra tekrar dene." });
+    }
     res.status(404).json({
       ok: false,
       error: `API yolu yok (${req.method} ${req.originalUrl}). Oyunu npm start ile başlatıp http://localhost:${PORT} adresinden aç.`,
     });
   });
+}
 
-  function sendNoCacheHtml(res, filePath) {
-    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
-    res.setHeader("Pragma", "no-cache");
-    res.setHeader("Expires", "0");
-    res.sendFile(filePath);
-  }
-
-  app.get(["/", "/index.html"], (req, res) => {
-    sendNoCacheHtml(res, path.join(PUBLIC_DIR, "index.html"));
-  });
-
-  app.use("/static", express.static(path.join(__dirname, "static")));
-  app.use(
-    express.static(PUBLIC_DIR, {
-      setHeaders(res, filePath) {
-        if (filePath.endsWith(".html")) {
-          res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
-          res.setHeader("Pragma", "no-cache");
-          res.setHeader("Expires", "0");
-        }
-      },
-    })
+async function runDeferredStartup() {
+  await saatlikGelirIsle(db).catch((err) => console.error("Saatlik gelir telafi hatası:", err));
+  await gunlukMaasIsle(db, { startup: true }).catch((err) =>
+    console.error("Günlük maaş telafi hatası:", err)
   );
+  aySonuKontrol(db).catch((err) => console.error("Aylık mafya şampiyonu hatası:", err));
 
-  app.listen(PORT, () => {
-    console.log(`Yeraltı İmparatorluğu: http://localhost:${PORT}`);
-    console.log("Durdurmak için Ctrl+C");
+  const { maybeExportPlayerSnapshots } = require("./game/veriKorumaService");
+  backupDbFile(DB_PATH)
+    .then(() => maybeExportPlayerSnapshots(db, 0))
+    .catch(() => {});
+}
+
+async function start() {
+  registerStaticRoutes();
+
+  await new Promise((resolve) => {
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`Yeraltı İmparatorluğu: http://localhost:${PORT}`);
+      console.log("Durdurmak için Ctrl+C");
+      resolve();
+    });
   });
 
-  let shuttingDown = false;
-  async function gracefulShutdown(signal) {
-    if (shuttingDown) return;
-    shuttingDown = true;
-    console.log(`[db] ${signal} — yedek aliniyor...`);
-    try {
-      await backupDbFile(DB_PATH);
-      const { uploadDbBackup } = require("./services/supabaseBackupService");
-      await uploadDbBackup(DB_PATH);
-      const { maybeExportPlayerSnapshots } = require("./game/veriKorumaService");
-      await maybeExportPlayerSnapshots(db, 0);
-      await new Promise((resolve) => db.close(() => resolve()));
-    } catch (err) {
-      console.warn("[db] Kapanis yedegi hatasi:", err.message);
+  try {
+    console.log("[server] Veritabani hazirlaniyor...");
+    db = await initDatabase();
+    await ensureMessagingTables(db);
+    await ensureBildirimTables(db);
+    configureWebPush();
+
+    registerIntervals();
+    registerApiRoutes();
+    serverReady = true;
+    console.log("[server] Hazir — API aktif");
+
+    runDeferredStartup().catch((err) => console.error("[server] Ertelenmis baslangic hatasi:", err));
+
+    let shuttingDown = false;
+    async function gracefulShutdown(signal) {
+      if (shuttingDown) return;
+      shuttingDown = true;
+      console.log(`[db] ${signal} — yedek aliniyor...`);
+      try {
+        await backupDbFile(DB_PATH);
+        const { uploadDbBackup } = require("./services/supabaseBackupService");
+        await uploadDbBackup(DB_PATH);
+        const { maybeExportPlayerSnapshots } = require("./game/veriKorumaService");
+        await maybeExportPlayerSnapshots(db, 0);
+        await new Promise((resolve) => db.close(() => resolve()));
+      } catch (err) {
+        console.warn("[db] Kapanis yedegi hatasi:", err.message);
+      }
+      process.exit(0);
     }
-    process.exit(0);
+    process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+    process.on("SIGINT", () => gracefulShutdown("SIGINT"));
+  } catch (err) {
+    console.error("Sunucu başlatılamadı:", err);
+    process.exit(1);
   }
-  process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
-  process.on("SIGINT", () => gracefulShutdown("SIGINT"));
 }
 
 start().catch((err) => {

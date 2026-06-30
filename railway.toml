@@ -4,6 +4,7 @@ builder = "nixpacks"
 [deploy]
 startCommand = "npm start"
 healthcheckPath = "/api/health"
+healthcheckTimeout = 300
 restartPolicyType = "on_failure"
 
 # Kalici SQLite — volume Railway panelinde de bu isimle baglanmali
