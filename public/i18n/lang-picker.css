@@ -121,20 +121,30 @@ html[dir='rtl'] .lang-picker-menu {
   }
 
   .lang-picker-btn {
-    padding: 8px 10px;
+    padding: 6px 8px;
+    justify-content: center;
+  }
+
+  .lang-mount--auth .lang-picker-btn {
     min-width: 44px;
     min-height: 44px;
-    justify-content: center;
+    padding: 8px 10px;
   }
 
   .lang-picker-menu {
     z-index: 10050;
-    max-height: min(52vh, 340px);
+    max-height: min(360px, 50vh);
     box-shadow: 0 12px 32px rgba(0, 0, 0, 0.72);
   }
 
   .lang-picker-item {
-    min-height: 44px;
+    min-height: 40px;
     touch-action: manipulation;
+  }
+
+  #masterLayout .ml-header-right .lang-mount--game .lang-picker-btn {
+    min-width: 0;
+    min-height: 34px;
+    padding: 5px 7px;
   }
 }
