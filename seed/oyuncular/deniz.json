@@ -3,75 +3,92 @@
   "username": "deniz",
   "reis_adi": "Deniz",
   "lakap": "Mafya",
-  "password_hash": "$2b$10$F5wZh2jCzvHc8JrGDa/SnuBPL1cuQ.Fq/NaMXBYUI6.I9uHXd86gO",
-  "son_ip": "78.180.25.238",
-  "visitor_id": "",
-  "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-  "created_at": 1782421200,
-  "last_login_at": 1782430800,
+  "force_restore": true,
   "player": {
-    "kasa": 10000,
-    "guc": 500,
+    "kasa": 6561,
+    "guc": 327,
     "puan": 1500,
     "icraat": 25,
-    "devlet_iliskisi": 100,
-    "sms_hakki": 50,
-    "profil_aciklama": "",
-    "profil_resmi": "",
-    "aktif_ekran": "liderlik",
-    "son_aksiyon": "ekran_goruntule",
-    "son_aksiyon_detay": "Liderlik Tablosu",
-    "son_aksiyon_at": 1782430800,
-    "last_seen_at": 1782430800
+    "sms_hakki": 50
   },
-  "fingerprints": [
+  "guvenli_yer": {
+    "base_seviye": 12
+  },
+  "istihbarat": {
+    "eleman_sayisi": 0
+  },
+  "mekanlar": [
     {
-      "visitor_id": "",
-      "son_ip": "78.180.25.238",
-      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-      "first_seen": 1782421200,
-      "last_seen": 1782430800
+      "sektor": "yeralti",
+      "mekan_key": "kahvehane",
+      "adet": 0
+    },
+    {
+      "sektor": "yeralti",
+      "mekan_key": "bar",
+      "adet": 0
+    },
+    {
+      "sektor": "yeralti",
+      "mekan_key": "disco",
+      "adet": 0
+    },
+    {
+      "sektor": "yeralti",
+      "mekan_key": "lunapark",
+      "adet": 0
+    },
+    {
+      "sektor": "yeralti",
+      "mekan_key": "kumarhane",
+      "adet": 0
+    },
+    {
+      "sektor": "silah",
+      "mekan_key": "sokak_arasi",
+      "adet": 0
+    },
+    {
+      "sektor": "silah",
+      "mekan_key": "sehirler_arasi",
+      "adet": 0
+    },
+    {
+      "sektor": "silah",
+      "mekan_key": "kacakcilik",
+      "adet": 0
+    },
+    {
+      "sektor": "silah",
+      "mekan_key": "uluslararasi",
+      "adet": 0
+    },
+    {
+      "sektor": "silah",
+      "mekan_key": "atom",
+      "adet": 0
+    },
+    {
+      "sektor": "paket",
+      "mekan_key": "mahalle_teslimat",
+      "adet": 0
+    },
+    {
+      "sektor": "paket",
+      "mekan_key": "sehirler_arasi_teslimat",
+      "adet": 0
+    },
+    {
+      "sektor": "paket",
+      "mekan_key": "ulke_capinda",
+      "adet": 0
+    },
+    {
+      "sektor": "paket",
+      "mekan_key": "uluslararasi_teslimat",
+      "adet": 0
     }
   ],
-  "aktivite_log": [
-    {
-      "ekran": "liderlik",
-      "aksiyon": "ekran_goruntule",
-      "detay": "Liderlik Tablosu",
-      "created_at": 1782421260
-    },
-    {
-      "ekran": "guclen",
-      "aksiyon": "ekran_goruntule",
-      "detay": "Güçlen",
-      "created_at": 1782422400
-    },
-    {
-      "ekran": "profilim",
-      "aksiyon": "ekran_goruntule",
-      "detay": "Profilim",
-      "created_at": 1782426000
-    },
-    {
-      "ekran": "liderlik",
-      "aksiyon": "heartbeat",
-      "detay": "Sayfada aktif",
-      "created_at": 1782430800
-    }
-  ],
-  "security_events": [
-    {
-      "event_type": "register_ok",
-      "detail": "Kayit: deniz / Deniz",
-      "ip": "78.180.25.238",
-      "created_at": 1782421200
-    },
-    {
-      "event_type": "login_ok",
-      "detail": "Giris basarili",
-      "ip": "78.180.25.238",
-      "created_at": 1782430800
-    }
-  ],
-  "not": "Sifre yedeği bulunamadığı için gecici sifre: DenizRestore2026 — giris sonrasi profilden degistirilmeli."
+  "son_ip": "78.180.25.238",
+  "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
 }

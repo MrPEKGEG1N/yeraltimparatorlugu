@@ -1,27 +1,27 @@
 {
-  "id": "dd1",
-  "username": "dd1",
-  "reis_adi": "dd1",
+  "id": "mrpekgeg1n",
+  "username": "mrpekgeg1n",
+  "reis_adi": "mrpekgeg1n",
   "lakap": "Mafya",
   "force_restore": true,
   "player": {
-    "kasa": 580784000,
-    "guc": 86296950,
-    "puan": 159850,
-    "icraat": 250,
-    "sms_hakki": 349
+    "kasa": 27415315,
+    "guc": 630000500,
+    "puan": 2400,
+    "icraat": 2456,
+    "sms_hakki": 250
   },
   "guvenli_yer": {
     "base_seviye": 15
   },
   "istihbarat": {
-    "eleman_sayisi": 2
+    "eleman_sayisi": 4
   },
   "mekanlar": [
     {
       "sektor": "yeralti",
       "mekan_key": "kahvehane",
-      "adet": 1
+      "adet": 0
     },
     {
       "sektor": "yeralti",
@@ -31,42 +31,42 @@
     {
       "sektor": "yeralti",
       "mekan_key": "disco",
-      "adet": 1
+      "adet": 0
     },
     {
       "sektor": "yeralti",
       "mekan_key": "lunapark",
-      "adet": 1
+      "adet": 0
     },
     {
       "sektor": "yeralti",
       "mekan_key": "kumarhane",
-      "adet": 8
+      "adet": 0
     },
     {
       "sektor": "silah",
       "mekan_key": "sokak_arasi",
-      "adet": 3
+      "adet": 0
     },
     {
       "sektor": "silah",
       "mekan_key": "sehirler_arasi",
-      "adet": 1
+      "adet": 0
     },
     {
       "sektor": "silah",
       "mekan_key": "kacakcilik",
-      "adet": 3
+      "adet": 0
     },
     {
       "sektor": "silah",
       "mekan_key": "uluslararasi",
-      "adet": 4
+      "adet": 0
     },
     {
       "sektor": "silah",
       "mekan_key": "atom",
-      "adet": 45
+      "adet": 0
     },
     {
       "sektor": "paket",
@@ -76,20 +76,20 @@
     {
       "sektor": "paket",
       "mekan_key": "sehirler_arasi_teslimat",
-      "adet": 1
+      "adet": 0
     },
     {
       "sektor": "paket",
       "mekan_key": "ulke_capinda",
-      "adet": 4
+      "adet": 0
     },
     {
       "sektor": "paket",
       "mekan_key": "uluslararasi_teslimat",
-      "adet": 16
+      "adet": 1
     }
   ],
-  "son_ip": "78.180.30.95",
+  "son_ip": "::1",
   "visitor_id": "957864a276d8be6d24bf0454f419c589",
   "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36"
 }
