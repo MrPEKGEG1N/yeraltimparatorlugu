@@ -276,19 +276,37 @@ async function runDeferredStartup() {
     .catch(() => {});
 }
 
-async function start() {
-  registerStaticRoutes();
+let dbInitAttempt = 0;
+let shuttingDown = false;
 
-  await new Promise((resolve) => {
-    app.listen(PORT, "0.0.0.0", () => {
-      console.log(`Yeraltı İmparatorluğu: http://localhost:${PORT}`);
-      console.log("Durdurmak için Ctrl+C");
-      resolve();
-    });
-  });
-
+async function gracefulShutdown(signal) {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  console.log(`[db] ${signal} — yedek aliniyor...`);
   try {
-    console.log("[server] Veritabani hazirlaniyor...");
+    if (db) {
+      await backupDbFile(DB_PATH);
+      const { uploadDbBackup } = require("./services/supabaseBackupService");
+      await uploadDbBackup(DB_PATH);
+      const { maybeExportPlayerSnapshots } = require("./game/veriKorumaService");
+      await maybeExportPlayerSnapshots(db, 0);
+      await new Promise((resolve) => db.close(() => resolve()));
+    }
+  } catch (err) {
+    console.warn("[db] Kapanis yedegi hatasi:", err.message);
+  }
+  process.exit(0);
+}
+
+process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+process.on("SIGINT", () => gracefulShutdown("SIGINT"));
+
+async function bootDatabase() {
+  if (shuttingDown || serverReady) return;
+
+  dbInitAttempt += 1;
+  try {
+    console.log(`[server] Veritabani hazirlaniyor... (deneme ${dbInitAttempt})`);
     db = await initDatabase();
     await ensureMessagingTables(db);
     await ensureBildirimTables(db);
@@ -300,33 +318,28 @@ async function start() {
     console.log("[server] Hazir — API aktif");
 
     runDeferredStartup().catch((err) => console.error("[server] Ertelenmis baslangic hatasi:", err));
-
-    let shuttingDown = false;
-    async function gracefulShutdown(signal) {
-      if (shuttingDown) return;
-      shuttingDown = true;
-      console.log(`[db] ${signal} — yedek aliniyor...`);
-      try {
-        await backupDbFile(DB_PATH);
-        const { uploadDbBackup } = require("./services/supabaseBackupService");
-        await uploadDbBackup(DB_PATH);
-        const { maybeExportPlayerSnapshots } = require("./game/veriKorumaService");
-        await maybeExportPlayerSnapshots(db, 0);
-        await new Promise((resolve) => db.close(() => resolve()));
-      } catch (err) {
-        console.warn("[db] Kapanis yedegi hatasi:", err.message);
-      }
-      process.exit(0);
-    }
-    process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
-    process.on("SIGINT", () => gracefulShutdown("SIGINT"));
   } catch (err) {
-    console.error("Sunucu başlatılamadı:", err);
-    process.exit(1);
+    console.error(`[server] Baslatma hatasi (deneme ${dbInitAttempt}):`, err);
+    const delay = Math.min(60000, 5000 * dbInitAttempt);
+    setTimeout(() => bootDatabase(), delay);
   }
 }
 
+async function start() {
+  registerStaticRoutes();
+
+  await new Promise((resolve) => {
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`Yeraltı İmparatorluğu: http://localhost:${PORT}`);
+      console.log("Durdurmak için Ctrl+C");
+      resolve();
+    });
+  });
+
+  bootDatabase();
+}
+
 start().catch((err) => {
-  console.error("Sunucu başlatılamadı:", err);
+  console.error("Sunucu dinleyicisi baslatilamadi:", err);
   process.exit(1);
 });

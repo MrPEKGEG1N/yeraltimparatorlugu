@@ -36,7 +36,12 @@ async function downloadSupabaseCandidate(targetPath) {
     const { isConfigured, downloadRemoteSnapshot } = require("../services/supabaseBackupService");
     if (!isConfigured()) return null;
     const temp = path.join(path.dirname(path.resolve(targetPath)), ".supabase-recovery.db");
-    const ok = await downloadRemoteSnapshot(temp);
+    const ok = await Promise.race([
+      downloadRemoteSnapshot(temp),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("supabase aday indirme timeout (20s)")), 20000)
+      ),
+    ]);
     return ok ? temp : null;
   } catch (err) {
     console.warn("[veri-koruma] Supabase aday indirilemedi:", err.message);

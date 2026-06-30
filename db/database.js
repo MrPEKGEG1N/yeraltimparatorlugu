@@ -401,36 +401,45 @@ async function migratePlayersTable(db) {
   await run(db, "DROP TABLE players");
 }
 
+async function withTimeout(promise, ms, label) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error(`${label} timeout (${Math.round(ms / 1000)}s)`)), ms)
+    ),
+  ]);
+}
+
 async function initDatabase() {
   logDbEnvironment();
   ensureDbDirectory(DB_PATH);
 
-  try {
-    const { restoreDbFromSupabase } = require("../services/supabaseBackupService");
-    await Promise.race([
-      restoreDbFromSupabase(DB_PATH),
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("supabase restore timeout (20s)")), 20000)
-      ),
-    ]);
-  } catch (err) {
-    console.warn("[supabase] Baslangic geri yukleme atlandi:", err.message);
-  }
+  const hasLiveDb = fs.existsSync(DB_PATH) && fs.statSync(DB_PATH).size >= 512;
+  const liveUsers = hasLiveDb ? await countSqliteUsers(DB_PATH) : 0;
+  const fastStartup = process.env.NODE_ENV === "production" && liveUsers > 0;
 
-  if (fs.existsSync(DB_PATH) && fs.statSync(DB_PATH).size >= 512) {
-    const mevcut = await countSqliteUsers(DB_PATH);
-    if (mevcut > 0) await backupDbFile(DB_PATH);
-  }
-  bootstrapDbFromLegacy(DB_PATH);
-  await restoreDbFromBestCandidate(DB_PATH);
-  await consolidateLegacyDbCopies(DB_PATH);
-  await restoreFromSeed(DB_PATH);
+  if (fastStartup) {
+    console.log(`[db] Production hizli baslangic — mevcut DB (${liveUsers} kullanici)`);
+  } else {
+    try {
+      const { restoreDbFromSupabase } = require("../services/supabaseBackupService");
+      await withTimeout(restoreDbFromSupabase(DB_PATH), 20000, "supabase restore");
+    } catch (err) {
+      console.warn("[supabase] Baslangic geri yukleme atlandi:", err.message);
+    }
 
-  try {
-    const { recoverDbIfDegraded } = require("../game/veriKorumaService");
-    await recoverDbIfDegraded(DB_PATH);
-  } catch (err) {
-    console.warn("[veri-koruma] Baslangic kontrolu atlandi:", err.message);
+    if (hasLiveDb && liveUsers > 0) await backupDbFile(DB_PATH);
+    bootstrapDbFromLegacy(DB_PATH);
+    await restoreDbFromBestCandidate(DB_PATH);
+    await consolidateLegacyDbCopies(DB_PATH);
+    await restoreFromSeed(DB_PATH);
+
+    try {
+      const { recoverDbIfDegraded } = require("../game/veriKorumaService");
+      await withTimeout(recoverDbIfDegraded(DB_PATH), 25000, "veri-koruma");
+    } catch (err) {
+      console.warn("[veri-koruma] Baslangic kontrolu atlandi:", err.message);
+    }
   }
 
   const db = await openDb();
