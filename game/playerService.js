@@ -65,6 +65,9 @@ const {
   istenCikar: sirketIstenCikar,
   kapat: sirketKapat,
   istifaEt: sirketIstifaEt,
+  zamTalepEt: sirketZamTalepEt,
+  zamTalepOnayla: sirketZamTalepOnayla,
+  zamTalepReddet: sirketZamTalepReddet,
   egitimVer: sirketEgitimVer,
   malzemeAl: sirketMalzemeAl,
   upgrade: sirketUpgrade,
@@ -1498,6 +1501,39 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
       ok: true,
       player: await publicPlayerFull(db, userId, player),
       effect: { type: "sirket_istifa", mesaj: sonuc.mesaj },
+    };
+  }
+
+  if (action === "sirket_zam_talep") {
+    const sonuc = await sirketZamTalepEt(db, userId, extra.talepMaas);
+    if (!sonuc.ok) return sonuc;
+    player = await loadPlayer(db, userId);
+    return {
+      ok: true,
+      player: await publicPlayerFull(db, userId, player),
+      effect: { type: "sirket_zam_talep", mesaj: sonuc.mesaj },
+    };
+  }
+
+  if (action === "sirket_zam_onayla") {
+    const sonuc = await sirketZamTalepOnayla(db, userId, extra.talepId);
+    if (!sonuc.ok) return sonuc;
+    player = await loadPlayer(db, userId);
+    return {
+      ok: true,
+      player: await publicPlayerFull(db, userId, player),
+      effect: { type: "sirket_zam_onayla", mesaj: sonuc.mesaj },
+    };
+  }
+
+  if (action === "sirket_zam_reddet") {
+    const sonuc = await sirketZamTalepReddet(db, userId, extra.talepId);
+    if (!sonuc.ok) return sonuc;
+    player = await loadPlayer(db, userId);
+    return {
+      ok: true,
+      player: await publicPlayerFull(db, userId, player),
+      effect: { type: "sirket_zam_reddet", mesaj: sonuc.mesaj },
     };
   }
 

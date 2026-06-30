@@ -651,6 +651,28 @@
 
 #masterLayout .meslek-aktif-kart--sirket h4 { color: var(--mk-mavi); }
 
+#masterLayout .meslek-aktif-aksiyon {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+#masterLayout .meslek-aktif-aksiyon .meslek-input--kucuk {
+  width: 110px;
+  min-width: 90px;
+}
+
+#masterLayout .meslek-zam-bekliyor {
+  color: #d4b86a;
+}
+
+#masterLayout .meslek-basvuru-kart--yeni {
+  border-color: rgba(255, 215, 0, 0.55);
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.12);
+}
+
 /* —— İşyeri grid —— */
 #masterLayout .meslek-isyeri-grid {
   display: grid;

@@ -193,6 +193,24 @@ async function ensureSirketTables(db) {
       FOREIGN KEY (calisan_user_id) REFERENCES users(id) ON DELETE CASCADE
     )`
   );
+
+  await run(
+    db,
+    `CREATE TABLE IF NOT EXISTS sirket_zam_talepleri (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      sirket_id INTEGER NOT NULL,
+      sahip_user_id INTEGER NOT NULL,
+      calisan_user_id INTEGER NOT NULL,
+      mevcut_maas INTEGER NOT NULL,
+      talep_maas INTEGER NOT NULL,
+      talep_zamani INTEGER NOT NULL DEFAULT (strftime('%s','now')),
+      okundu INTEGER NOT NULL DEFAULT 0,
+      UNIQUE(calisan_user_id),
+      FOREIGN KEY (sirket_id) REFERENCES oyuncu_sirketleri(id) ON DELETE CASCADE,
+      FOREIGN KEY (sahip_user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (calisan_user_id) REFERENCES users(id) ON DELETE CASCADE
+    )`
+  );
 }
 
 async function sirketGetir(db, sirketId) {
@@ -638,6 +656,7 @@ async function meslekMenuBildirimVarMi(db, userId) {
   if ((await bekleyenSirketBasvuruSayisi(db, userId)) > 0) return true;
   if (await meslekSirketBildirimVarMi(db, userId)) return true;
   if ((await okunmamisIstifaBildirimSayisi(db, userId)) > 0) return true;
+  if ((await bekleyenZamTalepSayisi(db, userId)) > 0) return true;
   return false;
 }
 
@@ -689,6 +708,165 @@ async function istifaBildirimleriOkundu(db, sahipUserId, sirketId) {
   );
 }
 
+async function bekleyenZamTalepSayisi(db, sahipUserId) {
+  const row = await get(
+    db,
+    `SELECT COUNT(*) AS n FROM sirket_zam_talepleri WHERE sahip_user_id = ?`,
+    [sahipUserId]
+  );
+  return row?.n || 0;
+}
+
+async function zamTalepleriGetir(db, sirketId) {
+  const rows = await all(
+    db,
+    `SELECT z.*, u.reis_adi
+     FROM sirket_zam_talepleri z
+     JOIN users u ON u.id = z.calisan_user_id
+     WHERE z.sirket_id = ?
+     ORDER BY z.talep_zamani DESC`,
+    [sirketId]
+  );
+  return (rows || []).map((r) => ({
+    id: r.id,
+    calisanUserId: r.calisan_user_id,
+    reisAdi: r.reis_adi,
+    mevcutMaas: r.mevcut_maas,
+    talepMaas: r.talep_maas,
+    talepZamani: r.talep_zamani,
+    okundu: !!r.okundu,
+  }));
+}
+
+async function calisanZamTalebiGetir(db, userId) {
+  const row = await get(
+    db,
+    `SELECT id, mevcut_maas, talep_maas, talep_zamani
+     FROM sirket_zam_talepleri WHERE calisan_user_id = ?`,
+    [userId]
+  );
+  if (!row) return null;
+  return {
+    id: row.id,
+    mevcutMaas: row.mevcut_maas,
+    talepMaas: row.talep_maas,
+    talepZamani: row.talep_zamani,
+  };
+}
+
+async function zamTalepleriOkundu(db, sahipUserId, sirketId) {
+  await run(
+    db,
+    `UPDATE sirket_zam_talepleri SET okundu = 1
+     WHERE sahip_user_id = ? AND sirket_id = ? AND okundu = 0`,
+    [sahipUserId, sirketId]
+  );
+}
+
+async function zamTalepEt(db, userId, talepMaas) {
+  await ensureSirketTables(db);
+  const emp = await get(
+    db,
+    `SELECT c.*, s.id AS sirket_id, s.sahip_user_id, s.isim AS sirket_adi
+     FROM sirket_calisanlari c
+     JOIN oyuncu_sirketleri s ON s.id = c.sirket_id
+     WHERE c.user_id = ?`,
+    [userId]
+  );
+  if (!emp) return { ok: false, error: "Bir şirkette çalışmıyorsun." };
+
+  const mevcut = emp.gunluk_maas || 0;
+  const talep = Math.min(50000, Math.max(500, Math.floor(Number(talepMaas) || 0)));
+  if (talep <= mevcut) {
+    return { ok: false, error: `Talep edilen maaş mevcut günlük maaştan (${mevcut.toLocaleString("tr-TR")} TL) yüksek olmalı.` };
+  }
+
+  const mevcutTalep = await get(
+    db,
+    `SELECT id FROM sirket_zam_talepleri WHERE calisan_user_id = ?`,
+    [userId]
+  );
+  if (mevcutTalep) {
+    await run(
+      db,
+      `UPDATE sirket_zam_talepleri
+       SET mevcut_maas = ?, talep_maas = ?, talep_zamani = strftime('%s','now'), okundu = 0
+       WHERE calisan_user_id = ?`,
+      [mevcut, talep, userId]
+    );
+  } else {
+    await run(
+      db,
+      `INSERT INTO sirket_zam_talepleri
+        (sirket_id, sahip_user_id, calisan_user_id, mevcut_maas, talep_maas, talep_zamani, okundu)
+       VALUES (?, ?, ?, ?, ?, strftime('%s','now'), 0)`,
+      [emp.sirket_id, emp.sahip_user_id, userId, mevcut, talep]
+    );
+  }
+
+  await meslekSirketBildirimEkle(db, emp.sahip_user_id);
+  return {
+    ok: true,
+    mesaj: `${emp.sirket_adi} patronuna günlük ${talep.toLocaleString("tr-TR")} TL zam talebi gönderildi.`,
+  };
+}
+
+async function zamTalepOnayla(db, userId, talepId) {
+  const sirket = await sahipSirketGetir(db, userId);
+  if (!sirket) return { ok: false, error: "Şirketin yok." };
+
+  const talep = await get(
+    db,
+    `SELECT * FROM sirket_zam_talepleri WHERE id = ? AND sirket_id = ?`,
+    [talepId, sirket.id]
+  );
+  if (!talep) return { ok: false, error: "Zam talebi bulunamadı." };
+
+  const maas = Math.min(50000, Math.max(500, talep.talep_maas));
+  const sonuc = await run(
+    db,
+    `UPDATE sirket_calisanlari SET gunluk_maas = ? WHERE sirket_id = ? AND user_id = ?`,
+    [maas, sirket.id, talep.calisan_user_id]
+  );
+  if (!sonuc || sonuc.changes === 0) return { ok: false, error: "Çalışan bulunamadı." };
+
+  await run(db, `DELETE FROM sirket_zam_talepleri WHERE id = ?`, [talepId]);
+
+  const { bildirimGonder } = require("./bildirimService");
+  await bildirimGonder(db, talep.calisan_user_id, "zam_onay", {
+    baslik: "Zam Talebin Onaylandı",
+    icerik: `${sirket.isim} — günlük maaşın ${maas.toLocaleString("tr-TR")} TL oldu.`,
+    url: "/?ekran=meslekler",
+  });
+  await meslekSirketBildirimEkle(db, talep.calisan_user_id);
+
+  return { ok: true, mesaj: `Zam talebi onaylandı. Günlük maaş ${maas.toLocaleString("tr-TR")} TL.` };
+}
+
+async function zamTalepReddet(db, userId, talepId) {
+  const sirket = await sahipSirketGetir(db, userId);
+  if (!sirket) return { ok: false, error: "Şirketin yok." };
+
+  const talep = await get(
+    db,
+    `SELECT * FROM sirket_zam_talepleri WHERE id = ? AND sirket_id = ?`,
+    [talepId, sirket.id]
+  );
+  if (!talep) return { ok: false, error: "Zam talebi bulunamadı." };
+
+  await run(db, `DELETE FROM sirket_zam_talepleri WHERE id = ?`, [talepId]);
+
+  const { bildirimGonder } = require("./bildirimService");
+  await bildirimGonder(db, talep.calisan_user_id, "zam_red", {
+    baslik: "Zam Talebin Reddedildi",
+    icerik: `${sirket.isim} patronu zam talebini reddetti.`,
+    url: "/?ekran=meslekler",
+  });
+  await meslekSirketBildirimEkle(db, talep.calisan_user_id);
+
+  return { ok: true, mesaj: "Zam talebi reddedildi." };
+}
+
 async function panelGetir(db, userId) {
   await ensureSirketTables(db);
   const yetenekler = await yetenekleriGetir(db, userId);
@@ -726,6 +904,7 @@ async function panelGetir(db, userId) {
       sahipAdi: emp.sahip_adi,
       unvan: poz ? poz.unvan : emp.pozisyon_id,
       gunlukMaas: emp.gunluk_maas,
+      zamTalebi: await calisanZamTalebiGetir(db, userId),
     };
   }
 
@@ -805,6 +984,8 @@ async function panelGetir(db, userId) {
       });
       const okunmamisIstifa = await okunmamisIstifaBildirimSayisi(db, userId);
       const sonIstifalar = await sonIstifalarGetir(db, sahip.id);
+      const zamTalepleri = await zamTalepleriGetir(db, sahip.id);
+      const bekleyenZam = zamTalepleri.length;
 
       yonetim = {
         id: sahip.id,
@@ -822,6 +1003,8 @@ async function panelGetir(db, userId) {
         basvurular,
         okunmamisIstifa,
         sonIstifalar,
+        zamTalepleri,
+        bekleyenZam,
         gunlukGelirTahmin: tahmin.netTahmin,
         gunlukMaasToplam: calisanRows.reduce((s, c) => s + (c.gunluk_maas || 0), 0),
         kapasiteSeviye: sahip.kapasite_seviye || 0,
@@ -893,6 +1076,10 @@ async function panelGetir(db, userId) {
     const okunmamisIstifaSay = await okunmamisIstifaBildirimSayisi(db, userId);
     if (okunmamisIstifaSay > 0) {
       await istifaBildirimleriOkundu(db, userId, sahip.id);
+    }
+    const bekleyenZamSay = await bekleyenZamTalepSayisi(db, userId);
+    if (bekleyenZamSay > 0) {
+      await zamTalepleriOkundu(db, userId, sahip.id);
     }
   }
 
@@ -1156,6 +1343,7 @@ async function istenCikar(db, userId, calisanUserId) {
     [sirket.id, calisanUserId]
   );
   if (!sonuc || sonuc.changes === 0) return { ok: false, error: "Çalışan bulunamadı." };
+  await run(db, `DELETE FROM sirket_zam_talepleri WHERE calisan_user_id = ?`, [calisanUserId]);
   const { bildirimGonder } = require("./bildirimService");
   await bildirimGonder(db, calisanUserId, "isten_atildi", {
     baslik: "İşten Atıldın",
@@ -1214,6 +1402,7 @@ async function istifaEt(db, userId) {
   const poz = tur ? pozisyonBul(tur.id, emp.pozisyon_id) : null;
   const unvan = poz ? poz.unvan : "görev";
   await run(db, `DELETE FROM sirket_calisanlari WHERE user_id = ?`, [userId]);
+  await run(db, `DELETE FROM sirket_zam_talepleri WHERE calisan_user_id = ?`, [userId]);
   await istifaBildirimEkle(
     db,
     emp.sirket_id,
@@ -1461,6 +1650,9 @@ module.exports = {
   istenCikar,
   kapat,
   istifaEt,
+  zamTalepEt,
+  zamTalepOnayla,
+  zamTalepReddet,
   egitimVer,
   malzemeAl,
   upgrade,

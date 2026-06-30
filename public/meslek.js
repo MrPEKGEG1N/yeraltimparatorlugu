@@ -32,7 +32,11 @@ function meslekSekmeHTML() {
     sirketPanel && sirketPanel.yonetim && sirketPanel.yonetim.okunmamisIstifa
       ? sirketPanel.yonetim.okunmamisIstifa
       : 0;
-  var yonetimBildirim = bekleyenBasvuru + okunmamisIstifa;
+  var bekleyenZam =
+    sirketPanel && sirketPanel.yonetim && sirketPanel.yonetim.bekleyenZam
+      ? sirketPanel.yonetim.bekleyenZam
+      : 0;
+  var yonetimBildirim = bekleyenBasvuru + okunmamisIstifa + bekleyenZam;
   var sekmeler = [
     { id: "npc", ikon: "🏛️", etiket: t("meslek.tab.npcJobs") },
     { id: "sirketler", ikon: "🏢", etiket: t("meslek.tab.playerCompanies") },
@@ -266,6 +270,29 @@ function meslekAktifIsHTML(aktif) {
 
 function meslekSirketCalisanHTML(calisan) {
   if (!calisan) return "";
+  var varsayilanTalep = Math.min(50000, Math.max((calisan.gunlukMaas || 0) + 500, 501));
+  var zamHtml = "";
+  if (calisan.zamTalebi) {
+    zamHtml =
+      '<p class="meslek-dim meslek-zam-bekliyor">' +
+      t("meslek.activeCo.raisePending", {
+        current: fmt(calisan.gunlukMaas),
+        requested: fmt(calisan.zamTalebi.talepMaas),
+      }) +
+      "</p>";
+  } else {
+    zamHtml =
+      '<input type="number" id="sirketZamTalepInput" class="meslek-input meslek-input--kucuk" value="' +
+      varsayilanTalep +
+      '" min="' +
+      Math.min(50000, (calisan.gunlukMaas || 0) + 1) +
+      '" max="50000" placeholder="' +
+      escHtml(t("meslek.activeCo.raisePlaceholder")) +
+      '" />' +
+      '<button type="button" class="meslek-btn meslek-btn--altin" onclick="sirketZamTalep()">' +
+      escHtml(t("meslek.activeCo.requestRaise")) +
+      "</button>";
+  }
   return (
     '<div class="meslek-aktif-kart meslek-aktif-kart--sirket">' +
     '<div class="meslek-aktif-ust">' +
@@ -284,10 +311,12 @@ function meslekSirketCalisanHTML(calisan) {
     "</p>" +
     '<p class="meslek-dim">' + t("meslek.activeCo.salaryNote") + "</p>" +
     '<p class="meslek-dim">' + t("meslek.activeCo.payTime") + "</p>" +
+    '<div class="meslek-aktif-aksiyon">' +
+    zamHtml +
     '<button type="button" class="meslek-btn meslek-btn--gri" onclick="sirketIstifa()">' +
     escHtml(t("meslek.activeCo.resign")) +
     "</button>" +
-    "</div>"
+    "</div></div>"
   );
 }
 
@@ -303,6 +332,11 @@ function meslekBasvurularaKaydir() {
 
 function meslekIstifalaraKaydir() {
   var el = document.getElementById("meslekIstifalar");
+  if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function meslekZamTaleplerineKaydir() {
+  var el = document.getElementById("meslekZamTalepleri");
   if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
@@ -393,6 +427,11 @@ function meslekIsIlaniPanelHTML(y) {
         escHtml(t("meslek.listing.resignationsBtn", { n: y.okunmamisIstifa })) +
         "</button>"
       : "") +
+    (y.bekleyenZam > 0
+      ? ' <button type="button" class="meslek-link-btn meslek-link-btn--uyari" onclick="meslekZamTaleplerineKaydir()">' +
+        escHtml(t("meslek.listing.raiseRequestsBtn", { n: y.bekleyenZam })) +
+        "</button>"
+      : "") +
     "</div></div></section>"
   );
 }
@@ -429,6 +468,49 @@ function meslekBasvurularHTML(y) {
         ')">' + escHtml(t("meslek.applications.reject")) + '</button></div></div>';
     });
   }
+  html += "</section>";
+  return html;
+}
+
+function meslekZamTalepleriHTML(y) {
+  var talepler = y.zamTalepleri || [];
+  if (!talepler.length) return "";
+  var html =
+    '<section class="meslek-bolum meslek-panel meslek-zam-panel" id="meslekZamTalepleri">' +
+    meslekBolumBaslik("💰", t("meslek.raiseRequests.title"));
+  html += '<p class="meslek-dim">' + t("meslek.raiseRequests.pending", { n: talepler.length }) + "</p>";
+  talepler.forEach(function (z) {
+    var adHtml =
+      typeof oyuncuLink === "function"
+        ? oyuncuLink(z.calisanUserId, z.reisAdi)
+        : escHtml(z.reisAdi);
+    html +=
+      '<div class="meslek-basvuru-kart' +
+      (z.okundu ? "" : " meslek-basvuru-kart--yeni") +
+      '">' +
+      "<p><b>" +
+      adHtml +
+      "</b> · <span class=\"meslek-dim\">" +
+      meslekIstifaTarih(z.talepZamani) +
+      "</span></p>" +
+      "<p>" +
+      t("meslek.raiseRequests.detail", {
+        current: fmt(z.mevcutMaas),
+        requested: fmt(z.talepMaas),
+      }) +
+      "</p>" +
+      '<div class="meslek-basvuru-aksiyon">' +
+      '<button type="button" class="meslek-btn meslek-btn--altin" onclick="sirketZamOnayla(' +
+      z.id +
+      ')">' +
+      escHtml(t("meslek.raiseRequests.approve")) +
+      "</button>" +
+      '<button type="button" class="meslek-btn meslek-btn--gri" onclick="sirketZamReddet(' +
+      z.id +
+      ')">' +
+      escHtml(t("meslek.raiseRequests.reject")) +
+      "</button></div></div>";
+  });
   html += "</section>";
   return html;
 }
@@ -771,6 +853,7 @@ function meslekYonetimHTML() {
 
     html += meslekIsIlaniPanelHTML(y);
     html += meslekBasvurularHTML(y);
+    html += meslekZamTalepleriHTML(y);
     html += meslekIstifalarHTML(y);
     html += meslekGunlukRaporlarHTML(y);
 
@@ -1471,6 +1554,34 @@ async function sirketIstifa() {
   var ef = await sunucuAksiyon("sirket_istifa");
   if (ef === null) return;
   toast(ef.mesaj || t("meslek.toast.resigned"), "basari");
+  await meslekYukle();
+}
+
+async function sirketZamTalep() {
+  var el = document.getElementById("sirketZamTalepInput");
+  var talepMaas = el ? el.value : null;
+  if (!talepMaas) {
+    toast(t("meslek.toast.enterRaiseAmount"), "hata");
+    return;
+  }
+  var ef = await sunucuAksiyon("sirket_zam_talep", null, null, { talepMaas: talepMaas });
+  if (ef === null) return;
+  toast(ef.mesaj || t("meslek.toast.raiseRequested"), "basari");
+  await meslekYukle();
+}
+
+async function sirketZamOnayla(talepId) {
+  var ef = await sunucuAksiyon("sirket_zam_onayla", null, null, { talepId: talepId });
+  if (ef === null) return;
+  toast(ef.mesaj || t("meslek.toast.raiseApproved"), "basari");
+  await meslekYukle();
+}
+
+async function sirketZamReddet(talepId) {
+  if (!confirm(t("meslek.confirm.rejectRaise"))) return;
+  var ef = await sunucuAksiyon("sirket_zam_reddet", null, null, { talepId: talepId });
+  if (ef === null) return;
+  toast(ef.mesaj || t("meslek.toast.raiseRejected"), "basari");
   await meslekYukle();
 }
 
