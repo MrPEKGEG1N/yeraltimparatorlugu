@@ -205,12 +205,37 @@
     return html;
   }
 
+  function resetMenuPosition(menu) {
+    if (!menu) return;
+    menu.style.position = '';
+    menu.style.top = '';
+    menu.style.right = '';
+    menu.style.left = '';
+    menu.style.zIndex = '';
+  }
+
+  function positionLangMenu(btn, menu) {
+    if (!btn || !menu || window.innerWidth > 768) {
+      resetMenuPosition(menu);
+      return;
+    }
+    var r = btn.getBoundingClientRect();
+    menu.style.position = 'fixed';
+    menu.style.top = Math.min(r.bottom + 6, window.innerHeight - 16) + 'px';
+    menu.style.right = Math.max(8, window.innerWidth - r.right) + 'px';
+    menu.style.left = 'auto';
+    menu.style.zIndex = '10050';
+  }
+
   function closeAllMenus(except) {
     document.querySelectorAll('[data-lang-picker]').forEach(function (wrap) {
       if (except && wrap === except) return;
       var menu = wrap.querySelector('.lang-picker-menu');
       var btn = wrap.querySelector('.lang-picker-btn');
-      if (menu) menu.classList.add('gizli');
+      if (menu) {
+        menu.classList.add('gizli');
+        resetMenuPosition(menu);
+      }
       if (btn) {
         btn.classList.remove('acik');
         btn.setAttribute('aria-expanded', 'false');
@@ -224,22 +249,37 @@
     var btn = wrap.querySelector('.lang-picker-btn');
     var menu = wrap.querySelector('.lang-picker-menu');
     if (!btn || !menu) return;
-    btn.addEventListener('click', function (e) {
-      e.stopPropagation();
+    function toggleMenu(e) {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
       var acik = !menu.classList.contains('gizli');
       closeAllMenus(wrap);
       if (acik) {
         menu.classList.add('gizli');
         btn.classList.remove('acik');
         btn.setAttribute('aria-expanded', 'false');
+        resetMenuPosition(menu);
       } else {
         menu.classList.remove('gizli');
         btn.classList.add('acik');
         btn.setAttribute('aria-expanded', 'true');
+        positionLangMenu(btn, menu);
       }
+    }
+    var lastTouchAt = 0;
+    btn.addEventListener('touchend', function (e) {
+      lastTouchAt = Date.now();
+      toggleMenu(e);
+    });
+    btn.addEventListener('click', function (e) {
+      if (Date.now() - lastTouchAt < 450) return;
+      toggleMenu(e);
     });
     menu.querySelectorAll('[data-lang]').forEach(function (item) {
-      item.addEventListener('click', function () {
+      item.addEventListener('click', function (e) {
+        e.stopPropagation();
         setLang(item.getAttribute('data-lang'));
         closeAllMenus();
       });
@@ -256,6 +296,9 @@
     if (!pickersBound) {
       pickersBound = true;
       document.addEventListener('click', function () {
+        closeAllMenus();
+      });
+      window.addEventListener('resize', function () {
         closeAllMenus();
       });
     }

@@ -2718,22 +2718,124 @@
   #masterLayout #anaIcerik .km-poker-karsilastir {
     grid-template-columns: 1fr;
   }
+
+  /* Masa görseli üstte, kartlar ve butonlar altta — kesilme yok */
+  #masterLayout #anaIcerik .km-oyun-masa {
+    display: flex;
+    flex-direction: column;
+    overflow: visible;
+  }
+
+  #masterLayout #anaIcerik .km-oyun-masa-gorsel {
+    position: relative;
+    flex: 0 0 auto;
+    width: 100%;
+    overflow: hidden;
+    aspect-ratio: 16 / 7;
+    min-height: 0;
+    max-height: 108px;
+  }
+
+  #masterLayout #anaIcerik .km-oyun-masa-oyun {
+    position: relative;
+    inset: auto;
+    flex: 0 0 auto;
+    width: 100%;
+    min-height: 0;
+    padding: 10px 8px 12px;
+    pointer-events: auto;
+    overflow: visible;
+    background: linear-gradient(180deg, rgba(8, 12, 16, 0.94), rgba(4, 6, 10, 0.98));
+    border-top: 1px solid rgba(255, 215, 106, 0.16);
+  }
+
   #masterLayout #anaIcerik .km-oyun-masa--blackjack .km-oyun-masa-gorsel,
   #masterLayout #anaIcerik .km-oyun-masa--uc_kart_poker .km-oyun-masa-gorsel,
   #masterLayout #anaIcerik .km-oyun-masa--barbut .km-oyun-masa-gorsel,
   #masterLayout #anaIcerik .km-oyun-masa--rus_ruleti .km-oyun-masa-gorsel {
-    min-height: 180px;
+    min-height: 0;
+    max-height: 100px;
+    aspect-ratio: 16 / 7;
   }
+
   #masterLayout #anaIcerik .km-oyun-masa--rulet .km-oyun-masa-gorsel {
-    min-height: 300px;
+    min-height: 0;
+    max-height: 120px;
+    aspect-ratio: 16 / 8;
   }
+
+  #masterLayout #anaIcerik .km-oyun-masa--blackjack .km-oyun-masa-oyun,
+  #masterLayout #anaIcerik .km-oyun-masa--barbut .km-oyun-masa-oyun,
+  #masterLayout #anaIcerik .km-oyun-masa--rus_ruleti .km-oyun-masa-oyun {
+    justify-content: flex-start;
+    padding: 10px 8px;
+  }
+
+  #masterLayout #anaIcerik .km-bj-oyun {
+    height: auto;
+    min-height: 0;
+    gap: 8px;
+  }
+
+  #masterLayout #anaIcerik .km-bj-zon {
+    padding: 6px 8px;
+  }
+
+  #masterLayout #anaIcerik .km-bj-hamle {
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-top: 4px;
+  }
+
+  #masterLayout #anaIcerik .km-oyun-sahne--kart,
+  #masterLayout #anaIcerik .km-oyun-sahne--rulet,
+  #masterLayout #anaIcerik .km-oyun-sahne--barbut,
+  #masterLayout #anaIcerik .km-oyun-sahne--rus {
+    min-height: 0;
+    padding: 10px;
+  }
+
   #masterLayout #anaIcerik .km-oyun-masa .km-kart {
-    width: 42px;
-    height: 60px;
+    width: 40px;
+    height: 56px;
   }
+
+  #masterLayout #anaIcerik .km-oyun-masa .km-kart-rank {
+    font-size: 13px;
+  }
+
+  #masterLayout #anaIcerik .km-oyun-masa .km-kart-suit {
+    font-size: 14px;
+  }
+
+  #masterLayout #anaIcerik .km-oyun-masa .km-el-toplam {
+    font-size: 16px;
+  }
+
+  #masterLayout #anaIcerik .km-bj-hamle .km-btn,
+  #masterLayout #anaIcerik .km-hamle-satir .km-btn,
+  #masterLayout #anaIcerik .km-bahis-satir .km-btn,
+  #masterLayout #anaIcerik .km-rulet-btn,
+  #masterLayout #anaIcerik .km-barbut-btn,
+  #masterLayout #anaIcerik .km-parmak-slot {
+    min-height: 44px;
+    touch-action: manipulation;
+  }
+
   #masterLayout #anaIcerik .km-bj-hamle .km-btn {
-    padding: 7px 10px;
-    font-size: 11px;
+    min-width: 72px;
+    padding: 10px 14px;
+    font-size: 12px;
+  }
+
+  #masterLayout #anaIcerik .km-rulet-hucre {
+    min-height: 36px;
+    touch-action: manipulation;
+  }
+
+  #masterLayout #anaIcerik .km-parmak-slot {
+    width: 36px;
   }
 }
 

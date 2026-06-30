@@ -28,6 +28,8 @@
   cursor: pointer;
   border-radius: 2px;
   transition: border-color 0.15s, color 0.15s;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .lang-picker-btn:hover,
@@ -119,6 +121,20 @@ html[dir='rtl'] .lang-picker-menu {
   }
 
   .lang-picker-btn {
-    padding: 6px 8px;
+    padding: 8px 10px;
+    min-width: 44px;
+    min-height: 44px;
+    justify-content: center;
+  }
+
+  .lang-picker-menu {
+    z-index: 10050;
+    max-height: min(52vh, 340px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.72);
+  }
+
+  .lang-picker-item {
+    min-height: 44px;
+    touch-action: manipulation;
   }
 }
