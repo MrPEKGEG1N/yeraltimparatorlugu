@@ -116,7 +116,7 @@ async function start() {
       res.json({
         ok: true,
         name: "yeralti-imparatorlugu",
-        version: require("../package.json").version,
+        version: require("./package.json").version,
         commit: process.env.RAILWAY_GIT_COMMIT_SHA || process.env.GIT_COMMIT || null,
         auth: true,
         mafya: true,
