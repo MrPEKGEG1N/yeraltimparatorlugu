@@ -3518,14 +3518,10 @@ function elmasMagazaPaketKart(p) {
     ? '<button type="button" class="elmas-paket-btn elmas-paket-btn--aktif" disabled>' + escHtml(t('game.premium.active')) + '</button>'
     : '<button type="button" class="elmas-paket-btn elmas-paket-btn--' + p.id + '" onclick="premiumPaketSatinAl(\'' + p.id + '\')">'
       + '💎 ' + fmt(p.elmasMaliyet) + ' / ' + escHtml(t('game.premium.month')) + ' — ' + escHtml(t('game.premium.buy')) + '</button>';
-  var fiyatNotu = p.tlOrtalama
-    ? '<p class="elmas-paket-fiyat-notu">~' + fmt(p.tlOrtalama) + ' TL ' + escHtml(t('game.premium.monthlyAvg')) + '</p>'
-    : '';
   return '<article class="' + tierCls + '">'
     + '<div class="elmas-paket-rozet">' + escHtml(p.prestijRozet) + '</div>'
     + '<h3 class="elmas-paket-baslik">' + escHtml(p.baslik) + '</h3>'
     + '<p class="elmas-paket-alt">' + escHtml(p.altBaslik) + '</p>'
-    + fiyatNotu
     + '<ul class="elmas-paket-ozellikler">' + ozHtml + '</ul>'
     + btn
     + '</article>';
