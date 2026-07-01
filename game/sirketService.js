@@ -82,6 +82,9 @@ async function ensureSirketTables(db) {
   );
 
   const cols = [
+    ["aciklama", "TEXT NOT NULL DEFAULT ''"],
+    ["ise_alim_acik", "INTEGER NOT NULL DEFAULT 0"],
+    ["son_gelir_gunu", "TEXT"],
     ["kapasite_seviye", "INTEGER NOT NULL DEFAULT 0"],
     ["depo_seviye", "INTEGER NOT NULL DEFAULT 0"],
     ["personel_odasi_seviye", "INTEGER NOT NULL DEFAULT 0"],
@@ -955,7 +958,7 @@ async function panelGetir(db, userId) {
       benimSirketim: row.sahip_user_id === userId,
       basvuruYapildi: !!basvuruHaritasi[row.id],
       basvuruPozisyonId: basvuruHaritasi[row.id] || null,
-      pozisyonlar: tur.pozisyonlar.map((p) => ({
+      pozisyonlar: (tur.pozisyonlar || []).map((p) => ({
         ...pozisyonOzet(p, yetenekler),
         basvuruYapildi: basvuruHaritasi[row.id] === p.id,
       })),
@@ -1629,7 +1632,7 @@ async function isIlanlariGetir(db, userId) {
       benimSirketim: row.sahip_user_id === userId,
       basvuruYapildi: !!basvuruHaritasi[row.id],
       basvuruPozisyonId: basvuruHaritasi[row.id] || null,
-      pozisyonlar: tur.pozisyonlar.map((p) => ({
+      pozisyonlar: (tur.pozisyonlar || []).map((p) => ({
         ...pozisyonOzet(p, yetenekler),
         basvuruYapildi: basvuruHaritasi[row.id] === p.id,
       })),

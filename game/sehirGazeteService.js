@@ -34,6 +34,24 @@ async function ensureGazeteTable(db) {
   );
 }
 
+/** Eski canlı DB'lerde eksik kalabiliyor — gazete okundu / avatar sorguları için */
+async function ensureGazetePlayerColumns(db) {
+  const cols = [
+    ["gazete_okundu_id", "INTEGER NOT NULL DEFAULT 0"],
+    ["profil_resmi", "TEXT NOT NULL DEFAULT ''"],
+  ];
+  for (const [col, def] of cols) {
+    try {
+      await run(db, `ALTER TABLE players ADD COLUMN ${col} ${def}`);
+    } catch (_) {}
+  }
+}
+
+async function ensureGazeteDeps(db) {
+  await ensureGazeteTable(db);
+  await ensureGazetePlayerColumns(db);
+}
+
 async function gazeteEkle(db, mesaj, ts) {
   await ensureGazeteTable(db);
   const damga = zamanDamgasi(ts);
@@ -306,21 +324,27 @@ async function getSonHaberId(db) {
 }
 
 async function gazeteOkunduIsaretle(db, userId) {
+  await ensureGazetePlayerColumns(db);
   const sonId = await getSonHaberId(db);
   await run(db, `UPDATE players SET gazete_okundu_id = ? WHERE user_id = ?`, [sonId, userId]);
   return sonId;
 }
 
 async function yeniGazeteVarMi(db, userId) {
+  await ensureGazetePlayerColumns(db);
   const sonId = await getSonHaberId(db);
   const row = await get(db, `SELECT gazete_okundu_id FROM players WHERE user_id = ?`, [userId]);
   return sonId > (row?.gazete_okundu_id || 0);
 }
 
 async function getGazetePanel(db, userId) {
-  await ensureGazeteTable(db);
+  await ensureGazeteDeps(db);
   const { karaListeSenkronize } = require("./karaListeService");
-  await karaListeSenkronize(db);
+  try {
+    await karaListeSenkronize(db);
+  } catch (err) {
+    console.error("[gazete] karaListeSenkronize:", err?.message || err);
+  }
   await gunlukHaberUret(db);
 
   const { getLimanDurumu } = require("./worldService");

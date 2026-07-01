@@ -413,7 +413,7 @@ function createGameRouter(db) {
       const panel = await meslekPanelGetir(db, req.user.id);
       res.json(panel);
     } catch (err) {
-      console.error(err);
+      console.error("[meslek/panel]", err?.message || err);
       res.status(500).json({ ok: false, error: "Meslek paneli yüklenemedi." });
     }
   });
@@ -423,7 +423,7 @@ function createGameRouter(db) {
       const panel = await sirketPanelGetir(db, req.user.id);
       res.json(panel);
     } catch (err) {
-      console.error(err);
+      console.error("[sirket/panel]", err?.message || err);
       res.status(500).json({ ok: false, error: "Şirket paneli yüklenemedi." });
     }
   });
@@ -514,7 +514,7 @@ function createGameRouter(db) {
       const panel = await getGazetePanel(db, req.user.id);
       res.json({ ok: true, ...panel });
     } catch (err) {
-      console.error(err);
+      console.error("[gazete]", err?.message || err);
       res.status(500).json({ ok: false, error: "Gazete yüklenemedi." });
     }
   });

@@ -2,6 +2,20 @@ const { run, get, all } = require("../db/database");
 
 const HABER_MALIYET = 100000;
 
+async function ensureMedyaTable(db) {
+  await run(
+    db,
+    `CREATE TABLE IF NOT EXISTS medya_haberleri (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      haber TEXT NOT NULL,
+      created_at INTEGER NOT NULL DEFAULT (strftime('%s','now')),
+      aktif INTEGER NOT NULL DEFAULT 1,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )`
+  );
+}
+
 async function haberYayinla(db, userId, player, haberMetni) {
   if (player.kasa < HABER_MALIYET) {
     return { ok: false, error: "Kasanda yeterli nakit yok! Haber için " + HABER_MALIYET.toLocaleString("tr-TR") + " TL gerekir." };
@@ -26,6 +40,7 @@ async function haberleriTemizle(db) {
 }
 
 async function haberleriGetir(db) {
+  await ensureMedyaTable(db);
   await haberleriTemizle(db);
   return all(
     db,
@@ -41,6 +56,7 @@ async function haberleriGetir(db) {
 
 module.exports = {
   HABER_MALIYET,
+  ensureMedyaTable,
   haberYayinla,
   haberleriGetir,
   haberleriTemizle,
