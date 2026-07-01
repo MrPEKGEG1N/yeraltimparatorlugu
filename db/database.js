@@ -987,8 +987,13 @@ async function initDatabase() {
   const { ensureAktiviteSchema } = require("../game/aktiviteService");
   await ensureAktiviteSchema(db);
 
-  const { restoreOyuncuSnapshots } = require("../game/oyuncuRestoreService");
-  await restoreOyuncuSnapshots(db);
+  const { restoreOyuncuSnapshots, enforceSnapshotSafetyFlags } = require("../game/oyuncuRestoreService");
+  if (fastStartup && process.env.RESTORE_SNAPSHOTS !== "1") {
+    await enforceSnapshotSafetyFlags(db);
+    console.log("[restore] Canli DB — tam snapshot atlandi, guvenlik bayraklari uygulandi");
+  } else {
+    await restoreOyuncuSnapshots(db);
+  }
 
   const { ensureSefirlikTables } = require("../game/turkiyeSefirlikService");
   await ensureSefirlikTables(db);

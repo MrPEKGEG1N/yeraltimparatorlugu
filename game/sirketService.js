@@ -1406,6 +1406,13 @@ async function kapat(db, userId, player) {
       ? `${isim} kapatıldı. Şirket kasasındaki ${kasa.toLocaleString("tr-TR")} TL hesabına aktarıldı.`
       : `${isim} kapatıldı.`;
 
+  try {
+    const { updatePlayerSeedSnapshot } = require("./oyuncuRestoreService");
+    await updatePlayerSeedSnapshot(db, userId);
+  } catch (err) {
+    console.warn("[sirket] Snapshot guncellenemedi:", err.message);
+  }
+
   return { ok: true, mesaj, iadeKasa: kasa };
 }
 

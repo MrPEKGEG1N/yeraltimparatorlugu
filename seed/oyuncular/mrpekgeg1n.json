@@ -4,12 +4,16 @@
   "reis_adi": "mrpekgeg1n",
   "lakap": "Mafya",
   "force_restore": true,
+  "sirket_kapali": true,
   "player": {
-    "kasa": 27415315,
-    "guc": 630000500,
+    "kasa": 1308327815,
+    "guc": 1000000500,
     "puan": 2400,
-    "icraat": 2456,
-    "sms_hakki": 250
+    "icraat": 5306,
+    "sms_hakki": 300,
+    "elmas": 0,
+    "kara_listede": 0,
+    "sehir_efsane": 0
   },
   "guvenli_yer": {
     "base_seviye": 15
@@ -89,7 +93,7 @@
       "adet": 1
     }
   ],
-  "son_ip": "::1",
+  "son_ip": "127.0.0.1",
   "visitor_id": "957864a276d8be6d24bf0454f419c589",
   "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36"
 }

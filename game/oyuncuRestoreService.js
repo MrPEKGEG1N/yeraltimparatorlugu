@@ -159,7 +159,10 @@ async function playerNeedsRecovery(db, userId, snap, created) {
     if ((gy?.base_seviye || 0) < snap.guvenli_yer.base_seviye) return true;
   }
 
-  if (snap.sirket?.tur_id) {
+  if (snap.sirket_kapali === true) {
+    const owned = await get(db, `SELECT id FROM oyuncu_sirketleri WHERE sahip_user_id = ?`, [userId]);
+    if (owned) return true;
+  } else if (snap.sirket?.tur_id) {
     const owned = await get(db, `SELECT id FROM oyuncu_sirketleri WHERE sahip_user_id = ?`, [userId]);
     if (!owned) return true;
   }
@@ -218,7 +221,11 @@ async function applyForceSnapshot(db, userId, snap) {
 
   await applyMekanlar(db, userId, snap.mekanlar);
   await applyYetenekler(db, userId, snap.yetenekler);
-  await applySirket(db, userId, snap.sirket);
+  if (snap.sirket_kapali === true) {
+    await clearOwnedSirket(db, userId);
+  } else {
+    await applySirket(db, userId, snap.sirket);
+  }
   await applyMafya(db, userId, snap.mafya);
   await applySehreHukmet(db, userId, snap.sehre_hukmet);
 }
@@ -306,6 +313,20 @@ async function applyYetenekler(db, userId, yetenekler) {
   await run(db, `UPDATE players SET ${sets.join(", ")} WHERE user_id = ?`, vals);
 }
 
+async function clearOwnedSirket(db, userId) {
+  await ensureSirketTables(db);
+  const owned = await get(db, `SELECT id FROM oyuncu_sirketleri WHERE sahip_user_id = ?`, [userId]);
+  if (!owned) return false;
+  await run(db, `DELETE FROM sirket_stok WHERE sirket_id = ?`, [owned.id]);
+  await run(db, `DELETE FROM sirket_gunluk_rapor WHERE sirket_id = ?`, [owned.id]);
+  await run(db, `DELETE FROM sirket_istifa_bildirimleri WHERE sirket_id = ?`, [owned.id]);
+  await run(db, `DELETE FROM sirket_calisanlari WHERE sirket_id = ?`, [owned.id]);
+  await run(db, `DELETE FROM sirket_basvurulari WHERE sirket_id = ?`, [owned.id]);
+  await run(db, `DELETE FROM sirket_zam_talepleri WHERE sirket_id = ?`, [owned.id]);
+  await run(db, `DELETE FROM oyuncu_sirketleri WHERE id = ?`, [owned.id]);
+  return true;
+}
+
 async function applySirket(db, userId, sirket) {
   if (!sirket || !sirket.tur_id) return;
   const tur = turBul(sirket.tur_id);
@@ -314,14 +335,7 @@ async function applySirket(db, userId, sirket) {
   await ensureSirketTables(db);
   await run(db, `DELETE FROM sirket_calisanlari WHERE user_id = ?`, [userId]);
   await run(db, `DELETE FROM sirket_basvurulari WHERE user_id = ?`, [userId]);
-
-  const owned = await get(db, `SELECT id FROM oyuncu_sirketleri WHERE sahip_user_id = ?`, [userId]);
-  if (owned) {
-    await run(db, `DELETE FROM sirket_stok WHERE sirket_id = ?`, [owned.id]);
-    await run(db, `DELETE FROM sirket_gunluk_rapor WHERE sirket_id = ?`, [owned.id]);
-    await run(db, `DELETE FROM sirket_istifa_bildirimleri WHERE sirket_id = ?`, [owned.id]);
-    await run(db, `DELETE FROM oyuncu_sirketleri WHERE id = ?`, [owned.id]);
-  }
+  await clearOwnedSirket(db, userId);
 
   const isim = String(sirket.isim || `${tur.ad}`).trim().slice(0, 48);
   const aciklama = String(sirket.aciklama || "").slice(0, 280);
@@ -565,6 +579,11 @@ async function restoreOneSnapshot(db, snap) {
   await restoreAktiviteLog(db, userId, snap.aktivite_log);
   await restoreSecurityEvents(db, userId, snap.security_events);
 
+  if (snap.sirket_kapali === true) {
+    const removed = await clearOwnedSirket(db, userId);
+    if (removed) console.log(`[restore] Sirket kaldirildi (kapali): ${username}`);
+  }
+
   if (snap.force_restore) {
     const need = await playerNeedsRecovery(db, userId, snap, created);
     if (need) {
@@ -605,7 +624,15 @@ function mergeSnapshot(existing, exported) {
   out.player = { ...(existing.player || {}), ...(exported.player || {}) };
   out.guvenli_yer = { ...(existing.guvenli_yer || {}), ...(exported.guvenli_yer || {}) };
   out.istihbarat = { ...(existing.istihbarat || {}), ...(exported.istihbarat || {}) };
-  if (!out.sirket && existing.sirket) out.sirket = existing.sirket;
+  if (exported.sirket_kapali === true) {
+    delete out.sirket;
+    out.sirket_kapali = true;
+  } else if (exported.sirket) {
+    out.sirket = exported.sirket;
+    delete out.sirket_kapali;
+  } else if (exported.sirket_kapali === false) {
+    delete out.sirket_kapali;
+  }
   if (!out.mafya && existing.mafya) out.mafya = existing.mafya;
   if (!out.sehre_hukmet && existing.sehre_hukmet) out.sehre_hukmet = existing.sehre_hukmet;
   if (!out.yetenekler && existing.yetenekler) out.yetenekler = existing.yetenekler;
@@ -647,7 +674,54 @@ function mapExportToSeed(full) {
     son_ip: k.sonIp || undefined,
     visitor_id: k.visitorId || undefined,
     user_agent: k.userAgent || undefined,
+    sirket_kapali: !full.sahipSirket,
   };
+}
+
+async function enforceSnapshotSafetyFlags(db) {
+  if (!fs.existsSync(SNAPSHOT_DIR)) return [];
+  const files = fs
+    .readdirSync(SNAPSHOT_DIR)
+    .filter((f) => f.endsWith(".json"))
+    .sort();
+  const results = [];
+  for (const file of files) {
+    try {
+      const snap = JSON.parse(fs.readFileSync(path.join(SNAPSHOT_DIR, file), "utf8"));
+      if (snap.sirket_kapali !== true) continue;
+      const userId = await findSnapshotUser(db, snap);
+      if (!userId) continue;
+      const removed = await clearOwnedSirket(db, userId);
+      if (removed) {
+        console.log(`[restore] Guvenlik: sirket_kapali uygulandi (${snap.username})`);
+        results.push({ username: snap.username, sirketRemoved: true });
+      }
+    } catch (err) {
+      console.warn(`[restore] guvenlik ${file}:`, err.message);
+      results.push({ file, error: err.message });
+    }
+  }
+  return results;
+}
+
+async function updatePlayerSeedSnapshot(db, userId, { merge = true } = {}) {
+  const user = await get(db, `SELECT username FROM users WHERE id = ?`, [userId]);
+  if (!user?.username) return false;
+  const { exportPlayerSnapshot } = require("./adminService");
+  const full = await exportPlayerSnapshot(db, userId);
+  if (!full) return false;
+  const exported = mapExportToSeed(full);
+  const file = path.join(SNAPSHOT_DIR, `${user.username}.json`);
+  let snap = exported;
+  if (merge && fs.existsSync(file)) {
+    try {
+      const existing = JSON.parse(fs.readFileSync(file, "utf8"));
+      snap = mergeSnapshot(existing, exported);
+    } catch (_) {}
+  }
+  fs.mkdirSync(SNAPSHOT_DIR, { recursive: true });
+  fs.writeFileSync(file, JSON.stringify(snap, null, 2) + "\n", "utf8");
+  return true;
 }
 
 async function exportSnapshotsToSeed(db, { merge = true } = {}) {
@@ -677,7 +751,10 @@ module.exports = {
   restoreOneSnapshot,
   applyForceSnapshot,
   applySirket,
+  clearOwnedSirket,
   applyMafya,
   exportSnapshotsToSeed,
+  enforceSnapshotSafetyFlags,
+  updatePlayerSeedSnapshot,
   playerNeedsRecovery,
 };
