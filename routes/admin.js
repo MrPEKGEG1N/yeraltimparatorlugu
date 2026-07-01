@@ -1,6 +1,8 @@
 const express = require("express");
 const rateLimit = require("express-rate-limit");
 const { createRequireAdmin } = require("../middleware/auth");
+const { DB_PATH, isSqliteCorruptError } = require("../db/database");
+const { recoverDbIfDegraded } = require("../game/veriKorumaService");
 const {
   getDashboard,
   searchPlayers,
@@ -39,6 +41,31 @@ function createAdminRouter(db) {
   const router = express.Router();
   const requireAdmin = createRequireAdmin(db);
 
+  async function attemptDbRecovery(res) {
+    const closeDb = () =>
+      new Promise((resolve) => {
+        if (db && typeof db.close === "function") db.close(() => resolve());
+        else resolve();
+      });
+    const rec = await recoverDbIfDegraded(DB_PATH, { beforeReplace: closeDb });
+    if (rec.recovered) {
+      res.status(503).json({
+        ok: false,
+        error:
+          "Veritabanı yedekten onarıldı. Sunucu yeniden başlıyor — yaklaşık 30 saniye sonra sayfayı yenileyin.",
+        recovered: true,
+      });
+      setTimeout(() => process.exit(0), 400);
+      return true;
+    }
+    res.status(500).json({
+      ok: false,
+      error: "Veritabanı bozuk ve otomatik onarılamadı.",
+      detail: rec.reason || rec.error,
+    });
+    return true;
+  }
+
   const adminLimiter = rateLimit({
     windowMs: 60 * 1000,
     max: 120,
@@ -59,6 +86,15 @@ function createAdminRouter(db) {
         reisAdi: req.user.reisAdi,
       },
     });
+  });
+
+  router.post("/veritabani/kurtar", async (req, res) => {
+    try {
+      await attemptDbRecovery(res);
+    } catch (err) {
+      console.error("[admin] veritabani kurtar", err);
+      res.status(500).json({ ok: false, error: err.message || "Kurtarma başarısız." });
+    }
   });
 
   router.get("/dashboard", async (req, res) => {
@@ -209,6 +245,10 @@ function createAdminRouter(db) {
       });
     } catch (err) {
       console.error("[admin] oyuncu detay hatasi", userId, err);
+      if (isSqliteCorruptError(err)) {
+        await attemptDbRecovery(res);
+        return;
+      }
       res.status(500).json({
         ok: false,
         error: err.message ? `Detay yüklenemedi: ${err.message}` : "Detay yüklenemedi.",

@@ -164,6 +164,7 @@ async function sendHealth(res) {
       mafya: true,
       oyuncular: row?.n || 0,
       db: DB_PATH,
+      dbCorrupt: !!diag.corrupt,
       volume: diag.volumeMount,
       volumeOk: diag.volumeOk,
       supabase: diag.supabase,
@@ -178,7 +179,9 @@ async function sendHealth(res) {
               ? "seed-yedek"
               : "riskli",
       dd1,
-      uyari: !diag.volumeMount && !diag.supabase?.configured && !diag.seed?.ok
+      uyari: diag.corrupt
+        ? "Veritabani bozuk! Sunucu yeniden baslatildiginda yedekten otomatik onarim denenir."
+        : !diag.volumeMount && !diag.supabase?.configured && !diag.seed?.ok
         ? "Kalici depolama yok! Railway Volume, Supabase veya seed/oyun.db gerekli."
         : !diag.volumeMount && !diag.supabase?.configured && diag.seed?.ok
           ? "Volume yok; deployda seed/oyun.db + oyuncu snapshotlari geri yuklenir. Volume onerilir."

@@ -3,7 +3,7 @@
  */
 const fs = require("fs");
 const path = require("path");
-const { scoreDbFile, DB_PATH } = require("../db/database");
+const { scoreDbFile, DB_PATH, isDbCorrupt, replaceDbFile } = require("../db/database");
 
 const SCORE_DROP_RATIO = 0.88;
 const MIN_BETTER_SCORE = 5000;
@@ -59,6 +59,7 @@ async function pickBestCandidate(targetPath, extraPaths = []) {
     if (seen.has(resolved)) return;
     seen.add(resolved);
     const stats = await scoreDbFile(resolved);
+    if (stats.corrupt) return;
     if (stats.users > 0) candidates.push({ path: resolved, ...stats });
   };
 
@@ -82,23 +83,36 @@ function shouldRecover(current, best) {
 }
 
 /**
- * Mevcut DB dusmusse en iyi yedekten geri yukle (volume, .bak, backups/, seed, supabase).
+ * Mevcut DB dusmusse veya bozuksa en iyi yedekten geri yukle (volume, .bak, backups/, seed, supabase).
  */
-async function recoverDbIfDegraded(targetPath = DB_PATH) {
+async function recoverDbIfDegraded(targetPath = DB_PATH, opts = {}) {
+  const beforeReplace = opts.beforeReplace;
   const remotePath = await downloadSupabaseCandidate(targetPath);
+  const currentCorrupt = await isDbCorrupt(targetPath);
   const ranked = await pickBestCandidate(targetPath, remotePath ? [remotePath] : []);
   const current = ranked.find((c) => path.resolve(c.path) === path.resolve(targetPath)) || {
     path: targetPath,
     ...(await scoreDbFile(targetPath)),
   };
-  const best = ranked[0];
+  const best =
+    ranked.find((c) => path.resolve(c.path) !== path.resolve(targetPath)) || ranked[0];
+
   if (!best || path.resolve(best.path) === path.resolve(targetPath)) {
-    return { recovered: false, reason: "current_ok", users: current.users, score: current.score };
+    return {
+      recovered: false,
+      reason: currentCorrupt ? "corrupt_no_backup" : "current_ok",
+      corrupt: currentCorrupt,
+      users: current.users,
+      score: current.score,
+    };
   }
-  if (!shouldRecover(current, best)) {
+
+  const mustRecover = currentCorrupt || shouldRecover(current, best);
+  if (!mustRecover) {
     return {
       recovered: false,
       reason: "not_degraded",
+      corrupt: currentCorrupt,
       users: current.users,
       score: current.score,
       bestScore: best.score,
@@ -106,15 +120,14 @@ async function recoverDbIfDegraded(targetPath = DB_PATH) {
   }
 
   try {
-    if (fs.existsSync(targetPath) && fs.statSync(targetPath).size >= 512) {
-      fs.copyFileSync(targetPath, targetPath + ".pre-recover.bak");
-    }
-    fs.copyFileSync(best.path, targetPath);
+    if (beforeReplace) await beforeReplace();
+    replaceDbFile(targetPath, best.path);
     console.log(
-      `[veri-koruma] DB geri yuklendi: ${best.path} -> ${targetPath} (skor ${best.score} > ${current.score}, kullanici ${best.users})`
+      `[veri-koruma] DB geri yuklendi: ${best.path} -> ${targetPath} (${currentCorrupt ? "bozuk" : "dusuk skor"}, skor ${best.score} > ${current.score}, kullanici ${best.users})`
     );
     return {
       recovered: true,
+      corrupt: currentCorrupt,
       from: best.path,
       users: best.users,
       score: best.score,
@@ -123,7 +136,7 @@ async function recoverDbIfDegraded(targetPath = DB_PATH) {
     };
   } catch (err) {
     console.warn("[veri-koruma] Geri yukleme basarisiz:", err.message);
-    return { recovered: false, reason: "error", error: err.message };
+    return { recovered: false, reason: "error", corrupt: currentCorrupt, error: err.message };
   } finally {
     if (remotePath && fs.existsSync(remotePath)) {
       try {
@@ -150,7 +163,11 @@ function syncVolumeSeedDatabase(liveDbPath) {
 
 async function persistLiveGameState(db) {
   const { exportSnapshotsToSeed } = require("./oyuncuRestoreService");
-  const { DB_PATH } = require("../db/database");
+  const { DB_PATH, isDbCorrupt } = require("../db/database");
+  if (await isDbCorrupt(DB_PATH)) {
+    console.warn("[persist] Bozuk DB — snapshot yazilmadi");
+    return { snapshots: 0, seedDb: false, skipped: "corrupt" };
+  }
   const n = await exportSnapshotsToSeed(db, { merge: true });
   const seedOk = syncVolumeSeedDatabase(DB_PATH);
   if (n > 0 || seedOk) {

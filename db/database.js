@@ -73,6 +73,60 @@ function bootstrapDbFromLegacy(targetPath) {
   return false;
 }
 
+function isSqliteCorruptError(err) {
+  const msg = String(err?.message || err || "");
+  return /SQLITE_CORRUPT|database disk image is malformed|file is not a database/i.test(msg);
+}
+
+function removeWalSidecars(dbPath) {
+  for (const suffix of ["-wal", "-shm"]) {
+    const sidecar = dbPath + suffix;
+    if (fs.existsSync(sidecar)) {
+      try {
+        fs.unlinkSync(sidecar);
+      } catch (_) {}
+    }
+  }
+}
+
+function isDbCorrupt(dbPath) {
+  return new Promise((resolve) => {
+    if (!fs.existsSync(dbPath) || fs.statSync(dbPath).size < 512) return resolve(false);
+    const db = new sqlite3.Database(dbPath, sqlite3.OPEN_READONLY, (err) => {
+      if (err) {
+        resolve(isSqliteCorruptError(err) || true);
+        return;
+      }
+      db.get("PRAGMA integrity_check", [], (checkErr, row) => {
+        db.close(() => {
+          if (checkErr) {
+            resolve(isSqliteCorruptError(checkErr) || true);
+            return;
+          }
+          const val = row ? row.integrity_check || Object.values(row)[0] : "ok";
+          resolve(String(val).toLowerCase() !== "ok");
+        });
+      });
+    });
+  });
+}
+
+function replaceDbFile(targetPath, sourcePath) {
+  const target = path.resolve(targetPath);
+  const source = path.resolve(sourcePath);
+  if (target === source) return;
+  if (!fs.existsSync(source) || fs.statSync(source).size < 512) {
+    throw new Error("Gecerli yedek dosyasi bulunamadi.");
+  }
+  ensureDbDirectory(target);
+  if (fs.existsSync(target) && fs.statSync(target).size >= 512) {
+    fs.copyFileSync(target, target + ".pre-recover.bak");
+  }
+  removeWalSidecars(target);
+  fs.copyFileSync(source, target);
+  removeWalSidecars(target);
+}
+
 function countSqliteUsers(dbPath) {
   return new Promise((resolve) => {
     if (!fs.existsSync(dbPath)) return resolve(-1);
@@ -98,44 +152,70 @@ function countSqliteUsers(dbPath) {
 
 function scoreDbFile(dbPath) {
   return new Promise((resolve) => {
-    if (!fs.existsSync(dbPath)) return resolve({ users: 0, score: 0, size: 0 });
+    if (!fs.existsSync(dbPath)) return resolve({ users: 0, score: 0, size: 0, corrupt: false });
     const size = fs.statSync(dbPath).size;
-    if (size < 512) return resolve({ users: 0, score: 0, size });
-    const db = new sqlite3.Database(dbPath, sqlite3.OPEN_READONLY, (err) => {
-      if (err) return resolve({ users: 0, score: 0, size });
-      db.get(
-        "SELECT COUNT(*) AS n FROM sqlite_master WHERE type='table' AND name='users'",
-        [],
-        (tblErr, tbl) => {
-          if (tblErr || !tbl) {
-            db.close(() => resolve({ users: 0, score: 0, size }));
-            return;
-          }
-          db.get(
-            `SELECT
-               (SELECT COUNT(*) FROM users) AS users,
-               (SELECT COUNT(*) FROM players) AS players,
-               (SELECT COALESCE(SUM(kasa), 0) FROM players) AS kasa,
-               (SELECT COALESCE(SUM(puan), 0) FROM players) AS puan`,
-            [],
-            (e, row) => {
-              db.close(() => {
-                if (e || !row) return resolve({ users: 0, players: 0, kasa: 0, puan: 0, score: 0, size });
-                const users = row.users || 0;
-                const players = row.players || 0;
-                const kasa = row.kasa || 0;
-                const puan = row.puan || 0;
-                const score =
-                  users * 1_000_000_000 +
-                  players * 1_000_000 +
-                  kasa * 10 +
-                  puan;
-                resolve({ users, players, kasa, puan, score, size });
-              });
-            }
-          );
+    if (size < 512) return resolve({ users: 0, score: 0, size, corrupt: false });
+    isDbCorrupt(dbPath).then((corrupt) => {
+      if (corrupt) {
+        return resolve({ users: 0, score: -1, size, corrupt: true });
+      }
+      const db = new sqlite3.Database(dbPath, sqlite3.OPEN_READONLY, (err) => {
+        if (err) {
+          return resolve({
+            users: 0,
+            score: isSqliteCorruptError(err) ? -1 : 0,
+            size,
+            corrupt: isSqliteCorruptError(err),
+          });
         }
-      );
+        db.get(
+          "SELECT COUNT(*) AS n FROM sqlite_master WHERE type='table' AND name='users'",
+          [],
+          (tblErr, tbl) => {
+            if (tblErr || !tbl) {
+              db.close(() =>
+                resolve({
+                  users: 0,
+                  score: 0,
+                  size,
+                  corrupt: isSqliteCorruptError(tblErr),
+                })
+              );
+              return;
+            }
+            db.get(
+              `SELECT
+                 (SELECT COUNT(*) FROM users) AS users,
+                 (SELECT COUNT(*) FROM players) AS players,
+                 (SELECT COALESCE(SUM(kasa), 0) FROM players) AS kasa,
+                 (SELECT COALESCE(SUM(puan), 0) FROM players) AS puan`,
+              [],
+              (e, row) => {
+                db.close(() => {
+                  if (e || !row) {
+                    return resolve({
+                      users: 0,
+                      players: 0,
+                      kasa: 0,
+                      puan: 0,
+                      score: 0,
+                      size,
+                      corrupt: isSqliteCorruptError(e),
+                    });
+                  }
+                  const users = row.users || 0;
+                  const players = row.players || 0;
+                  const kasa = row.kasa || 0;
+                  const puan = row.puan || 0;
+                  const score =
+                    users * 1_000_000_000 + players * 1_000_000 + kasa * 10 + puan;
+                  resolve({ users, players, kasa, puan, score, size, corrupt: false });
+                });
+              }
+            );
+          }
+        );
+      });
     });
   });
 }
@@ -177,6 +257,7 @@ async function restoreDbFromBestCandidate(targetPath) {
     seen.add(resolved);
     if (!fs.existsSync(resolved)) continue;
     const stats = await scoreDbFile(resolved);
+    if (stats.corrupt) continue;
     if (stats.users <= 0) continue;
     if (stats.score > bestScore) {
       bestScore = stats.score;
@@ -210,6 +291,7 @@ async function consolidateLegacyDbCopies(targetPath) {
     if (resolved === targetResolved) continue;
     if (!fs.existsSync(resolved)) continue;
     const stats = await scoreDbFile(resolved);
+    if (stats.corrupt) continue;
     if (stats.users <= 0) continue;
     if (targetStats.users <= 0 && stats.users > 0) {
       ensureDbDirectory(targetPath);
@@ -245,6 +327,10 @@ function pruneOldBackups(backupDir, keepCount = 72) {
 
 async function backupDbFile(targetPath) {
   if (!fs.existsSync(targetPath) || fs.statSync(targetPath).size < 512) return;
+  if (await isDbCorrupt(targetPath)) {
+    console.warn("[db] Bozuk DB yedeklenmedi:", targetPath);
+    return;
+  }
   const users = await countSqliteUsers(targetPath);
   if (users <= 0) return;
   const dir = path.dirname(targetPath);
@@ -313,6 +399,7 @@ function seedDbPath() {
 
 async function getDbDiagnostics() {
   const users = fs.existsSync(DB_PATH) ? await countSqliteUsers(DB_PATH) : 0;
+  const corrupt = fs.existsSync(DB_PATH) ? await isDbCorrupt(DB_PATH) : false;
   let supabase = { configured: false };
   try {
     const { getStatus } = require("../services/supabaseBackupService");
@@ -326,6 +413,7 @@ async function getDbDiagnostics() {
     volumeMount: process.env.RAILWAY_VOLUME_MOUNT_PATH || null,
     volumeOk: isVolumeMounted(),
     users,
+    corrupt,
     sizeKb: fs.existsSync(DB_PATH) ? Math.round(fs.statSync(DB_PATH).size / 1024) : 0,
     supabase,
     seed: seed ? { path: seed, users: seedUsers, ok: seedUsers > 0 } : null,
@@ -414,6 +502,32 @@ async function withTimeout(promise, ms, label) {
   ]);
 }
 
+async function tryRepairDatabase(db) {
+  try {
+    const row = await get(db, "PRAGMA integrity_check");
+    const val = String(row?.integrity_check || Object.values(row || {})[0] || "ok");
+    if (val.toLowerCase() === "ok") return { ok: true };
+    if (/index/i.test(val)) {
+      console.warn("[db] Indeks tutarsizligi — REINDEX deneniyor:", val);
+      try {
+        await run(db, "REINDEX");
+      } catch (reindexErr) {
+        return { ok: false, detail: reindexErr.message, corrupt: isSqliteCorruptError(reindexErr) };
+      }
+      const row2 = await get(db, "PRAGMA integrity_check");
+      const val2 = String(row2?.integrity_check || Object.values(row2 || {})[0] || "ok");
+      if (val2.toLowerCase() === "ok") {
+        console.log("[db] REINDEX ile onarildi");
+        return { ok: true, repaired: true };
+      }
+      return { ok: false, detail: val2 };
+    }
+    return { ok: false, detail: val };
+  } catch (err) {
+    return { ok: false, detail: err.message, corrupt: isSqliteCorruptError(err) };
+  }
+}
+
 async function initDatabase() {
   logDbEnvironment();
   ensureDbDirectory(DB_PATH);
@@ -424,6 +538,21 @@ async function initDatabase() {
 
   if (fastStartup) {
     console.log(`[db] Production hizli baslangic — mevcut DB (${liveUsers} kullanici)`);
+    try {
+      const corrupt = await isDbCorrupt(DB_PATH);
+      if (corrupt) {
+        console.warn("[db] Bozuk veritabani tespit edildi — yedekten geri yukleniyor...");
+        const { recoverDbIfDegraded } = require("../game/veriKorumaService");
+        const rec = await withTimeout(recoverDbIfDegraded(DB_PATH), 30000, "veri-koruma");
+        if (rec.recovered) {
+          console.log(`[veri-koruma] Bozuk DB onarildi: ${rec.from}`);
+        } else {
+          console.warn("[veri-koruma] Bozuk DB onarilamadi:", rec.reason || rec.error);
+        }
+      }
+    } catch (err) {
+      console.warn("[veri-koruma] Butunluk kontrolu atlandi:", err.message);
+    }
   } else {
     try {
       const { restoreDbFromSupabase } = require("../services/supabaseBackupService");
@@ -446,8 +575,29 @@ async function initDatabase() {
     }
   }
 
-  const db = await openDb();
+  let db = await openDb();
   await configureSqlitePragmas(db);
+
+  const repair = await tryRepairDatabase(db);
+  if (!repair.ok) {
+    console.warn("[db] Butunluk hatasi:", repair.detail);
+    await new Promise((resolve) => db.close(() => resolve()));
+    try {
+      const { recoverDbIfDegraded } = require("../game/veriKorumaService");
+      const rec = await withTimeout(recoverDbIfDegraded(DB_PATH), 30000, "veri-koruma");
+      if (rec.recovered) {
+        console.log(`[veri-koruma] DB dosyasi degistirildi: ${rec.from}`);
+      }
+    } catch (err) {
+      console.warn("[veri-koruma] Acilis onarimi atlandi:", err.message);
+    }
+    db = await openDb();
+    await configureSqlitePragmas(db);
+    const repair2 = await tryRepairDatabase(db);
+    if (!repair2.ok) {
+      console.warn("[db] Onarim sonrasi hala sorunlu:", repair2.detail);
+    }
+  }
 
   await run(
     db,
@@ -1064,6 +1214,10 @@ module.exports = {
   backupDbFile,
   scoreDbFile,
   getDbDiagnostics,
+  isDbCorrupt,
+  isSqliteCorruptError,
+  replaceDbFile,
+  removeWalSidecars,
   bootstrapAdminUser,
   ensureConfiguredAdmin,
   getConfiguredAdminUsername,
