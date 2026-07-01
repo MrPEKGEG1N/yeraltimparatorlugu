@@ -85,6 +85,7 @@ const AKSiyON_ETIKETLERI = {
   kumarhane_masa_bahis_cevap: "Kumarhane bahis teklifine yanıt verdi",
   kumarhane_masa_hazir: "Kumarhane masasında hazır oldu",
   kumarhane_masa_oyna: "Kumarhane masasında oynadı",
+  kumarhane_piyango_bilet: "Piyango bileti aldı",
   mekan_al: "Mekan aldı",
   rusvet_ver: "Rüşvet verdi",
   mesaj_gonder: "Mesaj gönderdi",

@@ -676,6 +676,7 @@
 #masterLayout #anaIcerik .km-oyun-kart--slot { border-top: 3px solid #ffd040; }
 #masterLayout #anaIcerik .km-oyun-kart--at_yarisi { border-top: 3px solid #60c080; }
 #masterLayout #anaIcerik .km-oyun-kart--five_finger { border-top: 3px solid #ff6060; }
+#masterLayout #anaIcerik .km-oyun-kart--piyango { border-top: 3px solid #f0c040; }
 
 #masterLayout #anaIcerik .km-oyun-ikon {
   font-size: 32px;
@@ -3082,6 +3083,668 @@
   }
 }
 
+#masterLayout #anaIcerik .km-oyun-sahne--piyango {
+  padding: 0 4px 12px;
+}
+
+#masterLayout #anaIcerik .km-py-geri {
+  margin-bottom: 10px;
+}
+
+#masterLayout #anaIcerik .km-py-sahne {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 120% 80% at 50% -20%, rgba(255, 215, 120, 0.14), transparent 55%),
+    radial-gradient(circle at 100% 100%, rgba(80, 40, 140, 0.35), transparent 45%),
+    linear-gradient(165deg, #120a1e 0%, #0a0612 45%, #06040c 100%);
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 16px 48px rgba(0, 0, 0, 0.55),
+    0 0 60px rgba(212, 175, 55, 0.06);
+}
+
+#masterLayout #anaIcerik .km-py-sahne::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 3px,
+    rgba(255, 255, 255, 0.012) 3px,
+    rgba(255, 255, 255, 0.012) 4px
+  );
+  opacity: 0.5;
+}
+
+#masterLayout #anaIcerik .km-py-banner {
+  position: relative;
+  z-index: 1;
+}
+
+#masterLayout #anaIcerik .km-py-banner .km-oyun-kapak {
+  height: 148px;
+  border-radius: 0;
+}
+
+#masterLayout #anaIcerik .km-py-banner .km-oyun-kapak img {
+  object-position: center 42%;
+}
+
+#masterLayout #anaIcerik .km-py-hero {
+  position: relative;
+  padding: 20px 18px 14px;
+  text-align: center;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.15);
+  background: linear-gradient(180deg, rgba(40, 24, 8, 0.35), transparent);
+}
+
+#masterLayout #anaIcerik .km-py-neon-cerceve {
+  display: inline-block;
+  padding: 10px 28px 12px;
+  margin-bottom: 10px;
+  border: 2px solid rgba(255, 220, 120, 0.55);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.45);
+  box-shadow:
+    0 0 20px rgba(255, 200, 80, 0.25),
+    inset 0 0 24px rgba(255, 180, 60, 0.08);
+}
+
+#masterLayout #anaIcerik .km-py-neon-yazi {
+  font-family: 'Cinzel', Georgia, serif;
+  font-size: clamp(22px, 4vw, 30px);
+  font-weight: 700;
+  letter-spacing: 0.35em;
+  color: #ffe9a8;
+  text-shadow:
+    0 0 8px rgba(255, 220, 100, 0.9),
+    0 0 22px rgba(255, 180, 50, 0.5);
+  animation: kmPyNeonPulse 2.4s ease-in-out infinite;
+}
+
+@keyframes kmPyNeonPulse {
+  0%, 100% { opacity: 1; filter: brightness(1); }
+  50% { opacity: 0.92; filter: brightness(1.08); }
+}
+
+#masterLayout #anaIcerik .km-py-alt {
+  margin: 0 auto 10px;
+  max-width: 520px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.62);
+}
+
+#masterLayout #anaIcerik .km-py-program-rozet {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #f0d878;
+  background: rgba(212, 175, 55, 0.12);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+}
+
+#masterLayout #anaIcerik .km-py-jackpot-satir {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 10px;
+  padding: 14px 16px;
+}
+
+#masterLayout #anaIcerik .km-py-jackpot {
+  position: relative;
+  padding: 16px 18px;
+  border-radius: 12px;
+  text-align: center;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(255, 220, 100, 0.2), transparent 70%),
+    linear-gradient(145deg, rgba(60, 40, 10, 0.9), rgba(20, 12, 4, 0.95));
+  border: 1px solid rgba(255, 215, 100, 0.4);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+#masterLayout #anaIcerik .km-py-jackpot-etiket {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 230, 180, 0.7);
+  margin-bottom: 4px;
+}
+
+#masterLayout #anaIcerik .km-py-jackpot-tutar {
+  font-family: 'Oswald', sans-serif;
+  font-size: clamp(26px, 5vw, 36px);
+  font-weight: 700;
+  line-height: 1.1;
+  color: #fff4c8;
+  text-shadow: 0 2px 12px rgba(255, 200, 60, 0.35);
+}
+
+#masterLayout #anaIcerik .km-py-jackpot-tutar small {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  color: rgba(255, 230, 180, 0.65);
+  margin-top: 2px;
+}
+
+#masterLayout #anaIcerik .km-py-jackpot-not {
+  display: block;
+  margin-top: 6px;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+#masterLayout #anaIcerik .km-py-sayac-kutu {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 14px;
+  border-radius: 12px;
+  background: linear-gradient(160deg, rgba(12, 20, 40, 0.95), rgba(6, 10, 22, 0.98));
+  border: 1px solid rgba(100, 160, 255, 0.25);
+  box-shadow: inset 0 0 30px rgba(60, 120, 255, 0.06);
+}
+
+#masterLayout #anaIcerik .km-py-sayac-etiket {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(160, 200, 255, 0.65);
+  margin-bottom: 6px;
+}
+
+#masterLayout #anaIcerik .km-py-sayac-deger {
+  font-family: 'Oswald', monospace;
+  font-size: clamp(18px, 3.5vw, 24px);
+  font-weight: 600;
+  color: #b8d4ff;
+  text-shadow: 0 0 12px rgba(120, 180, 255, 0.35);
+  letter-spacing: 0.04em;
+}
+
+#masterLayout #anaIcerik .km-py-sayac-cizgi {
+  width: 70%;
+  height: 3px;
+  margin-top: 10px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, rgba(120, 180, 255, 0.5), transparent);
+  animation: kmPySayacCizgi 1.8s ease-in-out infinite;
+}
+
+@keyframes kmPySayacCizgi {
+  0%, 100% { opacity: 0.4; transform: scaleX(0.85); }
+  50% { opacity: 1; transform: scaleX(1); }
+}
+
+#masterLayout #anaIcerik .km-py-istatistik {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 16px 14px;
+}
+
+#masterLayout #anaIcerik .km-py-stat {
+  flex: 1 1 calc(33% - 8px);
+  min-width: 90px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  text-align: center;
+}
+
+#masterLayout #anaIcerik .km-py-stat span {
+  display: block;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.45);
+  margin-bottom: 2px;
+}
+
+#masterLayout #anaIcerik .km-py-stat strong {
+  font-size: 13px;
+  color: #e8dcc8;
+}
+
+#masterLayout #anaIcerik .km-py-stat--hak {
+  border-color: rgba(120, 220, 150, 0.35);
+  background: rgba(20, 50, 30, 0.4);
+}
+
+#masterLayout #anaIcerik .km-py-stat--hak strong {
+  color: #9fe8b0;
+}
+
+#masterLayout #anaIcerik .km-py-makine {
+  margin: 0 14px 14px;
+  padding: 16px 14px 14px;
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 30%),
+    rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 2px 20px rgba(0, 0, 0, 0.5);
+}
+
+#masterLayout #anaIcerik .km-py-makine-baslik {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+#masterLayout #anaIcerik .km-py-secim-sayac {
+  font-family: 'Oswald', sans-serif;
+  font-size: 13px;
+  color: #f0d878;
+}
+
+#masterLayout #anaIcerik .km-py-secili-serit {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 10px 8px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px dashed rgba(212, 175, 55, 0.25);
+}
+
+#masterLayout #anaIcerik .km-py-secili-serit .km-py-top {
+  width: 34px;
+  height: 34px;
+}
+
+#masterLayout #anaIcerik .km-py-secili-serit .km-py-top-rakam {
+  font-size: 14px;
+}
+
+#masterLayout #anaIcerik .km-py-secili-serit .km-py-top-isik {
+  top: 5px;
+  left: 8px;
+  width: 10px;
+  height: 6px;
+}
+
+#masterLayout #anaIcerik .km-py-tambur-etiket {
+  text-align: center;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.35);
+  margin-bottom: 10px;
+}
+
+#masterLayout #anaIcerik .km-py-top {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 28%, #fff 0%, #e8e8e8 18%, #c0c0c0 45%, #888 75%, #555 100%);
+  box-shadow:
+    0 4px 8px rgba(0, 0, 0, 0.45),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.25),
+    inset 0 2px 4px rgba(255, 255, 255, 0.5);
+  flex-shrink: 0;
+}
+
+#masterLayout #anaIcerik .km-py-top-isik {
+  position: absolute;
+  top: 6px;
+  left: 10px;
+  width: 12px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.75);
+  filter: blur(1px);
+  pointer-events: none;
+}
+
+#masterLayout #anaIcerik .km-py-top-rakam {
+  position: relative;
+  z-index: 1;
+  font-family: 'Oswald', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a1a2e;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+#masterLayout #anaIcerik .km-py-top--bos {
+  background: radial-gradient(circle at 32% 28%, #3a3a48 0%, #252530 50%, #121218 100%);
+  border: 2px dashed rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+#masterLayout #anaIcerik .km-py-top--bos .km-py-top-rakam {
+  color: rgba(255, 255, 255, 0.2);
+  font-size: 14px;
+}
+
+#masterLayout #anaIcerik .km-py-top--dolu,
+#masterLayout #anaIcerik .km-py-top--secim {
+  background: radial-gradient(circle at 32% 28%, #fff8d0 0%, #f0c040 25%, #c8860a 60%, #8b5a00 100%);
+  box-shadow:
+    0 0 16px rgba(255, 200, 60, 0.45),
+    0 4px 10px rgba(0, 0, 0, 0.4),
+    inset 0 2px 4px rgba(255, 255, 255, 0.5);
+  animation: kmPyTopSec 0.35s ease;
+}
+
+#masterLayout #anaIcerik .km-py-top--secim .km-py-top-rakam {
+  color: #2a1800;
+}
+
+@keyframes kmPyTopSec {
+  0% { transform: scale(0.85); }
+  70% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+#masterLayout #anaIcerik .km-py-top--grid {
+  width: 100%;
+  height: 100%;
+}
+
+#masterLayout #anaIcerik .km-py-top--grid .km-py-top-rakam {
+  font-size: 12px;
+}
+
+#masterLayout #anaIcerik .km-py-top--mini {
+  width: 32px;
+  height: 32px;
+}
+
+#masterLayout #anaIcerik .km-py-top--mini .km-py-top-rakam {
+  font-size: 13px;
+}
+
+#masterLayout #anaIcerik .km-py-top--cekilis {
+  width: 46px;
+  height: 46px;
+  background: radial-gradient(circle at 32% 28%, #e8f4ff 0%, #88b8e8 35%, #3a68a8 70%, #1a3868 100%);
+}
+
+#masterLayout #anaIcerik .km-py-top--cekilis .km-py-top-rakam {
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+#masterLayout #anaIcerik .km-py-top--son3 {
+  box-shadow:
+    0 0 14px rgba(120, 200, 255, 0.5),
+    0 4px 10px rgba(0, 0, 0, 0.35);
+}
+
+#masterLayout #anaIcerik .km-py-top--kazanc {
+  background: radial-gradient(circle at 32% 28%, #fff8d0 0%, #f0c040 25%, #c8860a 60%, #8b5a00 100%);
+  box-shadow: 0 0 12px rgba(255, 200, 60, 0.5);
+}
+
+#masterLayout #anaIcerik .km-piyango-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 30px);
+  gap: 6px;
+  justify-content: center;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+#masterLayout #anaIcerik .km-piyango-sayi {
+  width: 30px;
+  height: 30px;
+  aspect-ratio: unset;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+#masterLayout #anaIcerik .km-piyango-sayi .km-py-top-isik {
+  top: 4px;
+  left: 7px;
+  width: 8px;
+  height: 5px;
+}
+
+#masterLayout #anaIcerik .km-piyango-sayi:hover {
+  transform: translateY(-2px) scale(1.04);
+  filter: brightness(1.08);
+}
+
+#masterLayout #anaIcerik .km-piyango-sayi--secili .km-py-top--grid {
+  background: radial-gradient(circle at 32% 28%, #fff8d0 0%, #f0c040 25%, #c8860a 60%, #8b5a00 100%);
+  box-shadow:
+    0 0 14px rgba(255, 200, 60, 0.55),
+    0 4px 10px rgba(0, 0, 0, 0.4);
+}
+
+#masterLayout #anaIcerik .km-piyango-sayi--secili .km-py-top-rakam {
+  color: #2a1800;
+}
+
+#masterLayout #anaIcerik .km-py-aksiyon {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  padding: 4px 16px 16px;
+}
+
+#masterLayout #anaIcerik .km-py-btn-al {
+  min-width: 180px;
+  padding: 12px 22px;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  box-shadow: 0 4px 16px rgba(60, 180, 80, 0.25);
+}
+
+#masterLayout #anaIcerik .km-py-btn-temiz {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.75);
+}
+
+#masterLayout #anaIcerik .km-py-bolum {
+  margin: 0 14px 16px;
+  padding: 14px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+#masterLayout #anaIcerik .km-py-bolum--son {
+  border-color: rgba(100, 160, 255, 0.2);
+  background: linear-gradient(160deg, rgba(20, 30, 50, 0.5), rgba(8, 12, 22, 0.6));
+}
+
+#masterLayout #anaIcerik .km-py-bolum-baslik {
+  margin: 0 0 12px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+#masterLayout #anaIcerik .km-py-bilet-liste {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#masterLayout #anaIcerik .km-py-bilet-kart {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background:
+    linear-gradient(135deg, rgba(255, 248, 230, 0.95) 0%, rgba(245, 235, 210, 0.92) 100%);
+  border: 1px solid rgba(180, 150, 80, 0.4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  position: relative;
+}
+
+#masterLayout #anaIcerik .km-py-bilet-kart::before,
+#masterLayout #anaIcerik .km-py-bilet-kart::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  margin-top: -5px;
+  border-radius: 50%;
+  background: #0a0612;
+  box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.5);
+}
+
+#masterLayout #anaIcerik .km-py-bilet-kart::before { left: -5px; }
+#masterLayout #anaIcerik .km-py-bilet-kart::after { right: -5px; }
+
+#masterLayout #anaIcerik .km-py-bilet-ust {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+#masterLayout #anaIcerik .km-py-bilet-etiket {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #6a5030;
+}
+
+#masterLayout #anaIcerik .km-py-bilet-rozet {
+  font-size: 9px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(60, 140, 80, 0.15);
+  color: #2a6040;
+  border: 1px solid rgba(60, 140, 80, 0.35);
+}
+
+#masterLayout #anaIcerik .km-py-bilet-toplar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+}
+
+#masterLayout #anaIcerik .km-py-bilet-sonuc {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(100, 80, 50, 0.35);
+  font-size: 11px;
+  text-align: center;
+  color: #4a3820;
+}
+
+#masterLayout #anaIcerik .km-py-bilet-sonuc strong {
+  color: #2a6a30;
+}
+
+#masterLayout #anaIcerik .km-py-son-tambur {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  padding: 8px 0 12px;
+}
+
+#masterLayout #anaIcerik .km-py-kazanan-liste {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+#masterLayout #anaIcerik .km-py-kazanan-liste li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 6px;
+  font-size: 12px;
+}
+
+#masterLayout #anaIcerik .km-py-kazanan-ad {
+  font-weight: 600;
+  color: #f0d878;
+}
+
+#masterLayout #anaIcerik .km-py-kazanan-detay {
+  color: rgba(255, 255, 255, 0.55);
+  text-align: right;
+}
+
+#masterLayout #anaIcerik .km-py-bos-sonuc {
+  margin: 0;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
+  text-align: center;
+}
+
+@media (max-width: 560px) {
+  #masterLayout #anaIcerik .km-py-jackpot-satir {
+    grid-template-columns: 1fr;
+  }
+
+  #masterLayout #anaIcerik .km-py-top {
+    width: 36px;
+    height: 36px;
+  }
+
+  #masterLayout #anaIcerik .km-py-top-rakam {
+    font-size: 14px;
+  }
+
+  #masterLayout #anaIcerik .km-piyango-grid {
+    grid-template-columns: repeat(5, 28px);
+    gap: 5px;
+  }
+
+  #masterLayout #anaIcerik .km-piyango-sayi {
+    width: 28px;
+    height: 28px;
+  }
+
+  #masterLayout #anaIcerik .km-py-secili-serit .km-py-top {
+    width: 30px;
+    height: 30px;
+  }
+
+  #masterLayout #anaIcerik .km-py-neon-yazi {
+    letter-spacing: 0.2em;
+    font-size: 20px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   #masterLayout #anaIcerik .km-banner h2,
   #masterLayout #anaIcerik .km-banner-neon,
@@ -3090,7 +3753,10 @@
   #masterLayout #anaIcerik .km-slot-neon,
   #masterLayout #anaIcerik .km-slot-led-satir span,
   #masterLayout #anaIcerik .km-el-gorsel .km-parmak-slot,
-  #masterLayout #anaIcerik .km-revolver-durum--bekle {
+  #masterLayout #anaIcerik .km-revolver-durum--bekle,
+  #masterLayout #anaIcerik .km-py-neon-yazi,
+  #masterLayout #anaIcerik .km-py-sayac-cizgi,
+  #masterLayout #anaIcerik .km-py-top--secim {
     animation: none !important;
   }
 }

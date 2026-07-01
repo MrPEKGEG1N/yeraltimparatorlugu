@@ -581,10 +581,12 @@ function createGameRouter(db) {
     try {
       const { panelGetir } = require("../game/kumarhaneService");
       const { masaDurumuGetir, PVP_MIN_BAHIS } = require("../game/kumarhaneMasaService");
+      const { panelVerisiGetir } = require("../game/kumarhanePiyangoService");
       const panel = await panelGetir(db, req.user.id);
       const oyunId = String(req.query.oyunId || "");
       panel.pvpMinBahis = PVP_MIN_BAHIS;
       if (oyunId) panel.pvpMasa = await masaDurumuGetir(db, req.user.id, oyunId);
+      panel.piyango = await panelVerisiGetir(db, req.user.id);
       res.json(panel);
     } catch (err) {
       console.error(err);

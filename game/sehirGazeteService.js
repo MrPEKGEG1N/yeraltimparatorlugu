@@ -115,6 +115,13 @@ async function gunlukHaberUret(db) {
   if (kara?.reis_adi) {
     await gazeteEkle(db, `Sokakların Tek Hakimi: ${kara.reis_adi} Hükmü Sürüyor!`);
   }
+
+  try {
+    const { gunlukPiyangoGazeteHaber } = require("./kumarhanePiyangoService");
+    await gunlukPiyangoGazeteHaber(db);
+  } catch (err) {
+    console.error("[gazete] piyango önizleme:", err?.message || err);
+  }
 }
 
 async function limanHaberEkle(db, limanId, kazananId, kaybedenId) {

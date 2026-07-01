@@ -19,6 +19,7 @@ const CRITICAL_ACTIONS = new Set([
   "kumarhane_chip_al",
   "kumarhane_chip_sat",
   "kumarhane_oyna",
+  "kumarhane_piyango_bilet",
   "liman_cok",
   "baba_cok",
   "mekan_devri",

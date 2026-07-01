@@ -234,6 +234,11 @@ function registerIntervals() {
   }, 60 * 1000);
 
   setInterval(() => {
+    const { periyodikKontrol } = require("./game/kumarhanePiyangoService");
+    periyodikKontrol(db).catch((err) => console.error("Piyango çekiliş hatası:", err));
+  }, 60 * 1000);
+
+  setInterval(() => {
     aySonuKontrol(db).catch((err) => console.error("Aylık mafya şampiyonu hatası:", err));
   }, 5 * 60 * 1000);
 

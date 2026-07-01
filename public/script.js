@@ -1621,11 +1621,25 @@ function gyVaultKilitNedeni(k) {
     for (var i = 0; i < kasalar.length; i++) {
       if (kasalar[i].id === k.onkosul) { onceki = kasalar[i]; break; }
     }
-    if (onceki && !onceki.sahip) {
+    if (onceki && !onceki.aktif) {
       nedeni = t('game.gy.vault.lockPrerequisite', { name: gyVaultAd(onceki) });
     }
   }
   return nedeni || t('game.gy.vaultLocked');
+}
+
+function gyVaultMaliyetGunMetni(k) {
+  if (!k) return '';
+  var gun = k.abonelikGun || 30;
+  return t('game.gy.vaultDays', { n: gun });
+}
+
+function gyVaultMaliyetIpuclariHTML(k) {
+  if (!k) return '';
+  return '<div class="gy-kasa-ipucu" role="tooltip">'
+    + '<span class="gy-kasa-ipucu-elmas">💎 ' + fmt(k.elmasMaliyet || 0) + '</span>'
+    + '<span class="gy-kasa-ipucu-gun">' + escHtml(gyVaultMaliyetGunMetni(k)) + '</span>'
+    + '</div>';
 }
 
 function guvenliYerHTML() {
@@ -1795,8 +1809,12 @@ function guvenliYerKasalarCiz() {
     if (k.aktif) cls += ' gy-kasa-kart--sahip';
     else if (k.kilitli) cls += ' gy-kasa-kart--kilit';
     else if (k.suresiDolmus) cls += ' gy-kasa-kart--dolmus';
+    var ipucuMetin = '💎 ' + fmt(k.elmasMaliyet || 0) + ' — ' + gyVaultMaliyetGunMetni(k);
     html += '<div class="' + cls + '">'
-      + '<div class="gy-kasa-gorsel"><img src="' + k.gorsel + '?v=' + GORSEL_VERSIYON + '" alt="' + escHtml(gyVaultAd(k)) + '" onerror="imgFallback(this)"></div>'
+      + '<div class="gy-kasa-gorsel" tabindex="0" role="button" aria-label="' + escHtml(ipucuMetin) + '" onclick="guvenliYerKasaIpucluToggle(this, event)">'
+      + '<img src="' + k.gorsel + '?v=' + GORSEL_VERSIYON + '" alt="' + escHtml(gyVaultAd(k)) + '" onerror="imgFallback(this)">'
+      + gyVaultMaliyetIpuclariHTML(k)
+      + '</div>'
       + '<div class="gy-kasa-metin"><strong>' + escHtml(gyVaultAd(k)) + '</strong>'
       + '<span>' + escHtml(gyVaultAciklama(k)) + '</span>'
       + '<span class="gy-kasa-bonus">' + escHtml(t('game.gy.vaultProtection', { pct: Math.round((k.korumaOrani || 0) * 100) })) + '</span></div>';
@@ -1823,6 +1841,38 @@ function guvenliYerKasalarCiz() {
   });
   html += '</div>';
   el.innerHTML = html;
+  guvenliYerKasaIpuclariBagla();
+}
+
+function guvenliYerKasaIpucluToggle(wrap, evt) {
+  if (!wrap) return;
+  if (evt) evt.stopPropagation();
+  var acik = wrap.classList.contains('gy-kasa-gorsel--acik');
+  document.querySelectorAll('.gy-kasa-gorsel--acik').forEach(function(node) {
+    node.classList.remove('gy-kasa-gorsel--acik');
+  });
+  if (!acik) wrap.classList.add('gy-kasa-gorsel--acik');
+}
+
+var guvenliYerKasaIpuclariGlobal = false;
+
+function guvenliYerKasaIpuclariBagla() {
+  if (guvenliYerKasaIpuclariGlobal) return;
+  guvenliYerKasaIpuclariGlobal = true;
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('.gy-kasa-gorsel')) {
+      document.querySelectorAll('.gy-kasa-gorsel--acik').forEach(function(node) {
+        node.classList.remove('gy-kasa-gorsel--acik');
+      });
+    }
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.gy-kasa-gorsel--acik').forEach(function(node) {
+        node.classList.remove('gy-kasa-gorsel--acik');
+      });
+    }
+  });
 }
 
 function guvenliYerPanelCiz() {
@@ -1884,6 +1934,12 @@ async function guvenliYerKasaAl(kasaId) {
   var ef = await sunucuAksiyon('guvenli_yer_kasa_al', null, null, { kasaId: kasaId });
   if (!ef) return;
   toast(tr(ef.mesaj) || t('game.toast.vaultPurchased'), 'basari');
+  var elmasModal = document.getElementById('elmasMagazaModal');
+  if (elmasModal && !elmasModal.classList.contains('gizli')) {
+    if (ef.panel) guvenliYerPanel = ef.panel;
+    await elmasMagazaVeriYukle(elmasModal);
+    return;
+  }
   if (ef.panel) {
     guvenliYerPanel = ef.panel;
     guvenliYerTumunuCiz();
@@ -3456,6 +3512,38 @@ function profilEkranSablonu(opts) {
     + '</div>';
 }
 
+function elmasMagazaTlKartHtml(p) {
+  var oneCikan = p.id === 'imparator' || p.id === 'baron_elmas';
+  var cls = 'elmas-vip-tl-kart elmas-vip-tl-kart--' + p.id;
+  if (oneCikan) cls += ' elmas-vip-tl-kart--one-cikan';
+  var bonusHtml = p.bonusElmas > 0
+    ? '<span class="elmas-vip-tl-bonus">+' + fmt(p.bonusElmas) + ' 💎 ' + escHtml(t('game.premium.bonusLabel')) + '</span>'
+    : '';
+  var birim = String(p.birimMaliyet).replace('.', ',');
+  return '<article class="' + cls + '">'
+    + (oneCikan ? '<span class="elmas-vip-tl-etiket">' + escHtml(t('game.premium.featured')) + '</span>' : '')
+    + '<div class="elmas-vip-tl-ust">'
+    + '<span class="elmas-vip-tl-ikon" aria-hidden="true">' + escHtml(p.ikon) + '</span>'
+    + '<h4 class="elmas-vip-tl-ad">' + escHtml(p.baslik) + '</h4>'
+    + '</div>'
+    + '<div class="elmas-vip-tl-elmas">'
+    + '<span class="elmas-vip-tl-elmas-ana">' + fmt(p.toplamElmas) + '</span>'
+    + '<span class="elmas-vip-tl-elmas-birim">💎</span>'
+  + '</div>'
+    + (p.bonusElmas > 0
+      ? '<div class="elmas-vip-tl-detay"><span>' + fmt(p.elmas) + ' 💎</span>' + bonusHtml + '</div>'
+      : '<div class="elmas-vip-tl-detay elmas-vip-tl-detay--tek">' + fmt(p.elmas) + ' 💎</div>')
+    + '<div class="elmas-vip-tl-fiyat-satir">'
+    + '<span class="elmas-vip-tl-fiyat">' + fmt(p.tlFiyat) + ' <small>TL</small></span>'
+    + '<span class="elmas-vip-tl-birim">' + birim + ' TL / 💎</span>'
+    + '</div>'
+    + '<button type="button" class="elmas-vip-tl-btn" onclick="elmasTlPaketSatinAl(\'' + p.id + '\')">'
+    + '<span class="elmas-vip-tl-btn-parilti" aria-hidden="true"></span>'
+    + '<span>' + escHtml(t('game.premium.buy')) + '</span>'
+    + '</button>'
+    + '</article>';
+}
+
 function elmasMagazaTlTabloHtml() {
   var paketler = oyuncuElmasPaketler.length ? oyuncuElmasPaketler : [
     { id: 'ufaklik', ikon: '💰', baslik: 'Ufaklık Paketi', elmas: 100, bonusElmas: 0, toplamElmas: 100, tlFiyat: 75, birimMaliyet: 0.75 },
@@ -3463,33 +3551,68 @@ function elmasMagazaTlTabloHtml() {
     { id: 'baron_elmas', ikon: '🦅', baslik: 'Baron Paketi', elmas: 500, bonusElmas: 75, toplamElmas: 575, tlFiyat: 300, birimMaliyet: 0.52 },
     { id: 'imparator', ikon: '👑', baslik: 'İmparator Paketi', elmas: 1000, bonusElmas: 250, toplamElmas: 1250, tlFiyat: 550, birimMaliyet: 0.44 }
   ];
-  var satirlar = paketler.map(function (p) {
-    var bonus = p.bonusElmas > 0 ? ('+' + fmt(p.bonusElmas) + ' 💎') : '—';
-    return '<tr>'
-      + '<td class="elmas-tl-ad"><span class="elmas-tl-ikon">' + escHtml(p.ikon) + '</span> ' + escHtml(p.baslik) + '</td>'
-      + '<td>' + fmt(p.elmas) + ' 💎</td>'
-      + '<td>' + bonus + '</td>'
-      + '<td><strong>' + fmt(p.toplamElmas) + ' 💎</strong></td>'
-      + '<td><strong class="elmas-tl-fiyat">' + fmt(p.tlFiyat) + ' TL</strong></td>'
-      + '<td>' + String(p.birimMaliyet).replace('.', ',') + ' TL</td>'
-      + '<td><button type="button" class="elmas-tl-satin-btn" onclick="elmasTlPaketSatinAl(\'' + p.id + '\')">'
-      + escHtml(t('game.premium.buy')) + '</button></td>'
-      + '</tr>';
-  }).join('');
-  return '<section class="elmas-magaza-bolum">'
-    + '<h3 class="elmas-magaza-bolum-baslik">' + escHtml(t('game.premium.elmasLoadTitle')) + '</h3>'
-    + '<p class="elmas-magaza-bolum-alt">' + escHtml(t('game.premium.elmasLoadDesc')) + '</p>'
-    + '<div class="elmas-tl-tablo-wrap"><table class="elmas-tl-tablo">'
-    + '<thead><tr>'
-    + '<th>' + escHtml(t('game.premium.colPackage')) + '</th>'
-    + '<th>' + escHtml(t('game.premium.colDiamonds')) + '</th>'
-    + '<th>' + escHtml(t('game.premium.colBonus')) + '</th>'
-    + '<th>' + escHtml(t('game.premium.colTotal')) + '</th>'
-    + '<th>' + escHtml(t('game.premium.colPrice')) + '</th>'
-    + '<th>' + escHtml(t('game.premium.colUnit')) + '</th>'
-    + '<th>' + escHtml(t('game.premium.colBuy')) + '</th>'
-    + '</tr></thead>'
-    + '<tbody>' + satirlar + '</tbody></table></div></section>';
+  return '<section class="elmas-magaza-bolum elmas-magaza-bolum--tl">'
+    + '<div class="elmas-vip-bolum-baslik">'
+    + '<span class="elmas-vip-bolum-ikon elmas-vip-bolum-ikon--elmas" aria-hidden="true">💎</span>'
+    + '<div><h3 class="elmas-magaza-bolum-baslik">' + escHtml(t('game.premium.elmasLoadTitle')) + '</h3>'
+    + '<p class="elmas-magaza-bolum-alt">' + escHtml(t('game.premium.elmasLoadDesc')) + '</p></div>'
+    + '</div>'
+    + '<div class="elmas-vip-tl-grid">' + paketler.map(elmasMagazaTlKartHtml).join('') + '</div>'
+    + '</section>';
+}
+
+function elmasMagazaKasaKartHtml(k) {
+  var cls = 'elmas-vip-kasa-kart elmas-vip-kasa-kart--' + k.id;
+  if (k.aktif) cls += ' elmas-vip-kasa-kart--aktif';
+  else if (k.kilitli) cls += ' elmas-vip-kasa-kart--kilit';
+  else if (k.suresiDolmus) cls += ' elmas-vip-kasa-kart--dolmus';
+
+  var durumHtml = '';
+  var btnHtml = '';
+  if (k.aktif) {
+    durumHtml = '<div class="elmas-vip-kasa-durum elmas-vip-kasa-durum--aktif">'
+      + escHtml(t('game.gy.vaultActive', { pct: Math.round((k.korumaOrani || 0) * 100) }))
+      + '<span>' + escHtml(t('game.gy.vaultExpires', { date: gyVaultBitisMetni(k.bitisAt) })) + '</span></div>';
+    btnHtml = '<button type="button" class="elmas-vip-kasa-btn elmas-vip-kasa-btn--yenile"' + (!k.yeterliElmas ? ' disabled' : '')
+      + ' onclick="guvenliYerKasaAl(\'' + k.id + '\')"><span class="elmas-vip-kasa-btn-parilti" aria-hidden="true"></span>'
+      + '<span>' + escHtml(t('game.gy.vaultRenew')) + '</span></button>';
+  } else if (k.kilitli) {
+    durumHtml = '<div class="elmas-vip-kasa-durum elmas-vip-kasa-durum--kilit">🔒 ' + escHtml(gyVaultKilitNedeni(k)) + '</div>';
+  } else {
+    var btnMetin = k.suresiDolmus ? t('game.gy.vaultRenew') : t('game.gy.vaultBuy');
+    btnHtml = '<button type="button" class="elmas-vip-kasa-btn"' + (!k.yeterliElmas ? ' disabled' : '')
+      + ' onclick="guvenliYerKasaAl(\'' + k.id + '\')"><span class="elmas-vip-kasa-btn-parilti" aria-hidden="true"></span>'
+      + '<span>' + escHtml(btnMetin) + '</span></button>';
+  }
+
+  return '<article class="' + cls + '">'
+    + '<div class="elmas-vip-kasa-gorsel">'
+    + '<img src="' + escHtml(k.gorsel) + '?v=' + GORSEL_VERSIYON + '" alt="' + escHtml(gyVaultAd(k)) + '" onerror="imgFallback(this)">'
+    + '<span class="elmas-vip-kasa-koruma">' + escHtml(t('game.gy.vaultProtection', { pct: Math.round((k.korumaOrani || 0) * 100) })) + '</span>'
+    + '</div>'
+    + '<div class="elmas-vip-kasa-icerik">'
+    + '<h4 class="elmas-vip-kasa-ad">' + escHtml(gyVaultAd(k)) + '</h4>'
+    + '<p class="elmas-vip-kasa-aciklama">' + escHtml(gyVaultAciklama(k)) + '</p>'
+    + '<div class="elmas-vip-kasa-fiyat">'
+    + '<span class="elmas-vip-kasa-elmas">💎 ' + fmt(k.elmasMaliyet || 0) + '</span>'
+    + '<span class="elmas-vip-kasa-gun">' + escHtml(gyVaultMaliyetGunMetni(k)) + '</span>'
+    + '</div>'
+    + durumHtml
+    + btnHtml
+    + '</div></article>';
+}
+
+function elmasMagazaKasalarHtml() {
+  var kasalar = (guvenliYerPanel && guvenliYerPanel.kasalar) || [];
+  if (!kasalar.length) return '';
+  return '<section class="elmas-magaza-bolum elmas-magaza-bolum--kasalar">'
+    + '<div class="elmas-vip-bolum-baslik">'
+    + '<span class="elmas-vip-bolum-ikon elmas-vip-bolum-ikon--kasa" aria-hidden="true">🔒</span>'
+    + '<div><h3 class="elmas-magaza-bolum-baslik">' + escHtml(t('game.gy.vaultsTitle')) + '</h3>'
+    + '<p class="elmas-magaza-bolum-alt">' + escHtml(t('game.premium.vaultsDesc')) + '</p></div>'
+    + '</div>'
+    + '<div class="elmas-vip-kasa-grid">' + kasalar.map(elmasMagazaKasaKartHtml).join('') + '</div>'
+    + '</section>';
 }
 
 function elmasMagazaPaketKart(p) {
@@ -3515,13 +3638,17 @@ function elmasMagazaPaketKart(p) {
     return '<li>' + escHtml(line) + '</li>';
   }).join('');
   var btn = sahip
-    ? '<button type="button" class="elmas-paket-btn elmas-paket-btn--aktif" disabled>' + escHtml(t('game.premium.active')) + '</button>'
+    ? '<button type="button" class="elmas-paket-btn elmas-paket-btn--aktif" disabled><span>' + escHtml(t('game.premium.active')) + '</span></button>'
     : '<button type="button" class="elmas-paket-btn elmas-paket-btn--' + p.id + '" onclick="premiumPaketSatinAl(\'' + p.id + '\')">'
-      + '💎 ' + fmt(p.elmasMaliyet) + ' / ' + escHtml(t('game.premium.month')) + ' — ' + escHtml(t('game.premium.buy')) + '</button>';
+      + '<span class="elmas-paket-btn-parilti" aria-hidden="true"></span>'
+      + '<span>💎 ' + fmt(p.elmasMaliyet) + ' / ' + escHtml(t('game.premium.month')) + ' — ' + escHtml(t('game.premium.buy')) + '</span></button>';
   return '<article class="' + tierCls + '">'
+    + (p.id === 'baron' ? '<span class="elmas-paket-vip-etiket">' + escHtml(t('game.premium.vipBadge')) + '</span>' : '')
+    + '<div class="elmas-paket-ust">'
     + '<div class="elmas-paket-rozet">' + escHtml(p.prestijRozet) + '</div>'
-    + '<h3 class="elmas-paket-baslik">' + escHtml(p.baslik) + '</h3>'
-    + '<p class="elmas-paket-alt">' + escHtml(p.altBaslik) + '</p>'
+    + '<div><h3 class="elmas-paket-baslik">' + escHtml(p.baslik) + '</h3>'
+    + '<p class="elmas-paket-alt">' + escHtml(p.altBaslik) + '</p></div>'
+    + '</div>'
     + '<ul class="elmas-paket-ozellikler">' + ozHtml + '</ul>'
     + btn
     + '</article>';
@@ -3539,21 +3666,33 @@ function elmasMagazaIcerikHtml() {
   var aktifMetin = oyuncuPremiumPaket
     ? '<p class="elmas-magaza-aktif">' + escHtml(t('game.premium.current', { paket: aktifPaket ? aktifPaket.baslik : oyuncuPremiumPaket })) + '</p>'
     : '';
-  return '<div class="elmas-magaza-modal-ic elmas-magaza-modal-ic--genis">'
+  return '<div class="elmas-magaza-modal-ic elmas-magaza-modal-ic--genis elmas-magaza-modal-ic--vip">'
+    + '<div class="elmas-vip-arkaplan" aria-hidden="true"><span class="elmas-vip-parilti"></span></div>'
     + '<button type="button" class="elmas-magaza-x" onclick="elmasMagazaKapat()" aria-label="' + escHtml(t('game.welcome.close')) + '">×</button>'
-    + '<div class="elmas-magaza-baslik"><span class="elmas-magaza-ikon">💎</span> '
+    + '<header class="elmas-vip-hero">'
+    + '<span class="elmas-vip-rozet">' + escHtml(t('game.premium.vipBadge')) + '</span>'
+    + '<div class="elmas-magaza-baslik"><span class="elmas-magaza-ikon" aria-hidden="true">💎</span>'
     + escHtml(t('game.profil.buyDiamonds')) + '</div>'
-    + '<p class="elmas-magaza-metin">' + escHtml(t('game.premium.intro')) + '</p>'
-    + '<div class="elmas-magaza-bakiye">' + escHtml(t('game.premium.balance')) + ' <strong>' + fmt(oyuncuElmas) + ' 💎</strong></div>'
+    + '<p class="elmas-magaza-metin">' + escHtml(t('game.premium.vipTagline')) + '</p>'
+    + '<div class="elmas-vip-bakiye-pil">'
+    + '<span class="elmas-vip-bakiye-etiket">' + escHtml(t('game.premium.balance')) + '</span>'
+    + '<strong class="elmas-vip-bakiye-deger"><span aria-hidden="true">💎</span> ' + fmt(oyuncuElmas) + '</strong>'
+    + '</div>'
+    + '</header>'
+    + '<div class="elmas-vip-govde">'
     + elmasMagazaTlTabloHtml()
     + '<section class="elmas-magaza-bolum elmas-magaza-bolum--aylik">'
-    + '<h3 class="elmas-magaza-bolum-baslik">' + escHtml(t('game.premium.monthlyTitle')) + '</h3>'
-    + '<p class="elmas-magaza-bolum-alt">' + escHtml(t('game.premium.monthlyDesc')) + '</p>'
+    + '<div class="elmas-vip-bolum-baslik">'
+    + '<span class="elmas-vip-bolum-ikon elmas-vip-bolum-ikon--altin" aria-hidden="true">👑</span>'
+    + '<div><h3 class="elmas-magaza-bolum-baslik">' + escHtml(t('game.premium.monthlyTitle')) + '</h3>'
+    + '<p class="elmas-magaza-bolum-alt">' + escHtml(t('game.premium.monthlyDesc')) + '</p></div>'
+    + '</div>'
     + aktifMetin
     + '<div class="elmas-paket-grid">' + paketler.map(elmasMagazaPaketKart).join('') + '</div>'
     + '</section>'
+    + elmasMagazaKasalarHtml()
     + '<p class="elmas-magaza-not">' + escHtml(t('game.premium.paymentNote')) + '</p>'
-    + '</div>';
+    + '</div></div>';
 }
 
 function elmasMagazaAc() {
@@ -3569,8 +3708,22 @@ function elmasMagazaAc() {
       if (e.target === modal) elmasMagazaKapat();
     });
   }
-  modal.innerHTML = elmasMagazaIcerikHtml();
   modal.classList.remove('gizli');
+  modal.innerHTML = '<div class="elmas-magaza-yukleniyor">' + escHtml(t('game.loading')) + '</div>';
+  elmasMagazaVeriYukle(modal);
+}
+
+async function elmasMagazaVeriYukle(modal) {
+  if (!modal) modal = document.getElementById('elmasMagazaModal');
+  if (!modal || modal.classList.contains('gizli')) return;
+  try {
+    var res = await apiFetch('/api/guvenli-yer');
+    var data = await res.json().catch(function () { return {}; });
+    if (res.ok && data.ok) guvenliYerPanel = data;
+  } catch (_) {}
+  if (!modal.classList.contains('gizli')) {
+    modal.innerHTML = elmasMagazaIcerikHtml();
+  }
 }
 
 function elmasMagazaKapat() {
@@ -3593,7 +3746,7 @@ async function elmasTlPaketSatinAl(paketId) {
     }
     if (data.player) oyuncuUygula(data.player);
     toast(data.mesaj || t('game.premium.elmasAdded'), 'basari');
-    elmasMagazaAc();
+    await elmasMagazaVeriYukle(document.getElementById('elmasMagazaModal'));
   } catch (_) {
     toast(t('game.toast.serverConnectionFailed'), 'hata');
   }
@@ -3607,7 +3760,7 @@ async function premiumPaketSatinAl(paketId) {
   var sonuc = await sunucuAksiyon('premium_satin_al', paketId);
   if (!sonuc) return;
   toast(sonuc.mesaj || t('game.premium.purchaseOk'), 'basari');
-  elmasMagazaAc();
+  await elmasMagazaVeriYukle(document.getElementById('elmasMagazaModal'));
 }
 
 function profilResimSecenekleri(anahtarlar) {

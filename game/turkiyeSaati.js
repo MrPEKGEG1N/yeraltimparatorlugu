@@ -107,4 +107,5 @@ module.exports = {
   maasGunKey,
   maasSaatiGeldiMi,
   maasCronPenceresiMi,
+  gunKeyEkle,
 };

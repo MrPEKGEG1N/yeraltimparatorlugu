@@ -33,6 +33,7 @@ const {
   chipSat: kumarhaneChipSat,
   oyunOyna: kumarhaneOyunOyna,
 } = require("./kumarhaneService");
+const { biletAl: kumarhanePiyangoBiletAl } = require("./kumarhanePiyangoService");
 const {
   masayaOtur: kumarhaneMasayaOtur,
   masadanKalk: kumarhaneMasadanKalk,
@@ -785,6 +786,21 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
         chip: sonuc.chip,
         kazanc: sonuc.kazanc,
         net: sonuc.net,
+      },
+    };
+  }
+
+  if (action === "kumarhane_piyango_bilet") {
+    const sonuc = await kumarhanePiyangoBiletAl(db, userId, extra.sayilar || extra.numbers);
+    if (!sonuc.ok) return sonuc;
+    return {
+      ok: true,
+      player: await publicPlayerFull(db, userId, player),
+      effect: {
+        type: "kumarhane_piyango_bilet",
+        mesaj: sonuc.mesaj,
+        chip: sonuc.chip,
+        piyango: sonuc.piyango,
       },
     };
   }

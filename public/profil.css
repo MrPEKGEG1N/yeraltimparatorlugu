@@ -227,9 +227,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
-  background: rgba(0, 0, 0, 0.72);
-  backdrop-filter: blur(4px);
+  padding: 16px;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(120, 80, 200, 0.18), transparent 55%),
+    rgba(4, 3, 8, 0.88);
+  backdrop-filter: blur(10px);
 }
 
 .elmas-magaza-modal.gizli {
@@ -240,254 +242,811 @@
   width: min(100%, 360px);
   padding: 28px 24px 22px;
   text-align: center;
-  border: 1px solid rgba(212, 175, 55, 0.55);
-  background: linear-gradient(180deg, #1a1628 0%, #0d0b14 100%);
+  border-radius: 16px;
+  border: 1px solid rgba(212, 175, 55, 0.45);
+  background: linear-gradient(165deg, #1a1428 0%, #0a0812 100%);
   box-shadow:
-    0 0 30px rgba(94, 200, 255, 0.2),
-    0 0 50px rgba(212, 175, 55, 0.15);
-}
-
-.elmas-magaza-baslik {
-  font-family: 'Oswald', sans-serif;
-  font-size: 20px;
-  letter-spacing: 1px;
-  color: #f5e8c8;
-  margin-bottom: 12px;
-}
-
-.elmas-magaza-ikon {
-  font-size: 22px;
-}
-
-.elmas-magaza-metin {
-  margin: 0 0 18px;
-  font-size: 14px;
-  line-height: 1.5;
-  color: #c8bca8;
+    0 24px 80px rgba(0, 0, 0, 0.65),
+    0 0 40px rgba(212, 175, 55, 0.12);
 }
 
 .elmas-magaza-modal-ic--genis {
-  width: min(100%, 980px);
-  max-height: min(92vh, 900px);
-  overflow: auto;
-  padding: 26px 22px 20px;
+  width: min(100%, 1040px);
+  max-height: min(94vh, 920px);
+  overflow: hidden;
+  padding: 0;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  border-radius: 18px;
+  border: 1px solid rgba(212, 175, 55, 0.5);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset,
+    0 30px 90px rgba(0, 0, 0, 0.72),
+    0 0 80px rgba(140, 100, 255, 0.12),
+    0 0 50px rgba(212, 175, 55, 0.1);
+}
+
+.elmas-magaza-modal-ic--vip {
+  background: linear-gradient(165deg, #14101f 0%, #08060e 48%, #0c0a14 100%);
+}
+
+.elmas-vip-arkaplan {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: inherit;
+  background:
+    radial-gradient(ellipse 70% 45% at 50% -5%, rgba(212, 175, 55, 0.16), transparent 58%),
+    radial-gradient(circle at 100% 100%, rgba(90, 60, 180, 0.14), transparent 42%),
+    radial-gradient(circle at 0% 80%, rgba(60, 120, 200, 0.08), transparent 38%);
+}
+
+.elmas-vip-parilti {
+  position: absolute;
+  top: -40%;
+  left: -20%;
+  width: 140%;
+  height: 60%;
+  background: linear-gradient(
+    105deg,
+    transparent 38%,
+    rgba(255, 230, 160, 0.07) 48%,
+    rgba(255, 255, 255, 0.12) 50%,
+    rgba(255, 230, 160, 0.07) 52%,
+    transparent 62%
+  );
+  animation: elmas-vip-sweep 6s ease-in-out infinite;
+}
+
+@keyframes elmas-vip-sweep {
+  0%, 100% { transform: translateX(-8%) rotate(0deg); opacity: 0.5; }
+  50% { transform: translateX(8%) rotate(0deg); opacity: 1; }
 }
 
 .elmas-magaza-x {
   position: absolute;
-  top: 10px;
-  right: 12px;
-  width: 36px;
-  height: 36px;
-  border: 1px solid rgba(138, 115, 72, 0.5);
-  background: rgba(0, 0, 0, 0.35);
-  color: #e8ddc4;
-  font-size: 24px;
+  top: 14px;
+  right: 14px;
+  z-index: 3;
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  background: rgba(0, 0, 0, 0.45);
+  color: #f0e6d4;
+  font-size: 22px;
   line-height: 1;
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: 50%;
+  transition: background 0.2s, transform 0.2s;
 }
 
-.elmas-magaza-bakiye {
-  margin: 0 0 10px;
+.elmas-magaza-x:hover {
+  background: rgba(212, 175, 55, 0.18);
+  transform: scale(1.05);
+}
+
+.elmas-vip-hero {
+  position: relative;
+  z-index: 1;
+  padding: 28px 24px 20px;
+  text-align: center;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+  background: linear-gradient(180deg, rgba(212, 175, 55, 0.08), transparent 70%);
+}
+
+.elmas-vip-rozet {
+  display: inline-block;
+  margin-bottom: 10px;
+  padding: 4px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(212, 175, 55, 0.55);
+  background: linear-gradient(180deg, rgba(212, 175, 55, 0.22), rgba(120, 90, 30, 0.12));
+  font-family: 'Oswald', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  color: #f5e6b8;
+  text-shadow: 0 1px 8px rgba(212, 175, 55, 0.35);
+}
+
+.elmas-magaza-baslik {
+  font-family: 'Oswald', sans-serif;
+  font-size: clamp(22px, 3vw, 28px);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #faf3e0;
+  margin-bottom: 8px;
+  text-shadow: 0 2px 16px rgba(212, 175, 55, 0.25);
+}
+
+.elmas-magaza-ikon {
+  font-size: 24px;
+  filter: drop-shadow(0 0 8px rgba(125, 211, 252, 0.45));
+}
+
+.elmas-magaza-metin {
+  margin: 0 auto 16px;
+  max-width: 520px;
   font-size: 14px;
-  color: #d4c4a8;
+  line-height: 1.55;
+  color: #c8bca8;
 }
 
-.elmas-magaza-bakiye strong {
-  color: #7dd3fc;
+.elmas-vip-bakiye-pil {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(125, 211, 252, 0.35);
+  background: linear-gradient(180deg, rgba(30, 50, 80, 0.55), rgba(10, 16, 28, 0.85));
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.elmas-vip-bakiye-etiket {
+  font-size: 12px;
+  color: #a8b8c8;
+  letter-spacing: 0.04em;
+}
+
+.elmas-vip-bakiye-deger {
+  font-family: 'Oswald', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: #b8e8ff;
+  text-shadow: 0 0 12px rgba(125, 211, 252, 0.35);
+}
+
+.elmas-vip-govde {
+  position: relative;
+  z-index: 1;
+  overflow: auto;
+  max-height: calc(94vh - 180px);
+  padding: 20px 22px 24px;
 }
 
 .elmas-magaza-aktif {
   margin: 0 0 14px;
-  padding: 8px 12px;
-  border: 1px solid rgba(212, 175, 55, 0.45);
-  background: rgba(212, 175, 55, 0.08);
-  color: #f5e8c8;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(110, 220, 140, 0.35);
+  background: rgba(40, 100, 60, 0.12);
+  color: #b8f0c8;
   font-size: 13px;
+  text-align: center;
 }
 
 .elmas-magaza-not {
-  margin: 16px 0 0;
+  margin: 18px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
   font-size: 11px;
-  color: #8a8070;
-  line-height: 1.45;
+  color: #7a7060;
+  line-height: 1.5;
+  text-align: center;
 }
 
 .elmas-magaza-bolum {
-  margin: 18px 0 8px;
+  margin: 0 0 24px;
+}
+
+.elmas-vip-bolum-baslik {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.elmas-vip-bolum-ikon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid rgba(125, 211, 252, 0.35);
+  background: rgba(125, 211, 252, 0.08);
+  font-size: 17px;
+  line-height: 1;
+}
+
+.elmas-vip-bolum-ikon--elmas {
+  border-color: rgba(125, 211, 252, 0.4);
+  background: rgba(60, 120, 200, 0.12);
+  box-shadow: 0 0 14px rgba(125, 211, 252, 0.15);
+}
+
+.elmas-vip-bolum-ikon--altin {
+  border-color: rgba(212, 175, 55, 0.45);
+  background: rgba(212, 175, 55, 0.1);
+  box-shadow: 0 0 14px rgba(212, 175, 55, 0.12);
 }
 
 .elmas-magaza-bolum-baslik {
-  margin: 0 0 6px;
+  margin: 0 0 4px;
   font-family: 'Oswald', sans-serif;
-  font-size: 16px;
-  letter-spacing: 0.6px;
-  color: #f0e6d4;
+  font-size: 17px;
+  letter-spacing: 0.1em;
+  color: #f5ead8;
   text-transform: uppercase;
 }
 
 .elmas-magaza-bolum-alt {
-  margin: 0 0 12px;
+  margin: 0;
   font-size: 12px;
-  color: #a89880;
+  color: #9a8e7c;
   line-height: 1.45;
 }
 
-.elmas-tl-tablo-wrap {
-  overflow-x: auto;
-  border: 1px solid rgba(138, 115, 72, 0.4);
-  border-radius: 4px;
-  background: rgba(0, 0, 0, 0.28);
+.elmas-vip-tl-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
 }
 
-.elmas-tl-tablo {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 12px;
-  min-width: 640px;
+.elmas-vip-tl-kart {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 16px 14px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(138, 115, 72, 0.35);
+  background:
+    linear-gradient(165deg, rgba(255, 255, 255, 0.04), transparent 35%),
+    linear-gradient(180deg, rgba(24, 20, 36, 0.95), rgba(8, 6, 14, 0.98));
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+  overflow: hidden;
 }
 
-.elmas-tl-tablo th,
-.elmas-tl-tablo td {
-  padding: 10px 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  text-align: center;
-  color: #d8ccb8;
+.elmas-vip-tl-kart:hover {
+  transform: translateY(-3px);
+  border-color: rgba(212, 175, 55, 0.45);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45), 0 0 24px rgba(212, 175, 55, 0.08);
 }
 
-.elmas-tl-tablo th {
+.elmas-vip-tl-kart--one-cikan {
+  border-color: rgba(212, 175, 55, 0.65);
+  background:
+    linear-gradient(165deg, rgba(255, 220, 120, 0.08), transparent 40%),
+    linear-gradient(180deg, rgba(36, 28, 12, 0.95), rgba(12, 10, 6, 0.98));
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4), 0 0 30px rgba(212, 175, 55, 0.12);
+}
+
+.elmas-vip-tl-etiket {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #e8c040, #a87818);
+  color: #1a1008;
   font-family: 'Oswald', sans-serif;
-  font-size: 11px;
-  letter-spacing: 0.5px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #c5a059;
-  background: rgba(0, 0, 0, 0.25);
 }
 
-.elmas-tl-tablo td.elmas-tl-ad {
-  text-align: left;
-  white-space: nowrap;
+.elmas-vip-tl-ust {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
 }
 
-.elmas-tl-ikon {
-  margin-right: 4px;
+.elmas-vip-tl-ikon {
+  font-size: 22px;
+  line-height: 1;
 }
 
-.elmas-tl-fiyat {
-  color: #ffd76a;
-}
-
-.elmas-tl-satin-btn {
-  padding: 7px 12px;
-  min-width: 88px;
-  border: 1px solid rgba(94, 200, 255, 0.55);
-  background: linear-gradient(180deg, #2d6a9f 0%, #1a3a5c 100%);
-  color: #fff8e8;
+.elmas-vip-tl-ad {
+  margin: 0;
   font-family: 'Oswald', sans-serif;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #f0e8d8;
+  line-height: 1.25;
+}
+
+.elmas-vip-tl-elmas {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.elmas-vip-tl-elmas-ana {
+  font-family: 'Oswald', sans-serif;
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 1;
+  color: #b8e8ff;
+  text-shadow: 0 0 18px rgba(125, 211, 252, 0.35);
+}
+
+.elmas-vip-tl-elmas-birim {
+  font-size: 18px;
+  opacity: 0.85;
+}
+
+.elmas-vip-tl-detay {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 10px;
+  margin-bottom: 12px;
   font-size: 11px;
-  letter-spacing: 0.6px;
+  color: #9a9080;
+}
+
+.elmas-vip-tl-detay--tek {
+  text-align: center;
+}
+
+.elmas-vip-tl-bonus {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(110, 220, 140, 0.12);
+  border: 1px solid rgba(110, 220, 140, 0.28);
+  color: #9fd4a8;
+  font-weight: 700;
+}
+
+.elmas-vip-tl-fiyat-satir {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 12px;
+  padding: 10px 8px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.elmas-vip-tl-fiyat {
+  font-family: 'Oswald', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: #ffd76a;
+  line-height: 1;
+}
+
+.elmas-vip-tl-fiyat small {
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+.elmas-vip-tl-birim {
+  font-size: 10px;
+  color: #8a8070;
+  letter-spacing: 0.04em;
+}
+
+.elmas-vip-tl-btn {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  margin-top: auto;
+  padding: 11px 12px;
+  border: 1px solid rgba(125, 211, 252, 0.45);
+  border-radius: 10px;
+  background: linear-gradient(180deg, #3a7ab8 0%, #1e4468 100%);
+  color: #fff8f0;
+  font-family: 'Oswald', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   cursor: pointer;
-  border-radius: 3px;
-  white-space: nowrap;
+  transition: filter 0.2s, transform 0.2s;
 }
 
-.elmas-tl-satin-btn:hover {
-  filter: brightness(1.12);
+.elmas-vip-tl-kart--one-cikan .elmas-vip-tl-btn {
+  border-color: rgba(240, 208, 96, 0.65);
+  background: linear-gradient(180deg, #d4af37 0%, #8b6914 100%);
+  color: #1a1008;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
-.elmas-paket-fiyat-notu {
-  margin: -6px 0 10px;
-  font-size: 12px;
-  color: #7dd3fc;
-  font-weight: 600;
+.elmas-vip-tl-btn:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.elmas-vip-tl-btn-parilti {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.18) 50%, transparent 60%);
+  transform: translateX(-120%);
+  animation: elmas-vip-btn-sweep 3.5s ease-in-out infinite;
+}
+
+@keyframes elmas-vip-btn-sweep {
+  0%, 70%, 100% { transform: translateX(-120%); }
+  85% { transform: translateX(120%); }
 }
 
 .elmas-magaza-bolum--aylik {
-  margin-top: 22px;
-  padding-top: 18px;
-  border-top: 1px solid rgba(138, 115, 72, 0.35);
+  margin-top: 8px;
+  padding-top: 22px;
+  border-top: 1px solid rgba(212, 175, 55, 0.18);
+}
+
+.elmas-magaza-bolum--kasalar {
+  margin-top: 8px;
+  padding-top: 22px;
+  border-top: 1px solid rgba(212, 175, 55, 0.18);
+}
+
+.elmas-magaza-yukleniyor {
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  font-size: 14px;
+  color: #c8bca8;
+  letter-spacing: 0.08em;
+}
+
+.elmas-vip-bolum-ikon--kasa {
+  border-color: rgba(160, 200, 140, 0.4);
+  background: rgba(80, 140, 80, 0.1);
+  box-shadow: 0 0 14px rgba(100, 180, 100, 0.12);
+}
+
+.elmas-vip-kasa-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.elmas-vip-kasa-kart {
+  display: flex;
+  flex-direction: column;
+  border-radius: 14px;
+  border: 1px solid rgba(138, 115, 72, 0.4);
+  background:
+    linear-gradient(165deg, rgba(255, 255, 255, 0.03), transparent 38%),
+    linear-gradient(180deg, rgba(18, 24, 18, 0.96), rgba(8, 10, 8, 0.98));
+  overflow: hidden;
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+}
+
+.elmas-vip-kasa-kart:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.4);
+}
+
+.elmas-vip-kasa-kart--aktif {
+  border-color: rgba(110, 200, 130, 0.5);
+  box-shadow: inset 0 0 24px rgba(60, 140, 80, 0.08);
+}
+
+.elmas-vip-kasa-kart--kilit {
+  opacity: 0.72;
+}
+
+.elmas-vip-kasa-kart--gumus {
+  border-color: rgba(160, 170, 190, 0.45);
+}
+
+.elmas-vip-kasa-kart--altin {
+  border-color: rgba(212, 175, 55, 0.6);
+  background:
+    linear-gradient(165deg, rgba(255, 220, 120, 0.06), transparent 40%),
+    linear-gradient(180deg, rgba(28, 22, 10, 0.96), rgba(10, 8, 4, 0.98));
+}
+
+.elmas-vip-kasa-gorsel {
+  position: relative;
+  padding: 14px 14px 0;
+  text-align: center;
+}
+
+.elmas-vip-kasa-gorsel img {
+  width: 100%;
+  max-width: 160px;
+  height: auto;
+  margin: 0 auto;
+  display: block;
+  border-radius: 8px;
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.45));
+}
+
+.elmas-vip-kasa-koruma {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(110, 200, 130, 0.35);
+  background: rgba(60, 120, 70, 0.15);
+  font-size: 10px;
+  font-weight: 700;
+  color: #9fd4a8;
+  letter-spacing: 0.04em;
+}
+
+.elmas-vip-kasa-icerik {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 14px 16px 16px;
+  text-align: left;
+}
+
+.elmas-vip-kasa-ad {
+  margin: 0 0 6px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 15px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #f0e8d8;
+}
+
+.elmas-vip-kasa-aciklama {
+  margin: 0 0 12px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #9a9080;
+  flex: 1;
+}
+
+.elmas-vip-kasa-fiyat {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.elmas-vip-kasa-elmas {
+  font-family: 'Oswald', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #b8e8ff;
+}
+
+.elmas-vip-kasa-gun {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #f0d878;
+}
+
+.elmas-vip-kasa-durum {
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.elmas-vip-kasa-durum span {
+  display: block;
+  margin-top: 4px;
+  opacity: 0.85;
+}
+
+.elmas-vip-kasa-durum--aktif {
+  border: 1px solid rgba(110, 200, 130, 0.3);
+  background: rgba(60, 120, 70, 0.12);
+  color: #b8f0c8;
+}
+
+.elmas-vip-kasa-durum--kilit {
+  border: 1px solid rgba(200, 120, 80, 0.25);
+  background: rgba(80, 40, 20, 0.15);
+  color: #d8b0a0;
+}
+
+.elmas-vip-kasa-btn {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid rgba(125, 211, 252, 0.4);
+  border-radius: 10px;
+  background: linear-gradient(180deg, #3a7ab8 0%, #1e4468 100%);
+  color: #fff8f0;
+  font-family: 'Oswald', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: filter 0.2s;
+}
+
+.elmas-vip-kasa-kart--altin .elmas-vip-kasa-btn:not(:disabled) {
+  border-color: rgba(240, 208, 96, 0.55);
+  background: linear-gradient(180deg, #d4af37 0%, #8b6914 100%);
+  color: #1a1008;
+}
+
+.elmas-vip-kasa-btn--yenile {
+  border-color: rgba(110, 200, 130, 0.45);
+  background: linear-gradient(180deg, #3a8a58 0%, #1e5038 100%);
+}
+
+.elmas-vip-kasa-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.elmas-vip-kasa-btn:not(:disabled):hover {
+  filter: brightness(1.1);
+}
+
+.elmas-vip-kasa-btn-parilti {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.16) 50%, transparent 60%);
+  transform: translateX(-120%);
+  animation: elmas-vip-btn-sweep 3.8s ease-in-out infinite;
 }
 
 .elmas-paket-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
+  gap: 16px;
 }
 
 .elmas-paket-kart {
   position: relative;
-  padding: 18px 14px 14px;
-  border: 1px solid rgba(138, 115, 72, 0.45);
-  background: linear-gradient(180deg, rgba(26, 22, 40, 0.95) 0%, rgba(10, 8, 16, 0.98) 100%);
+  padding: 20px 16px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(138, 115, 72, 0.4);
+  background:
+    linear-gradient(165deg, rgba(255, 255, 255, 0.03), transparent 40%),
+    linear-gradient(180deg, rgba(22, 18, 34, 0.96), rgba(8, 6, 14, 0.98));
   text-align: left;
   min-height: 100%;
   display: flex;
   flex-direction: column;
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
 }
 
-.elmas-paket-kart--tetikci { border-color: rgba(180, 120, 70, 0.55); }
-.elmas-paket-kart--racon { border-color: rgba(90, 140, 220, 0.55); box-shadow: inset 0 0 24px rgba(56, 120, 200, 0.08); }
+.elmas-paket-kart:hover {
+  transform: translateY(-2px);
+}
+
+.elmas-paket-kart--tetikci {
+  border-color: rgba(180, 120, 70, 0.5);
+}
+
+.elmas-paket-kart--racon {
+  border-color: rgba(90, 140, 220, 0.55);
+  box-shadow: inset 0 0 30px rgba(56, 120, 200, 0.06);
+}
+
 .elmas-paket-kart--baron {
   border-color: rgba(212, 175, 55, 0.75);
-  box-shadow: 0 0 28px rgba(212, 175, 55, 0.15), inset 0 0 30px rgba(255, 215, 100, 0.06);
+  background:
+    linear-gradient(165deg, rgba(255, 220, 120, 0.07), transparent 42%),
+    linear-gradient(180deg, rgba(32, 24, 10, 0.96), rgba(10, 8, 4, 0.98));
+  box-shadow: 0 0 32px rgba(212, 175, 55, 0.14), inset 0 0 36px rgba(255, 215, 100, 0.05);
 }
 
 .elmas-paket-kart--aktif {
   outline: 1px solid rgba(110, 220, 140, 0.45);
 }
 
+.elmas-paket-vip-etiket {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(212, 175, 55, 0.55);
+  background: rgba(212, 175, 55, 0.15);
+  font-family: 'Oswald', sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: #f0d878;
+}
+
+.elmas-paket-ust {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
 .elmas-paket-rozet {
-  font-size: 28px;
-  margin-bottom: 6px;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.35);
+  font-size: 24px;
 }
 
 .elmas-paket-baslik {
   margin: 0 0 4px;
   font-family: 'Oswald', sans-serif;
-  font-size: 17px;
-  letter-spacing: 0.5px;
+  font-size: 16px;
+  letter-spacing: 0.06em;
   color: #f5e8d0;
   text-transform: uppercase;
+  line-height: 1.2;
 }
 
 .elmas-paket-alt {
-  margin: 0 0 12px;
+  margin: 0;
   font-size: 12px;
   color: #a89880;
   font-style: italic;
+  line-height: 1.35;
 }
 
 .elmas-paket-ozellikler {
-  margin: 0 0 14px;
+  margin: 0 0 16px;
   padding-left: 18px;
   flex: 1;
   font-size: 12px;
-  line-height: 1.5;
-  color: #d8ccb8;
+  line-height: 1.55;
+  color: #d0c4b0;
 }
 
 .elmas-paket-ozellikler li {
-  margin-bottom: 5px;
+  margin-bottom: 6px;
+}
+
+.elmas-paket-ozellikler li::marker {
+  color: #c5a059;
 }
 
 .elmas-paket-btn {
+  position: relative;
+  overflow: hidden;
   width: 100%;
   margin-top: auto;
-  padding: 11px 10px;
+  padding: 12px 10px;
   border: none;
+  border-radius: 10px;
   font-family: 'Oswald', sans-serif;
   font-size: 12px;
-  letter-spacing: 0.8px;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   cursor: pointer;
   color: #fff8e8;
 }
 
+.elmas-paket-btn > span:last-child {
+  position: relative;
+  z-index: 1;
+}
+
+.elmas-paket-btn-parilti {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.15) 50%, transparent 60%);
+  transform: translateX(-120%);
+  animation: elmas-vip-btn-sweep 4s ease-in-out infinite;
+}
+
 .elmas-paket-btn--tetikci {
-  background: linear-gradient(180deg, #8b5a2b 0%, #5c3a18 100%);
+  background: linear-gradient(180deg, #9a6530 0%, #5c3a18 100%);
   border: 1px solid #b07840;
 }
 
@@ -497,14 +1056,14 @@
 }
 
 .elmas-paket-btn--baron {
-  background: linear-gradient(180deg, #c9a227 0%, #8b6914 100%);
+  background: linear-gradient(180deg, #e0c040 0%, #9a7010 100%);
   border: 1px solid #f0d060;
   color: #1a1208;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
 }
 
 .elmas-paket-btn--aktif {
-  background: #2a3a2a;
+  background: #243028;
   border: 1px solid #4a6a4a;
   color: #9fd4a8;
   cursor: default;
@@ -514,9 +1073,39 @@
   filter: brightness(1.1);
 }
 
+@media (max-width: 980px) {
+  .elmas-vip-tl-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 860px) {
   .elmas-paket-grid {
     grid-template-columns: 1fr;
+  }
+
+  .elmas-vip-kasa-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .elmas-vip-govde {
+    padding: 16px 14px 20px;
+  }
+
+  .elmas-vip-hero {
+    padding: 24px 16px 16px;
+  }
+}
+
+@media (max-width: 520px) {
+  .elmas-vip-tl-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .elmas-vip-bakiye-pil {
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 16px;
   }
 }
 
@@ -539,7 +1128,11 @@
 @media (prefers-reduced-motion: reduce) {
   #masterLayout .profil-elmas-btn-icerik,
   #masterLayout .profil-elmas-btn-parilti,
-  #masterLayout .profil-elmas-ikon {
+  #masterLayout .profil-elmas-ikon,
+  .elmas-vip-parilti,
+  .elmas-vip-tl-btn-parilti,
+  .elmas-paket-btn-parilti,
+  .elmas-vip-kasa-btn-parilti {
     animation: none;
   }
 }

@@ -81,8 +81,31 @@ const KUMAR_OYUNLARI = [
   },
 ];
 
+const PIYANGO_OYUN = {
+  id: "piyango",
+  ad: "Piyango",
+  ikon: "🎟️",
+  aciklama: "6/25 sayı seç — 6 sayının tamamını bilen havuzun %90'ını kazanır.",
+  minBahis: 100_000,
+  maxBahis: 100_000,
+  cokluAdim: false,
+  ozel: true,
+};
+
+function piyangoAktifMi() {
+  return process.env.NODE_ENV !== "production" || process.env.KUMARHANE_PIYANGO === "1";
+}
+
+function kumarOyunlariGetir() {
+  if (!piyangoAktifMi()) return KUMAR_OYUNLARI;
+  const piyango = { ...PIYANGO_OYUN };
+  return [piyango, ...KUMAR_OYUNLARI];
+}
+
 function oyunBul(id) {
-  return KUMAR_OYUNLARI.find((o) => o.id === String(id || "")) || null;
+  const sid = String(id || "");
+  if (sid === "piyango" && piyangoAktifMi()) return PIYANGO_OYUN;
+  return KUMAR_OYUNLARI.find((o) => o.id === sid) || null;
 }
 
 module.exports = {
@@ -92,5 +115,8 @@ module.exports = {
   KUMAR_MIN_BAHIS,
   KUMAR_MAX_BAHIS,
   KUMAR_OYUNLARI,
+  PIYANGO_OYUN,
+  piyangoAktifMi,
+  kumarOyunlariGetir,
   oyunBul,
 };

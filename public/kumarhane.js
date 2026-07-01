@@ -43,6 +43,7 @@ var kumarhaneRuletSeciliSayi = 7;
 var kumarhaneOyunModu = { barbut: 'solo', rus_ruleti: 'solo' };
 var kumarhaneMasaVeri = null;
 var kumarhaneMasaPollTimer = null;
+var kumarhanePiyangoSecili = [];
 var KUMARHANE_OYUN_KAPAK = {
   blackjack: 'images/kumarhane/blackjack.png',
   rulet: 'images/kumarhane/rulet.png',
@@ -51,7 +52,8 @@ var KUMARHANE_OYUN_KAPAK = {
   uc_kart_poker: 'images/kumarhane/uc-kart-poker.png',
   slot: 'images/kumarhane/slot.png',
   at_yarisi: 'images/kumarhane/at-yarisi.png',
-  five_finger: 'images/kumarhane/five-finger.png'
+  five_finger: 'images/kumarhane/five-finger.png',
+  piyango: 'images/kumarhane/piyango.png'
 };
 
 function kumarhaneOyunKapakHTML(oyunId, alt, sahne) {
@@ -837,6 +839,234 @@ function kumarhaneFingerHTML() {
   return html;
 }
 
+function kumarhanePiyangoSureFormat(ms) {
+  var sn = Math.max(0, Math.floor((ms || 0) / 1000));
+  var dk = Math.floor(sn / 60);
+  var s = sn % 60;
+  if (dk >= 60) {
+    var sa = Math.floor(dk / 60);
+    dk = dk % 60;
+    return sa + 's ' + dk + 'dk';
+  }
+  return dk + 'dk ' + s + 'sn';
+}
+
+function kumarhanePiyangoTopHTML(n, ek) {
+  var cls = 'km-py-top' + (ek ? ' ' + ek : '');
+  return '<span class="' + cls + '"><span class="km-py-top-isik"></span><span class="km-py-top-rakam">' + n + '</span></span>';
+}
+
+function kumarhanePiyangoSeciliSeritGuncelle() {
+  var serit = document.getElementById('kmPiyangoSeciliSerit');
+  if (!serit) return;
+  var p = kumarhanePanelVeri && kumarhanePanelVeri.piyango;
+  var slots = (p && p.secimSayisi) || 6;
+  var html = '';
+  for (var i = 0; i < slots; i++) {
+    var n = kumarhanePiyangoSecili[i];
+    if (n) html += kumarhanePiyangoTopHTML(n, 'km-py-top--dolu km-py-top--secim');
+    else html += '<span class="km-py-top km-py-top--bos"><span class="km-py-top-rakam">?</span></span>';
+  }
+  serit.innerHTML = html;
+  var sayac = document.getElementById('kmPiyangoSecimSayac');
+  if (sayac) {
+    sayac.textContent = kumarhanePiyangoSecili.length + ' / ' + slots;
+  }
+}
+
+function kumarhanePiyangoSayiToggle(n) {
+  var idx = kumarhanePiyangoSecili.indexOf(n);
+  if (idx >= 0) {
+    kumarhanePiyangoSecili.splice(idx, 1);
+  } else {
+    var p = kumarhanePanelVeri && kumarhanePanelVeri.piyango;
+    var max = (p && p.secimSayisi) || 6;
+    if (kumarhanePiyangoSecili.length >= max) {
+      toast(t('game.kumarhane.lotteryMaxPick', { n: max }), 'hata');
+      return;
+    }
+    kumarhanePiyangoSecili.push(n);
+    kumarhanePiyangoSecili.sort(function(a, b) { return a - b; });
+  }
+  kumarhanePiyangoSayiGridGuncelle();
+}
+
+function kumarhanePiyangoSayiGridGuncelle() {
+  var grid = document.getElementById('kmPiyangoGrid');
+  if (!grid) return;
+  grid.querySelectorAll('.km-piyango-sayi').forEach(function(btn) {
+    var n = parseInt(btn.getAttribute('data-sayi'), 10);
+    btn.classList.toggle('km-piyango-sayi--secili', kumarhanePiyangoSecili.indexOf(n) >= 0);
+  });
+  kumarhanePiyangoSeciliSeritGuncelle();
+}
+
+function kumarhanePiyangoBiletKartHTML(b) {
+  var html = '<article class="km-py-bilet-kart">';
+  html += '<div class="km-py-bilet-ust"><span class="km-py-bilet-etiket">' + escHtml(t('game.kumarhane.lotteryTitle')) + '</span>';
+  if (b.ucretsiz && b.eslesme == null) {
+    html += '<span class="km-py-bilet-rozet">' + escHtml(t('game.kumarhane.lotteryFreeUsed')) + '</span>';
+  }
+  html += '</div><div class="km-py-bilet-toplar">';
+  (b.sayilar || []).forEach(function(n) {
+    var topCls = 'km-py-top--mini';
+    if (b.eslesme != null && b.eslesme >= 6) topCls += ' km-py-top--kazanc';
+    html += kumarhanePiyangoTopHTML(n, topCls);
+  });
+  html += '</div>';
+  if (b.eslesme != null) {
+    html += '<div class="km-py-bilet-sonuc">';
+    html += escHtml(t('game.kumarhane.lotteryMatch', { n: b.eslesme }));
+    if (b.odul > 0) html += ' · <strong>+' + fmt(b.odul) + '</strong>';
+    if (b.teselliHak > 0) {
+      html += ' · ' + escHtml(t('game.kumarhane.lotteryConsolation', { n: b.teselliHak }));
+    }
+    html += '</div>';
+  }
+  html += '</article>';
+  return html;
+}
+
+function kumarhanePiyangoHTML() {
+  var p = (kumarhanePanelVeri && kumarhanePanelVeri.piyango) || {};
+  var maxSayi = p.sayiMax || 25;
+  var secim = p.secimSayisi || 6;
+  var html = '<div class="km-oyun-sahne km-oyun-sahne--piyango">'
+    + '<button type="button" class="km-geri-btn km-py-geri" onclick="kumarhaneLobiDon()">← ' + escHtml(t('game.kumarhane.back')) + '</button>'
+    + '<div class="km-py-sahne">'
+    + '<div class="km-py-banner">' + kumarhaneOyunKapakHTML('piyango', t('game.kumarhane.lotteryTitle'), false) + '</div>'
+    + '<div class="km-py-hero">'
+    + '<div class="km-py-neon-cerceve" aria-hidden="true"><span class="km-py-neon-yazi">PIYANGO</span></div>'
+    + '<p class="km-py-alt">' + escHtml(t('game.kumarhane.lotteryDesc', { pick: secim, max: maxSayi })) + '</p>'
+    + '<div class="km-py-program-rozet"><span class="km-py-program-ikon" aria-hidden="true">🕗</span>'
+    + escHtml(p.cekilisProgram || t('game.kumarhane.lotterySchedule')) + '</div>'
+    + '</div>'
+    + '<div class="km-py-jackpot-satir">'
+    + '<div class="km-py-jackpot">'
+    + '<span class="km-py-jackpot-etiket">' + escHtml(t('game.kumarhane.lotteryPrize')) + '</span>'
+    + '<div class="km-py-jackpot-tutar">' + fmt(p.buyukOdul || 0) + '<small>çip</small></div>'
+    + '</div>'
+    + '<div class="km-py-sayac-kutu">'
+    + '<span class="km-py-sayac-etiket">' + escHtml(t('game.kumarhane.lotteryDrawIn')) + '</span>'
+    + '<div class="km-py-sayac-deger" id="kmPiyangoKalan">' + escHtml(kumarhanePiyangoSureFormat(p.kalanMs)) + '</div>'
+  + '<div class="km-py-sayac-cizgi" aria-hidden="true"></div>'
+    + '</div></div>'
+    + '<div class="km-py-istatistik">'
+    + '<div class="km-py-stat"><span>' + escHtml(t('game.kumarhane.lotteryTicket')) + '</span><strong>' + fmt(p.biletUcret || 100000) + '</strong></div>'
+    + '<div class="km-py-stat"><span>' + escHtml(t('game.kumarhane.lotteryTicketCount')) + '</span><strong>' + fmt(p.toplamBilet || 0) + '</strong></div>';
+  if (p.biletHak > 0) {
+    html += '<div class="km-py-stat km-py-stat--hak"><span>' + escHtml(t('game.kumarhane.lotteryFreeTickets')) + '</span><strong>' + fmt(p.biletHak) + '</strong></div>';
+  }
+  html += '</div>'
+    + '<div class="km-py-makine">'
+    + '<div class="km-py-makine-baslik">'
+    + '<span>' + escHtml(t('game.kumarhane.lotteryYourPick')) + '</span>'
+    + '<span class="km-py-secim-sayac" id="kmPiyangoSecimSayac">0 / ' + secim + '</span>'
+    + '</div>'
+    + '<div class="km-py-secili-serit" id="kmPiyangoSeciliSerit">';
+  for (var s = 0; s < secim; s++) {
+    html += '<span class="km-py-top km-py-top--bos"><span class="km-py-top-rakam">?</span></span>';
+  }
+  html += '</div>'
+    + '<div class="km-py-tambur-etiket">6 / ' + maxSayi + '</div>'
+    + '<div class="km-piyango-grid" id="kmPiyangoGrid">';
+  for (var i = 1; i <= maxSayi; i++) {
+    html += '<button type="button" class="km-piyango-sayi" data-sayi="' + i + '" onclick="kumarhanePiyangoSayiToggle(' + i + ')">'
+      + '<span class="km-py-top km-py-top--grid"><span class="km-py-top-isik"></span><span class="km-py-top-rakam">' + i + '</span></span>'
+      + '</button>';
+  }
+  html += '</div></div>'
+    + '<div class="km-py-aksiyon">'
+    + '<button type="button" class="km-btn km-btn--yesil km-py-btn-al" onclick="kumarhanePiyangoBiletAl()">'
+    + '<span class="km-py-btn-ikon" aria-hidden="true">🎟️</span> ' + escHtml(t('game.kumarhane.lotteryBuy')) + '</button>'
+    + '<button type="button" class="km-btn km-py-btn-temiz" onclick="kumarhanePiyangoTemizle()">' + escHtml(t('game.kumarhane.lotteryClear')) + '</button>'
+    + '</div>';
+
+  if ((p.benimBiletler || []).length) {
+    html += '<div class="km-py-bolum"><h4 class="km-py-bolum-baslik">' + escHtml(t('game.kumarhane.lotteryMyTickets')) + '</h4>'
+      + '<div class="km-py-bilet-liste">';
+    p.benimBiletler.forEach(function(b) {
+      html += kumarhanePiyangoBiletKartHTML(b);
+    });
+    html += '</div></div>';
+  }
+
+  if (p.sonCekilis && (p.sonCekilis.sayilar || []).length) {
+    html += '<div class="km-py-bolum km-py-bolum--son">'
+      + '<h4 class="km-py-bolum-baslik">' + escHtml(t('game.kumarhane.lotteryLastDraw')) + '</h4>'
+      + '<div class="km-py-son-tambur">';
+    (p.sonCekilis.sayilar || []).forEach(function(n, idx) {
+      var ek = idx >= (p.sonCekilis.sayilar.length - 3) ? ' km-py-top--son3' : '';
+      html += kumarhanePiyangoTopHTML(n, 'km-py-top--cekilis' + ek);
+    });
+    html += '</div>';
+    if ((p.sonCekilis.kazananlar || []).length) {
+      html += '<ul class="km-py-kazanan-liste">';
+      p.sonCekilis.kazananlar.forEach(function(k) {
+        html += '<li><span class="km-py-kazanan-ad">' + escHtml(k.reisAdi) + '</span>'
+          + '<span class="km-py-kazanan-detay">' + escHtml(t('game.kumarhane.lotteryMatch', { n: k.eslesme }));
+        if (k.odul > 0) html += ' · +' + fmt(k.odul);
+        if (k.teselliHak > 0) html += ' · ' + escHtml(t('game.kumarhane.lotteryConsolation', { n: k.teselliHak }));
+        html += '</span></li>';
+      });
+      html += '</ul>';
+    } else {
+      html += '<p class="km-py-bos-sonuc">' + escHtml(t('game.kumarhane.lotteryNoWinner')) + '</p>';
+    }
+    html += '</div>';
+  }
+
+  html += '</div></div>';
+  return html;
+}
+
+function kumarhanePiyangoTemizle() {
+  kumarhanePiyangoSecili = [];
+  kumarhanePiyangoSayiGridGuncelle();
+}
+
+async function kumarhanePiyangoBiletAl() {
+  var p = kumarhanePanelVeri && kumarhanePanelVeri.piyango;
+  var need = (p && p.secimSayisi) || 6;
+  if (kumarhanePiyangoSecili.length !== need) {
+    toast(t('game.kumarhane.lotteryNeedPick', { n: need }), 'hata');
+    return;
+  }
+  var ef = await sunucuAksiyon('kumarhane_piyango_bilet', null, null, { sayilar: kumarhanePiyangoSecili.slice() });
+  if (!ef) return;
+  if (ef.chip != null && kumarhanePanelVeri) kumarhanePanelVeri.chip = ef.chip;
+  if (ef.piyango && kumarhanePanelVeri) kumarhanePanelVeri.piyango = ef.piyango;
+  kumarhanePiyangoSecili = [];
+  kumarhaneOzetGuncelle();
+  kumarhaneChipPulse();
+  kumarhaneSes('chip');
+  if (ef.mesaj) {
+    kumarhaneSonucGoster(escHtml(ef.mesaj), 'ok');
+    toast(ef.mesaj, 'ok');
+  }
+  kumarhaneIcerikCiz();
+  if (kumarhaneAktifOyun === 'piyango') kumarhanePiyangoSayiGridGuncelle();
+}
+
+function kumarhanePiyangoSayacBaslat() {
+  if (window._kmPiyangoTimer) clearInterval(window._kmPiyangoTimer);
+  if (!kumarhanePanelVeri || !kumarhanePanelVeri.piyango) return;
+  var bitis = Date.now() + (kumarhanePanelVeri.piyango.kalanMs || 0);
+  window._kmPiyangoTimer = setInterval(function() {
+    var el = document.getElementById('kmPiyangoKalan');
+    if (!el) {
+      clearInterval(window._kmPiyangoTimer);
+      return;
+    }
+    var kalan = Math.max(0, bitis - Date.now());
+    el.textContent = kumarhanePiyangoSureFormat(kalan);
+    if (kalan <= 0) {
+      clearInterval(window._kmPiyangoTimer);
+      kumarhanePanelYukle(true);
+    }
+  }, 1000);
+}
+
 function kumarhaneOyunIcerikHTML(oyunId) {
   if (oyunId === 'blackjack') return kumarhaneBlackjackHTML();
   if (oyunId === 'rulet') return kumarhaneRuletHTML();
@@ -846,6 +1076,7 @@ function kumarhaneOyunIcerikHTML(oyunId) {
   if (oyunId === 'slot') return kumarhaneSlotHTML();
   if (oyunId === 'at_yarisi') return kumarhaneAtHTML();
   if (oyunId === 'five_finger') return kumarhaneFingerHTML();
+  if (oyunId === 'piyango') return kumarhanePiyangoHTML();
   return '<p>' + escHtml(t('game.error.loadFailed')) + '</p>';
 }
 
@@ -859,6 +1090,10 @@ function kumarhaneIcerikCiz() {
   govde.innerHTML = kumarhaneOyunIcerikHTML(kumarhaneAktifOyun);
   if (kumarhaneAktifOyun === 'rulet') kumarhaneRuletTabloHazirla();
   if (kumarhaneAktifOyun === 'slot') kumarhaneSlotKolBagla();
+  if (kumarhaneAktifOyun === 'piyango') {
+    kumarhanePiyangoSayiGridGuncelle();
+    kumarhanePiyangoSayacBaslat();
+  }
 }
 
 function kumarhanePanelHTML() {
@@ -922,6 +1157,7 @@ function kumarhaneLobiDon() {
 
 function kumarhaneOyunAc(oyunId) {
   if (kumarhaneAnimasyon) return;
+  if (oyunId === 'piyango') kumarhanePiyangoSecili = [];
   if (kumarhanePanelVeri && kumarhanePanelVeri.aktifOyun && kumarhanePanelVeri.aktifOyun.oyunId) {
     kumarhaneAktifOyun = kumarhanePanelVeri.aktifOyun.oyunId;
   } else {

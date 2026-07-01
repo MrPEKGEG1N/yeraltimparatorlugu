@@ -5,7 +5,7 @@ const {
   KUMAR_MAX_CHIP_ISLEM,
   KUMAR_MIN_BAHIS,
   KUMAR_MAX_BAHIS,
-  KUMAR_OYUNLARI,
+  kumarOyunlariGetir,
   oyunBul,
 } = require("./kumarhaneCatalog");
 const blackjack = require("./kumarhane/blackjack");
@@ -166,7 +166,7 @@ async function panelGetir(db, userId) {
     maxChipIslem: KUMAR_MAX_CHIP_ISLEM,
     minBahis: KUMAR_MIN_BAHIS,
     maxBahis: KUMAR_MAX_BAHIS,
-    oyunlar: KUMAR_OYUNLARI,
+    oyunlar: kumarOyunlariGetir(),
     aktifOyun,
     yaris,
   };
