@@ -3582,6 +3582,21 @@
   color: #c4b5fd;
 }
 
+#masterLayout #anaIcerik .km-py-stat--limit strong {
+  color: #fde68a;
+}
+
+#masterLayout #anaIcerik .km-py-limit-uyari {
+  margin: 0 14px 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(251, 191, 36, 0.12);
+  border: 1px solid rgba(251, 191, 36, 0.28);
+  color: #fde68a;
+  font-size: 13px;
+  text-align: center;
+}
+
 #masterLayout #anaIcerik .km-py-btn-temiz {
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.12);

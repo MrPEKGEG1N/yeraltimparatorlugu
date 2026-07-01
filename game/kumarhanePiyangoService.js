@@ -502,6 +502,7 @@ async function panelVerisiGetir(db, userId) {
     );
   }
 
+  const benimBiletSayisi = benimBiletler.length;
   const biletAdet = biletSayisi?.n || 0;
   const { havuzToplam, buyukOdul } = havuzOdulHesapla(ucretliBiletSayisi?.n || 0);
   const biletHak = await hakGetir(db, userId);
@@ -522,6 +523,8 @@ async function panelVerisiGetir(db, userId) {
     kalanMs: donemBitisMs(),
     toplamBilet: biletAdet,
     maxBilet: MAX_BILET_KULLANICI,
+    benimBiletSayisi,
+    biletKalan: Math.max(0, MAX_BILET_KULLANICI - benimBiletSayisi),
     benimBiletler: benimBiletler.map((b) => {
       let sayilar = [];
       try {
@@ -580,7 +583,10 @@ async function biletAl(db, userId, hamSayilar, opts = {}) {
     [cekilis.id, userId]
   );
   if ((mevcut?.n || 0) >= MAX_BILET_KULLANICI) {
-    return { ok: false, error: `Bu dönemde en fazla ${MAX_BILET_KULLANICI} bilet alabilirsin.` };
+    return {
+      ok: false,
+      error: `Bu çekiliş döneminde en fazla ${MAX_BILET_KULLANICI} bilet alabilirsin (çip veya elmas).`,
+    };
   }
 
   const ucretsiz = odeme === "chip" ? await hakKullan(db, userId) : false;

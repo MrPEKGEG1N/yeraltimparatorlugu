@@ -22,7 +22,7 @@ const {
 const { sektorPanel, mekanAl, mekanDevret } = require("./sectorService");
 const { processSaatlikGelir, oyuncuSaatlikKazanc } = require("./saatlikGelirService");
 const { karaListeSenkronize } = require("./karaListeService");
-const { paketListesi, getPremiumBonuses, premiumSatinAl, elmasPaketListesi, elmasPaketSatinAl } = require("./premiumService");
+const { paketListesi, getPremiumBonuses, premiumSatinAl, elmasPaketListesi, elmasPaketSatinAl, icraatPaketPanel, icraatPaketSatinAl } = require("./premiumService");
 const { logStatHareket } = require("./statService");
 const { gelistir: guvenliYerGelistir, panelGetir: guvenliYerPanelGetir, kasaSatinAl: guvenliYerKasaSatinAl } = require("./guvenliYerService");
 const { panelGetir: sabotajPanelGetir, sabotajBaslat, sabotajIptal } = require("./sabotajService");
@@ -435,6 +435,7 @@ async function publicPlayerFull(db, userId, player) {
     },
     premiumMagaza: paketListesi(),
     elmasPaketler: elmasPaketListesi(),
+    icraatPaket: await icraatPaketPanel(db, userId),
     limanlar: {
       istanbul: sahipLimanlar.includes("istanbul"),
       izmir: sahipLimanlar.includes("izmir"),
@@ -1672,6 +1673,18 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
       mesaj: sonuc.mesaj,
       player: await publicPlayerFull(db, userId, player),
       effect: { type: "elmas_satin_al", paket: sonuc.paket, elmas: sonuc.toplamElmas },
+    };
+  }
+
+  if (action === "icraat_paket_satin_al") {
+    const sonuc = await icraatPaketSatinAl(db, userId);
+    if (!sonuc.ok) return sonuc;
+    player = await loadPlayer(db, userId);
+    return {
+      ok: true,
+      mesaj: sonuc.mesaj,
+      player: await publicPlayerFull(db, userId, player),
+      effect: { type: "icraat_paket_satin_al", mesaj: sonuc.mesaj, icraatPaket: sonuc.icraatPaket },
     };
   }
 

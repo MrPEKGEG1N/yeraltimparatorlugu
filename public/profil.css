@@ -687,6 +687,82 @@
   border-top: 1px solid rgba(212, 175, 55, 0.18);
 }
 
+.elmas-magaza-bolum--icraat {
+  margin-top: 8px;
+  padding-top: 22px;
+  border-top: 1px solid rgba(212, 175, 55, 0.18);
+}
+
+.elmas-vip-bolum-ikon--icraat {
+  border-color: rgba(120, 200, 255, 0.35);
+  background: rgba(40, 100, 180, 0.12);
+  box-shadow: 0 0 14px rgba(80, 160, 255, 0.12);
+}
+
+.elmas-icraat-paket-kart {
+  border-radius: 14px;
+  border: 1px solid rgba(120, 180, 255, 0.22);
+  background: linear-gradient(145deg, rgba(18, 34, 58, 0.72), rgba(10, 16, 28, 0.88));
+  padding: 16px;
+}
+
+.elmas-icraat-paket-ad {
+  margin: 0 0 8px;
+  font-size: 18px;
+  color: #e8f2ff;
+}
+
+.elmas-icraat-paket-ozet {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  align-items: center;
+  margin: 0 0 10px;
+  color: #b8d4ff;
+  font-size: 14px;
+}
+
+.elmas-icraat-paket-fiyat {
+  color: #c4b5fd;
+  font-weight: 700;
+}
+
+.elmas-icraat-paket-bekleme {
+  margin: 0 0 12px;
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.elmas-icraat-paket-btn {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid rgba(120, 180, 255, 0.35);
+  border-radius: 10px;
+  background: linear-gradient(145deg, rgba(50, 100, 180, 0.85), rgba(30, 60, 120, 0.92));
+  color: #eff6ff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.elmas-icraat-paket-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.elmas-icraat-paket-btn:not(:disabled):hover {
+  filter: brightness(1.06);
+}
+
+.elmas-icraat-paket-btn-parilti {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 20%, rgba(255, 255, 255, 0.16) 50%, transparent 80%);
+  animation: elmas-vip-btn-sweep 3.6s ease-in-out infinite;
+  pointer-events: none;
+}
+
 .elmas-magaza-yukleniyor {
   min-height: 200px;
   display: flex;

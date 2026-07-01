@@ -929,6 +929,10 @@ function kumarhanePiyangoBiletKartHTML(b) {
 
 function kumarhanePiyangoHTML() {
   var p = (kumarhanePanelVeri && kumarhanePanelVeri.piyango) || {};
+  var maxBilet = p.maxBilet || 5;
+  var benimBilet = p.benimBiletSayisi != null ? p.benimBiletSayisi : ((p.benimBiletler || []).length);
+  var biletKalan = p.biletKalan != null ? p.biletKalan : Math.max(0, maxBilet - benimBilet);
+  var biletDolu = biletKalan <= 0;
   var maxSayi = p.sayiMax || 25;
   var secim = p.secimSayisi || 6;
   var html = '<div class="km-oyun-sahne km-oyun-sahne--piyango">'
@@ -952,13 +956,18 @@ function kumarhanePiyangoHTML() {
   + '<div class="km-py-sayac-cizgi" aria-hidden="true"></div>'
     + '</div></div>'
     + '<div class="km-py-istatistik">'
+    + '<div class="km-py-stat km-py-stat--limit"><span>' + escHtml(t('game.kumarhane.lotteryMyLimit')) + '</span><strong>' + benimBilet + ' / ' + maxBilet + '</strong></div>'
     + '<div class="km-py-stat"><span>' + escHtml(t('game.kumarhane.lotteryTicket')) + '</span><strong>' + fmt(p.biletUcret || 100000) + ' çip</strong></div>'
     + '<div class="km-py-stat km-py-stat--elmas"><span>' + escHtml(t('game.kumarhane.lotteryTicketDiamond')) + '</span><strong>💎 ' + fmt(p.biletElmasMaliyet || 2) + '</strong></div>'
     + '<div class="km-py-stat"><span>' + escHtml(t('game.kumarhane.lotteryTicketCount')) + '</span><strong>' + fmt(p.toplamBilet || 0) + '</strong></div>';
   if (p.biletHak > 0) {
-    html += '<div class="km-py-stat km-py-stat--hak"><span>' + escHtml(t('game.kumarhane.lotteryFreeTickets')) + '</span><strong>' + fmt(p.biletHak) + '</strong></div>';
+    html += '<div class="km-py-stat km-py-stat--hak"><span>' + escHtml(t('game.kumarhane.lotteryFreeTicketsHint')) + '</span><strong>' + fmt(p.biletHak) + '</strong></div>';
   }
-  html += '</div>'
+  html += '</div>';
+  if (biletDolu) {
+    html += '<p class="km-py-limit-uyari">' + escHtml(t('game.kumarhane.lotteryLimitReached', { max: maxBilet })) + '</p>';
+  }
+  html += ''
     + '<div class="km-py-makine">'
     + '<div class="km-py-makine-baslik">'
     + '<span>' + escHtml(t('game.kumarhane.lotteryYourPick')) + '</span>'
@@ -978,9 +987,9 @@ function kumarhanePiyangoHTML() {
   }
   html += '</div></div>'
     + '<div class="km-py-aksiyon">'
-    + '<button type="button" class="km-btn km-btn--yesil km-py-btn-al" onclick="kumarhanePiyangoBiletAl()">'
+    + '<button type="button" class="km-btn km-btn--yesil km-py-btn-al"' + (biletDolu ? ' disabled' : '') + ' onclick="kumarhanePiyangoBiletAl()">'
     + '<span class="km-py-btn-ikon" aria-hidden="true">🎟️</span> ' + escHtml(t('game.kumarhane.lotteryBuy')) + '</button>'
-    + '<button type="button" class="km-btn km-py-btn-elmas" onclick="kumarhanePiyangoBiletElmasAl()">'
+    + '<button type="button" class="km-btn km-py-btn-elmas"' + (biletDolu ? ' disabled' : '') + ' onclick="kumarhanePiyangoBiletElmasAl()">'
     + '<span class="km-py-btn-ikon" aria-hidden="true">💎</span> ' + escHtml(t('game.kumarhane.lotteryBuyDiamond', { n: p.biletElmasMaliyet || 2 })) + '</button>'
     + '<button type="button" class="km-btn km-py-btn-temiz" onclick="kumarhanePiyangoTemizle()">' + escHtml(t('game.kumarhane.lotteryClear')) + '</button>'
     + '</div>';
@@ -1031,6 +1040,12 @@ function kumarhanePiyangoTemizle() {
 async function kumarhanePiyangoBiletAl() {
   var p = kumarhanePanelVeri && kumarhanePanelVeri.piyango;
   var need = (p && p.secimSayisi) || 6;
+  var maxBilet = (p && p.maxBilet) || 5;
+  var benimBilet = p && p.benimBiletSayisi != null ? p.benimBiletSayisi : ((p && p.benimBiletler) || []).length;
+  if (benimBilet >= maxBilet) {
+    toast(t('game.kumarhane.lotteryLimitReached', { max: maxBilet }), 'hata');
+    return;
+  }
   if (kumarhanePiyangoSecili.length !== need) {
     toast(t('game.kumarhane.lotteryNeedPick', { n: need }), 'hata');
     return;
@@ -1054,6 +1069,12 @@ async function kumarhanePiyangoBiletAl() {
 async function kumarhanePiyangoBiletElmasAl() {
   var p = kumarhanePanelVeri && kumarhanePanelVeri.piyango;
   var need = (p && p.secimSayisi) || 6;
+  var maxBilet = (p && p.maxBilet) || 5;
+  var benimBilet = p && p.benimBiletSayisi != null ? p.benimBiletSayisi : ((p && p.benimBiletler) || []).length;
+  if (benimBilet >= maxBilet) {
+    toast(t('game.kumarhane.lotteryLimitReached', { max: maxBilet }), 'hata');
+    return;
+  }
   var maliyet = (p && p.biletElmasMaliyet) || 2;
   if (kumarhanePiyangoSecili.length !== need) {
     toast(t('game.kumarhane.lotteryNeedPick', { n: need }), 'hata');

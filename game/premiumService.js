@@ -1,10 +1,19 @@
 const { run, get } = require("../db/database");
-const { ICRAAT_SAATLIK_BONUS } = require("./catalog");
+const { ICRAAT_SAATLIK_BONUS, ICRAAT_MAX } = require("./catalog");
 
 const SMS_GUNLUK_VARSAYILAN = 50;
 const BANKA_HAK_GUNLUK_VARSAYILAN = 20;
 
 const PAKET_SIRA = { tetikci: 1, racon: 2, baron: 3 };
+
+const ICRAAT_PAKET = {
+  id: "icraat_paket",
+  baslik: "İcraat Paketi",
+  aciklama: "25 İcraat / 25 Elmas",
+  icraatMiktar: 25,
+  elmasMaliyet: 25,
+  beklemeSn: 8 * 3600,
+};
 
 /** Gerçek parayla alınan elmas paketleri (TL) */
 const ELMAS_TL_PAKETLER = {
@@ -227,6 +236,76 @@ async function getPremiumBonuses(db, userId) {
   };
 }
 
+async function ensureIcraatPaketColumn(db) {
+  try {
+    await run(db, `ALTER TABLE players ADD COLUMN last_icraat_paket_at INTEGER NOT NULL DEFAULT 0`);
+  } catch (_) {}
+}
+
+function icraatPaketKalanMetni(kalanSn) {
+  if (kalanSn <= 0) return "";
+  const saat = Math.floor(kalanSn / 3600);
+  const dk = Math.ceil((kalanSn % 3600) / 60);
+  if (saat > 0) return `${saat} sa ${dk} dk`;
+  return `${dk} dk`;
+}
+
+async function icraatPaketPanel(db, userId) {
+  await ensureIcraatPaketColumn(db);
+  const row = await get(db, `SELECT elmas, last_icraat_paket_at FROM players WHERE user_id = ?`, [userId]);
+  const simdi = Math.floor(Date.now() / 1000);
+  const last = Number(row?.last_icraat_paket_at || 0);
+  const kalanSn = Math.max(0, last + ICRAAT_PAKET.beklemeSn - simdi);
+  const elmas = row?.elmas || 0;
+  return {
+    id: ICRAAT_PAKET.id,
+    baslik: ICRAAT_PAKET.baslik,
+    aciklama: ICRAAT_PAKET.aciklama,
+    icraatMiktar: ICRAAT_PAKET.icraatMiktar,
+    elmasMaliyet: ICRAAT_PAKET.elmasMaliyet,
+    beklemeSaat: ICRAAT_PAKET.beklemeSn / 3600,
+    satinAlinabilir: kalanSn <= 0,
+    kalanSn,
+    kalanMetin: icraatPaketKalanMetni(kalanSn),
+    yeterliElmas: elmas >= ICRAAT_PAKET.elmasMaliyet,
+  };
+}
+
+async function icraatPaketSatinAl(db, userId) {
+  const panel = await icraatPaketPanel(db, userId);
+  if (!panel.satinAlinabilir) {
+    return {
+      ok: false,
+      error: panel.kalanMetin
+        ? `İcraat Paketi için ${panel.kalanMetin} beklemen gerekir.`
+        : "İcraat Paketi şu an alınamaz.",
+    };
+  }
+  if (!panel.yeterliElmas) {
+    return {
+      ok: false,
+      error: `Yeterli elmasın yok! ${panel.elmasMaliyet.toLocaleString("tr-TR")} elmas gerekir.`,
+    };
+  }
+
+  const { syncIcraatRegen } = require("./icraatService");
+  const synced = await syncIcraatRegen(db, userId);
+  const simdi = Math.floor(Date.now() / 1000);
+  const yeniIcraat = Math.min(ICRAAT_MAX, (synced.icraat || 0) + ICRAAT_PAKET.icraatMiktar);
+  const res = await run(
+    db,
+    `UPDATE players SET elmas = elmas - ?, icraat = ?, last_icraat_paket_at = ? WHERE user_id = ? AND elmas >= ?`,
+    [ICRAAT_PAKET.elmasMaliyet, yeniIcraat, simdi, userId, ICRAAT_PAKET.elmasMaliyet]
+  );
+  if (!res?.changes) return { ok: false, error: "Satın alma başarısız." };
+
+  return {
+    ok: true,
+    mesaj: `İcraat Paketi alındı! +${ICRAAT_PAKET.icraatMiktar} İcraat.`,
+    icraatPaket: await icraatPaketPanel(db, userId),
+  };
+}
+
 async function elmasPaketSatinAl(db, userId, paketId) {
   const paket = elmasPaketTanim(paketId);
   if (!paket) return { ok: false, error: "Geçersiz elmas paketi." };
@@ -287,5 +366,8 @@ module.exports = {
   getPremiumBonuses,
   premiumSatinAl,
   elmasPaketSatinAl,
+  icraatPaketPanel,
+  icraatPaketSatinAl,
+  ICRAAT_PAKET,
   applyPremiumPaketAvantajlari,
 };
