@@ -500,6 +500,7 @@ async function initDatabase() {
     ["bonus_guc", "INTEGER NOT NULL DEFAULT 0"],
     ["last_saatlik_gelir_hour", "TEXT"],
     ["elmas", "INTEGER NOT NULL DEFAULT 0"],
+    ["premium_paket", "TEXT NOT NULL DEFAULT ''"],
   ];
   for (const [col, def] of playerCols) {
     try {
@@ -1000,6 +1001,9 @@ async function initDatabase() {
 
   const { ensureRaporTables } = require("../game/raporService");
   await ensureRaporTables(db);
+
+  const { ensureGorusOneriTables } = require("../game/gorusOneriService");
+  await ensureGorusOneriTables(db);
 
   await logDatabaseStats(db);
   await backupDbFile(DB_PATH);

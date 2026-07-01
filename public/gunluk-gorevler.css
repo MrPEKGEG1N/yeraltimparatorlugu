@@ -370,6 +370,42 @@
   transform: translateY(-1px);
 }
 
+#masterLayout #anaIcerik .gg-aksiyon-grup {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  width: 100%;
+}
+
+#masterLayout #anaIcerik .gunluk-gorev-elmas {
+  width: 100%;
+  max-width: 110px;
+  padding: 5px 6px;
+  border-radius: 5px;
+  border: 1px solid rgba(90, 150, 220, 0.55);
+  background: linear-gradient(180deg, #1a3a5c, #0f2238);
+  color: #d8ecff;
+  font-family: 'Oswald', sans-serif;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  white-space: normal;
+  line-height: 1.25;
+  transition: border-color 0.15s ease, transform 0.12s ease;
+}
+
+#masterLayout #anaIcerik .gunluk-gorev-elmas:hover:not(:disabled) {
+  border-color: #8ec5ff;
+  transform: translateY(-1px);
+}
+
+#masterLayout #anaIcerik .gunluk-gorev-elmas:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 @media (max-width: 780px) {
   #masterLayout #anaIcerik .gunluk-gorevler-sayfa {
     padding: 12px 10px 20px;

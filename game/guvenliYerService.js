@@ -8,23 +8,39 @@ const {
   SEVIYELER,
   MODUL_ALAN,
   KASALAR,
+  KASA_ABONELIK_SN,
   kasaBul,
+  kasaAktifMi,
   kasaKorumaOrani,
   seviyeGorselYolu,
   seviyeBul,
   sonrakiSeviye,
   toplamGucBonusu,
+  nowSec,
 } = require("./guvenliYerCatalog");
 
 async function migrateGuvenliYerKasalar(db) {
   for (const [col, def] of [
     ["kasa_gumus", "INTEGER NOT NULL DEFAULT 0"],
     ["kasa_altin", "INTEGER NOT NULL DEFAULT 0"],
+    ["kasa_gumus_bitis", "INTEGER NOT NULL DEFAULT 0"],
+    ["kasa_altin_bitis", "INTEGER NOT NULL DEFAULT 0"],
   ]) {
     try {
       await run(db, `ALTER TABLE user_base ADD COLUMN ${col} ${def}`);
     } catch (_) {}
   }
+  const gecis = nowSec() + KASA_ABONELIK_SN;
+  await run(
+    db,
+    `UPDATE user_base SET kasa_gumus_bitis = ? WHERE kasa_gumus = 1 AND COALESCE(kasa_gumus_bitis, 0) = 0`,
+    [gecis]
+  );
+  await run(
+    db,
+    `UPDATE user_base SET kasa_altin_bitis = ? WHERE kasa_altin = 1 AND COALESCE(kasa_altin_bitis, 0) = 0`,
+    [gecis]
+  );
 }
 
 async function ensureUserBaseTable(db) {
@@ -45,6 +61,8 @@ async function ensureUserBaseTable(db) {
       bunker_entrance INTEGER NOT NULL DEFAULT 0,
       kasa_gumus INTEGER NOT NULL DEFAULT 0,
       kasa_altin INTEGER NOT NULL DEFAULT 0,
+      kasa_gumus_bitis INTEGER NOT NULL DEFAULT 0,
+      kasa_altin_bitis INTEGER NOT NULL DEFAULT 0,
       updated_at INTEGER NOT NULL DEFAULT (strftime('%s','now')),
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     )`
@@ -77,8 +95,10 @@ function baseOzeti(row) {
     helipad: row.helipad,
     bunkerLvl: row.bunker_lvl,
     bunkerEntrance: row.bunker_entrance,
-    kasaGumus: !!row.kasa_gumus,
-    kasaAltin: !!row.kasa_altin,
+    kasaGumus: kasaAktifMi(row, kasaBul("gumus")),
+    kasaAltin: kasaAktifMi(row, kasaBul("altin")),
+    kasaGumusBitis: row.kasa_gumus_bitis || 0,
+    kasaAltinBitis: row.kasa_altin_bitis || 0,
     kasaKorumaOrani: kasaKorumaOrani(row),
     gucBonus: toplamGucBonusu(s),
   };
@@ -86,17 +106,19 @@ function baseOzeti(row) {
 
 function kasaPanelOzeti(row, player) {
   const baseSev = Math.max(1, row.base_seviye || 1);
+  const elmas = player.elmas || 0;
   return KASALAR.map((k) => {
-    const sahip = !!row[k.alan];
+    const aktif = kasaAktifMi(row, k);
+    const bitisAt = Number(row[k.bitisAlan] || 0);
     let kilitli = false;
     let kilitNedeni = "";
-    if (!sahip && k.minBaseSeviye > baseSev) {
+    if (!aktif && k.minBaseSeviye > baseSev) {
       kilitli = true;
       kilitNedeni = `Üs seviyesi ${k.minBaseSeviye}+ gerekir`;
     }
-    if (!sahip && k.onkosul) {
+    if (!aktif && k.onkosul) {
       const onceki = kasaBul(k.onkosul);
-      if (onceki && !row[onceki.alan]) {
+      if (onceki && !kasaAktifMi(row, onceki)) {
         kilitli = true;
         kilitNedeni = `Önce ${onceki.ad} gerekir`;
       }
@@ -105,15 +127,18 @@ function kasaPanelOzeti(row, player) {
       id: k.id,
       ad: k.ad,
       aciklama: k.aciklama,
-      maliyet: k.maliyet,
+      elmasMaliyet: k.elmasMaliyet,
+      abonelikGun: k.abonelikGun,
       korumaOrani: k.korumaOrani,
       gorsel: k.gorsel,
       minBaseSeviye: k.minBaseSeviye,
       onkosul: k.onkosul,
-      sahip,
+      aktif,
+      bitisAt: aktif ? bitisAt : 0,
+      suresiDolmus: !aktif && bitisAt > 0,
       kilitli,
       kilitNedeni,
-      yeterliPara: player.kasa >= k.maliyet,
+      yeterliElmas: elmas >= k.elmasMaliyet,
     };
   });
 }
@@ -198,38 +223,58 @@ async function kasaSatinAl(db, userId, player, kasaId) {
   if (!kasa) return { ok: false, error: "Geçersiz kasa." };
 
   const row = await ensureUserBase(db, userId);
-  if (row[kasa.alan]) return { ok: false, error: "Bu kasa zaten sende." };
+  const aktif = kasaAktifMi(row, kasa);
 
   const baseSev = Math.max(1, row.base_seviye || 1);
-  if (kasa.minBaseSeviye > baseSev) {
+  if (!aktif && kasa.minBaseSeviye > baseSev) {
     return { ok: false, error: `Üs seviyesi en az ${kasa.minBaseSeviye} olmalı.` };
   }
-  if (kasa.onkosul) {
+  if (!aktif && kasa.onkosul) {
     const onceki = kasaBul(kasa.onkosul);
-    if (onceki && !row[onceki.alan]) {
+    if (onceki && !kasaAktifMi(row, onceki)) {
       return { ok: false, error: `Önce ${onceki.ad} satın almalısın.` };
     }
   }
-  if (player.kasa < kasa.maliyet) {
-    return { ok: false, error: "Kasanda yeterli nakit yok!" };
+
+  const elmasRow = await get(db, `SELECT elmas FROM players WHERE user_id = ?`, [userId]);
+  const elmas = elmasRow?.elmas || 0;
+  if (elmas < kasa.elmasMaliyet) {
+    return {
+      ok: false,
+      error: `Yeterli elmasın yok! ${kasa.elmasMaliyet.toLocaleString("tr-TR")} elmas gerekir.`,
+    };
   }
 
-  player.kasa -= kasa.maliyet;
-  await run(db, `UPDATE players SET kasa = ? WHERE user_id = ?`, [player.kasa, userId]);
-  await logStatHareket(db, userId, "kasa", -kasa.maliyet, "guvenli_yer_kasa");
+  const now = nowSec();
+  const mevcutBitis = Number(row[kasa.bitisAlan] || 0);
+  const baslangic = aktif && mevcutBitis > now ? mevcutBitis : now;
+  const yeniBitis = baslangic + KASA_ABONELIK_SN;
+
+  await run(db, `UPDATE players SET elmas = elmas - ? WHERE user_id = ?`, [kasa.elmasMaliyet, userId]);
+  player.elmas = elmas - kasa.elmasMaliyet;
   await run(
     db,
-    `UPDATE user_base SET ${kasa.alan} = 1, updated_at = strftime('%s','now') WHERE user_id = ?`,
-    [userId]
+    `UPDATE user_base SET ${kasa.alan} = 1, ${kasa.bitisAlan} = ?, updated_at = strftime('%s','now') WHERE user_id = ?`,
+    [yeniBitis, userId]
   );
 
   const guncel = await ensureUserBase(db, userId);
   const korumaYuzde = Math.round(kasa.korumaOrani * 100);
+  const bitisTarih = new Date(yeniBitis * 1000).toLocaleString("tr-TR", {
+    timeZone: "Europe/Istanbul",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  const yenileme = aktif ? " süre uzatıldı" : " aktif edildi";
   return {
     ok: true,
     kasa,
     base: baseOzeti(guncel),
-    mesaj: `${kasa.ad} satın alındı! Kasandaki nakitin %${korumaYuzde}'i saldırıdan korunur.`,
+    bitisAt: yeniBitis,
+    mesaj: `${kasa.ad}${yenileme}! %${korumaYuzde} nakit koruması ${kasa.abonelikGun} gün geçerli (bitiş: ${bitisTarih}).`,
   };
 }
 

@@ -35,6 +35,7 @@ const { panelGetir: sirketPanelGetir } = require("../game/sirketService");
 const { sanitizeProfilAciklama } = require("../game/profilAciklamaSanitize");
 const { kaydetAktivite, aksiyonDetayOlustur } = require("../game/aktiviteService");
 const { raporGonder } = require("../game/raporService");
+const { gorusOneriGonder } = require("../game/gorusOneriService");
 const {
   ensureBildirimTables,
   vapidPublicKey,
@@ -304,6 +305,18 @@ function createGameRouter(db) {
     } catch (err) {
       console.error(err);
       res.status(500).json({ ok: false, error: "Rapor gönderilemedi." });
+    }
+  });
+
+  router.post("/gorus-oneri", async (req, res) => {
+    const body = req.body || {};
+    try {
+      const sonuc = await gorusOneriGonder(db, req.user.id, body.mesaj);
+      if (!sonuc.ok) return res.status(400).json(sonuc);
+      res.json(sonuc);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ ok: false, error: "Görüş gönderilemedi." });
     }
   });
 

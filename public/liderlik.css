@@ -345,6 +345,20 @@
   color: var(--lt-wine-bright);
 }
 
+#masterLayout .lt-name-txt--racon {
+  color: #5eb0ff !important;
+}
+
+#masterLayout .lt-name-txt--baron {
+  color: #ffd76a !important;
+  text-shadow: 0 0 10px rgba(255, 215, 100, 0.35);
+}
+
+#masterLayout .premium-rozet {
+  margin-left: 4px;
+  font-size: 13px;
+}
+
 #masterLayout .lt-cap .oyuncu-link.lt-group-txt {
   background: none;
   border: none;

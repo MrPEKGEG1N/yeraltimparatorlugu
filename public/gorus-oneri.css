@@ -1,0 +1,116 @@
+#masterLayout #anaIcerik .gorus-oneri-sayfa {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 16px 20px 28px;
+}
+
+#masterLayout #anaIcerik .gorus-oneri-kart {
+  width: 100%;
+  max-width: 640px;
+  border-radius: 14px;
+  border: 1px solid rgba(184, 148, 42, 0.38);
+  background:
+    radial-gradient(ellipse 120% 80% at 50% -20%, rgba(80, 55, 20, 0.22) 0%, transparent 55%),
+    linear-gradient(165deg, rgba(28, 22, 16, 0.97) 0%, rgba(14, 11, 8, 0.99) 100%);
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(255, 220, 160, 0.04) inset;
+  overflow: hidden;
+}
+
+#masterLayout #anaIcerik .gorus-oneri-baslik {
+  padding: 16px 18px 12px;
+  border-bottom: 1px solid rgba(184, 148, 42, 0.18);
+}
+
+#masterLayout #anaIcerik .gorus-oneri-baslik h2 {
+  margin: 0 0 6px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  color: #e8c56a;
+  text-transform: uppercase;
+}
+
+#masterLayout #anaIcerik .gorus-oneri-aciklama {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #a89a82;
+}
+
+#masterLayout #anaIcerik .gorus-oneri-govde {
+  padding: 16px 18px 20px;
+}
+
+#masterLayout #anaIcerik .gorus-oneri-textarea {
+  width: 100%;
+  min-height: 160px;
+  resize: vertical;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(184, 148, 42, 0.28);
+  background: rgba(8, 6, 4, 0.65);
+  color: #e8dcc8;
+  font-family: 'Roboto Condensed', sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+  box-sizing: border-box;
+}
+
+#masterLayout #anaIcerik .gorus-oneri-textarea:focus {
+  outline: none;
+  border-color: rgba(212, 175, 55, 0.55);
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.12);
+}
+
+#masterLayout #anaIcerik .gorus-oneri-alt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+#masterLayout #anaIcerik .gorus-oneri-sayac {
+  font-size: 12px;
+  color: #7a7060;
+}
+
+#masterLayout #anaIcerik .gorus-oneri-gonder {
+  min-height: 40px;
+  padding: 8px 20px;
+  border: 1px solid rgba(212, 175, 55, 0.45);
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(120, 90, 30, 0.55) 0%, rgba(70, 50, 15, 0.75) 100%);
+  color: #f0d878;
+  font-family: 'Oswald', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+#masterLayout #anaIcerik .gorus-oneri-gonder:hover:not(:disabled) {
+  border-color: rgba(232, 197, 106, 0.7);
+  color: #fff0c0;
+}
+
+#masterLayout #anaIcerik .gorus-oneri-gonder:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+#masterLayout #anaIcerik .gorus-oneri-basarili {
+  margin-top: 14px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(72, 160, 90, 0.35);
+  background: rgba(20, 50, 28, 0.35);
+  color: #8fd4a0;
+  font-size: 13px;
+}

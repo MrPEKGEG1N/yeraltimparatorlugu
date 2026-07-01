@@ -9,6 +9,7 @@ const { meslekGetir, yetenekleriGetir, yetenekleriKaydet } = require("./meslekSe
 const { panelGetir: sirketPanelGetir } = require("./sirketService");
 const { panelGetir: sefirlikPanelGetir } = require("./turkiyeSefirlikService");
 const { ensureGunlukGorevTables } = require("./gunlukGorevService");
+const { paketTanim } = require("./premiumService");
 const { HIRE } = require("./catalog");
 const { gecerliProfilResmi } = require("./profilPortreler");
 const { clampAvukatIliskisi, AVUKAT_ILISKI_MAX } = require("./devletService");
@@ -74,6 +75,7 @@ async function getDashboard(db) {
       (SELECT COUNT(*) FROM oyuncu_mesajlari WHERE created_at > strftime('%s','now') - 86400) AS mesaj_24s,
       (SELECT COUNT(*) FROM mafya_gruplari) AS mafya_grup,
       (SELECT COUNT(*) FROM icerik_raporlari WHERE created_at > strftime('%s','now') - 86400) AS rapor_24s,
+      (SELECT COUNT(*) FROM oyuncu_gorus_onerileri WHERE created_at > strftime('%s','now') - 86400) AS gorus_24s,
       (SELECT COUNT(DISTINCT user_id) FROM borsa_portfoy WHERE adet > 0) AS borsa_yatirimci,
       (SELECT COUNT(*) FROM borsa_emirleri WHERE durum = 'beklemede') AS borsa_bekleyen_emir,
       (SELECT COALESCE(SUM(p.adet * s.fiyat), 0) FROM borsa_portfoy p JOIN borsa_sirketleri s ON s.id = p.sirket_id) AS borsa_portfoy_deger,
@@ -485,7 +487,7 @@ async function getPlayerDetail(db, userId) {
     db,
     `SELECT u.*, p.kasa, p.guc, p.puan, p.icraat, p.last_seen_at, p.kara_listede, p.sms_hakki,
             p.bonus_guc, p.devlet_iliskisi, p.profil_aciklama, p.profil_resmi, p.dostlar, p.dusmanlar,
-            p.sehre_hukmet_sayisi, p.sehir_efsane, p.liman_istanbul, p.elmas,
+            p.sehre_hukmet_sayisi, p.sehir_efsane, p.liman_istanbul, p.elmas, p.premium_paket,
             p.aktif_ekran, p.son_aksiyon, p.son_aksiyon_detay, p.son_aksiyon_at,
             COALESCE(bh.yatirilan_miktar, 0) AS banka_bakiye,
             COALESCE(bh.banka_hakki, 20) AS banka_hakki,
@@ -1011,6 +1013,7 @@ async function updatePlayerFull(db, adminId, userId, body) {
         ["icraat", o.icraat],
         ["sms_hakki", o.smsHakki],
         ["elmas", o.elmas],
+        ["premium_paket", o.premiumPaket],
         ["bonus_guc", o.bonusGuc],
         ["devlet_iliskisi", o.devletIliskisi],
         ["sehre_hukmet_sayisi", o.sehreHukmetSayisi],
@@ -1058,6 +1061,14 @@ async function updatePlayerFull(db, adminId, userId, body) {
       if (o.dusmanlar !== undefined) {
         pFields.push("dusmanlar = ?");
         pParams.push(String(o.dusmanlar).trim().slice(0, 24));
+      }
+      if (o.premiumPaket !== undefined) {
+        const rawPaket = String(o.premiumPaket).trim();
+        if (rawPaket && !paketTanim(rawPaket)) {
+          return { ok: false, error: "Geçersiz premium paket." };
+        }
+        pFields.push("premium_paket = ?");
+        pParams.push(rawPaket);
       }
       if (pFields.length) {
         pParams.push(userId);
@@ -1320,6 +1331,12 @@ async function listIcerikRaporlari(db, limit = 100) {
   return rows.map(mapRaporRow);
 }
 
+async function listGorusOnerileri(db, limit = 100) {
+  const { gorusOnerileriListele, mapGorusOneriRow } = require("./gorusOneriService");
+  const rows = await gorusOnerileriListele(db, limit);
+  return rows.map(mapGorusOneriRow);
+}
+
 module.exports = {
   fmtTs,
   getDashboard,
@@ -1351,5 +1368,6 @@ module.exports = {
   listSecurityEvents,
   listCanliAktivite,
   listIcerikRaporlari,
+  listGorusOnerileri,
   mapPlayerRow,
 };

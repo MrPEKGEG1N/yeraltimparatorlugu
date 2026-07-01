@@ -7,7 +7,9 @@ function normalizeLastIcraatAt(value, now) {
   return Math.floor(n);
 }
 
-function applyIcraatRegen(player, nowSec) {
+function applyIcraatRegen(player, nowSec, bonuslar) {
+  bonuslar = bonuslar || {};
+  const saatlikBonus = bonuslar.icraatSaatlik ?? ICRAAT_SAATLIK_BONUS;
   const now = nowSec != null ? nowSec : Math.floor(Date.now() / 1000);
   const lastAt = normalizeLastIcraatAt(player.last_icraat_at, now);
   const elapsed = now - lastAt;
@@ -22,7 +24,7 @@ function applyIcraatRegen(player, nowSec) {
     };
   }
 
-  const eklenen = hours * ICRAAT_SAATLIK_BONUS;
+  const eklenen = hours * saatlikBonus;
   return {
     icraat: Math.min(ICRAAT_MAX, (player.icraat || 0) + eklenen),
     last_icraat_at: lastAt + hours * ICRAAT_REGEN_SEC,
@@ -38,10 +40,21 @@ async function syncIcraatRegen(db, userId) {
     return { icraat: 0, last_icraat_at: now, yenilendi: false, eklenen: 0 };
   }
 
-  const synced = applyIcraatRegen({
-    icraat: row.icraat,
-    last_icraat_at: row.last_icraat_at,
-  });
+  let bonuslar = {};
+  try {
+    const { getPremiumBonuses } = require("./premiumService");
+    const b = await getPremiumBonuses(db, userId);
+    bonuslar = { icraatSaatlik: b.icraatSaatlik };
+  } catch (_) {}
+
+  const synced = applyIcraatRegen(
+    {
+      icraat: row.icraat,
+      last_icraat_at: row.last_icraat_at,
+    },
+    undefined,
+    bonuslar
+  );
 
   if (
     synced.icraat !== Number(row.icraat || 0) ||

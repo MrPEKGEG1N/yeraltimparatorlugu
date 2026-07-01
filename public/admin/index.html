@@ -33,6 +33,7 @@
           <button type="button" data-tab="multi" class="nav-btn">🕵️ Şüpheli Hesaplar</button>
           <button type="button" data-tab="mesajlar" class="nav-btn">💬 Sohbet Kontrol</button>
           <button type="button" data-tab="raporlar" class="nav-btn">🚩 İçerik Raporları</button>
+          <button type="button" data-tab="gorusOneriler" class="nav-btn">💡 Görüş ve Öneriler</button>
           <button type="button" data-tab="borsa" class="nav-btn">📈 Borsa</button>
           <button type="button" data-tab="guvenlik" class="nav-btn">🛡️ Güvenlik Günlüğü</button>
         </nav>
@@ -137,6 +138,20 @@
             </div>
           </section>
 
+          <section id="tab-gorusOneriler" class="tab-panel hidden">
+            <p style="color:#6b7280;font-size:13px;margin:0 0 12px">Oyuncuların oyuna ilişkin görüş, öneri ve geri bildirimleri.</p>
+            <div class="admin-tablo-wrap">
+              <table class="admin-tablo">
+                <thead>
+                  <tr>
+                    <th>ID</th><th>Tarih</th><th>Oyuncu</th><th>Mesaj</th><th></th>
+                  </tr>
+                </thead>
+                <tbody id="gorusOneriTablo"></tbody>
+              </table>
+            </div>
+          </section>
+
           <section id="tab-borsa" class="tab-panel hidden">
             <div id="borsaStatGrid" class="stat-grid" style="margin-bottom:16px"></div>
             <p class="baslik-altin" style="margin-top:0">Piyasa Fiyatları</p>
@@ -171,6 +186,6 @@
     </div>
   </div>
 
-  <script src="/admin/admin.js?v=17"></script>
+  <script src="/admin/admin.js?v=18"></script>
 </body>
 </html>

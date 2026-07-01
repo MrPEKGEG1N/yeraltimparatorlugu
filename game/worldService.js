@@ -370,7 +370,7 @@ async function dusmanaCok(db, attackerId, attacker, hedefAd, securityMeta = {}) 
   if (saldiranToplam > hedefSavunma) {
     const hedefBase = await get(
       db,
-      `SELECT kasa_gumus, kasa_altin FROM user_base WHERE user_id = ?`,
+      `SELECT kasa_gumus, kasa_altin, kasa_gumus_bitis, kasa_altin_bitis FROM user_base WHERE user_id = ?`,
       [hedef.id]
     );
     const korumaOrani = kasaKorumaOrani(hedefBase);

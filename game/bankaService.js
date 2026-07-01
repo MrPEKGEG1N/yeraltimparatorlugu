@@ -54,6 +54,9 @@ async function ensureBankaRow(db, userId) {
 }
 
 async function ensureBankaHak(db, userId, row) {
+  const { getPremiumBonuses } = require("./premiumService");
+  const premium = await getPremiumBonuses(db, userId);
+  const gunlukHak = premium.bankaHakGunluk;
   const now = Math.floor(Date.now() / 1000);
   let hak = Number(row.banka_hakki ?? BANKA_HAK_GUNLUK);
   let last = normalizeLastBankaAt(row.last_banka_hak_at, now);
@@ -63,16 +66,16 @@ async function ensureBankaHak(db, userId, row) {
   const elapsed = now - last;
   const periods = Math.floor(elapsed / BANKA_HAK_REGEN_SEC);
   if (periods > 0) {
-    hak += periods * BANKA_HAK_GUNLUK;
+    hak = premium.bankaHakSinirsiz ? 999999 : hak + periods * gunlukHak;
     const yeniLast = last + periods * BANKA_HAK_REGEN_SEC;
     await run(
       db,
       `UPDATE banka_hesaplari SET banka_hakki = ?, last_banka_hak_at = ? WHERE user_id = ?`,
       [hak, yeniLast, userId]
     );
-    return hak;
+    return premium.bankaHakSinirsiz ? 999999 : hak;
   }
-  return hak;
+  return premium.bankaHakSinirsiz ? 999999 : hak;
 }
 
 function normalizeLastBankaAt(value, now) {
@@ -82,12 +85,15 @@ function normalizeLastBankaAt(value, now) {
 }
 
 async function bankaHakHarca(db, userId) {
+  const { getPremiumBonuses } = require("./premiumService");
+  const premium = await getPremiumBonuses(db, userId);
+  if (premium.bankaHakSinirsiz) return { ok: true, kalan: 999999 };
   const row = await ensureBankaRow(db, userId);
   const hak = await ensureBankaHak(db, userId, row);
   if (hak < 1) {
     return {
       ok: false,
-      error: "Banka hakkın kalmadı! Her 24 saatte +20 hak yenilenir.",
+      error: "Banka hakkın kalmadı! Her 24 saatte hak yenilenir.",
     };
   }
   await run(db, `UPDATE banka_hesaplari SET banka_hakki = banka_hakki - 1 WHERE user_id = ?`, [
@@ -102,11 +108,15 @@ async function getBanka(db, userId) {
 }
 
 async function getBankaPanel(db, userId) {
+  const { getPremiumBonuses } = require("./premiumService");
+  const premium = await getPremiumBonuses(db, userId);
   const row = await ensureBankaRow(db, userId);
   const hak = await ensureBankaHak(db, userId, row);
   return {
     bakiye: row.yatirilan_miktar || 0,
-    bankaHakki: hak,
+    bankaHakki: premium.bankaHakSinirsiz ? 999999 : hak,
+    bankaHakSinirsiz: premium.bankaHakSinirsiz,
+    faizOran: premium.faizOran,
     faizBekleyen: row.faiz_bekleyen || 0,
   };
 }
@@ -140,7 +150,13 @@ async function faizIsle(db) {
   let processed = 0;
   for (const row of rows) {
     if (!row.faiz_gun || row.faiz_islendi_gun === row.faiz_gun) continue;
-    const faiz = Math.floor((row.faiz_bekleyen || 0) * FAIZ_ORAN);
+    let faizOran = FAIZ_ORAN;
+    try {
+      const { getPremiumBonuses } = require("./premiumService");
+      const premium = await getPremiumBonuses(db, row.user_id);
+      faizOran = premium.faizOran ?? FAIZ_ORAN;
+    } catch (_) {}
+    const faiz = Math.floor((row.faiz_bekleyen || 0) * faizOran);
     if (faiz < 1) {
       await run(
         db,

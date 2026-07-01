@@ -42,19 +42,24 @@ function turkeyDayKey() {
 }
 
 async function ensureSmsReset(db, userId, row) {
+  const { getPremiumBonuses } = require("./premiumService");
+  const premium = await getPremiumBonuses(db, userId);
+  const gunlukEkle = premium.smsGunluk;
   const day = turkeyDayKey();
   if (!row.last_sms_day) {
-    const baslangic = row.sms_hakki != null ? row.sms_hakki : SMS_GUNLUK;
+    const baslangic = row.sms_hakki != null ? row.sms_hakki : gunlukEkle;
     await run(db, `UPDATE players SET last_sms_day = ?, sms_hakki = ? WHERE user_id = ?`, [
       day,
       baslangic,
       userId,
     ]);
-    return baslangic;
+    return premium.smsSinirsiz ? 999999 : baslangic;
   }
-  if (row.last_sms_day === day) return row.sms_hakki;
+  if (row.last_sms_day === day) {
+    return premium.smsSinirsiz ? 999999 : row.sms_hakki;
+  }
   const kalanHak = row.sms_hakki || 0;
-  const yeniHak = kalanHak + SMS_GUNLUK;
+  const yeniHak = premium.smsSinirsiz ? 999999 : kalanHak + gunlukEkle;
   await run(
     db,
     `UPDATE players SET sms_hakki = ?, last_sms_day = ? WHERE user_id = ?`,
@@ -74,8 +79,11 @@ async function getSmsHakki(db, userId) {
 }
 
 async function smsHarca(db, userId) {
+  const { getPremiumBonuses } = require("./premiumService");
+  const premium = await getPremiumBonuses(db, userId);
+  if (premium.smsSinirsiz) return { ok: true, kalan: 999999 };
   const hak = await getSmsHakki(db, userId);
-  if (hak < 1) return { ok: false, error: "SMS hakkın kalmadı! Yarın 50 hak yenilenir." };
+  if (hak < 1) return { ok: false, error: "SMS hakkın kalmadı! Yarın yenilenir." };
   await run(db, `UPDATE players SET sms_hakki = sms_hakki - 1 WHERE user_id = ?`, [userId]);
   return { ok: true, kalan: hak - 1 };
 }
@@ -303,7 +311,7 @@ async function okunmamisSayisi(db, userId) {
 async function mafyaSohbetListe(db, limit = 60) {
   const rows = await all(
     db,
-    `SELECT s.id, s.user_id, s.mesaj, s.created_at, u.reis_adi, p.profil_resmi
+    `SELECT s.id, s.user_id, s.mesaj, s.created_at, u.reis_adi, p.profil_resmi, p.premium_paket
      FROM mafya_sohbet s
      JOIN users u ON u.id = s.user_id
      JOIN players p ON p.user_id = s.user_id
@@ -318,6 +326,7 @@ async function mafyaSohbetListe(db, limit = 60) {
       userId: r.user_id,
       reisAdi: r.reis_adi,
       profilResmi: r.profil_resmi || "",
+      premiumPaket: r.premium_paket || "",
       mesaj: r.mesaj,
       tarih: new Date(r.created_at * 1000).toLocaleString("tr-TR", {
         timeZone: "Europe/Istanbul",

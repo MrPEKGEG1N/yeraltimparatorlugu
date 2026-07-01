@@ -21,6 +21,11 @@ var okunmamisMesaj = false;
 var oyuncuDevlet = 100;
 var oyuncuSms = 50;
 var oyuncuElmas = 0;
+var oyuncuPremiumPaket = '';
+var oyuncuPremiumMagaza = [];
+var oyuncuElmasPaketler = [];
+var oyuncuSmsSinirsiz = false;
+var bankaHakSinirsiz = false;
 var saatlikKazanc = 0;
 var karaListede = false;
 var sehirEfsane = false;
@@ -217,6 +222,11 @@ function oyuncuUygula(p, secenekler) {
   oyuncuDevlet = Math.min(AVUKAT_ILISKI_MAX, p.devletIliskisi != null ? p.devletIliskisi : 100);
   oyuncuSms = p.smsHakki != null ? p.smsHakki : 50;
   oyuncuElmas = p.elmas != null ? p.elmas : 0;
+  oyuncuPremiumPaket = p.premiumPaket || '';
+  oyuncuPremiumMagaza = p.premiumMagaza || [];
+  oyuncuElmasPaketler = p.elmasPaketler || [];
+  oyuncuSmsSinirsiz = !!p.smsSinirsiz;
+  bankaHakSinirsiz = !!p.bankaHakSinirsiz;
   saatlikKazanc = p.saatlikKazanc || 0;
   sektorSahiplik = p.sektorSahiplik || {};
   rusvetBilgi = p.rusvet || rusvetBilgi;
@@ -552,10 +562,12 @@ function ltTab(mod, label, on) {
 function ltIsimHtml(r) {
   var tag = r.benim ? '<span class="lt-tag">sen</span>' : '';
   var locale = oyuncuLocaleChipHtml(r.kayitUlkesi, r.oyunDili);
+  var premCls = r.premiumPaket === 'baron' ? ' lt-name-txt--baron' : (r.premiumPaket === 'racon' ? ' lt-name-txt--racon' : '');
+  var rozet = premiumRozetHtml(r.premiumPaket);
   if (r.bot || !r.userId) {
-    return '<span class="lt-name-txt">' + escHtml(r.isim) + locale + tag + '</span>';
+    return '<span class="lt-name-txt' + premCls + '">' + escHtml(r.isim) + locale + rozet + tag + '</span>';
   }
-  return '<button type="button" class="oyuncu-link lt-name-txt" onclick="oyuncuProfilGoster(' + r.userId + ')">' + escHtml(r.isim) + locale + tag + '</button>';
+  return '<button type="button" class="oyuncu-link lt-name-txt' + premCls + '" onclick="oyuncuProfilGoster(' + r.userId + ')">' + escHtml(r.isim) + locale + rozet + tag + '</button>';
 }
 
 function ltGrupIsimHtml(r) {
@@ -751,6 +763,38 @@ function limanMeta(id) {
 // ========================
 function fmt(sayi) { return sayi.toLocaleString('tr-TR'); }
 
+function fmtSinirsiz(sayi, sinirsiz) {
+  return sinirsiz ? '∞' : fmt(sayi);
+}
+
+var PREMIUM_PAKET_SIRA = { tetikci: 1, racon: 2, baron: 3 };
+
+function premiumPaketSahipMi(paketId) {
+  return (PREMIUM_PAKET_SIRA[oyuncuPremiumPaket] || 0) >= (PREMIUM_PAKET_SIRA[paketId] || 0);
+}
+
+function premiumRozetHtml(paket) {
+  if (paket === 'tetikci') return '<span class="premium-rozet premium-rozet--tetikci" title="Bronz Kurşun">🥉</span>';
+  if (paket === 'racon') return '<span class="premium-rozet premium-rozet--racon" title="Gümüş Şarjör">🥈</span>';
+  if (paket === 'baron') return '<span class="premium-rozet premium-rozet--baron" title="Altın Taç">👑</span>';
+  return '';
+}
+
+function premiumIsimClass(paket) {
+  if (paket === 'tetikci') return ' premium-isim--tetikci';
+  if (paket === 'racon') return ' premium-isim--racon';
+  if (paket === 'baron') return ' premium-isim--baron';
+  return '';
+}
+
+function premiumIsimHtml(reisAdi, premiumPaket, ekstraHtml) {
+  return '<span class="premium-isim-wrap' + premiumIsimClass(premiumPaket) + '">'
+    + '<span class="premium-isim-metin">' + escHtml(reisAdi || 'Anonim') + '</span>'
+    + premiumRozetHtml(premiumPaket)
+    + (ekstraHtml || '')
+    + '</span>';
+}
+
 function statTooltipKonumla(chip, tip) {
   var r = chip.getBoundingClientRect();
   tip.classList.remove('gizli');
@@ -807,7 +851,7 @@ function arayuzGuncelle() {
     chipIcraat.setAttribute('data-tip', t('game.icraat.tip', { n: oyuncuIcraatSaatlikBonus }));
   }
   var smsEl = document.getElementById('smsHakki');
-  if (smsEl) smsEl.innerText = fmt(oyuncuSms);
+  if (smsEl) smsEl.innerText = fmtSinirsiz(oyuncuSms, oyuncuSmsSinirsiz);
   var devEl = document.getElementById('devletIliskisi');
   if (devEl) {
     devEl.innerText = fmt(oyuncuDevlet);
@@ -1342,8 +1386,24 @@ function gunlukGorevAdetHTML(g) {
     '</div>';
 }
 
+function gunlukGorevElmasBtnHtml(slot, maliyet, labelKey) {
+  var panel = gunlukGorevPanel || {};
+  var yeterli = (panel.oyuncuElmas != null ? panel.oyuncuElmas : oyuncuElmas) >= maliyet;
+  return '<button type="button" class="gunluk-gorev-elmas"' + (yeterli ? '' : ' disabled')
+    + ' onclick="gunlukGorevElmasTamamla(' + slot + ')">'
+    + escHtml(t(labelKey, { n: maliyet })) + '</button>';
+}
+
 function gunlukGorevAksiyonHTML(g) {
+  var teslimMaliyet = (gunlukGorevPanel && gunlukGorevPanel.elmasGorevTeslim) || 1;
   if (g.durum === 'tamamlandi') {
+    if (g.elmasEkstra) {
+      var teslimMaliyetClaim = (gunlukGorevPanel && gunlukGorevPanel.elmasGorevTeslim) || 1;
+      var yeterliClaim = (gunlukGorevPanel && gunlukGorevPanel.oyuncuElmas != null ? gunlukGorevPanel.oyuncuElmas : oyuncuElmas) >= teslimMaliyetClaim;
+      return '<button type="button" class="gunluk-gorev-elmas"' + (yeterliClaim ? '' : ' disabled')
+        + ' data-slot="' + g.slot + '" onclick="gunlukGorevOdulAl(' + g.slot + ')">'
+        + escHtml(t('game.tasks.diamondClaim', { n: teslimMaliyetClaim })) + '</button>';
+    }
     return '<button type="button" class="gunluk-gorev-odul" data-slot="' + g.slot + '" onclick="gunlukGorevOdulAl(' + g.slot + ')">' + escHtml(t('game.tasks.claimReward')) + '</button>';
   }
   if (g.durum === 'teslim_edildi') {
@@ -1352,16 +1412,19 @@ function gunlukGorevAksiyonHTML(g) {
   if (g.durum === 'basarisiz') {
     return '<span class="gg-durum gg-durum--basarisiz">' + escHtml(t('game.tasks.failed')) + '</span>';
   }
-  if (g.durum === 'iptal') {
-    return '<span class="gg-durum gg-durum--iptal">—</span>';
-  }
-  if (g.kabulEdildi) {
+  if (g.durum === 'aktif' && g.kabulEdildi) {
+    if (g.elmasEkstra) {
+      return '<div class="gg-aksiyon-grup">'
+        + '<span class="gg-durum gg-durum--aktif">' + escHtml(t('game.tasks.inProgressShort')) + '</span>'
+        + gunlukGorevElmasBtnHtml(g.slot, teslimMaliyet, 'game.tasks.diamondDeliver')
+        + '</div>';
+    }
     return '<span class="gg-durum gg-durum--aktif">' + escHtml(t('game.tasks.inProgressShort')) + '</span>';
   }
-  if (gunlukGorevPanel && gunlukGorevPanel.kabulSayisi >= gunlukGorevPanel.kabulLimit) {
-    return '<span class="gg-durum gg-durum--iptal">' + escHtml(t('game.tasks.quotaFull')) + '</span>';
+  if (!g.kabulEdildi && (g.durum === 'panoda' || g.durum === 'iptal')) {
+    return '<button type="button" class="gunluk-gorev-kabul" data-slot="' + g.slot + '" onclick="gunlukGorevKabul(' + g.slot + ')">' + escHtml(t('game.tasks.accept')) + '</button>';
   }
-  return '<button type="button" class="gunluk-gorev-kabul" data-slot="' + g.slot + '" onclick="gunlukGorevKabul(' + g.slot + ')">' + escHtml(t('game.tasks.accept')) + '</button>';
+  return '<span class="gg-durum gg-durum--iptal">—</span>';
 }
 
 function gunlukGorevlerCiz() {
@@ -1412,6 +1475,7 @@ async function gunlukGorevlerYukle() {
     }
     gunlukGorevPanel = data;
     gunlukGorevBildirim = !!data.gunlukGorevBildirim;
+    if (data.oyuncuElmas != null) oyuncuElmas = data.oyuncuElmas;
     gunlukGorevlerCiz();
   } catch (_) {
     if (ic) ic.innerHTML = '<p class="gunluk-gorev-bos">' + escHtml(t('game.error.connectionFailed')) + '</p>';
@@ -1430,6 +1494,81 @@ async function gunlukGorevOdulAl(slot) {
   if (!ef) return;
   toast(t('game.toast.rewardClaimed', { reward: (ef.odulMetni || '') }), 'basari');
   await gunlukGorevlerYukle();
+}
+
+async function gunlukGorevElmasTamamla(slot) {
+  var ef = await sunucuAksiyon('gorev_elmas_tamamla', slot);
+  if (!ef) return;
+  toast(tr(ef.mesaj) || t('game.tasks.diamondDeliverOk'), 'basari');
+  await gunlukGorevlerYukle();
+}
+
+function gorusOneriHTML() {
+  return '<div class="gorus-oneri-sayfa">' +
+    '<div class="gorus-oneri-kart">' +
+    '<header class="gorus-oneri-baslik">' +
+    '<h2>' + escHtml(t('game.feedback.title')) + '</h2>' +
+    '<p class="gorus-oneri-aciklama">' + escHtml(t('game.feedback.desc')) + '</p>' +
+    '</header>' +
+    '<div class="gorus-oneri-govde">' +
+    '<textarea id="gorusOneriMetin" class="gorus-oneri-textarea" maxlength="2000" rows="8" placeholder="' + escHtml(t('game.feedback.placeholder')) + '"></textarea>' +
+    '<div class="gorus-oneri-alt">' +
+    '<span id="gorusOneriSayac" class="gorus-oneri-sayac">0 / 2000</span>' +
+    '<button type="button" id="gorusOneriGonderBtn" class="gorus-oneri-gonder" onclick="gorusOneriGonder()">' + escHtml(t('game.feedback.send')) + '</button>' +
+    '</div>' +
+    '<div id="gorusOneriBasarili" class="gorus-oneri-basarili gizli" role="status"></div>' +
+    '</div></div></div>';
+}
+
+function gorusOneriSayacGuncelle() {
+  var ta = document.getElementById('gorusOneriMetin');
+  var sayac = document.getElementById('gorusOneriSayac');
+  if (!ta || !sayac) return;
+  var len = (ta.value || '').length;
+  sayac.textContent = len + ' / 2000';
+}
+
+function gorusOneriBagla() {
+  var ta = document.getElementById('gorusOneriMetin');
+  if (!ta || ta.getAttribute('data-bound') === '1') return;
+  ta.setAttribute('data-bound', '1');
+  ta.addEventListener('input', gorusOneriSayacGuncelle);
+  gorusOneriSayacGuncelle();
+}
+
+async function gorusOneriGonder() {
+  var ta = document.getElementById('gorusOneriMetin');
+  var btn = document.getElementById('gorusOneriGonderBtn');
+  var okEl = document.getElementById('gorusOneriBasarili');
+  var mesaj = ta ? ta.value.trim() : '';
+  if (!mesaj) {
+    toast(t('game.feedback.empty'), 'hata');
+    return;
+  }
+  if (btn) btn.disabled = true;
+  if (okEl) okEl.classList.add('gizli');
+  try {
+    var res = await apiFetch('/api/gorus-oneri', {
+      method: 'POST',
+      body: { mesaj: mesaj }
+    });
+    var data = await res.json().catch(function () { return {}; });
+    if (!res.ok || !data.ok) {
+      toast(tr(data.error) || t('game.feedback.failed'), 'hata');
+      return;
+    }
+    if (ta) ta.value = '';
+    gorusOneriSayacGuncelle();
+    if (okEl) {
+      okEl.textContent = tr(data.mesaj) || t('game.feedback.sent');
+      okEl.classList.remove('gizli');
+    }
+    toast(tr(data.mesaj) || t('game.feedback.sent'), 'basari');
+  } catch (_) {
+    toast(t('game.toast.connectionError'), 'hata');
+  } finally {
+    if (btn) btn.disabled = false;
+  }
 }
 
 // ========================
@@ -1626,6 +1765,22 @@ function guvenliYerOnizlemeCiz() {
   el.innerHTML = html;
 }
 
+function gyVaultBitisMetni(bitisAt) {
+  if (!bitisAt) return '';
+  try {
+    return new Date(bitisAt * 1000).toLocaleString('tr-TR', {
+      timeZone: 'Europe/Istanbul',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  } catch (_) {
+    return '';
+  }
+}
+
 function guvenliYerKasalarCiz() {
   var el = document.getElementById('guvenliYerKasalar');
   if (!el || !guvenliYerPanel) return;
@@ -1637,22 +1792,31 @@ function guvenliYerKasalarCiz() {
   var html = '<h4 class="gy-kasa-baslik">' + escHtml(t('game.gy.vaultsTitle')) + '</h4><div class="gy-kasa-grid">';
   kasalar.forEach(function(k) {
     var cls = 'gy-kasa-kart';
-    if (k.sahip) cls += ' gy-kasa-kart--sahip';
+    if (k.aktif) cls += ' gy-kasa-kart--sahip';
     else if (k.kilitli) cls += ' gy-kasa-kart--kilit';
+    else if (k.suresiDolmus) cls += ' gy-kasa-kart--dolmus';
     html += '<div class="' + cls + '">'
       + '<div class="gy-kasa-gorsel"><img src="' + k.gorsel + '?v=' + GORSEL_VERSIYON + '" alt="' + escHtml(gyVaultAd(k)) + '" onerror="imgFallback(this)"></div>'
       + '<div class="gy-kasa-metin"><strong>' + escHtml(gyVaultAd(k)) + '</strong>'
       + '<span>' + escHtml(gyVaultAciklama(k)) + '</span>'
       + '<span class="gy-kasa-bonus">' + escHtml(t('game.gy.vaultProtection', { pct: Math.round((k.korumaOrani || 0) * 100) })) + '</span></div>';
-    if (k.sahip) {
-      html += '<div class="gy-kasa-durum gy-kasa-durum--sahip">' + escHtml(t('game.gy.vaultActive', { pct: Math.round((k.korumaOrani || 0) * 100) })) + '</div>';
+    if (k.aktif) {
+      html += '<div class="gy-kasa-durum gy-kasa-durum--sahip">'
+        + escHtml(t('game.gy.vaultActive', { pct: Math.round((k.korumaOrani || 0) * 100) }))
+        + '<span class="gy-kasa-bitis">' + escHtml(t('game.gy.vaultExpires', { date: gyVaultBitisMetni(k.bitisAt) })) + '</span></div>'
+        + '<div class="gy-kasa-alt">'
+        + '<span class="gy-kasa-fiyat gy-kasa-fiyat--elmas">💎 ' + fmt(k.elmasMaliyet) + ' / ' + escHtml(t('game.gy.vaultDuration')) + '</span>'
+        + '<button type="button" class="gy-kasa-btn gy-kasa-btn--yenile"' + (!k.yeterliElmas ? ' disabled' : '')
+        + ' onclick="guvenliYerKasaAl(\'' + k.id + '\')">' + escHtml(t('game.gy.vaultRenew')) + '</button>'
+        + '</div>';
     } else if (k.kilitli) {
       html += '<div class="gy-kasa-durum gy-kasa-durum--kilit">🔒 ' + escHtml(gyVaultKilitNedeni(k)) + '</div>';
     } else {
-      var disabled = !k.yeterliPara ? ' disabled' : '';
+      var disabled = !k.yeterliElmas ? ' disabled' : '';
+      var btnMetin = k.suresiDolmus ? t('game.gy.vaultRenew') : t('game.gy.vaultBuy');
       html += '<div class="gy-kasa-alt">'
-        + '<span class="gy-kasa-fiyat">' + fmt(k.maliyet) + ' TL</span>'
-        + '<button type="button" class="gy-kasa-btn"' + disabled + ' onclick="guvenliYerKasaAl(\'' + k.id + '\')">' + escHtml(t('game.gy.vaultBuy')) + '</button>'
+        + '<span class="gy-kasa-fiyat gy-kasa-fiyat--elmas">💎 ' + fmt(k.elmasMaliyet) + ' / ' + escHtml(t('game.gy.vaultDuration')) + '</span>'
+        + '<button type="button" class="gy-kasa-btn"' + disabled + ' onclick="guvenliYerKasaAl(\'' + k.id + '\')">' + escHtml(btnMetin) + '</button>'
         + '</div>';
     }
     html += '</div>';
@@ -1989,7 +2153,7 @@ function bankaPanelHTML() {
     + '<span class="banka-bakiye-etiket">' + escHtml(t('game.bank.accountLabel')) + '</span>'
     + '<span class="banka-bakiye-tutar" id="bankaBakiyeGoster">💰 ' + fmt(bankaBakiye) + ' TL</span>'
     + '<span class="banka-kasa-not">' + escHtml(t('game.bank.cashNote')) + ' <b>' + fmt(oyuncuKasa) + ' TL</b></span>'
-    + '<span class="banka-kasa-not">' + escHtml(t('game.bank.rightsNote')) + ' <b style="color:#ffd76a;">' + fmt(bankaHakki) + '</b> <span style="color:#777;">' + escHtml(t('game.bank.rightsHelp')) + '</span></span>'
+    + '<span class="banka-kasa-not">' + escHtml(t('game.bank.rightsNote')) + ' <b style="color:#ffd76a;">' + fmtSinirsiz(bankaHakki, bankaHakSinirsiz) + '</b> <span style="color:#777;">' + escHtml(t('game.bank.rightsHelp')) + '</span></span>'
     + '</div>'
     + '<div class="banka-bilgi-kart">'
     + '<p>' + t('game.bank.interestInfo') + '</p>'
@@ -3219,6 +3383,12 @@ function profilEkranSablonu(opts) {
   var resimBtn = opts.duzenlenebilir
     ? '<button type="button" class="profil-resim-btn" onclick="profilResmiSecModal()">' + escHtml(t('game.profil.changePhoto')) + '</button>'
     : '';
+  var elmasBtn = opts.duzenlenebilir
+    ? '<button type="button" class="profil-elmas-btn" onclick="elmasMagazaAc()" aria-label="' + escHtml(t('game.profil.buyDiamonds')) + '">'
+      + '<span class="profil-elmas-btn-parilti" aria-hidden="true"></span>'
+      + '<span class="profil-elmas-btn-icerik"><span class="profil-elmas-ikon">💎</span>'
+      + escHtml(t('game.profil.buyDiamonds')) + '</span></button>'
+    : '';
 
   var altBtn = '';
   if (opts.duzenlenebilir) {
@@ -3271,6 +3441,7 @@ function profilEkranSablonu(opts) {
     + '<h2 class="' + isimCls + '" id="profilIsimBaslik">' + escHtml(ad) + '</h2>'
     + '<div class="profil-avatar-kutu"><img id="profilAvatar" class="' + avatarCls.trim() + '" src="' + escHtml(avatarUrl) + '" alt="' + escHtml(ad) + '"></div>'
     + resimBtn
+    + elmasBtn
     + '</div>'
     + '<div class="profil-sag">'
     + '<div class="profil-meta-ust">' + metaHtml + '</div>'
@@ -3283,6 +3454,164 @@ function profilEkranSablonu(opts) {
     + '</div>'
     + yeteneklerSekmeHtml
     + '</div>';
+}
+
+function elmasMagazaTlTabloHtml() {
+  var paketler = oyuncuElmasPaketler.length ? oyuncuElmasPaketler : [
+    { id: 'ufaklik', ikon: '💰', baslik: 'Ufaklık Paketi', elmas: 100, bonusElmas: 0, toplamElmas: 100, tlFiyat: 75, birimMaliyet: 0.75 },
+    { id: 'raconcu', ikon: '💼', baslik: 'Raconcu Paketi', elmas: 250, bonusElmas: 25, toplamElmas: 275, tlFiyat: 175, birimMaliyet: 0.63 },
+    { id: 'baron_elmas', ikon: '🦅', baslik: 'Baron Paketi', elmas: 500, bonusElmas: 75, toplamElmas: 575, tlFiyat: 300, birimMaliyet: 0.52 },
+    { id: 'imparator', ikon: '👑', baslik: 'İmparator Paketi', elmas: 1000, bonusElmas: 250, toplamElmas: 1250, tlFiyat: 550, birimMaliyet: 0.44 }
+  ];
+  var satirlar = paketler.map(function (p) {
+    var bonus = p.bonusElmas > 0 ? ('+' + fmt(p.bonusElmas) + ' 💎') : '—';
+    return '<tr>'
+      + '<td class="elmas-tl-ad"><span class="elmas-tl-ikon">' + escHtml(p.ikon) + '</span> ' + escHtml(p.baslik) + '</td>'
+      + '<td>' + fmt(p.elmas) + ' 💎</td>'
+      + '<td>' + bonus + '</td>'
+      + '<td><strong>' + fmt(p.toplamElmas) + ' 💎</strong></td>'
+      + '<td><strong class="elmas-tl-fiyat">' + fmt(p.tlFiyat) + ' TL</strong></td>'
+      + '<td>' + String(p.birimMaliyet).replace('.', ',') + ' TL</td>'
+      + '<td><button type="button" class="elmas-tl-satin-btn" onclick="elmasTlPaketSatinAl(\'' + p.id + '\')">'
+      + escHtml(t('game.premium.buy')) + '</button></td>'
+      + '</tr>';
+  }).join('');
+  return '<section class="elmas-magaza-bolum">'
+    + '<h3 class="elmas-magaza-bolum-baslik">' + escHtml(t('game.premium.elmasLoadTitle')) + '</h3>'
+    + '<p class="elmas-magaza-bolum-alt">' + escHtml(t('game.premium.elmasLoadDesc')) + '</p>'
+    + '<div class="elmas-tl-tablo-wrap"><table class="elmas-tl-tablo">'
+    + '<thead><tr>'
+    + '<th>' + escHtml(t('game.premium.colPackage')) + '</th>'
+    + '<th>' + escHtml(t('game.premium.colDiamonds')) + '</th>'
+    + '<th>' + escHtml(t('game.premium.colBonus')) + '</th>'
+    + '<th>' + escHtml(t('game.premium.colTotal')) + '</th>'
+    + '<th>' + escHtml(t('game.premium.colPrice')) + '</th>'
+    + '<th>' + escHtml(t('game.premium.colUnit')) + '</th>'
+    + '<th>' + escHtml(t('game.premium.colBuy')) + '</th>'
+    + '</tr></thead>'
+    + '<tbody>' + satirlar + '</tbody></table></div></section>';
+}
+
+function elmasMagazaPaketKart(p) {
+  var sahip = premiumPaketSahipMi(p.id);
+  var tierCls = 'elmas-paket-kart elmas-paket-kart--' + p.id;
+  if (sahip) tierCls += ' elmas-paket-kart--aktif';
+  var ozellikler = [];
+  ozellikler.push(t('game.premium.benefitIcraat', { n: p.icraatSaatlik }));
+  if (p.smsSinirsiz) ozellikler.push(t('game.premium.benefitSmsUnlimited'));
+  else ozellikler.push(t('game.premium.benefitSms', { n: p.smsGunluk }));
+  if (p.bankaHakSinirsiz) ozellikler.push(t('game.premium.benefitBankUnlimited'));
+  else ozellikler.push(t('game.premium.benefitBank', { n: p.bankaHakGunluk }));
+  ozellikler.push(t('game.premium.benefitFaiz', { n: p.faizYuzde }));
+  if (p.mekanGelirBonusYuzde > 0) {
+    ozellikler.push(t('game.premium.benefitMekan', { n: p.mekanGelirBonusYuzde }));
+  }
+  if (p.id === 'baron') {
+    ozellikler.push(t('game.premium.benefitPrestigeBaron', { rozet: p.prestijRozet, etiket: p.prestijEtiket }));
+  } else {
+    ozellikler.push(t('game.premium.benefitPrestige', { rozet: p.prestijRozet, etiket: p.prestijEtiket }));
+  }
+  var ozHtml = ozellikler.map(function (line) {
+    return '<li>' + escHtml(line) + '</li>';
+  }).join('');
+  var btn = sahip
+    ? '<button type="button" class="elmas-paket-btn elmas-paket-btn--aktif" disabled>' + escHtml(t('game.premium.active')) + '</button>'
+    : '<button type="button" class="elmas-paket-btn elmas-paket-btn--' + p.id + '" onclick="premiumPaketSatinAl(\'' + p.id + '\')">'
+      + '💎 ' + fmt(p.elmasMaliyet) + ' / ' + escHtml(t('game.premium.month')) + ' — ' + escHtml(t('game.premium.buy')) + '</button>';
+  var fiyatNotu = p.tlOrtalama
+    ? '<p class="elmas-paket-fiyat-notu">~' + fmt(p.tlOrtalama) + ' TL ' + escHtml(t('game.premium.monthlyAvg')) + '</p>'
+    : '';
+  return '<article class="' + tierCls + '">'
+    + '<div class="elmas-paket-rozet">' + escHtml(p.prestijRozet) + '</div>'
+    + '<h3 class="elmas-paket-baslik">' + escHtml(p.baslik) + '</h3>'
+    + '<p class="elmas-paket-alt">' + escHtml(p.altBaslik) + '</p>'
+    + fiyatNotu
+    + '<ul class="elmas-paket-ozellikler">' + ozHtml + '</ul>'
+    + btn
+    + '</article>';
+}
+
+function elmasMagazaIcerikHtml() {
+  var paketler = oyuncuPremiumMagaza && oyuncuPremiumMagaza.length
+    ? oyuncuPremiumMagaza
+    : [
+      { id: 'tetikci', baslik: 'Tetikçi Paketi', altBaslik: 'Gözü Kara Başlangıç', elmasMaliyet: 100, tlOrtalama: 75, icraatSaatlik: 35, smsGunluk: 75, bankaHakGunluk: 30, faizYuzde: 1.5, mekanGelirBonusYuzde: 0, prestijRozet: '🥉', prestijEtiket: 'Bronz Kurşun' },
+      { id: 'racon', baslik: 'Racon Paketi', altBaslik: 'Sözü Geçenler İçin', elmasMaliyet: 250, tlOrtalama: 175, icraatSaatlik: 50, smsGunluk: 100, bankaHakGunluk: 50, faizYuzde: 2, mekanGelirBonusYuzde: 10, prestijRozet: '🥈', prestijEtiket: 'Gümüş Şarjör' },
+      { id: 'baron', baslik: 'Baron / Hükümdar Paketi', altBaslik: 'Yeraltının Tek Sahibi', elmasMaliyet: 600, tlOrtalama: 320, icraatSaatlik: 75, smsSinirsiz: true, bankaHakSinirsiz: true, faizYuzde: 2.5, mekanGelirBonusYuzde: 20, prestijRozet: '👑', prestijEtiket: 'Altın Taç' }
+    ];
+  var aktifPaket = (oyuncuPremiumMagaza || []).find(function (p) { return p.id === oyuncuPremiumPaket; });
+  var aktifMetin = oyuncuPremiumPaket
+    ? '<p class="elmas-magaza-aktif">' + escHtml(t('game.premium.current', { paket: aktifPaket ? aktifPaket.baslik : oyuncuPremiumPaket })) + '</p>'
+    : '';
+  return '<div class="elmas-magaza-modal-ic elmas-magaza-modal-ic--genis">'
+    + '<button type="button" class="elmas-magaza-x" onclick="elmasMagazaKapat()" aria-label="' + escHtml(t('game.welcome.close')) + '">×</button>'
+    + '<div class="elmas-magaza-baslik"><span class="elmas-magaza-ikon">💎</span> '
+    + escHtml(t('game.profil.buyDiamonds')) + '</div>'
+    + '<p class="elmas-magaza-metin">' + escHtml(t('game.premium.intro')) + '</p>'
+    + '<div class="elmas-magaza-bakiye">' + escHtml(t('game.premium.balance')) + ' <strong>' + fmt(oyuncuElmas) + ' 💎</strong></div>'
+    + elmasMagazaTlTabloHtml()
+    + '<section class="elmas-magaza-bolum elmas-magaza-bolum--aylik">'
+    + '<h3 class="elmas-magaza-bolum-baslik">' + escHtml(t('game.premium.monthlyTitle')) + '</h3>'
+    + '<p class="elmas-magaza-bolum-alt">' + escHtml(t('game.premium.monthlyDesc')) + '</p>'
+    + aktifMetin
+    + '<div class="elmas-paket-grid">' + paketler.map(elmasMagazaPaketKart).join('') + '</div>'
+    + '</section>'
+    + '<p class="elmas-magaza-not">' + escHtml(t('game.premium.paymentNote')) + '</p>'
+    + '</div>';
+}
+
+function elmasMagazaAc() {
+  var modal = document.getElementById('elmasMagazaModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'elmasMagazaModal';
+    modal.className = 'elmas-magaza-modal gizli';
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    document.body.appendChild(modal);
+    modal.addEventListener('click', function (e) {
+      if (e.target === modal) elmasMagazaKapat();
+    });
+  }
+  modal.innerHTML = elmasMagazaIcerikHtml();
+  modal.classList.remove('gizli');
+}
+
+function elmasMagazaKapat() {
+  var modal = document.getElementById('elmasMagazaModal');
+  if (modal) modal.classList.add('gizli');
+}
+
+async function elmasTlPaketSatinAl(paketId) {
+  var paket = (oyuncuElmasPaketler || []).find(function (p) { return p.id === paketId; });
+  var ad = paket ? paket.baslik : paketId;
+  var fiyat = paket ? paket.tlFiyat : '';
+  if (!confirm(t('game.premium.tlConfirm', { paket: ad, fiyat: fiyat }))) return;
+  try {
+    var payload = { action: 'elmas_satin_al', key: paketId, aktifEkran: aktifEkran || '' };
+    var res = await apiFetch('/api/action', { method: 'POST', body: payload });
+    var data = await res.json().catch(function () { return {}; });
+    if (!res.ok || !data.ok) {
+      toast(tr(data.error) || t('game.premium.tlSoon'), 'hata');
+      return;
+    }
+    if (data.player) oyuncuUygula(data.player);
+    toast(data.mesaj || t('game.premium.elmasAdded'), 'basari');
+    elmasMagazaAc();
+  } catch (_) {
+    toast(t('game.toast.serverConnectionFailed'), 'hata');
+  }
+}
+
+async function premiumPaketSatinAl(paketId) {
+  if (premiumPaketSahipMi(paketId)) {
+    toast(t('game.premium.alreadyOwned'), 'hata');
+    return;
+  }
+  var sonuc = await sunucuAksiyon('premium_satin_al', paketId);
+  if (!sonuc) return;
+  toast(sonuc.mesaj || t('game.premium.purchaseOk'), 'basari');
+  elmasMagazaAc();
 }
 
 function profilResimSecenekleri(anahtarlar) {
@@ -4234,6 +4563,12 @@ function ekranDegistir(tip) {
     ic.innerHTML = gunlukGorevlerHTML();
     gunlukGorevlerYukle();
     gunlukGorevBildirimGuncelle();
+    return;
+  }
+
+  if (tip === 'gorusOneri') {
+    ic.innerHTML = gorusOneriHTML();
+    gorusOneriBagla();
     return;
   }
 
@@ -6154,7 +6489,7 @@ function mafyaSohbetSatirHTML(s) {
   return '<div class="sb-sohbet-satir">'
     + '<span class="sb-sohbet-avatar"><img class="sb-avatar-img' + avatarCls + '" src="' + escHtml(avatarUrl) + '" alt="" loading="lazy" onerror="imgFallback(this)"></span>'
     + '<div class="sb-sohbet-govde"><div class="sb-sohbet-ust-satir">'
-    + '<span class="sb-sohbet-isim">' + escHtml(s.reisAdi || 'Anonim') + '</span>'
+    + '<span class="sb-sohbet-isim-wrap">' + premiumIsimHtml(s.reisAdi, s.premiumPaket) + '</span>'
     + '<span class="sb-sohbet-zaman">' + escHtml(s.tarih || '') + '</span>'
     + '</div><p class="sb-sohbet-metin">' + escHtml(s.mesaj) + '</p></div></div>';
 }
@@ -6164,7 +6499,7 @@ function mafyaSohbetGovdeHTML(liste) {
   (liste || []).forEach(function(s) { satirlar += mafyaSohbetSatirHTML(s); });
   if (!satirlar) satirlar = '<p class="sb-mesaj-bos">' + escHtml(t('game.chat.salonEmpty')) + '</p>';
   return '<p class="sb-giris">' + t('game.chat.mafiaLoungeIntro') + '</p>'
-    + '<div class="sb-meta-bar"><span>' + escHtml(t('game.chat.smsRemaining')) + '</span><strong id="sbSmsGoster">' + fmt(oyuncuSms || 0) + '</strong></div>'
+    + '<div class="sb-meta-bar"><span>' + escHtml(t('game.chat.smsRemaining')) + '</span><strong id="sbSmsGoster">' + fmtSinirsiz(oyuncuSms || 0, oyuncuSmsSinirsiz) + '</strong></div>'
     + '<div class="sb-sohbet-liste" id="sohbetListe">' + satirlar + '</div>'
     + '<div class="sb-panel sb-panel--yaz">'
     + '<div class="sb-panel-baslik"><span class="sb-panel-ikon" aria-hidden="true">✍️</span><h3>' + escHtml(t('game.chat.writeToLounge')) + '</h3></div>'

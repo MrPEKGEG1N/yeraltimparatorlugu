@@ -30,6 +30,7 @@ const {
   listSecurityEvents,
   listCanliAktivite,
   listIcerikRaporlari,
+  listGorusOnerileri,
   mapPlayerRow,
   fmtTs,
 } = require("../game/adminService");
@@ -147,6 +148,7 @@ function createAdminRouter(db) {
           sehreHukmetSayisi: detail.user.sehre_hukmet_sayisi || 0,
           limanIstanbul: detail.user.liman_istanbul || 0,
           elmas: detail.user.elmas || 0,
+          premiumPaket: detail.user.premium_paket || "",
           kayitUlkesi: detail.user.kayit_ulkesi || "",
           oyunDili: detail.user.oyun_dili || "",
         },
@@ -479,6 +481,22 @@ function createAdminRouter(db) {
     } catch (err) {
       console.error(err);
       res.status(500).json({ ok: false, error: "Raporlar yüklenemedi." });
+    }
+  });
+
+  router.get("/gorus-oneriler", async (req, res) => {
+    try {
+      const liste = await listGorusOnerileri(db, 150);
+      res.json({
+        ok: true,
+        liste: liste.map((r) => ({
+          ...r,
+          at: fmtTs(r.at),
+        })),
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ ok: false, error: "Görüşler yüklenemedi." });
     }
   });
 

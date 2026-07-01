@@ -20,7 +20,17 @@ async function oyuncuSaatlikKazanc(db, userId) {
   const limanlar = await getLimanDurumu(db);
   const sahipLiman = limanlar.filter((l) => l.sahipUserId === userId).length;
   const { saatlikKazanc: sektorSaatlik } = await sektorPanel(db, userId);
-  return limanSaatlikToplam(sahipLiman) + (sektorSaatlik || 0);
+  let toplam = limanSaatlikToplam(sahipLiman) + (sektorSaatlik || 0);
+  try {
+    const { getPremiumBonuses } = require("./premiumService");
+    const premium = await getPremiumBonuses(db, userId);
+    if (premium.mekanGelirBonus > 0) {
+      const limanKismi = limanSaatlikToplam(sahipLiman);
+      const mekanKismi = sektorSaatlik || 0;
+      toplam = limanKismi + Math.floor(mekanKismi * (1 + premium.mekanGelirBonus));
+    }
+  } catch (_) {}
+  return toplam;
 }
 
 async function legacyAssetLastHour(db, userId) {

@@ -198,6 +198,8 @@ const ZORLUK_HAVUZLARI = {
 
 const GUNLUK_SLOT_SAYISI = 10;
 const MAX_KABUL = 3;
+/** Ücretsiz kotadan sonraki görevleri teslim etme maliyeti */
+const ELMAS_GOREV_TESLIM = 1;
 const GUNLUK_DAGILIM = { kolay: 5, orta: 3, zor: 2 };
 
 /** Yeni oyuncu varsayılan saygınlığı (players.puan DEFAULT 1500) */
@@ -291,6 +293,7 @@ module.exports = {
   GOREV_HAVUZU,
   GUNLUK_SLOT_SAYISI,
   MAX_KABUL,
+  ELMAS_GOREV_TESLIM,
   REFERANS_SAYGINLIK,
   gorevBul,
   gunlukGorevSecimi,

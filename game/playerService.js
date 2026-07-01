@@ -22,6 +22,7 @@ const {
 const { sektorPanel, mekanAl, mekanDevret } = require("./sectorService");
 const { processSaatlikGelir, oyuncuSaatlikKazanc } = require("./saatlikGelirService");
 const { karaListeSenkronize } = require("./karaListeService");
+const { paketListesi, getPremiumBonuses, premiumSatinAl, elmasPaketListesi, elmasPaketSatinAl } = require("./premiumService");
 const { logStatHareket } = require("./statService");
 const { gelistir: guvenliYerGelistir, panelGetir: guvenliYerPanelGetir, kasaSatinAl: guvenliYerKasaSatinAl } = require("./guvenliYerService");
 const { panelGetir: sabotajPanelGetir, sabotajBaslat, sabotajIptal } = require("./sabotajService");
@@ -111,7 +112,7 @@ const {
   paraCek,
 } = require("./bankaService");
 const { getKiralamaEnvanter, getKiralamaFiyatEnvanter, kiralamaSatinAl } = require("./kiralamaService");
-const { gorevKabul, gorevOdulAl, gorevOlayIsle, gunlukGorevBildirimVarMi } = require("./gunlukGorevService");
+const { gorevKabul, gorevOdulAl, gorevElmasTamamla, gorevOlayIsle, gunlukGorevBildirimVarMi } = require("./gunlukGorevService");
 const { okunmamisBildirimSayisi, ensureTercihler } = require("./bildirimService");
 
 async function aksiyonOyuncuYaniti(db, userId, _player, gorevSonuc = null) {
@@ -348,6 +349,8 @@ async function publicPlayerFull(db, userId, player) {
   const sahipLimanlar = limanlar.filter((l) => l.sahipUserId === userId).map((l) => l.limanId);
   const { sahiplik, saatlikKazanc: sektorSaatlik } = await sektorPanel(db, userId);
   const limanSaatlik = limanSaatlikToplam(sahipLimanlar.length);
+  const premium = await getPremiumBonuses(db, userId);
+  const saatlikKazancToplam = await oyuncuSaatlikKazanc(db, userId);
   const devletIliskisi = await getDevletIliskisi(db, userId);
   const smsHakki = await getSmsHakki(db, userId);
   const okunmamisMesaj = (await okunmamisSayisi(db, userId)) > 0;
@@ -419,7 +422,18 @@ async function publicPlayerFull(db, userId, player) {
     icraat: player.icraat,
     lastIcraatAt: player.last_icraat_at,
     icraatRegenSec: ICRAAT_REGEN_SEC,
-    icraatSaatlikBonus: ICRAAT_SAATLIK_BONUS,
+    icraatSaatlikBonus: premium.icraatSaatlik,
+    premiumPaket: premium.paket,
+    premiumBonuses: {
+      smsSinirsiz: premium.smsSinirsiz,
+      bankaHakSinirsiz: premium.bankaHakSinirsiz,
+      faizOran: premium.faizOran,
+      mekanGelirBonus: premium.mekanGelirBonus,
+      prestijRozet: premium.prestijRozet,
+      prestijEtiket: premium.prestijEtiket,
+    },
+    premiumMagaza: paketListesi(),
+    elmasPaketler: elmasPaketListesi(),
     limanlar: {
       istanbul: sahipLimanlar.includes("istanbul"),
       izmir: sahipLimanlar.includes("izmir"),
@@ -434,9 +448,10 @@ async function publicPlayerFull(db, userId, player) {
     dusmanlar: player.dusmanlar || "",
     profilResmi: player.profilResmi || "",
     devletIliskisi,
-    smsHakki,
-    saatlikKazanc: limanSaatlik + sektorSaatlik,
-    oyuncuAdiDegistirUcret: Math.floor((limanSaatlik + sektorSaatlik) * 5),
+    smsHakki: premium.smsSinirsiz ? 999999 : smsHakki,
+    smsSinirsiz: premium.smsSinirsiz,
+    saatlikKazanc: saatlikKazancToplam,
+    oyuncuAdiDegistirUcret: Math.floor(saatlikKazancToplam * 5),
     sektorSahiplik: sahiplik,
     rusvet,
     mafyaBildirim,
@@ -448,6 +463,8 @@ async function publicPlayerFull(db, userId, player) {
     istihbaratBirimMaliyet: birimMaliyetHesapla(istihbaratEleman),
     bankaBakiye,
     bankaHakki: bankaPanel.bankaHakki,
+    bankaHakSinirsiz: bankaPanel.bankaHakSinirsiz,
+    faizOran: bankaPanel.faizOran,
     faizBekleyen: bankaPanel.faizBekleyen,
     elmas: player.elmas || 0,
     kumarhaneChip,
@@ -1045,6 +1062,23 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
     };
   }
 
+  if (action === "gorev_elmas_tamamla") {
+    const sonuc = await gorevElmasTamamla(db, userId, key, player);
+    if (!sonuc.ok) return sonuc;
+    player = await loadPlayer(db, userId);
+    return {
+      ok: true,
+      player: await publicPlayerFull(db, userId, player),
+      effect: {
+        type: "gorev_elmas_tamamla",
+        mesaj: sonuc.mesaj,
+        odulMetni: sonuc.odulMetni,
+        maliyet: sonuc.maliyet,
+        gorev: sonuc.gorev,
+      },
+    };
+  }
+
   if (action === "banka_yatir") {
     const yatirMiktari = parseInt(extra.miktar, 10) || 0;
     const sonuc = await paraYatir(db, userId, player, yatirMiktari);
@@ -1596,6 +1630,30 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
       ok: true,
       player: await publicPlayerFull(db, userId, player),
       effect: { type: "sirket_fiyat", mesaj: sonuc.mesaj },
+    };
+  }
+
+  if (action === "premium_satin_al") {
+    const sonuc = await premiumSatinAl(db, userId, key);
+    if (!sonuc.ok) return sonuc;
+    player = await loadPlayer(db, userId);
+    return {
+      ok: true,
+      mesaj: sonuc.mesaj,
+      player: await publicPlayerFull(db, userId, player),
+      effect: { type: "premium_satin_al", paket: sonuc.paket, mesaj: sonuc.mesaj },
+    };
+  }
+
+  if (action === "elmas_satin_al") {
+    const sonuc = await elmasPaketSatinAl(db, userId, key);
+    if (!sonuc.ok) return sonuc;
+    player = await loadPlayer(db, userId);
+    return {
+      ok: true,
+      mesaj: sonuc.mesaj,
+      player: await publicPlayerFull(db, userId, player),
+      effect: { type: "elmas_satin_al", paket: sonuc.paket, elmas: sonuc.toplamElmas },
     };
   }
 

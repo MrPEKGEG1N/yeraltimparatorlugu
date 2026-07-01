@@ -256,6 +256,7 @@
       multi: "Şüpheli Multi-Hesaplar",
       mesajlar: "Sohbet Kontrol",
       raporlar: "İçerik Raporları",
+      gorusOneriler: "Görüş ve Öneriler",
       borsa: "Borsa",
       guvenlik: "Güvenlik Günlüğü",
     };
@@ -277,6 +278,7 @@
         statKart("Mesaj (24s)", s.mesaj_24s, "💬") +
         statKart("Mafya Grubu", s.mafya_grup, "🔫") +
         statKart("Rapor (24s)", s.rapor_24s, "🚩") +
+        statKart("Görüş (24s)", s.gorus_24s, "💡") +
         statKart("Yönetici", s.admin_sayisi, "👑") +
         statKart("Borsa Yatırımcı", s.borsa_yatirimci, "📈") +
         statKart("Bekleyen Emir", s.borsa_bekleyen_emir, "⏳") +
@@ -936,6 +938,36 @@
     });
   }
 
+  function yukleGorusOneriler() {
+    var tb = document.getElementById("gorusOneriTablo");
+    if (!tb) return;
+    tb.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#6b7280;padding:16px">Yükleniyor…</td></tr>';
+    api("/api/admin/gorus-oneriler").then(function (res) {
+      if (!res.ok) {
+        tb.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#f87171;padding:16px">' + esc(res.data.error || "Yüklenemedi") + "</td></tr>";
+        return;
+      }
+      var liste = res.data.liste || [];
+      if (!liste.length) {
+        tb.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#6b7280;padding:16px">Henüz görüş yok.</td></tr>';
+        return;
+      }
+      tb.innerHTML = liste.map(function (g) {
+        return "<tr><td>" + g.id + "</td><td style='white-space:nowrap;font-size:12px'>" + esc(g.at) +
+          "</td><td><b>" + esc(g.oyuncuAdi) + "</b><br><span style='font-size:11px;color:#6b7280'>@" + esc(g.oyuncuUsername) +
+          "</span></td><td style='max-width:480px;white-space:pre-wrap;font-size:12px'>" + esc(g.mesaj) +
+          '</td><td><button type="button" class="admin-btn admin-btn-gri gorus-oyuncu-btn" data-uid="' + g.userId +
+          '" style="min-height:32px;padding:4px 10px">Oyuncu</button></td></tr>';
+      }).join("");
+      tb.querySelectorAll(".gorus-oyuncu-btn").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          aktifNav("oyuncular");
+          oyuncuDetayYukle(parseInt(btn.getAttribute("data-uid"), 10));
+        });
+      });
+    });
+  }
+
   function yukleRaporlar() {
     var tb = document.getElementById("raporTablo");
     if (!tb) return;
@@ -1073,6 +1105,7 @@
         if (tab === "multi") yukleMulti();
         if (tab === "mesajlar") msgTab("kutu");
         if (tab === "raporlar") yukleRaporlar();
+        if (tab === "gorusOneriler") yukleGorusOneriler();
         if (tab === "borsa") yukleBorsa();
         if (tab === "guvenlik") yukleGuvenlik();
       });

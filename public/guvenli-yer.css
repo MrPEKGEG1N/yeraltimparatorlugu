@@ -333,6 +333,28 @@
   color: var(--gy-gold);
 }
 
+.gy-kasa-fiyat--elmas {
+  color: #8ec5ff;
+}
+
+.gy-kasa-bitis {
+  display: block;
+  margin-top: 4px;
+  font-size: 10px;
+  font-weight: 500;
+  color: #9ca3af;
+}
+
+.gy-kasa-kart--dolmus {
+  opacity: 0.88;
+}
+
+.gy-kasa-btn--yenile {
+  background: linear-gradient(180deg, #4a8fd4 0%, #2a5a8a 100%);
+  border-color: #5a9fd8;
+  color: #f5f9ff;
+}
+
 .gy-kasa-btn {
   width: 100%;
   max-width: 140px;

@@ -159,16 +159,21 @@ function toplamGucBonusu(baseSeviye) {
   return SEVIYELER.filter((x) => x.seviye <= s).reduce((t, x) => t + (x.gucBonus || 0), 0);
 }
 
-/** Güvenli Yer altında satın alınabilir gizli kasalar — saldırıda nakit korur */
+/** Güvenli Yer altında elmasla alınan 30 günlük gizli kasalar — saldırıda nakit korur */
+const KASA_ABONELIK_GUN = 30;
+const KASA_ABONELIK_SN = KASA_ABONELIK_GUN * 86400;
+
 const KASALAR = [
   {
     id: "gumus",
     ad: "Gizli Para Kasası",
     aciklama: "Üssün altına gömülü gümüş kasa. Kasandaki nakitin %25'ini saldırıdan korur.",
-    maliyet: 750_000,
+    elmasMaliyet: 25,
+    abonelikGun: KASA_ABONELIK_GUN,
     korumaOrani: 0.25,
     gorsel: "/images/guvenli-yer/kasa-gumus.png",
     alan: "kasa_gumus",
+    bitisAlan: "kasa_gumus_bitis",
     minBaseSeviye: 3,
     onkosul: null,
   },
@@ -176,10 +181,12 @@ const KASALAR = [
     id: "altin",
     ad: "Altın Hazine Kasası",
     aciklama: "Taç, mücevher ve külçe altın dolu hazine. Kasandaki nakitin %50'sini saldırıdan korur.",
-    maliyet: 3_500_000,
+    elmasMaliyet: 50,
+    abonelikGun: KASA_ABONELIK_GUN,
     korumaOrani: 0.5,
     gorsel: "/images/guvenli-yer/kasa-altin.png",
     alan: "kasa_altin",
+    bitisAlan: "kasa_altin_bitis",
     minBaseSeviye: 6,
     onkosul: "gumus",
   },
@@ -189,11 +196,23 @@ function kasaBul(id) {
   return KASALAR.find((k) => k.id === id) || null;
 }
 
-/** Sahip olunan en yüksek kasa koruma oranı (altın gümüşün üzerine yazar) */
+function nowSec() {
+  return Math.floor(Date.now() / 1000);
+}
+
+function kasaAktifMi(row, kasa) {
+  if (!row || !kasa) return false;
+  const bitis = Number(row[kasa.bitisAlan] || 0);
+  return bitis > nowSec();
+}
+
+/** Sahip olunan aktif kasanın koruma oranı (altın gümüşün üzerine yazar) */
 function kasaKorumaOrani(row) {
   if (!row) return 0;
-  if (row.kasa_altin) return 0.5;
-  if (row.kasa_gumus) return 0.25;
+  const altin = kasaBul("altin");
+  const gumus = kasaBul("gumus");
+  if (altin && kasaAktifMi(row, altin)) return 0.5;
+  if (gumus && kasaAktifMi(row, gumus)) return 0.25;
   return 0;
 }
 
@@ -204,10 +223,14 @@ module.exports = {
   SEVIYELER,
   MODUL_ALAN,
   KASALAR,
+  KASA_ABONELIK_GUN,
+  KASA_ABONELIK_SN,
   seviyeGorselYolu,
   seviyeBul,
   sonrakiSeviye,
   toplamGucBonusu,
   kasaBul,
+  kasaAktifMi,
   kasaKorumaOrani,
+  nowSec,
 };

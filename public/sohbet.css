@@ -489,6 +489,27 @@
   color: #e8c878;
 }
 
+#masterLayout #anaIcerik .premium-isim-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+#masterLayout #anaIcerik .premium-isim--tetikci .premium-isim-metin { color: #e8c878; }
+#masterLayout #anaIcerik .premium-isim--racon .premium-isim-metin { color: #5eb0ff; }
+#masterLayout #anaIcerik .premium-isim--baron .premium-isim-metin {
+  color: #ffd76a;
+  text-shadow: 0 0 8px rgba(255, 215, 100, 0.45);
+}
+
+#masterLayout #anaIcerik .premium-rozet {
+  font-size: 14px;
+  line-height: 1;
+}
+
 #masterLayout #anaIcerik .sb-sohbet-zaman {
   flex-shrink: 0;
   font-family: "Roboto Condensed", sans-serif;

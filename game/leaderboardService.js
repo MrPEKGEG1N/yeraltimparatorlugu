@@ -6,7 +6,7 @@ async function getLeaderboard(db, currentUserId) {
   const oyuncular = await all(
     db,
     `SELECT u.reis_adi AS isim, u.username, u.grup, p.puan, u.id AS user_id, p.sehre_hukmet_sayisi,
-            u.kayit_ulkesi, u.oyun_dili,
+            u.kayit_ulkesi, u.oyun_dili, p.premium_paket,
             m.grup_id, mg.isim AS gercek_grup_adi
      FROM players p
      JOIN users u ON u.id = p.user_id
@@ -26,6 +26,7 @@ async function getLeaderboard(db, currentUserId) {
     sehreHukmetSayisi: o.sehre_hukmet_sayisi || 0,
     kayitUlkesi: o.kayit_ulkesi || "",
     oyunDili: o.oyun_dili || "tr",
+    premiumPaket: o.premium_paket || "",
     bot: false,
     benim: o.user_id === currentUserId,
   }));

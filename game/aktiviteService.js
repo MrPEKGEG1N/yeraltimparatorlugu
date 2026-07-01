@@ -105,6 +105,7 @@ const AKSiyON_ETIKETLERI = {
   istihbarat_spy: "Casusluk yaptı",
   gorev_kabul: "Günlük görev kabul etti",
   gorev_odul_al: "Görev ödülü aldı",
+  gorev_elmas_tamamla: "Elmasla görev teslim etti",
   banka_yatir: "Bankaya yatırdı",
   banka_cek: "Bankadan çekti",
   mekan_devri: "Mekan devri yaptı",
