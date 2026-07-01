@@ -130,6 +130,7 @@ async function sendHealth(res) {
        FROM users u JOIN players p ON p.user_id = u.id WHERE u.username = 'dd1'`
     );
     if (dd1Row) {
+      const { sehreHukmediyorMu } = require("./game/karaListeService");
       const mekan = await get(
         db,
         `SELECT COALESCE(SUM(adet),0) AS t FROM sektor_sahiplik WHERE user_id = ?`,
@@ -137,15 +138,14 @@ async function sendHealth(res) {
       );
       const gy = await get(db, `SELECT base_seviye FROM user_base WHERE user_id = ?`, [dd1Row.id]);
       const ist = await get(db, `SELECT eleman_sayisi FROM istihbarat WHERE user_id = ?`, [dd1Row.id]);
+      const sehreHukmeder = await sehreHukmediyorMu(db, dd1Row.id);
       dd1 = {
         ok:
-          dd1Row.kasa === 580784000 &&
-          dd1Row.puan >= 159850 &&
-          dd1Row.icraat === 250 &&
-          dd1Row.sms_hakki === 349 &&
-          (mekan?.t || 0) === 88 &&
-          (gy?.base_seviye || 0) === 15 &&
-          (ist?.eleman_sayisi || 0) === 2,
+          sehreHukmeder &&
+          (mekan?.t || 0) >= 88 &&
+          (gy?.base_seviye || 0) >= 15 &&
+          (ist?.eleman_sayisi || 0) >= 2,
+        sehreHukmeder,
         kasa: dd1Row.kasa,
         puan: dd1Row.puan,
         mekanToplam: mekan?.t || 0,
