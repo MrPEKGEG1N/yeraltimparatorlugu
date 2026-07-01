@@ -152,6 +152,7 @@ function createAdminRouter(db) {
           premiumPaket: detail.user.premium_paket || "",
           kayitUlkesi: detail.user.kayit_ulkesi || "",
           oyunDili: detail.user.oyun_dili || "",
+          isAdmin: !!detail.user.is_admin,
         },
         yetenekler: detail.yetenekler || null,
         aktifMeslek: detail.aktifMeslek || null,
@@ -208,7 +209,10 @@ function createAdminRouter(db) {
       });
     } catch (err) {
       console.error("[admin] oyuncu detay hatasi", userId, err);
-      res.status(500).json({ ok: false, error: "Detay yüklenemedi." });
+      res.status(500).json({
+        ok: false,
+        error: err.message ? `Detay yüklenemedi: ${err.message}` : "Detay yüklenemedi.",
+      });
     }
   });
 

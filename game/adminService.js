@@ -208,30 +208,20 @@ function adminSefirlikOzetOlustur(sehirKontroller, sehirHakimiyetSahip) {
   };
 }
 
-async function collectPlayerExtra(db, userId) {
-  await ensureGunlukGorevTables(db);
+function settledDbValue(result, fallback, label) {
+  if (result.status === "fulfilled") return result.value;
+  console.warn(`[admin] ${label} yuklenemedi:`, result.reason?.message || result.reason);
+  return fallback;
+}
 
-  const [
-    playerRow,
-    bankaRow,
-    userBaseRow,
-    envanter,
-    limanlar,
-    babaMakamlari,
-    sadakatOylari,
-    gunlukGorevRows,
-    mafyaBasvurulari,
-    mafyaIsKatilimlari,
-    mafyaSavasKatilimlari,
-    medyaHaberleri,
-    statHareketleri,
-    sehirKontroller,
-    sehirHukumranliklar,
-    sehirHakimiyetSahip,
-    profilZiyaret,
-    mesajOzet,
-    icerikRaporlari,
-  ] = await Promise.all([
+async function collectPlayerExtra(db, userId) {
+  try {
+    await ensureGunlukGorevTables(db);
+  } catch (err) {
+    console.warn("[admin] gunluk gorev tablolari:", err.message);
+  }
+
+  const settled = await Promise.allSettled([
     get(db, `SELECT * FROM players WHERE user_id = ?`, [userId]),
     get(db, `SELECT * FROM banka_hesaplari WHERE user_id = ?`, [userId]),
     ensureUserBase(db, userId),
@@ -330,20 +320,44 @@ async function collectPlayerExtra(db, userId) {
     ),
   ]);
 
+  const playerRow = settledDbValue(settled[0], null, "players");
+  const bankaRow = settledDbValue(settled[1], null, "banka");
+  const userBaseRow = settledDbValue(settled[2], null, "user_base");
+  const envanter = settledDbValue(settled[3], [], "envanter");
+  const limanlar = settledDbValue(settled[4], [], "limanlar");
+  const babaMakamlari = settledDbValue(settled[5], [], "baba_makamlari");
+  const sadakatOylari = settledDbValue(settled[6], [], "sadakat_oylari");
+  const gunlukGorevRows = settledDbValue(settled[7], [], "gunluk_gorevler");
+  const mafyaBasvurulari = settledDbValue(settled[8], [], "mafya_basvurulari");
+  const mafyaIsKatilimlari = settledDbValue(settled[9], [], "mafya_isleri");
+  const mafyaSavasKatilimlari = settledDbValue(settled[10], [], "mafya_savaslari");
+  const medyaHaberleri = settledDbValue(settled[11], [], "medya_haberleri");
+  const statHareketleri = settledDbValue(settled[12], [], "stat_hareketleri");
+  const sehirKontroller = settledDbValue(settled[13], [], "sehir_kontrol");
+  const sehirHukumranliklar = settledDbValue(settled[14], [], "sehir_hukumranlik");
+  const sehirHakimiyetSahip = settledDbValue(settled[15], [], "sehir_hakimiyet");
+  const profilZiyaret = settledDbValue(settled[16], { n: 0 }, "profil_ziyaretleri");
+  const mesajOzet = settledDbValue(settled[17], null, "mesaj_sayilari");
+  const icerikRaporlari = settledDbValue(settled[18], [], "icerik_raporlari");
+
   let sirketPanel = null;
   let sefirlikOzet = null;
   try {
     sirketPanel = await adminSirketOzetGetir(db, userId);
-  } catch (_) {}
+  } catch (err) {
+    console.warn("[admin] sirket ozeti:", err.message);
+  }
   try {
     sefirlikOzet = adminSefirlikOzetOlustur(sehirKontroller, sehirHakimiyetSahip);
-  } catch (_) {}
+  } catch (err) {
+    console.warn("[admin] sefirlik ozeti:", err.message);
+  }
 
   return {
     playerRow,
     banka: bankaRow,
     userBase: userBaseRow,
-    guvenliYerFull: baseOzeti(userBaseRow),
+    guvenliYerFull: userBaseRow ? baseOzeti(userBaseRow) : null,
     profil: playerRow
       ? {
           aciklama: playerRow.profil_aciklama || "",
@@ -577,14 +591,39 @@ async function getPlayerDetail(db, userId) {
     [userId]
   );
 
-  const aktiviteLog = await listOyuncuAktiviteLog(db, userId, 40);
+  let aktiviteLog = [];
+  try {
+    aktiviteLog = await listOyuncuAktiviteLog(db, userId, 40);
+  } catch (err) {
+    console.warn("[admin] aktivite log", userId, err.message);
+  }
   const mekan = await getPlayerMekanlar(db, userId);
-  const baseRow = await ensureUserBase(db, userId);
-  const guvenliYer = baseOzeti(baseRow);
-  const istihbaratRow = await get(db, `SELECT eleman_sayisi FROM istihbarat WHERE user_id = ?`, [userId]);
-  const istihbaratEleman = istihbaratRow ? istihbaratRow.eleman_sayisi || 0 : 0;
-  const yetenekler = await yetenekleriGetir(db, userId);
-  const aktifMeslek = await meslekGetir(db, userId);
+  let baseRow = null;
+  try {
+    baseRow = await ensureUserBase(db, userId);
+  } catch (err) {
+    console.warn("[admin] user_base", userId, err.message);
+  }
+  const guvenliYer = baseRow ? baseOzeti(baseRow) : { baseSeviye: 1, ad: "", gucBonus: 0 };
+  let istihbaratEleman = 0;
+  try {
+    const istihbaratRow = await get(db, `SELECT eleman_sayisi FROM istihbarat WHERE user_id = ?`, [userId]);
+    istihbaratEleman = istihbaratRow ? istihbaratRow.eleman_sayisi || 0 : 0;
+  } catch (err) {
+    console.warn("[admin] istihbarat", userId, err.message);
+  }
+  let yetenekler = null;
+  let aktifMeslek = null;
+  try {
+    yetenekler = await yetenekleriGetir(db, userId);
+  } catch (err) {
+    console.warn("[admin] yetenekler", userId, err.message);
+  }
+  try {
+    aktifMeslek = await meslekGetir(db, userId);
+  } catch (err) {
+    console.warn("[admin] meslek", userId, err.message);
+  }
   const sirketCalisan = await get(
     db,
     `SELECT c.gunluk_maas, c.pozisyon_id, s.isim AS sirket_adi, s.tur_id
@@ -599,9 +638,18 @@ async function getPlayerDetail(db, userId) {
     [userId]
   );
 
-  const extra = await collectPlayerExtra(db, userId);
+  let extra = {};
+  try {
+    extra = await collectPlayerExtra(db, userId);
+  } catch (err) {
+    console.error("[admin] collectPlayerExtra", userId, err);
+    extra = { loadError: err.message || "Ek veri yuklenemedi." };
+  }
   const { oyuncuBorsaGetir } = require("./borsaService");
-  const borsa = await oyuncuBorsaGetir(db, userId).catch(() => null);
+  const borsa = await oyuncuBorsaGetir(db, userId).catch((err) => {
+    console.warn("[admin] borsa", userId, err.message);
+    return null;
+  });
 
   return {
     user,

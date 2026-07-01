@@ -220,10 +220,10 @@
           return {
             ok: false,
             status: 0,
-            data: { error: "Sunucu yanıt vermedi. npm start çalıştırıp sayfayı yenileyin." },
+            data: { error: "Sunucu yanıt vermedi (zaman aşımı). Sayfayı Ctrl+F5 ile yenileyip tekrar deneyin." },
           };
         }
-        return { ok: false, status: 0, data: { error: "Sunucuya bağlanılamadı. npm start çalışıyor mu?" } };
+        return { ok: false, status: 0, data: { error: "Sunucuya bağlanılamadı. İnternet bağlantınızı kontrol edin." } };
       });
   }
 
@@ -598,7 +598,7 @@
     var baslik = label
       ? '<label style="display:block;font-size:11px;color:#9ca3af;margin-bottom:4px">' + esc(label) + "</label>"
       : "";
-    return '<div>' + baslik + '<input name="' + name + '" type="number" min="0" class="admin-input" value="' + val + '"></div>';
+    return '<div>' + baslik + '<input name="' + name + '" type="number" min="0" class="admin-input" value="' + esc(val == null ? 0 : val) + '"></div>';
   }
 
   function inputText(name, val, label, opts) {
