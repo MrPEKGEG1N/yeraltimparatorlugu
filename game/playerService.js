@@ -791,7 +791,8 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
   }
 
   if (action === "kumarhane_piyango_bilet") {
-    const sonuc = await kumarhanePiyangoBiletAl(db, userId, extra.sayilar || extra.numbers);
+    const odeme = extra.odeme === "elmas" ? "elmas" : "chip";
+    const sonuc = await kumarhanePiyangoBiletAl(db, userId, extra.sayilar || extra.numbers, { odeme });
     if (!sonuc.ok) return sonuc;
     return {
       ok: true,
@@ -800,6 +801,7 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
         type: "kumarhane_piyango_bilet",
         mesaj: sonuc.mesaj,
         chip: sonuc.chip,
+        elmas: sonuc.elmas,
         piyango: sonuc.piyango,
       },
     };

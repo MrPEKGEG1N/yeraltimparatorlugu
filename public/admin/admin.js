@@ -157,7 +157,7 @@
           info("Şirket", yonetim.isim || "—") +
           info("Tür", yonetim.turAd || "—") +
           info("Kasa", fmt(yonetim.kasa || 0) + " TL") +
-          info("Çalışan", fmt((yonetim.calisanlar || []).length) + "/" + fmt(yonetim.maxCalisan || 0)) +
+          info("Çalışan", fmt(yonetim.calisanSayisi != null ? yonetim.calisanSayisi : (yonetim.calisanlar || []).length) + "/" + fmt(yonetim.maxCalisan || 0)) +
           info("Stok Dolu", fmt(yonetim.stokDolu || 0) + "/" + fmt(yonetim.depoKapasite || 0)) +
           "</div>"
         : "") +
@@ -193,7 +193,7 @@
     opts.headers = Object.assign({ "Content-Type": "application/json" }, opts.headers || {});
     if (opts.body && typeof opts.body === "object") opts.body = JSON.stringify(opts.body);
 
-    var timeoutMs = 12000;
+    var timeoutMs = opts.timeoutMs || 12000;
     var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
     if (controller) {
       opts.signal = controller.signal;
@@ -375,7 +375,8 @@
       el.innerHTML = "<p style='color:#9ca3af;padding:12px'>Detay yükleniyor…</p>";
       el.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
-    api("/api/admin/oyuncular/" + id).then(function (res) {
+    api("/api/admin/oyuncular/" + id, { timeoutMs: 45000 }).then(function (res) {
+      try {
       if (!res.ok) {
         if (!sessiz) toast(res.data.error || "Detay yüklenemedi", true);
         el.innerHTML = "<p style='color:#f87171;padding:12px'>" + esc(res.data.error || "Detay yüklenemedi") + "</p>";
@@ -572,8 +573,16 @@
           indirDosya("/api/admin/oyuncular/" + id + "/export", "oyuncu-" + safeName + "-" + id + ".json");
         });
       }
-    }).catch(function () {
-      if (el) el.innerHTML = "<p style='color:#f87171;padding:12px'>Detay isteği başarısız.</p>";
+      } catch (renderErr) {
+        console.error("oyuncuDetayYukle", renderErr);
+        el.innerHTML = "<p style='color:#f87171;padding:12px'>Detay gösterilemedi: " + esc(renderErr.message || "Bilinmeyen hata") + "</p>";
+        if (!sessiz) toast("Detay gösterilemedi", true);
+      }
+    }).catch(function (err) {
+      if (el) {
+        var mesaj = err && err.message ? err.message : "Detay isteği başarısız.";
+        el.innerHTML = "<p style='color:#f87171;padding:12px'>" + esc(mesaj) + "</p>";
+      }
     });
   }
 

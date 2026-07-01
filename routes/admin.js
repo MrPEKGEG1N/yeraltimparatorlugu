@@ -125,8 +125,9 @@ function createAdminRouter(db) {
   });
 
   router.get("/oyuncular/:id", async (req, res) => {
+    const userId = parseInt(req.params.id, 10);
     try {
-      const detail = await getPlayerDetail(db, parseInt(req.params.id, 10));
+      const detail = await getPlayerDetail(db, userId);
       if (!detail) return res.status(404).json({ ok: false, error: "Oyuncu bulunamadı." });
       const extra = detail.extra || {};
       res.json({
@@ -182,14 +183,14 @@ function createAdminRouter(db) {
         profilZiyaretSayisi: extra.profilZiyaretSayisi || 0,
         icerikRaporlari: extra.icerikRaporlari || [],
         banka: extra.banka || null,
-        fingerprints: detail.fingerprints.map((f) => ({
+        fingerprints: (detail.fingerprints || []).map((f) => ({
           visitorId: f.visitor_id,
           ip: f.son_ip,
           userAgent: f.user_agent,
           firstSeen: fmtTs(f.first_seen),
           lastSeen: fmtTs(f.last_seen),
         })),
-        events: detail.events.map((e) => ({
+        events: (detail.events || []).map((e) => ({
           type: e.event_type,
           detail: e.detail,
           ip: e.ip,
@@ -206,7 +207,7 @@ function createAdminRouter(db) {
         })),
       });
     } catch (err) {
-      console.error(err);
+      console.error("[admin] oyuncu detay hatasi", userId, err);
       res.status(500).json({ ok: false, error: "Detay yüklenemedi." });
     }
   });

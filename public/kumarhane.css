@@ -3563,6 +3563,25 @@
   box-shadow: 0 4px 16px rgba(60, 180, 80, 0.25);
 }
 
+#masterLayout #anaIcerik .km-py-btn-elmas {
+  min-width: 160px;
+  padding: 12px 18px;
+  font-size: 14px;
+  letter-spacing: 0.03em;
+  background: linear-gradient(145deg, rgba(90, 60, 180, 0.85), rgba(50, 30, 120, 0.9));
+  border: 1px solid rgba(180, 140, 255, 0.45);
+  color: #f3e8ff;
+  box-shadow: 0 4px 16px rgba(120, 80, 220, 0.28);
+}
+
+#masterLayout #anaIcerik .km-py-btn-elmas:hover {
+  filter: brightness(1.08);
+}
+
+#masterLayout #anaIcerik .km-py-stat--elmas strong {
+  color: #c4b5fd;
+}
+
 #masterLayout #anaIcerik .km-py-btn-temiz {
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.12);

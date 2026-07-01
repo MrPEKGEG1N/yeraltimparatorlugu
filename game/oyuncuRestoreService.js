@@ -738,9 +738,8 @@ function mapYeteneklerForSeed(full) {
 }
 
 async function enrichExportForSeed(db, userId, full) {
-  const { sahipSirketGetir } = require("./sirketService");
   const { yetenekleriGetir } = require("./meslekService");
-  const sirket = await sahipSirketGetir(db, userId);
+  const sirket = await get(db, `SELECT * FROM oyuncu_sirketleri WHERE sahip_user_id = ?`, [userId]);
   if (sirket) {
     const stok = await all(db, `SELECT malzeme_id, miktar FROM sirket_stok WHERE sirket_id = ?`, [
       sirket.id,

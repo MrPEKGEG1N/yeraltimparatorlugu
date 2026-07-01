@@ -6,6 +6,7 @@ const { turkeyNowParts, gunKeyEkle } = require("./turkiyeSaati");
 const SAYI_MAX = 25;
 const SECIM_SAYISI = 6;
 const BILET_UCRET = 100_000;
+const BILET_ELMAS_MALIYET = 2;
 const HAVUZ_ODUL_ORANI = 0.9;
 const MAX_BILET_KULLANICI = 5;
 const CEKILIS_GUNLER = [1, 3, 5];
@@ -511,6 +512,7 @@ async function panelVerisiGetir(db, userId) {
     sonrakiCekilis: sonraki.donem,
     cekilisProgram: "Pazartesi, Çarşamba, Cuma 20:30",
     biletUcret: BILET_UCRET,
+    biletElmasMaliyet: BILET_ELMAS_MALIYET,
     biletHak,
     havuzToplam,
     buyukOdul,
@@ -552,7 +554,8 @@ async function panelVerisiGetir(db, userId) {
   };
 }
 
-async function biletAl(db, userId, hamSayilar) {
+async function biletAl(db, userId, hamSayilar, opts = {}) {
+  const odeme = opts.odeme === "elmas" ? "elmas" : "chip";
   if (!piyangoAktifMi()) {
     return { ok: false, error: "Piyango şu an kullanılamıyor." };
   }
@@ -580,17 +583,34 @@ async function biletAl(db, userId, hamSayilar) {
     return { ok: false, error: `Bu dönemde en fazla ${MAX_BILET_KULLANICI} bilet alabilirsin.` };
   }
 
-  const ucretsiz = await hakKullan(db, userId);
+  const ucretsiz = odeme === "chip" ? await hakKullan(db, userId) : false;
   if (!ucretsiz) {
-    const chip = await chipGetir(db, userId);
-    if (chip < BILET_UCRET) {
-      return {
-        ok: false,
-        error: `Yeterli çipin yok! ${BILET_UCRET.toLocaleString("tr-TR")} çip gerekir.`,
-      };
+    if (odeme === "elmas") {
+      const elmasRow = await get(db, `SELECT elmas FROM players WHERE user_id = ?`, [userId]);
+      const elmas = elmasRow?.elmas || 0;
+      if (elmas < BILET_ELMAS_MALIYET) {
+        return {
+          ok: false,
+          error: `Yeterli elmasın yok! ${BILET_ELMAS_MALIYET} elmas gerekir.`,
+        };
+      }
+      const elmasRes = await run(
+        db,
+        `UPDATE players SET elmas = elmas - ? WHERE user_id = ? AND elmas >= ?`,
+        [BILET_ELMAS_MALIYET, userId, BILET_ELMAS_MALIYET]
+      );
+      if (!elmasRes?.changes) return { ok: false, error: "Elmas düşülemedi." };
+    } else {
+      const chip = await chipGetir(db, userId);
+      if (chip < BILET_UCRET) {
+        return {
+          ok: false,
+          error: `Yeterli çipin yok! ${BILET_UCRET.toLocaleString("tr-TR")} çip gerekir.`,
+        };
+      }
+      const ok = await chipGuncelle(db, userId, -BILET_UCRET);
+      if (!ok) return { ok: false, error: "Çip düşülemedi." };
     }
-    const ok = await chipGuncelle(db, userId, -BILET_UCRET);
-    if (!ok) return { ok: false, error: "Çip düşülemedi." };
   }
 
   await run(
@@ -600,21 +620,34 @@ async function biletAl(db, userId, hamSayilar) {
   );
 
   if (!ucretsiz) {
-    await logEkle(db, userId, "piyango", BILET_UCRET, 0, {
-      tip: "bilet",
-      sayilar: parsed.sayilar,
-      cekilisId: cekilis.id,
-    });
+    if (odeme === "elmas") {
+      await logEkle(db, userId, "piyango", 0, 0, {
+        tip: "bilet_elmas",
+        elmas: BILET_ELMAS_MALIYET,
+        sayilar: parsed.sayilar,
+        cekilisId: cekilis.id,
+      });
+    } else {
+      await logEkle(db, userId, "piyango", BILET_UCRET, 0, {
+        tip: "bilet",
+        sayilar: parsed.sayilar,
+        cekilisId: cekilis.id,
+      });
+    }
   }
 
   const mesaj = ucretsiz
     ? `Ücretsiz bilet kullanıldı: ${parsed.sayilar.join(", ")}.`
-    : `Bilet alındı: ${parsed.sayilar.join(", ")} — ${BILET_UCRET.toLocaleString("tr-TR")} çip.`;
+    : odeme === "elmas"
+      ? `Bilet alındı: ${parsed.sayilar.join(", ")} — ${BILET_ELMAS_MALIYET} elmas.`
+      : `Bilet alındı: ${parsed.sayilar.join(", ")} — ${BILET_UCRET.toLocaleString("tr-TR")} çip.`;
 
+  const elmasRow = await get(db, `SELECT elmas FROM players WHERE user_id = ?`, [userId]);
   return {
     ok: true,
     mesaj,
     chip: await chipGetir(db, userId),
+    elmas: elmasRow?.elmas || 0,
     piyango: await panelVerisiGetir(db, userId),
   };
 }
@@ -629,6 +662,7 @@ async function periyodikKontrol(db) {
 module.exports = {
   piyangoAktifMi,
   BILET_UCRET,
+  BILET_ELMAS_MALIYET,
   HAVUZ_ODUL_ORANI,
   SECIM_SAYISI,
   SAYI_MAX,

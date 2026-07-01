@@ -952,7 +952,8 @@ function kumarhanePiyangoHTML() {
   + '<div class="km-py-sayac-cizgi" aria-hidden="true"></div>'
     + '</div></div>'
     + '<div class="km-py-istatistik">'
-    + '<div class="km-py-stat"><span>' + escHtml(t('game.kumarhane.lotteryTicket')) + '</span><strong>' + fmt(p.biletUcret || 100000) + '</strong></div>'
+    + '<div class="km-py-stat"><span>' + escHtml(t('game.kumarhane.lotteryTicket')) + '</span><strong>' + fmt(p.biletUcret || 100000) + ' çip</strong></div>'
+    + '<div class="km-py-stat km-py-stat--elmas"><span>' + escHtml(t('game.kumarhane.lotteryTicketDiamond')) + '</span><strong>💎 ' + fmt(p.biletElmasMaliyet || 2) + '</strong></div>'
     + '<div class="km-py-stat"><span>' + escHtml(t('game.kumarhane.lotteryTicketCount')) + '</span><strong>' + fmt(p.toplamBilet || 0) + '</strong></div>';
   if (p.biletHak > 0) {
     html += '<div class="km-py-stat km-py-stat--hak"><span>' + escHtml(t('game.kumarhane.lotteryFreeTickets')) + '</span><strong>' + fmt(p.biletHak) + '</strong></div>';
@@ -979,6 +980,8 @@ function kumarhanePiyangoHTML() {
     + '<div class="km-py-aksiyon">'
     + '<button type="button" class="km-btn km-btn--yesil km-py-btn-al" onclick="kumarhanePiyangoBiletAl()">'
     + '<span class="km-py-btn-ikon" aria-hidden="true">🎟️</span> ' + escHtml(t('game.kumarhane.lotteryBuy')) + '</button>'
+    + '<button type="button" class="km-btn km-py-btn-elmas" onclick="kumarhanePiyangoBiletElmasAl()">'
+    + '<span class="km-py-btn-ikon" aria-hidden="true">💎</span> ' + escHtml(t('game.kumarhane.lotteryBuyDiamond', { n: p.biletElmasMaliyet || 2 })) + '</button>'
     + '<button type="button" class="km-btn km-py-btn-temiz" onclick="kumarhanePiyangoTemizle()">' + escHtml(t('game.kumarhane.lotteryClear')) + '</button>'
     + '</div>';
 
@@ -1032,13 +1035,40 @@ async function kumarhanePiyangoBiletAl() {
     toast(t('game.kumarhane.lotteryNeedPick', { n: need }), 'hata');
     return;
   }
-  var ef = await sunucuAksiyon('kumarhane_piyango_bilet', null, null, { sayilar: kumarhanePiyangoSecili.slice() });
+  var ef = await sunucuAksiyon('kumarhane_piyango_bilet', null, null, { sayilar: kumarhanePiyangoSecili.slice(), odeme: 'chip' });
   if (!ef) return;
   if (ef.chip != null && kumarhanePanelVeri) kumarhanePanelVeri.chip = ef.chip;
   if (ef.piyango && kumarhanePanelVeri) kumarhanePanelVeri.piyango = ef.piyango;
   kumarhanePiyangoSecili = [];
   kumarhaneOzetGuncelle();
   kumarhaneChipPulse();
+  kumarhaneSes('chip');
+  if (ef.mesaj) {
+    kumarhaneSonucGoster(escHtml(ef.mesaj), 'ok');
+    toast(ef.mesaj, 'ok');
+  }
+  kumarhaneIcerikCiz();
+  if (kumarhaneAktifOyun === 'piyango') kumarhanePiyangoSayiGridGuncelle();
+}
+
+async function kumarhanePiyangoBiletElmasAl() {
+  var p = kumarhanePanelVeri && kumarhanePanelVeri.piyango;
+  var need = (p && p.secimSayisi) || 6;
+  var maliyet = (p && p.biletElmasMaliyet) || 2;
+  if (kumarhanePiyangoSecili.length !== need) {
+    toast(t('game.kumarhane.lotteryNeedPick', { n: need }), 'hata');
+    return;
+  }
+  if ((typeof oyuncuElmas !== 'undefined' ? oyuncuElmas : 0) < maliyet) {
+    toast(t('game.kumarhane.lotteryNeedDiamond', { n: maliyet }), 'hata');
+    return;
+  }
+  var ef = await sunucuAksiyon('kumarhane_piyango_bilet', null, null, { sayilar: kumarhanePiyangoSecili.slice(), odeme: 'elmas' });
+  if (!ef) return;
+  if (ef.chip != null && kumarhanePanelVeri) kumarhanePanelVeri.chip = ef.chip;
+  if (ef.piyango && kumarhanePanelVeri) kumarhanePanelVeri.piyango = ef.piyango;
+  kumarhanePiyangoSecili = [];
+  kumarhaneOzetGuncelle();
   kumarhaneSes('chip');
   if (ef.mesaj) {
     kumarhaneSonucGoster(escHtml(ef.mesaj), 'ok');

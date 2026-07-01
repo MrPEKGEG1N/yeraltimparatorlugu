@@ -6,8 +6,8 @@ const { ensureUserBase, adminSeviyeAyarla, baseOzeti } = require("./guvenliYerSe
 const { MAX_SEVIYE, seviyeBul } = require("./guvenliYerCatalog");
 const { ELEMAN_GUC } = require("./istihbaratService");
 const { meslekGetir, yetenekleriGetir, yetenekleriKaydet } = require("./meslekService");
-const { panelGetir: sirketPanelGetir } = require("./sirketService");
-const { panelGetir: sefirlikPanelGetir } = require("./turkiyeSefirlikService");
+const { turBul, maxCalisanHesapla, depoKapasiteHesapla } = require("./sirketCatalog");
+const { sehirBul } = require("./turkiyeSefirlikCatalog");
 const { ensureGunlukGorevTables } = require("./gunlukGorevService");
 const { paketTanim } = require("./premiumService");
 const { HIRE } = require("./catalog");
@@ -141,6 +141,73 @@ async function searchPlayers(db, q, limit = 200) {
   );
 }
 
+async function adminSirketOzetGetir(db, userId) {
+  const sahip = await get(
+    db,
+    `SELECT id, isim, tur_id, kasa, kapasite_seviye, depo_seviye FROM oyuncu_sirketleri WHERE sahip_user_id = ?`,
+    [userId]
+  );
+  if (!sahip) return null;
+  const tur = turBul(sahip.tur_id);
+  if (!tur) return null;
+  const calisan = await get(
+    db,
+    `SELECT COUNT(*) AS n FROM sirket_calisanlari WHERE sirket_id = ?`,
+    [sahip.id]
+  );
+  const stok = await get(
+    db,
+    `SELECT COALESCE(SUM(miktar), 0) AS n FROM sirket_stok WHERE sirket_id = ?`,
+    [sahip.id]
+  );
+  return {
+    yonetim: {
+      isim: sahip.isim,
+      turAd: tur.ad,
+      kasa: sahip.kasa || 0,
+      calisanSayisi: calisan?.n || 0,
+      maxCalisan: maxCalisanHesapla(tur, sahip.kapasite_seviye || 0),
+      stokDolu: Math.floor(stok?.n || 0),
+      depoKapasite: depoKapasiteHesapla(tur, sahip.depo_seviye || 0),
+    },
+  };
+}
+
+function adminSefirlikOzetOlustur(sehirKontroller, sehirHakimiyetSahip) {
+  const sahipSet = new Set(sehirHakimiyetSahip || []);
+  const sehirler = [];
+  const gordu = new Set();
+  for (const s of sehirKontroller || []) {
+    const meta = sehirBul(s.sehir_id);
+    gordu.add(s.sehir_id);
+    sehirler.push({
+      id: s.sehir_id,
+      ad: meta ? meta.ad : s.sehir_id,
+      benimKontrol: s.kontrol,
+      benSahibim: sahipSet.has(s.sehir_id),
+      liderReis: null,
+      tier: meta ? meta.tier : null,
+    });
+  }
+  for (const sid of sahipSet) {
+    if (gordu.has(sid)) continue;
+    const meta = sehirBul(sid);
+    sehirler.push({
+      id: sid,
+      ad: meta ? meta.ad : sid,
+      benimKontrol: 0,
+      benSahibim: true,
+      liderReis: null,
+      tier: meta ? meta.tier : null,
+    });
+  }
+  const toplamKontrol = (sehirKontroller || []).reduce((t, s) => t + (s.kontrol || 0), 0);
+  return {
+    ozet: { toplamKontrol, sahipSayisi: sahipSet.size },
+    sehirler,
+  };
+}
+
 async function collectPlayerExtra(db, userId) {
   await ensureGunlukGorevTables(db);
 
@@ -266,25 +333,10 @@ async function collectPlayerExtra(db, userId) {
   let sirketPanel = null;
   let sefirlikOzet = null;
   try {
-    sirketPanel = await sirketPanelGetir(db, userId);
+    sirketPanel = await adminSirketOzetGetir(db, userId);
   } catch (_) {}
   try {
-    const panel = await sefirlikPanelGetir(db, userId);
-    if (panel && panel.ok) {
-      sefirlikOzet = {
-        ozet: panel.ozet,
-        sehirler: (panel.sehirler || [])
-          .filter((s) => (s.benimKontrol || 0) > 0 || s.benSahibim)
-          .map((s) => ({
-            id: s.id,
-            ad: s.ad,
-            benimKontrol: s.benimKontrol,
-            benSahibim: !!s.benSahibim,
-            liderReis: s.liderReis,
-            tier: s.tier,
-          })),
-      };
-    }
+    sefirlikOzet = adminSefirlikOzetOlustur(sehirKontroller, sehirHakimiyetSahip);
   } catch (_) {}
 
   return {
