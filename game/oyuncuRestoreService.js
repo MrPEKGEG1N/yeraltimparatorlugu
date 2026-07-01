@@ -634,18 +634,45 @@ function mergeSnapshot(existing, exported) {
     delete out.sirket_kapali;
   }
   if (!out.mafya && existing.mafya) out.mafya = existing.mafya;
-  if (!out.sehre_hukmet && existing.sehre_hukmet) out.sehre_hukmet = existing.sehre_hukmet;
+  if (exported.sehre_hukmet) out.sehre_hukmet = exported.sehre_hukmet;
+  else if (!out.sehre_hukmet && existing.sehre_hukmet) out.sehre_hukmet = existing.sehre_hukmet;
   if (!out.yetenekler && existing.yetenekler) out.yetenekler = existing.yetenekler;
   if (exported.mekanlar?.length) out.mekanlar = exported.mekanlar;
   else if (existing.mekanlar) out.mekanlar = existing.mekanlar;
   return out;
 }
 
+function mapSehreHukmetForSeed(full) {
+  const oyuncuId = full.oyuncuId;
+  const limanlar = (full.limanlar || [])
+    .filter((l) => l.sahipUserId === oyuncuId)
+    .map((l) => l.limanId)
+    .filter(Boolean);
+  const makamlar = (full.babaMakamlari || [])
+    .filter((m) => m.sahipUserId === oyuncuId)
+    .map((m) => m.makam)
+    .filter(Boolean);
+  const aktifHukum = (full.sehirHukumranliklar || []).find((h) => !h.bitis);
+  const meta = full.sehirMeta || {};
+  const st = full.istatistikler || {};
+  if (!aktifHukum && !st.karaListede && !limanlar.length && !makamlar.length) return null;
+  const baslangic = aktifHukum?.baslangic
+    ? Math.floor(new Date(aktifHukum.baslangic).getTime() / 1000)
+    : undefined;
+  return {
+    aktif: !!(aktifHukum || st.karaListede),
+    baslangic,
+    sehre_hukmet_sayisi: meta.sehreHukmetSayisi || st.sehreHukmetSayisi || 1,
+    limanlar: limanlar.length ? limanlar : undefined,
+    makamlar: makamlar.length ? makamlar : undefined,
+  };
+}
+
 function mapExportToSeed(full) {
   const k = full.kullanici || {};
   const st = full.istatistikler || {};
   const gy = full.guvenliYer || {};
-  return {
+  const out = {
     id: k.username || String(full.oyuncuId || ""),
     username: k.username,
     reis_adi: k.reisAdi || k.username,
@@ -676,9 +703,12 @@ function mapExportToSeed(full) {
     user_agent: k.userAgent || undefined,
     sirket_kapali: !full.sahipSirket,
   };
+  const sehreHukmet = mapSehreHukmetForSeed(full);
+  if (sehreHukmet) out.sehre_hukmet = sehreHukmet;
+  return out;
 }
 
-async function enforceSnapshotSafetyFlags(db) {
+async function enforceLiveSnapshotPolicies(db) {
   if (!fs.existsSync(SNAPSHOT_DIR)) return [];
   const files = fs
     .readdirSync(SNAPSHOT_DIR)
@@ -688,16 +718,27 @@ async function enforceSnapshotSafetyFlags(db) {
   for (const file of files) {
     try {
       const snap = JSON.parse(fs.readFileSync(path.join(SNAPSHOT_DIR, file), "utf8"));
-      if (snap.sirket_kapali !== true) continue;
       const userId = await findSnapshotUser(db, snap);
       if (!userId) continue;
-      const removed = await clearOwnedSirket(db, userId);
-      if (removed) {
-        console.log(`[restore] Guvenlik: sirket_kapali uygulandi (${snap.username})`);
-        results.push({ username: snap.username, sirketRemoved: true });
+
+      if (snap.sirket_kapali === true) {
+        const removed = await clearOwnedSirket(db, userId);
+        if (removed) {
+          console.log(`[restore] Guvenlik: sirket_kapali uygulandi (${snap.username})`);
+          results.push({ username: snap.username, sirketRemoved: true });
+        }
       }
+
+      if (!snap.force_restore) continue;
+
+      const need = await playerNeedsRecovery(db, userId, snap, false);
+      if (!need) continue;
+
+      await applyForceSnapshot(db, userId, snap);
+      console.log(`[restore] Canli DB kurtarma: ${snap.username}`);
+      results.push({ username: snap.username, recovered: true });
     } catch (err) {
-      console.warn(`[restore] guvenlik ${file}:`, err.message);
+      console.warn(`[restore] canli politika ${file}:`, err.message);
       results.push({ file, error: err.message });
     }
   }
@@ -754,7 +795,8 @@ module.exports = {
   clearOwnedSirket,
   applyMafya,
   exportSnapshotsToSeed,
-  enforceSnapshotSafetyFlags,
+  enforceLiveSnapshotPolicies,
+  enforceSnapshotSafetyFlags: enforceLiveSnapshotPolicies,
   updatePlayerSeedSnapshot,
   playerNeedsRecovery,
 };

@@ -5,23 +5,21 @@
   "lakap": "Mafya",
   "force_restore": true,
   "player": {
-    "kasa": 580784000,
+    "kasa": 1953428000,
     "guc": 86296950,
     "puan": 159850,
-    "icraat": 250,
-    "sms_hakki": 349,
-    "profil_resmi": "kadin-04",
-    "profil_aciklama": "Gece kulübünün sahibi. Şehirde sözü geçen isim.",
+    "icraat": 3574,
+    "sms_hakki": 399,
     "dostlar": "",
     "dusmanlar": "",
-    "devlet_iliskisi": 100,
     "kara_listede": 1,
-    "sehir_efsane": 1,
+    "sehir_efsane": 0,
     "sehre_hukmet_sayisi": 1,
     "liman_istanbul": 1,
     "aktif_ekran": "meslekler",
     "son_aksiyon": "ekran_goruntule",
-    "son_aksiyon_detay": "meslekler"
+    "son_aksiyon_detay": "meslekler",
+    "elmas": 0
   },
   "guvenli_yer": {
     "base_seviye": 15
@@ -49,10 +47,22 @@
     "yildiz": 0,
     "populerlik": 6,
     "stok": [
-      { "malzeme_id": "icecek_stok", "miktar": 180 },
-      { "malzeme_id": "ses_isik", "miktar": 95 },
-      { "malzeme_id": "guvenlik_ekipman", "miktar": 45 },
-      { "malzeme_id": "ambalaj", "miktar": 70 }
+      {
+        "malzeme_id": "icecek_stok",
+        "miktar": 180
+      },
+      {
+        "malzeme_id": "ses_isik",
+        "miktar": 95
+      },
+      {
+        "malzeme_id": "guvenlik_ekipman",
+        "miktar": 45
+      },
+      {
+        "malzeme_id": "ambalaj",
+        "miktar": 70
+      }
     ]
   },
   "mafya": {
@@ -65,26 +75,89 @@
     "aktif": true,
     "baslangic": 1782762119,
     "sehre_hukmet_sayisi": 1,
-    "limanlar": ["istanbul", "izmir", "hatay"],
-    "makamlar": ["sozunu_gecir", "sadakat_yemini"]
+    "limanlar": [
+      "istanbul",
+      "izmir",
+      "hatay"
+    ],
+    "makamlar": [
+      "sozunu_gecir",
+      "sadakat_yemini"
+    ]
   },
   "mekanlar": [
-    { "sektor": "yeralti", "mekan_key": "kahvehane", "adet": 1 },
-    { "sektor": "yeralti", "mekan_key": "bar", "adet": 0 },
-    { "sektor": "yeralti", "mekan_key": "disco", "adet": 1 },
-    { "sektor": "yeralti", "mekan_key": "lunapark", "adet": 1 },
-    { "sektor": "yeralti", "mekan_key": "kumarhane", "adet": 8 },
-    { "sektor": "silah", "mekan_key": "sokak_arasi", "adet": 3 },
-    { "sektor": "silah", "mekan_key": "sehirler_arasi", "adet": 1 },
-    { "sektor": "silah", "mekan_key": "kacakcilik", "adet": 3 },
-    { "sektor": "silah", "mekan_key": "uluslararasi", "adet": 4 },
-    { "sektor": "silah", "mekan_key": "atom", "adet": 45 },
-    { "sektor": "paket", "mekan_key": "mahalle_teslimat", "adet": 0 },
-    { "sektor": "paket", "mekan_key": "sehirler_arasi_teslimat", "adet": 1 },
-    { "sektor": "paket", "mekan_key": "ulke_capinda", "adet": 4 },
-    { "sektor": "paket", "mekan_key": "uluslararasi_teslimat", "adet": 16 }
+    {
+      "sektor": "yeralti",
+      "mekan_key": "kahvehane",
+      "adet": 1
+    },
+    {
+      "sektor": "yeralti",
+      "mekan_key": "bar",
+      "adet": 0
+    },
+    {
+      "sektor": "yeralti",
+      "mekan_key": "disco",
+      "adet": 1
+    },
+    {
+      "sektor": "yeralti",
+      "mekan_key": "lunapark",
+      "adet": 1
+    },
+    {
+      "sektor": "yeralti",
+      "mekan_key": "kumarhane",
+      "adet": 8
+    },
+    {
+      "sektor": "silah",
+      "mekan_key": "sokak_arasi",
+      "adet": 3
+    },
+    {
+      "sektor": "silah",
+      "mekan_key": "sehirler_arasi",
+      "adet": 1
+    },
+    {
+      "sektor": "silah",
+      "mekan_key": "kacakcilik",
+      "adet": 3
+    },
+    {
+      "sektor": "silah",
+      "mekan_key": "uluslararasi",
+      "adet": 4
+    },
+    {
+      "sektor": "silah",
+      "mekan_key": "atom",
+      "adet": 45
+    },
+    {
+      "sektor": "paket",
+      "mekan_key": "mahalle_teslimat",
+      "adet": 0
+    },
+    {
+      "sektor": "paket",
+      "mekan_key": "sehirler_arasi_teslimat",
+      "adet": 1
+    },
+    {
+      "sektor": "paket",
+      "mekan_key": "ulke_capinda",
+      "adet": 4
+    },
+    {
+      "sektor": "paket",
+      "mekan_key": "uluslararasi_teslimat",
+      "adet": 16
+    }
   ],
-  "son_ip": "78.180.30.95",
-  "visitor_id": "957864a276d8be6d24bf0454f419c589",
-  "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36"
+  "son_ip": "127.0.0.1",
+  "visitor_id": "20158b2393f6330b65580c3aaff7d931",
+  "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Cursor/3.5.33 Chrome/142.0.7444.265 Electron/39.8.1 Safari/537.36"
 }
