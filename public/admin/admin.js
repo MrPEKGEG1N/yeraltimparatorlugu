@@ -436,6 +436,14 @@
           );
         })
         .join("");
+      var profil = res.data.profil || {};
+      var ekonomi = res.data.ekonomi || {};
+      var banka = res.data.banka || {};
+      var gyFull = res.data.guvenliYerFull || {};
+      var hireSablon = res.data.hireSablon || [];
+      var bankaYatirilan = banka.yatirilan_miktar != null ? banka.yatirilan_miktar : (o.bankaBakiye || 0);
+      var bankaHakkiVal = banka.banka_hakki != null ? banka.banka_hakki : (o.bankaHakki || 20);
+      var bankaFaiz = banka.faiz_bekleyen != null ? banka.faiz_bekleyen : (o.faizBekleyen || 0);
       el.innerHTML =
         "<h3 style='margin:0 0 4px;color:#fff'>" + esc(o.reisAdi) + "</h3>" +
         "<p style='color:#6b7280;margin:0 0 12px'>@" + esc(o.username) + " · ID " + o.id + "</p>" +
@@ -448,18 +456,7 @@
         '<button type="button" id="oyuncuIndirBtn" class="admin-btn admin-btn-altin">⬇ Veriyi İndir</button>' +
         "</div>" +
         "<div class='detay-grid'>" +
-        info("Kasa", fmt(o.kasa) + " TL") +
-        info("Banka", fmt(o.bankaBakiye) + " TL") +
-        info("Borsa Portföy", fmt(o.borsaPortfoyDeger || 0) + " TL") +
         info("Toplam Varlık", fmt(o.toplamVarlik != null ? o.toplamVarlik : (o.kasa || 0) + (o.bankaBakiye || 0) + (o.borsaPortfoyDeger || 0)) + " TL") +
-        info("Faiz Bekleyen", fmt(o.faizBekleyen) + " TL") +
-        info("Banka Hakkı", fmt(o.bankaHakki)) +
-        info("Güç", fmt(o.guc)) + info("Saygınlık", fmt(o.puan)) +
-        info("İcraat", fmt(o.icraat)) + info("SMS Hakkı", fmt(o.smsHakki)) +
-        info("Mekan Toplam", fmt(o.mekanToplam)) +
-        info("Güvenli Yer", "Seviye " + fmt(gySeviye) + (gyAd ? " — " + esc(gyAd) : "") + (gyGuc !== "" ? " (+" + fmt(gyGuc) + " güç)" : "")) +
-        info("İstihbarat", fmt(istEleman) + " eleman (+" + fmt(istGuc) + " güç)") +
-        info("Yetenekler", yetenekMetin) +
         info("NPC Meslek", meslekMetin) +
         info("Şirket Çalışanı", sirketCalisanMetin) +
         info("Şirket Sahibi", sahipSirketMetin) +
@@ -467,28 +464,81 @@
         info("Son IP", o.sonIp || "—") +
         "</div>" +
         oyuncuDetayEkstraHtml(res) +
-        "<form id='statForm' class='detay-grid' style='grid-template-columns:repeat(5,1fr)'>" +
-        inputStat("kasa", o.kasa, "Kasa") + inputStat("guc", o.guc, "Güç") + inputStat("puan", o.puan, "Saygınlık") +
-        inputStat("icraat", o.icraat, "İcraat") + inputStat("sms_hakki", o.smsHakki, "SMS") +
-        "<button type='submit' class='admin-btn admin-btn-altin' style='grid-column:1/-1'>İstatistik Kaydet</button></form>" +
-        "<p class='baslik-altin'>Güvenli Yer</p>" +
-        "<div style='display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:16px'>" +
-        "<div><label style='display:block;font-size:11px;color:#9ca3af;margin-bottom:4px'>Seviye (1-15)</label>" +
-        '<input id="gySeviyeInput" type="number" min="1" max="15" class="admin-input" style="width:88px;padding:6px 8px" value="' + gySeviye + '"></div>' +
-        "<div style='font-size:12px;color:#9ca3af;padding-bottom:8px'>" + esc(gyAd || "") +
-        (gyGuc !== "" ? " · +" + fmt(gyGuc) + " güç bonusu" : "") + "</div>" +
-        "<button type='button' id='gyKaydetBtn' class='admin-btn admin-btn-altin' style='min-height:38px'>Güvenli Yer Kaydet</button></div>" +
-        "<p class='baslik-altin'>İstihbarat</p>" +
-        "<div style='display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:16px'>" +
-        "<div><label style='display:block;font-size:11px;color:#9ca3af;margin-bottom:4px'>Eleman sayısı</label>" +
-        '<input id="istElemanInput" type="number" min="0" class="admin-input" style="width:120px;padding:6px 8px" value="' + istEleman + '"></div>' +
-        "<div style='font-size:12px;color:#9ca3af;padding-bottom:8px'>+" + fmt(istGuc) + " güç bonusu (100/eleman)</div>" +
-        "<button type='button' id='istKaydetBtn' class='admin-btn admin-btn-altin' style='min-height:38px'>İstihbarat Kaydet</button></div>" +
-        "<p class='baslik-altin'>Mekan adetleri</p>" +
-        "<div class='admin-tablo-wrap' style='max-height:320px;overflow:auto;margin-bottom:10px'>" +
+        '<form id="oyuncuTamForm" class="admin-oyuncu-form">' +
+        sectionTitle("Hesap") +
+        '<div class="detay-grid">' +
+        inputText("reisAdi", o.reisAdi, "Reis adı", { maxlength: 24 }) +
+        inputText("lakap", o.lakap || "", "Lakap", { maxlength: 32 }) +
+        inputText("grup", o.grup || "", "Grup", { maxlength: 48 }) +
+        inputText("kayitUlkesi", o.kayitUlkesi || "", "Kayıt ülkesi", { maxlength: 16 }) +
+        inputText("oyunDili", o.oyunDili || "", "Oyun dili", { maxlength: 16 }) +
+        "</div>" +
+        inputCheck("isAdmin", o.isAdmin, "Yönetici hesabı") +
+        sectionTitle("Temel istatistikler") +
+        '<div class="detay-grid" style="grid-template-columns:repeat(4,1fr)">' +
+        inputStat("kasa", o.kasa, "Kasa") +
+        inputStat("guc", o.guc, "Güç") +
+        inputStat("puan", o.puan, "Saygınlık") +
+        inputStat("icraat", o.icraat, "İcraat") +
+        inputStat("sms_hakki", o.smsHakki, "SMS") +
+        inputStat("elmas", o.elmas || 0, "Elmas") +
+        inputStat("bonusGuc", o.bonusGuc || ekonomi.bonusGuc || 0, "Bonus güç") +
+        inputStat("devletIliskisi", o.devletIliskisi != null ? o.devletIliskisi : (ekonomi.devletIliskisi || 0), "Avukat ilişkisi") +
+        inputStat("sehreHukmetSayisi", o.sehreHukmetSayisi || 0, "Şehre hükmet") +
+        "</div>" +
+        '<div style="display:flex;flex-wrap:wrap;gap:12px 18px;margin:8px 0">' +
+        inputCheck("karaListede", o.karaListede, "Kara listede") +
+        inputCheck("sehirEfsane", o.sehirEfsane, "Şehir efsanesi") +
+        inputCheck("limanIstanbul", !!(ekonomi.limanIstanbul || o.limanIstanbul), "İstanbul limanı") +
+        "</div>" +
+        sectionTitle("Yetenekler") +
+        '<div class="detay-grid" style="grid-template-columns:repeat(4,1fr)">' +
+        inputStat("yetenek_guc", yt.guc || 0, "Güç") +
+        inputStat("yetenek_zeka", yt.zeka || 0, "Zeka") +
+        inputStat("yetenek_dayaniklilik", yt.dayaniklilik || 0, "Dayanıklılık") +
+        inputStat("yetenek_beceri", yt.beceri || 0, "Beceri") +
+        "</div>" +
+        sectionTitle("Banka") +
+        '<div class="detay-grid" style="grid-template-columns:repeat(3,1fr)">' +
+        inputStat("bankaYatirilan", bankaYatirilan, "Yatırılan") +
+        inputStat("bankaHakki", bankaHakkiVal, "Banka hakkı") +
+        inputStat("bankaFaiz", bankaFaiz, "Faiz bekleyen") +
+        "</div>" +
+        sectionTitle("Profil") +
+        '<div class="detay-grid">' +
+        inputText("profilResmi", profil.resim || "", "Profil resmi anahtarı", { placeholder: "erkek-01" }) +
+        inputText("dostlar", profil.dostlar || "", "Dostlar") +
+        inputText("dusmanlar", profil.dusmanlar || "", "Düşmanlar") +
+        "</div>" +
+        '<div style="margin-top:8px"><label style="display:block;font-size:11px;color:#9ca3af;margin-bottom:4px">Profil açıklaması</label>' +
+        '<textarea name="profilAciklama" class="admin-input" rows="4" style="width:100%;resize:vertical">' +
+        esc(profil.aciklama || "") + "</textarea></div>" +
+        sectionTitle("Güvenli Yer") +
+        '<div class="detay-grid" style="grid-template-columns:repeat(4,1fr)">' +
+        inputStat("gyBaseSeviye", gySeviye, "Üs seviyesi") +
+        inputStat("gyBuilding", gyFull.buildingLvl || 0, "Bina") +
+        inputStat("gyWall", gyFull.wallLvl || 0, "Duvar") +
+        inputStat("gyGarden", gyFull.gardenLvl || 0, "Bahçe") +
+        inputStat("gyUnderground", gyFull.undergroundLvl || 0, "Yeraltı") +
+        inputStat("gyBunker", gyFull.bunkerLvl || 0, "Bunker") +
+        "</div>" +
+        '<div style="display:flex;flex-wrap:wrap;gap:12px 18px;margin:8px 0">' +
+        inputCheck("gyKasaGumus", !!gyFull.kasaGumus, "Gümüş kasa") +
+        inputCheck("gyKasaAltin", !!gyFull.kasaAltin, "Altın kasa") +
+        "</div>" +
+        sectionTitle("İstihbarat") +
+        '<div style="max-width:200px">' + inputStat("istEleman", istEleman, "Eleman sayısı") + "</div>" +
+        sectionTitle("Mekan adetleri") +
+        "<div class='admin-tablo-wrap' style='max-height:280px;overflow:auto;margin-bottom:10px'>" +
         "<table class='admin-tablo'><thead><tr><th>Sektör</th><th>Mekan</th><th>Adet</th></tr></thead>" +
         "<tbody>" + (mekanSatirlari || "<tr><td colspan='3' style='color:#6b7280'>Mekan yok</td></tr>") + "</tbody></table></div>" +
-        "<button type='button' id='mekanKaydetBtn' class='admin-btn admin-btn-altin' style='margin-bottom:16px'>Mekan Adetlerini Kaydet</button>" +
+        sectionTitle("Koruma / silah envanteri") +
+        "<div class='admin-tablo-wrap' style='max-height:320px;overflow:auto;margin-bottom:10px'>" +
+        "<table class='admin-tablo'><thead><tr><th>Anahtar</th><th>Ünvan</th><th>Adet</th></tr></thead>" +
+        "<tbody>" + (oyuncuEnvanterSatirlari(hireSablon, res.data.envanter) || "<tr><td colspan='3' style='color:#6b7280'>—</td></tr>") +
+        "</tbody></table></div>" +
+        '<button type="submit" class="admin-btn admin-btn-altin" style="width:100%;min-height:44px;margin-top:8px">Tüm Değişiklikleri Kaydet</button>' +
+        "</form>" +
         "<p class='baslik-altin'>Son aktiviteler</p><ul style='max-height:200px;overflow-y:auto;padding-left:18px'>" +
         (log || "<li style='color:#6b7280'>Henüz kayıt yok</li>") + "</ul>" +
         "<p class='baslik-altin'>Parmak izi</p><ul>" + (fp || "<li style='color:#6b7280'>Yok</li>") + "</ul>";
@@ -498,65 +548,17 @@
           oyuncuAksiyon(b.getAttribute("data-action"));
         });
       });
-      var form = document.getElementById("statForm");
-      if (form) {
-        form.addEventListener("submit", function (e) {
+      var tamForm = document.getElementById("oyuncuTamForm");
+      if (tamForm) {
+        tamForm.addEventListener("submit", function (e) {
           e.preventDefault();
-          var body = {};
-          ["kasa", "guc", "puan", "icraat", "sms_hakki"].forEach(function (k) {
-            var inp = form.querySelector('[name="' + k + '"]');
-            if (inp && inp.value !== "") body[k] = inp.value;
-          });
-          api("/api/admin/oyuncular/" + id + "/stats", { method: "PATCH", body: body }).then(function (r) {
-            toast(r.data.mesaj || r.data.error || "Tamam", !r.ok);
-            if (r.ok) oyuncuDetayYukle(id);
-          });
-        });
-      }
-      var mekanBtn = document.getElementById("mekanKaydetBtn");
-      if (mekanBtn) {
-        mekanBtn.addEventListener("click", function () {
-          var items = [];
-          el.querySelectorAll(".mekan-adet-input").forEach(function (inp) {
-            items.push({
-              sektor: inp.getAttribute("data-sektor"),
-              mekanKey: inp.getAttribute("data-mekan"),
-              adet: inp.value,
-            });
-          });
-          api("/api/admin/oyuncular/" + id + "/mekanlar", { method: "PATCH", body: { mekanlar: items } }).then(function (r) {
+          var body = oyuncuFormVerisiTopla(el);
+          if (!body) return;
+          api("/api/admin/oyuncular/" + id, { method: "PATCH", body: body }).then(function (r) {
             toast(r.data.mesaj || r.data.error || "Tamam", !r.ok);
             if (r.ok) {
-              oyuncuDetayYukle(id);
-              oyuncuAra();
-            }
-          });
-        });
-      }
-      var gyBtn = document.getElementById("gyKaydetBtn");
-      if (gyBtn) {
-        gyBtn.addEventListener("click", function () {
-          var inp = document.getElementById("gySeviyeInput");
-          var sev = inp ? inp.value : gySeviye;
-          api("/api/admin/oyuncular/" + id + "/guvenli-yer", { method: "PATCH", body: { baseSeviye: sev } }).then(function (r) {
-            toast(r.data.mesaj || r.data.error || "Tamam", !r.ok);
-            if (r.ok) {
-              oyuncuDetayYukle(id);
-              oyuncuAra();
-            }
-          });
-        });
-      }
-      var istBtn = document.getElementById("istKaydetBtn");
-      if (istBtn) {
-        istBtn.addEventListener("click", function () {
-          var inp = document.getElementById("istElemanInput");
-          var adet = inp ? inp.value : istEleman;
-          api("/api/admin/oyuncular/" + id + "/istihbarat", { method: "PATCH", body: { elemanSayisi: adet } }).then(function (r) {
-            toast(r.data.mesaj || r.data.error || "Tamam", !r.ok);
-            if (r.ok) {
-              oyuncuDetayYukle(id);
-              oyuncuAra();
+              oyuncuDetayYukle(id, true);
+              oyuncuAra(true);
             }
           });
         });
@@ -586,6 +588,115 @@
       ? '<label style="display:block;font-size:11px;color:#9ca3af;margin-bottom:4px">' + esc(label) + "</label>"
       : "";
     return '<div>' + baslik + '<input name="' + name + '" type="number" min="0" class="admin-input" value="' + val + '"></div>';
+  }
+
+  function inputText(name, val, label, opts) {
+    opts = opts || {};
+    var baslik = '<label style="display:block;font-size:11px;color:#9ca3af;margin-bottom:4px">' + esc(label) + "</label>";
+    var attrs = 'name="' + name + '" class="admin-input" value="' + esc(val == null ? "" : val) + '"';
+    if (opts.maxlength) attrs += ' maxlength="' + opts.maxlength + '"';
+    if (opts.placeholder) attrs += ' placeholder="' + esc(opts.placeholder) + '"';
+    return "<div>" + baslik + "<input " + attrs + "></div>";
+  }
+
+  function inputCheck(name, checked, label) {
+    return '<label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#d1d5db;margin:4px 0">' +
+      '<input type="checkbox" name="' + name + '" ' + (checked ? "checked" : "") + "> " + esc(label) + "</label>";
+  }
+
+  function sectionTitle(text) {
+    return "<p class='baslik-altin' style='margin-top:18px'>" + esc(text) + "</p>";
+  }
+
+  function oyuncuEnvanterSatirlari(hireSablon, envanter) {
+    var adetMap = {};
+    (envanter || []).forEach(function (e) {
+      adetMap[e.item_key] = e.adet || 0;
+    });
+    return (hireSablon || []).map(function (h) {
+      var adet = adetMap[h.key] || 0;
+      return "<tr><td style='font-size:12px;color:#9ca3af'>" + esc(h.key) +
+        "</td><td>" + esc(h.unvan) +
+        '</td><td><input type="number" min="0" class="admin-input envanter-adet-input" style="width:88px;padding:6px 8px" ' +
+        'data-item="' + esc(h.key) + '" value="' + adet + '"></td></tr>';
+    }).join("");
+  }
+
+  function oyuncuFormVerisiTopla(el) {
+    var form = el.querySelector("#oyuncuTamForm");
+    if (!form) return null;
+    function val(name) {
+      var inp = form.querySelector('[name="' + name + '"]');
+      return inp ? inp.value : "";
+    }
+    function checked(name) {
+      var inp = form.querySelector('[name="' + name + '"]');
+      return !!(inp && inp.checked);
+    }
+    var envanter = [];
+    form.querySelectorAll(".envanter-adet-input").forEach(function (inp) {
+      envanter.push({ itemKey: inp.getAttribute("data-item"), adet: inp.value });
+    });
+    var mekanlar = [];
+    form.querySelectorAll(".mekan-adet-input").forEach(function (inp) {
+      mekanlar.push({
+        sektor: inp.getAttribute("data-sektor"),
+        mekanKey: inp.getAttribute("data-mekan"),
+        adet: inp.value,
+      });
+    });
+    return {
+      kullanici: {
+        reisAdi: val("reisAdi"),
+        lakap: val("lakap"),
+        grup: val("grup"),
+        kayitUlkesi: val("kayitUlkesi"),
+        oyunDili: val("oyunDili"),
+        isAdmin: checked("isAdmin") ? 1 : 0,
+      },
+      oyuncu: {
+        kasa: val("kasa"),
+        guc: val("guc"),
+        puan: val("puan"),
+        icraat: val("icraat"),
+        smsHakki: val("sms_hakki"),
+        elmas: val("elmas"),
+        bonusGuc: val("bonusGuc"),
+        devletIliskisi: val("devletIliskisi"),
+        sehreHukmetSayisi: val("sehreHukmetSayisi"),
+        limanIstanbul: checked("limanIstanbul") ? 1 : 0,
+        karaListede: checked("karaListede"),
+        sehirEfsane: checked("sehirEfsane"),
+        profilAciklama: val("profilAciklama"),
+        profilResmi: val("profilResmi"),
+        dostlar: val("dostlar"),
+        dusmanlar: val("dusmanlar"),
+      },
+      yetenekler: {
+        guc: val("yetenek_guc"),
+        zeka: val("yetenek_zeka"),
+        dayaniklilik: val("yetenek_dayaniklilik"),
+        beceri: val("yetenek_beceri"),
+      },
+      banka: {
+        yatirilanMiktar: val("bankaYatirilan"),
+        bankaHakki: val("bankaHakki"),
+        faizBekleyen: val("bankaFaiz"),
+      },
+      guvenliYer: {
+        baseSeviye: val("gyBaseSeviye"),
+        buildingLvl: val("gyBuilding"),
+        wallLvl: val("gyWall"),
+        gardenLvl: val("gyGarden"),
+        undergroundLvl: val("gyUnderground"),
+        bunkerLvl: val("gyBunker"),
+        kasaGumus: checked("gyKasaGumus"),
+        kasaAltin: checked("gyKasaAltin"),
+      },
+      istihbarat: { elemanSayisi: val("istEleman") },
+      mekanlar: mekanlar,
+      envanter: envanter,
+    };
   }
 
   function oyuncuAksiyon(action) {

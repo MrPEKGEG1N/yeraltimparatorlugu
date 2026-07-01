@@ -206,6 +206,25 @@ html, body {
   color: #fff;
 }
 
+.admin-oyuncu-form .admin-input {
+  width: 100%;
+  padding: 8px 10px;
+  background: #0f0d14;
+  border: 1px solid #3d3550;
+  border-radius: 6px;
+  color: #f3f4f6;
+  font-size: 13px;
+}
+
+.admin-oyuncu-form textarea.admin-input {
+  font-family: inherit;
+}
+
+.admin-oyuncu-form .detay-grid {
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
 .admin-input {
   width: 100%;
   padding: 10px 14px;

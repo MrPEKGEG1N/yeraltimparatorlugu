@@ -282,7 +282,8 @@ function createGameRouter(db) {
         }
       }
       const player = await loadPlayer(db, req.user.id);
-      res.json({ ok: true, player: await publicPlayerFull(db, req.user.id, player) });
+      const full = await publicPlayerFull(db, req.user.id, player);
+      res.json({ ok: true, player: full });
     } catch (err) {
       console.error(err);
       res.status(500).json({ ok: false, error: "Profil kaydedilemedi." });

@@ -3095,7 +3095,8 @@ function profilYetenekleriPanelHTML(yetenekler, aktifMeslek, ozet) {
 }
 
 function profilSekmeDegistir(sekme) {
-  profilAktifSekme = sekme === 'yetenekler' ? 'yetenekler' : 'karakter';
+  if (sekme === 'yetenekler') profilAktifSekme = 'yetenekler';
+  else profilAktifSekme = 'karakter';
   var wrap = document.querySelector('.profil-wrap');
   if (!wrap) return;
   wrap.querySelectorAll('.profil-sekme').forEach(function(btn) {
@@ -3252,7 +3253,7 @@ function profilEkranSablonu(opts) {
   var sekmelerHtml = '<div class="profil-sekmeler">';
   if (opts.duzenlenebilir) {
     sekmelerHtml += '<button type="button" class="profil-sekme aktif" data-sekme="karakter" onclick="profilSekmeDegistir(\'karakter\')">' + escHtml(t('game.profil.characterTab')) + '</button>'
-      + '<button type="button" class="profil-sekme" data-sekme="yetenekler" onclick="profilSekmeDegistir(\'yetenekler\')">Yetenekler</button>';
+      + '<button type="button" class="profil-sekme" data-sekme="yetenekler" onclick="profilSekmeDegistir(\'yetenekler\')">' + escHtml(t('game.profil.skillsTab')) + '</button>';
   } else {
     sekmelerHtml += '<span class="profil-sekme aktif">' + escHtml(t('game.profil.characterTab')) + '</span>';
   }

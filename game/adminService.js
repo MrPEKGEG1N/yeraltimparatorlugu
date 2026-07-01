@@ -5,10 +5,14 @@ const { SECTOR_KEYS, MEKANLAR } = require("./sectorsCatalog");
 const { ensureUserBase, adminSeviyeAyarla, baseOzeti } = require("./guvenliYerService");
 const { MAX_SEVIYE, seviyeBul } = require("./guvenliYerCatalog");
 const { ELEMAN_GUC } = require("./istihbaratService");
-const { meslekGetir, yetenekleriGetir } = require("./meslekService");
+const { meslekGetir, yetenekleriGetir, yetenekleriKaydet } = require("./meslekService");
 const { panelGetir: sirketPanelGetir } = require("./sirketService");
 const { panelGetir: sefirlikPanelGetir } = require("./turkiyeSefirlikService");
 const { ensureGunlukGorevTables } = require("./gunlukGorevService");
+const { HIRE } = require("./catalog");
+const { gecerliProfilResmi } = require("./profilPortreler");
+const { clampAvukatIliskisi, AVUKAT_ILISKI_MAX } = require("./devletService");
+const { syncBonusGuc } = require("./bonusGucService");
 
 const SEKTOR_ETIKET = { yeralti: "Yeraltı", silah: "Silah", paket: "Paket" };
 
@@ -481,7 +485,7 @@ async function getPlayerDetail(db, userId) {
     db,
     `SELECT u.*, p.kasa, p.guc, p.puan, p.icraat, p.last_seen_at, p.kara_listede, p.sms_hakki,
             p.bonus_guc, p.devlet_iliskisi, p.profil_aciklama, p.profil_resmi, p.dostlar, p.dusmanlar,
-            p.sehre_hukmet_sayisi, p.sehir_efsane, p.liman_istanbul,
+            p.sehre_hukmet_sayisi, p.sehir_efsane, p.liman_istanbul, p.elmas,
             p.aktif_ekran, p.son_aksiyon, p.son_aksiyon_detay, p.son_aksiyon_at,
             COALESCE(bh.yatirilan_miktar, 0) AS banka_bakiye,
             COALESCE(bh.banka_hakki, 20) AS banka_hakki,
@@ -829,27 +833,294 @@ function mapMafyaGrupDetail(detail) {
 }
 
 async function updatePlayerStats(db, adminId, userId, patch) {
+  return updatePlayerFull(db, adminId, userId, { oyuncu: patch });
+}
+
+function parseNonNegInt(val, label, max = 2_000_000_000) {
+  if (val === undefined || val === null || val === "") return null;
+  const n = parseInt(val, 10);
+  if (Number.isNaN(n) || n < 0 || n > max) {
+    throw new Error(`${label} geçersiz (0–${max}).`);
+  }
+  return n;
+}
+
+function parseBool01(val) {
+  if (val === undefined || val === null || val === "") return null;
+  if (val === true || val === 1 || val === "1" || val === "true") return 1;
+  if (val === false || val === 0 || val === "0" || val === "false") return 0;
+  throw new Error("Geçersiz boolean değer.");
+}
+
+async function ensureBankaRowAdmin(db, userId) {
+  let row = await get(db, `SELECT user_id FROM banka_hesaplari WHERE user_id = ?`, [userId]);
+  if (row) return;
+  const now = Math.floor(Date.now() / 1000);
+  await run(
+    db,
+    `INSERT INTO banka_hesaplari (user_id, yatirilan_miktar, banka_hakki, last_banka_hak_at)
+     VALUES (?, 0, 20, ?)`,
+    [userId, now]
+  );
+}
+
+async function adminUpdateBanka(db, userId, patch) {
+  if (!patch || typeof patch !== "object") return;
+  await ensureBankaRowAdmin(db, userId);
   const fields = [];
   const params = [];
-  for (const [col, val] of [
-    ["kasa", patch.kasa],
-    ["guc", patch.guc],
-    ["puan", patch.puan],
-    ["icraat", patch.icraat],
-    ["sms_hakki", patch.sms_hakki],
-    ["elmas", patch.elmas],
-  ]) {
-    if (val === undefined || val === null || val === "") continue;
-    const n = parseInt(val, 10);
-    if (Number.isNaN(n) || n < 0) return { ok: false, error: `${col} geçersiz.` };
-    fields.push(`${col} = ?`);
-    params.push(n);
+  const yatirilan = parseNonNegInt(patch.yatirilanMiktar, "Banka yatırımı");
+  const hak = parseNonNegInt(patch.bankaHakki, "Banka hakkı", 9999);
+  const faiz = parseNonNegInt(patch.faizBekleyen, "Faiz bekleyen");
+  if (yatirilan != null) {
+    fields.push("yatirilan_miktar = ?");
+    params.push(yatirilan);
   }
-  if (!fields.length) return { ok: false, error: "Güncellenecek alan yok." };
+  if (hak != null) {
+    fields.push("banka_hakki = ?");
+    params.push(hak);
+  }
+  if (faiz != null) {
+    fields.push("faiz_bekleyen = ?");
+    params.push(faiz);
+  }
+  if (!fields.length) return;
   params.push(userId);
-  await run(db, `UPDATE players SET ${fields.join(", ")} WHERE user_id = ?`, params);
-  await logSecurityEvent(db, userId, "admin_stat_edit", { adminId, patch });
-  return { ok: true, mesaj: "Oyuncu istatistikleri güncellendi." };
+  await run(db, `UPDATE banka_hesaplari SET ${fields.join(", ")} WHERE user_id = ?`, params);
+}
+
+async function adminUpdateGuvenliYerModuller(db, userId, patch) {
+  if (!patch || typeof patch !== "object") return false;
+  await ensureUserBase(db, userId);
+  const map = {
+    baseSeviye: { col: "base_seviye", max: MAX_SEVIYE },
+    buildingLvl: { col: "building_lvl", max: 99 },
+    wallLvl: { col: "wall_lvl", max: 99 },
+    gardenLvl: { col: "garden_lvl", max: 99 },
+    energyWall: { col: "energy_wall", max: 99 },
+    undergroundLvl: { col: "underground_lvl", max: 99 },
+    secretOrders: { col: "secret_orders", max: 99 },
+    hasTower: { col: "has_tower", bool: true },
+    helipad: { col: "helipad", bool: true },
+    bunkerLvl: { col: "bunker_lvl", max: 99 },
+    bunkerEntrance: { col: "bunker_entrance", bool: true },
+    kasaGumus: { col: "kasa_gumus", bool: true },
+    kasaAltin: { col: "kasa_altin", bool: true },
+  };
+  const fields = [];
+  const params = [];
+  for (const [key, spec] of Object.entries(map)) {
+    if (patch[key] === undefined) continue;
+    if (spec.bool) {
+      fields.push(`${spec.col} = ?`);
+      params.push(parseBool01(patch[key]));
+    } else {
+      const n = parseNonNegInt(patch[key], key, spec.max);
+      if (n != null) {
+        fields.push(`${spec.col} = ?`);
+        params.push(n);
+      }
+    }
+  }
+  if (!fields.length) return false;
+  fields.push("updated_at = strftime('%s','now')");
+  params.push(userId);
+  await run(db, `UPDATE user_base SET ${fields.join(", ")} WHERE user_id = ?`, params);
+  return true;
+}
+
+async function adminUpdateEnvanter(db, userId, items) {
+  if (!Array.isArray(items)) return;
+  for (const item of items) {
+    const key = String(item.itemKey || item.item_key || "").trim();
+    if (!key) continue;
+    if (!HIRE[key]) throw new Error(`Geçersiz envanter anahtarı: ${key}`);
+    const adet = parseNonNegInt(item.adet, key, 1_000_000);
+    if (adet == null) continue;
+    if (adet === 0) {
+      await run(db, `DELETE FROM oyuncu_kiralama WHERE user_id = ? AND item_key = ?`, [userId, key]);
+    } else {
+      await run(
+        db,
+        `INSERT INTO oyuncu_kiralama (user_id, item_key, adet, fiyat_adet) VALUES (?, ?, ?, ?)
+         ON CONFLICT(user_id, item_key) DO UPDATE SET adet = excluded.adet, fiyat_adet = excluded.fiyat_adet`,
+        [userId, key, adet, adet]
+      );
+    }
+  }
+}
+
+async function updatePlayerFull(db, adminId, userId, body) {
+  if (adminId === userId && body?.kullanici?.isAdmin === 0) {
+    return { ok: false, error: "Kendi yönetici yetkini kaldıramazsın." };
+  }
+
+  const user = await get(db, `SELECT id, is_admin FROM users WHERE id = ?`, [userId]);
+  const player = await get(db, `SELECT user_id FROM players WHERE user_id = ?`, [userId]);
+  if (!user || !player) return { ok: false, error: "Oyuncu bulunamadı." };
+
+  const patch = body || {};
+  const guncellenen = [];
+
+  try {
+    if (patch.kullanici && typeof patch.kullanici === "object") {
+      const k = patch.kullanici;
+      const uFields = [];
+      const uParams = [];
+      if (k.reisAdi !== undefined) {
+        const name = String(k.reisAdi).trim().slice(0, 24);
+        if (!name) return { ok: false, error: "Reis adı boş olamaz." };
+        uFields.push("reis_adi = ?");
+        uParams.push(name);
+      }
+      if (k.lakap !== undefined) {
+        uFields.push("lakap = ?");
+        uParams.push(String(k.lakap).trim().slice(0, 32));
+      }
+      if (k.grup !== undefined) {
+        uFields.push("grup = ?");
+        uParams.push(String(k.grup).trim().slice(0, 48));
+      }
+      if (k.kayitUlkesi !== undefined) {
+        uFields.push("kayit_ulkesi = ?");
+        uParams.push(String(k.kayitUlkesi).trim().slice(0, 16));
+      }
+      if (k.oyunDili !== undefined) {
+        uFields.push("oyun_dili = ?");
+        uParams.push(String(k.oyunDili).trim().slice(0, 16));
+      }
+      if (k.isAdmin !== undefined && adminId !== userId) {
+        uFields.push("is_admin = ?");
+        uParams.push(parseBool01(k.isAdmin));
+      }
+      if (uFields.length) {
+        uParams.push(userId);
+        await run(db, `UPDATE users SET ${uFields.join(", ")} WHERE id = ?`, uParams);
+        guncellenen.push("kullanici");
+      }
+    }
+
+    if (patch.oyuncu && typeof patch.oyuncu === "object") {
+      const o = patch.oyuncu;
+      const pFields = [];
+      const pParams = [];
+      const numMap = [
+        ["kasa", o.kasa],
+        ["guc", o.guc],
+        ["puan", o.puan],
+        ["icraat", o.icraat],
+        ["sms_hakki", o.smsHakki],
+        ["elmas", o.elmas],
+        ["bonus_guc", o.bonusGuc],
+        ["devlet_iliskisi", o.devletIliskisi],
+        ["sehre_hukmet_sayisi", o.sehreHukmetSayisi],
+        ["liman_istanbul", o.limanIstanbul],
+      ];
+      for (const [col, val] of numMap) {
+        if (val === undefined || val === null || val === "") continue;
+        const max = col === "devlet_iliskisi" ? AVUKAT_ILISKI_MAX : 2_000_000_000;
+        const n = parseNonNegInt(val, col, max);
+        if (n != null) {
+          const finalVal = col === "devlet_iliskisi" ? clampAvukatIliskisi(n) : n;
+          pFields.push(`${col} = ?`);
+          pParams.push(finalVal);
+        }
+      }
+      const boolMap = [
+        ["kara_listede", o.karaListede],
+        ["sehir_efsane", o.sehirEfsane],
+      ];
+      for (const [col, val] of boolMap) {
+        if (val === undefined) continue;
+        pFields.push(`${col} = ?`);
+        pParams.push(parseBool01(val));
+      }
+      if (o.profilAciklama !== undefined) {
+        pFields.push("profil_aciklama = ?");
+        pParams.push(String(o.profilAciklama).slice(0, 12000));
+      }
+      if (o.profilResmi !== undefined) {
+        const raw = String(o.profilResmi).trim();
+        if (raw === "") {
+          pFields.push("profil_resmi = ?");
+          pParams.push("");
+        } else {
+          const portre = gecerliProfilResmi(raw);
+          if (!portre) return { ok: false, error: "Geçersiz profil resmi anahtarı." };
+          pFields.push("profil_resmi = ?");
+          pParams.push(portre);
+        }
+      }
+      if (o.dostlar !== undefined) {
+        pFields.push("dostlar = ?");
+        pParams.push(String(o.dostlar).trim().slice(0, 24));
+      }
+      if (o.dusmanlar !== undefined) {
+        pFields.push("dusmanlar = ?");
+        pParams.push(String(o.dusmanlar).trim().slice(0, 24));
+      }
+      if (pFields.length) {
+        pParams.push(userId);
+        await run(db, `UPDATE players SET ${pFields.join(", ")} WHERE user_id = ?`, pParams);
+        guncellenen.push("oyuncu");
+      }
+    }
+
+    if (patch.yetenekler && typeof patch.yetenekler === "object") {
+      await yetenekleriKaydet(db, userId, patch.yetenekler);
+      guncellenen.push("yetenekler");
+    }
+
+    if (patch.banka) {
+      await adminUpdateBanka(db, userId, patch.banka);
+      guncellenen.push("banka");
+    }
+
+    if (patch.guvenliYer && typeof patch.guvenliYer === "object") {
+      const gy = patch.guvenliYer;
+      const onlyBase =
+        gy.baseSeviye !== undefined &&
+        Object.keys(gy).length === 1;
+      if (onlyBase) {
+        await updatePlayerGuvenliYer(db, adminId, userId, gy.baseSeviye);
+      } else {
+        const gyChanged = await adminUpdateGuvenliYerModuller(db, userId, gy);
+        if (gyChanged) await syncBonusGuc(db, userId);
+      }
+      guncellenen.push("guvenliYer");
+    }
+
+    if (patch.istihbarat && patch.istihbarat.elemanSayisi !== undefined) {
+      await updatePlayerIstihbarat(db, adminId, userId, patch.istihbarat.elemanSayisi);
+      guncellenen.push("istihbarat");
+    }
+
+    if (patch.mekanlar) {
+      const mekanSonuc = await updatePlayerMekanlar(db, adminId, userId, patch.mekanlar);
+      if (!mekanSonuc.ok) return mekanSonuc;
+      guncellenen.push("mekanlar");
+    }
+
+    if (patch.envanter) {
+      await adminUpdateEnvanter(db, userId, patch.envanter);
+      guncellenen.push("envanter");
+    }
+  } catch (err) {
+    return { ok: false, error: err.message || "Güncelleme başarısız." };
+  }
+
+  if (!guncellenen.length) return { ok: false, error: "Güncellenecek alan yok." };
+
+  await logSecurityEvent(db, userId, "admin_player_full_edit", {
+    adminId,
+    bolumler: guncellenen,
+  });
+
+  return {
+    ok: true,
+    mesaj: "Oyuncu verileri güncellendi.",
+    guncellenen,
+  };
 }
 
 async function getMultiAccountClusters(db) {
@@ -1060,6 +1331,7 @@ module.exports = {
   unbanPlayer,
   kickPlayer,
   updatePlayerStats,
+  updatePlayerFull,
   updatePlayerMekanlar,
   updatePlayerGuvenliYer,
   updatePlayerIstihbarat,

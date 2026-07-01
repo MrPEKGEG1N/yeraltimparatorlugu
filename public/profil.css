@@ -19,11 +19,19 @@
   padding: 10px 22px;
   border: 1px solid #5a4a32;
   border-bottom: none;
+  background: linear-gradient(180deg, #3a3028 0%, #2a221c 100%);
+  color: #c8bca8;
+  border-color: #5a4a32;
+  text-transform: uppercase;
+  display: inline-block;
+  cursor: pointer;
+}
+
+#masterLayout button.profil-sekme.aktif,
+#masterLayout span.profil-sekme.aktif {
   background: linear-gradient(180deg, #8b1010 0%, #5c0808 100%);
   color: #f5e8d0;
   border-color: #a01818;
-  text-transform: uppercase;
-  display: inline-block;
 }
 
 #masterLayout .profil-kart {

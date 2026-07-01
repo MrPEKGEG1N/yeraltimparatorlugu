@@ -11,6 +11,7 @@ const {
   unbanPlayer,
   kickPlayer,
   updatePlayerStats,
+  updatePlayerFull,
   updatePlayerMekanlar,
   updatePlayerGuvenliYer,
   updatePlayerIstihbarat,
@@ -145,6 +146,9 @@ function createAdminRouter(db) {
           sehirEfsane: !!detail.user.sehir_efsane,
           sehreHukmetSayisi: detail.user.sehre_hukmet_sayisi || 0,
           limanIstanbul: detail.user.liman_istanbul || 0,
+          elmas: detail.user.elmas || 0,
+          kayitUlkesi: detail.user.kayit_ulkesi || "",
+          oyunDili: detail.user.oyun_dili || "",
         },
         yetenekler: detail.yetenekler || null,
         aktifMeslek: detail.aktifMeslek || null,
@@ -194,6 +198,10 @@ function createAdminRouter(db) {
           : null,
         borsa: detail.borsa || null,
         aktiviteLog: detail.aktiviteLog || [],
+        hireSablon: Object.entries(require("../game/catalog").HIRE).map(([key, v]) => ({
+          key,
+          unvan: v.unvan,
+        })),
       });
     } catch (err) {
       console.error(err);
@@ -236,6 +244,22 @@ function createAdminRouter(db) {
     } catch (err) {
       console.error(err);
       res.status(500).json({ ok: false, error: "Oturum sonlandırma başarısız." });
+    }
+  });
+
+  router.patch("/oyuncular/:id", async (req, res) => {
+    try {
+      const result = await updatePlayerFull(
+        db,
+        req.user.id,
+        parseInt(req.params.id, 10),
+        req.body || {}
+      );
+      if (!result.ok) return res.status(400).json(result);
+      res.json(result);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ ok: false, error: "Oyuncu güncellenemedi." });
     }
   });
 

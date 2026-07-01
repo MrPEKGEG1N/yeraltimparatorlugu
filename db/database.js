@@ -496,6 +496,7 @@ async function initDatabase() {
     ["dostlar", "TEXT NOT NULL DEFAULT ''"],
     ["dusmanlar", "TEXT NOT NULL DEFAULT ''"],
     ["profil_resmi", "TEXT NOT NULL DEFAULT ''"],
+    ["masa_ozellestirme", "TEXT NOT NULL DEFAULT '{}'"],
     ["bonus_guc", "INTEGER NOT NULL DEFAULT 0"],
     ["last_saatlik_gelir_hour", "TEXT"],
     ["elmas", "INTEGER NOT NULL DEFAULT 0"],
