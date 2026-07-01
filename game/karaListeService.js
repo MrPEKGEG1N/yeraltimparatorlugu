@@ -101,9 +101,18 @@ async function sehreHukmetGuncelle(db, yeniHukumdarId) {
       await logStatHareket(db, oncekiId, "sayginlik", -odulSayginlik);
     }
     await yeniHukumdarRejimBaslat(db, yeniHukumdarId, oncekiId);
+    try {
+      const { schedulePlayerSnapshotPersist } = require("./oyuncuSnapshotPersist");
+      schedulePlayerSnapshotPersist(db, yeniHukumdarId, 8000);
+      if (oncekiId) schedulePlayerSnapshotPersist(db, oncekiId, 8000);
+    } catch (_) {}
     return { ok: true, degisti: true, odulVar: true, odulSayginlik };
   }
   await yeniHukumdarRejimBaslat(db, yeniHukumdarId, null);
+  try {
+    const { schedulePlayerSnapshotPersist } = require("./oyuncuSnapshotPersist");
+    schedulePlayerSnapshotPersist(db, yeniHukumdarId, 8000);
+  } catch (_) {}
   return { ok: true, degisti: true, odulVar: false };
 }
 

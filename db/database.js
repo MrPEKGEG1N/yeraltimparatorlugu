@@ -143,10 +143,14 @@ function scoreDbFile(dbPath) {
 async function restoreFromSeed(targetPath) {
   const currentUsers = await countSqliteUsers(targetPath);
   if (currentUsers > 0) return false;
-  const seedPaths = [
+  const seedPaths = [];
+  if (process.env.RAILWAY_VOLUME_MOUNT_PATH) {
+    seedPaths.push(path.join(process.env.RAILWAY_VOLUME_MOUNT_PATH, "oyun-seed.db"));
+  }
+  seedPaths.push(
     path.join(process.cwd(), "seed", "oyun.db"),
-    path.join(__dirname, "..", "seed", "oyun.db"),
-  ];
+    path.join(__dirname, "..", "seed", "oyun.db")
+  );
   for (const seed of seedPaths) {
     const resolved = path.resolve(seed);
     if (!fs.existsSync(resolved)) continue;
@@ -987,12 +991,21 @@ async function initDatabase() {
   const { ensureAktiviteSchema } = require("../game/aktiviteService");
   await ensureAktiviteSchema(db);
 
-  const { restoreOyuncuSnapshots, enforceLiveSnapshotPolicies } = require("../game/oyuncuRestoreService");
+  const { restoreOyuncuSnapshots, enforceLiveSnapshotPolicies, bootstrapVolumeSnapshots } =
+    require("../game/oyuncuRestoreService");
+  bootstrapVolumeSnapshots();
   if (fastStartup && process.env.RESTORE_SNAPSHOTS !== "1") {
     await enforceLiveSnapshotPolicies(db);
     console.log("[restore] Canli DB — bozulan snapshot verileri kontrol edildi");
   } else {
     await restoreOyuncuSnapshots(db);
+  }
+
+  try {
+    const { persistLiveGameState } = require("../game/veriKorumaService");
+    await persistLiveGameState(db);
+  } catch (err) {
+    console.warn("[persist] Baslangic kaydi atlandi:", err.message);
   }
 
   const { ensureSefirlikTables } = require("../game/turkiyeSefirlikService");

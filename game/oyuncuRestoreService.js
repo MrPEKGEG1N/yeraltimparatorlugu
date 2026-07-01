@@ -14,7 +14,29 @@ const { ensureWorldRows } = require("./worldService");
 const { LIMAN_IDS, BABA_MAKAMLAR } = require("./worldConstants");
 const { ensureSaygiTables, hukumdarligiBitir } = require("./saygiDuvariService");
 
-const SNAPSHOT_DIR = path.join(process.cwd(), "seed", "oyuncular");
+const IMAGE_SNAPSHOT_DIR = path.join(process.cwd(), "seed", "oyuncular");
+
+function getSnapshotDir() {
+  const vol = process.env.RAILWAY_VOLUME_MOUNT_PATH;
+  if (vol) return path.join(vol, "oyuncular");
+  return IMAGE_SNAPSHOT_DIR;
+}
+
+function bootstrapVolumeSnapshots() {
+  const vol = process.env.RAILWAY_VOLUME_MOUNT_PATH;
+  if (!vol) return 0;
+  const target = path.join(vol, "oyuncular");
+  if (!fs.existsSync(target)) fs.mkdirSync(target, { recursive: true });
+  const existing = fs.readdirSync(target).filter((f) => f.endsWith(".json"));
+  if (existing.length > 0 || !fs.existsSync(IMAGE_SNAPSHOT_DIR)) return existing.length;
+  let n = 0;
+  for (const file of fs.readdirSync(IMAGE_SNAPSHOT_DIR).filter((f) => f.endsWith(".json"))) {
+    fs.copyFileSync(path.join(IMAGE_SNAPSHOT_DIR, file), path.join(target, file));
+    n++;
+  }
+  if (n > 0) console.log(`[persist] Volume snapshot bootstrap: ${n} oyuncu (image -> volume)`);
+  return n;
+}
 
 const PLAYER_COLS = [
   "kasa",
@@ -599,16 +621,16 @@ async function restoreOneSnapshot(db, snap) {
 }
 
 async function restoreOyuncuSnapshots(db) {
-  if (!fs.existsSync(SNAPSHOT_DIR)) return [];
+  if (!fs.existsSync(getSnapshotDir())) return [];
   await ensureAktiviteSchema(db);
   const files = fs
-    .readdirSync(SNAPSHOT_DIR)
+    .readdirSync(getSnapshotDir())
     .filter((f) => f.endsWith(".json"))
     .sort();
   const results = [];
   for (const file of files) {
     try {
-      const raw = fs.readFileSync(path.join(SNAPSHOT_DIR, file), "utf8");
+      const raw = fs.readFileSync(path.join(getSnapshotDir(), file), "utf8");
       const snap = JSON.parse(raw);
       results.push(await restoreOneSnapshot(db, snap));
     } catch (err) {
@@ -633,29 +655,32 @@ function mergeSnapshot(existing, exported) {
   } else if (exported.sirket_kapali === false) {
     delete out.sirket_kapali;
   }
-  if (!out.mafya && existing.mafya) out.mafya = existing.mafya;
-  if (exported.sehre_hukmet) out.sehre_hukmet = exported.sehre_hukmet;
-  else if (!out.sehre_hukmet && existing.sehre_hukmet) out.sehre_hukmet = existing.sehre_hukmet;
-  if (!out.yetenekler && existing.yetenekler) out.yetenekler = existing.yetenekler;
+  if (exported.mafya) out.mafya = exported.mafya;
+  else if (!out.mafya && existing.mafya) out.mafya = existing.mafya;
+  if (exported.sehre_hukmet) {
+    if (exported.sehre_hukmet.aktif === false) delete out.sehre_hukmet;
+    else out.sehre_hukmet = exported.sehre_hukmet;
+  } else if (!out.sehre_hukmet && existing.sehre_hukmet) out.sehre_hukmet = existing.sehre_hukmet;
+  if (exported.yetenekler) out.yetenekler = exported.yetenekler;
+  else if (!out.yetenekler && existing.yetenekler) out.yetenekler = existing.yetenekler;
   if (exported.mekanlar?.length) out.mekanlar = exported.mekanlar;
   else if (existing.mekanlar) out.mekanlar = existing.mekanlar;
   return out;
 }
 
 function mapSehreHukmetForSeed(full) {
-  const oyuncuId = full.oyuncuId;
   const limanlar = (full.limanlar || [])
-    .filter((l) => l.sahipUserId === oyuncuId)
-    .map((l) => l.limanId)
+    .map((l) => l.limanId || l.liman_id)
     .filter(Boolean);
   const makamlar = (full.babaMakamlari || [])
-    .filter((m) => m.sahipUserId === oyuncuId)
     .map((m) => m.makam)
     .filter(Boolean);
   const aktifHukum = (full.sehirHukumranliklar || []).find((h) => !h.bitis);
   const meta = full.sehirMeta || {};
   const st = full.istatistikler || {};
-  if (!aktifHukum && !st.karaListede && !limanlar.length && !makamlar.length) return null;
+  if (!aktifHukum && !st.karaListede && !limanlar.length && !makamlar.length) {
+    return { aktif: false };
+  }
   const baslangic = aktifHukum?.baslangic
     ? Math.floor(new Date(aktifHukum.baslangic).getTime() / 1000)
     : undefined;
@@ -668,10 +693,102 @@ function mapSehreHukmetForSeed(full) {
   };
 }
 
+function mapSirketForSeed(full) {
+  const row = full._seedSirket || full.sahipSirket;
+  if (!row) return null;
+  const panel = full.sirketPanel?.yonetim;
+  const stokRows = row.stok || panel?.stok || [];
+  return {
+    tur_id: row.tur_id || row.turId,
+    isim: row.isim,
+    aciklama: String(row.aciklama || panel?.aciklama || "").slice(0, 280),
+    kasa: parseInt(row.kasa, 10) || 0,
+    ise_alim_acik: row.ise_alim_acik === 0 || row.iseAlimAcik === false ? 0 : 1,
+    kapasite_seviye: parseInt(row.kapasite_seviye ?? panel?.kapasiteSeviye, 10) || 0,
+    depo_seviye: parseInt(row.depo_seviye ?? panel?.depoSeviye, 10) || 0,
+    personel_odasi_seviye: parseInt(row.personel_odasi_seviye ?? panel?.personelOdasiSeviye, 10) || 0,
+    reklam_seviye: parseInt(row.reklam_seviye ?? panel?.reklamSeviye, 10) || 0,
+    fiyat_carpani: Number(row.fiyat_carpani ?? panel?.fiyatCarpani) || 1,
+    yildiz: parseInt(row.yildiz ?? panel?.yildiz, 10) || 0,
+    populerlik: parseInt(row.populerlik ?? panel?.populerlik, 10) || 0,
+    stok: stokRows
+      .map((s) => ({
+        malzeme_id: s.malzeme_id || s.id,
+        miktar: Math.floor(Number(s.miktar) || 0),
+      }))
+      .filter((s) => s.malzeme_id),
+  };
+}
+
+function mapMafyaForSeed(full) {
+  if (full._seedMafya) return full._seedMafya;
+  if (!full.mafyaUyelik) return null;
+  return { grup_id: full.mafyaUyelik.grupId, rutbe: full.mafyaUyelik.rutbe || "Mafya Üyesi" };
+}
+
+function mapYeteneklerForSeed(full) {
+  const yt = full._seedYetenekler || full.yetenekler;
+  if (!yt || typeof yt !== "object") return null;
+  return {
+    guc: yt.guc ?? yt.yetenek_guc,
+    zeka: yt.zeka ?? yt.yetenek_zeka,
+    dayaniklilik: yt.dayaniklilik ?? yt.yetenek_dayaniklilik,
+    beceri: yt.beceri ?? yt.yetenek_beceri,
+  };
+}
+
+async function enrichExportForSeed(db, userId, full) {
+  const { sahipSirketGetir } = require("./sirketService");
+  const { yetenekleriGetir } = require("./meslekService");
+  const sirket = await sahipSirketGetir(db, userId);
+  if (sirket) {
+    const stok = await all(db, `SELECT malzeme_id, miktar FROM sirket_stok WHERE sirket_id = ?`, [
+      sirket.id,
+    ]);
+    full._seedSirket = { ...sirket, stok };
+  }
+  const lider = await get(
+    db,
+    `SELECT isim, aciklama, created_at FROM mafya_gruplari WHERE lider_user_id = ?`,
+    [userId]
+  );
+  const uyelik = await get(
+    db,
+    `SELECT mu.grup_id, mu.rutbe, mg.isim
+     FROM mafya_uyeleri mu
+     JOIN mafya_gruplari mg ON mg.id = mu.grup_id
+     WHERE mu.user_id = ?`,
+    [userId]
+  );
+  if (lider) {
+    full._seedMafya = {
+      lider: true,
+      isim: lider.isim,
+      aciklama: lider.aciklama || "",
+      rutbe: uyelik?.rutbe || "Mafya Lideri",
+      created_at: lider.created_at,
+    };
+  } else if (uyelik) {
+    full._seedMafya = { grup_id: uyelik.grup_id, rutbe: uyelik.rutbe || "Mafya Üyesi" };
+  }
+  const yt = await yetenekleriGetir(db, userId);
+  if (yt) full._seedYetenekler = yt;
+  const extra = await get(
+    db,
+    `SELECT sehre_hukmet_sayisi, liman_istanbul, dostlar, dusmanlar, aktif_ekran,
+            son_aksiyon, son_aksiyon_detay, sehir_efsane
+     FROM players WHERE user_id = ?`,
+    [userId]
+  );
+  if (extra) full._seedPlayerExtra = extra;
+  return full;
+}
+
 function mapExportToSeed(full) {
   const k = full.kullanici || {};
   const st = full.istatistikler || {};
   const gy = full.guvenliYer || {};
+  const px = full._seedPlayerExtra || {};
   const out = {
     id: k.username || String(full.oyuncuId || ""),
     username: k.username,
@@ -689,7 +806,14 @@ function mapExportToSeed(full) {
       profil_aciklama: st.profilAciklama,
       devlet_iliskisi: st.devletIliskisi,
       kara_listede: st.karaListede ? 1 : 0,
-      sehir_efsane: st.sehirEfsane ? 1 : 0,
+      sehir_efsane: px.sehir_efsane != null ? px.sehir_efsane : st.sehirEfsane ? 1 : 0,
+      sehre_hukmet_sayisi: px.sehre_hukmet_sayisi,
+      liman_istanbul: px.liman_istanbul,
+      dostlar: px.dostlar,
+      dusmanlar: px.dusmanlar,
+      aktif_ekran: px.aktif_ekran,
+      son_aksiyon: px.son_aksiyon,
+      son_aksiyon_detay: px.son_aksiyon_detay,
     },
     guvenli_yer: { base_seviye: gy.baseSeviye != null ? gy.baseSeviye : 1 },
     istihbarat: { eleman_sayisi: full.istihbaratEleman != null ? full.istihbaratEleman : 0 },
@@ -701,23 +825,32 @@ function mapExportToSeed(full) {
     son_ip: k.sonIp || undefined,
     visitor_id: k.visitorId || undefined,
     user_agent: k.userAgent || undefined,
-    sirket_kapali: !full.sahipSirket,
+    sirket_kapali: !full.sahipSirket && !full._seedSirket,
   };
   const sehreHukmet = mapSehreHukmetForSeed(full);
-  if (sehreHukmet) out.sehre_hukmet = sehreHukmet;
+  if (sehreHukmet) {
+    if (sehreHukmet.aktif === false) out.sehre_hukmet_kapali = true;
+    else out.sehre_hukmet = sehreHukmet;
+  }
+  const sirket = mapSirketForSeed(full);
+  if (sirket) out.sirket = sirket;
+  const mafya = mapMafyaForSeed(full);
+  if (mafya) out.mafya = mafya;
+  const yetenekler = mapYeteneklerForSeed(full);
+  if (yetenekler) out.yetenekler = yetenekler;
   return out;
 }
 
 async function enforceLiveSnapshotPolicies(db) {
-  if (!fs.existsSync(SNAPSHOT_DIR)) return [];
+  if (!fs.existsSync(getSnapshotDir())) return [];
   const files = fs
-    .readdirSync(SNAPSHOT_DIR)
+    .readdirSync(getSnapshotDir())
     .filter((f) => f.endsWith(".json"))
     .sort();
   const results = [];
   for (const file of files) {
     try {
-      const snap = JSON.parse(fs.readFileSync(path.join(SNAPSHOT_DIR, file), "utf8"));
+      const snap = JSON.parse(fs.readFileSync(path.join(getSnapshotDir(), file), "utf8"));
       const userId = await findSnapshotUser(db, snap);
       if (!userId) continue;
 
@@ -749,10 +882,12 @@ async function updatePlayerSeedSnapshot(db, userId, { merge = true } = {}) {
   const user = await get(db, `SELECT username FROM users WHERE id = ?`, [userId]);
   if (!user?.username) return false;
   const { exportPlayerSnapshot } = require("./adminService");
-  const full = await exportPlayerSnapshot(db, userId);
+  let full = await exportPlayerSnapshot(db, userId);
   if (!full) return false;
+  full = await enrichExportForSeed(db, userId, full);
   const exported = mapExportToSeed(full);
-  const file = path.join(SNAPSHOT_DIR, `${user.username}.json`);
+  const dir = getSnapshotDir();
+  const file = path.join(dir, `${user.username}.json`);
   let snap = exported;
   if (merge && fs.existsSync(file)) {
     try {
@@ -760,7 +895,7 @@ async function updatePlayerSeedSnapshot(db, userId, { merge = true } = {}) {
       snap = mergeSnapshot(existing, exported);
     } catch (_) {}
   }
-  fs.mkdirSync(SNAPSHOT_DIR, { recursive: true });
+  fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(file, JSON.stringify(snap, null, 2) + "\n", "utf8");
   return true;
 }
@@ -768,12 +903,15 @@ async function updatePlayerSeedSnapshot(db, userId, { merge = true } = {}) {
 async function exportSnapshotsToSeed(db, { merge = true } = {}) {
   const { exportPlayerSnapshot } = require("./adminService");
   const users = await all(db, `SELECT id, username FROM users ORDER BY id`);
+  const dir = getSnapshotDir();
+  fs.mkdirSync(dir, { recursive: true });
   let n = 0;
   for (const u of users) {
-    const full = await exportPlayerSnapshot(db, u.id);
+    let full = await exportPlayerSnapshot(db, u.id);
     if (!full) continue;
+    full = await enrichExportForSeed(db, u.id, full);
     const exported = mapExportToSeed(full);
-    const file = path.join(SNAPSHOT_DIR, `${u.username}.json`);
+    const file = path.join(dir, `${u.username}.json`);
     let snap = exported;
     if (merge && fs.existsSync(file)) {
       try {
@@ -798,5 +936,8 @@ module.exports = {
   enforceLiveSnapshotPolicies,
   enforceSnapshotSafetyFlags: enforceLiveSnapshotPolicies,
   updatePlayerSeedSnapshot,
+  enrichExportForSeed,
+  bootstrapVolumeSnapshots,
+  getSnapshotDir,
   playerNeedsRecovery,
 };

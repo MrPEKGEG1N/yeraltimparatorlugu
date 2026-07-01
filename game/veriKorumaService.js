@@ -11,12 +11,14 @@ const MIN_BETTER_SCORE = 5000;
 function listLocalBackupFiles(targetPath) {
   const dir = path.dirname(path.resolve(targetPath));
   const out = new Set();
-  const names = [
-    targetPath + ".bak",
-    path.join(dir, "oyun.db.bak"),
+  const names = [targetPath + ".bak", path.join(dir, "oyun.db.bak")];
+  if (process.env.RAILWAY_VOLUME_MOUNT_PATH) {
+    names.push(path.join(process.env.RAILWAY_VOLUME_MOUNT_PATH, "oyun-seed.db"));
+  }
+  names.push(
     path.join(process.cwd(), "seed", "oyun.db"),
-    path.join(__dirname, "..", "seed", "oyun.db"),
-  ];
+    path.join(__dirname, "..", "seed", "oyun.db")
+  );
   const backupDir = path.join(dir, "backups");
   if (fs.existsSync(backupDir)) {
     for (const f of fs.readdirSync(backupDir)) {
@@ -133,14 +135,38 @@ async function recoverDbIfDegraded(targetPath = DB_PATH) {
 
 let _lastSnapshotExport = 0;
 
+function syncVolumeSeedDatabase(liveDbPath) {
+  const vol = process.env.RAILWAY_VOLUME_MOUNT_PATH;
+  if (!vol || !liveDbPath || !fs.existsSync(liveDbPath)) return false;
+  try {
+    const dest = path.join(vol, "oyun-seed.db");
+    fs.copyFileSync(liveDbPath, dest);
+    return true;
+  } catch (err) {
+    console.warn("[persist] Volume seed DB yazilamadi:", err.message);
+    return false;
+  }
+}
+
+async function persistLiveGameState(db) {
+  const { exportSnapshotsToSeed } = require("./oyuncuRestoreService");
+  const { DB_PATH } = require("../db/database");
+  const n = await exportSnapshotsToSeed(db, { merge: true });
+  const seedOk = syncVolumeSeedDatabase(DB_PATH);
+  if (n > 0 || seedOk) {
+    console.log(
+      `[persist] Canli durum kaydedildi (${n} snapshot${seedOk ? ", volume seed DB" : ""})`
+    );
+  }
+  return { snapshots: n, seedDb: seedOk };
+}
+
 async function maybeExportPlayerSnapshots(db, minIntervalMs = 5 * 60 * 1000) {
   const now = Date.now();
   if (now - _lastSnapshotExport < minIntervalMs) return;
   _lastSnapshotExport = now;
   try {
-    const { exportSnapshotsToSeed } = require("./oyuncuRestoreService");
-    const n = await exportSnapshotsToSeed(db, { merge: true });
-    if (n > 0) console.log(`[veri-koruma] ${n} oyuncu snapshot guncellendi (seed/oyuncular)`);
+    await persistLiveGameState(db);
   } catch (err) {
     console.warn("[veri-koruma] Snapshot export atlandi:", err.message);
   }
@@ -149,6 +175,8 @@ async function maybeExportPlayerSnapshots(db, minIntervalMs = 5 * 60 * 1000) {
 module.exports = {
   recoverDbIfDegraded,
   maybeExportPlayerSnapshots,
+  persistLiveGameState,
+  syncVolumeSeedDatabase,
   pickBestCandidate,
   shouldRecover,
 };

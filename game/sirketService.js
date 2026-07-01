@@ -1408,7 +1408,9 @@ async function kapat(db, userId, player) {
 
   try {
     const { updatePlayerSeedSnapshot } = require("./oyuncuRestoreService");
+    const { scheduleFullGamePersist } = require("./oyuncuSnapshotPersist");
     await updatePlayerSeedSnapshot(db, userId);
+    scheduleFullGamePersist(db, 30000);
   } catch (err) {
     console.warn("[sirket] Snapshot guncellenemedi:", err.message);
   }

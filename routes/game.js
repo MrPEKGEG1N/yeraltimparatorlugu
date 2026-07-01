@@ -348,6 +348,10 @@ function createGameRouter(db) {
       });
       if (!result.ok) return res.status(400).json(result);
       try {
+        const { schedulePlayerSnapshotPersist } = require("../game/oyuncuSnapshotPersist");
+        schedulePlayerSnapshotPersist(db, req.user.id);
+      } catch (_) {}
+      try {
         await kaydetAktivite(db, req.user.id, {
           ekran: aktifEkran || "",
           aksiyon: action,
