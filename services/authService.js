@@ -51,7 +51,7 @@ async function userForToken(db, userId) {
   );
 }
 
-async function registerUser(db, { username, password, reisAdi, lakap, website }, clientMeta = {}) {
+async function registerUser(db, { username, password, reisAdi, lakap, website, ulkeKodu, oyunDili }, clientMeta = {}) {
   if (String(website || "").trim()) {
     await logSecurityEvent(db, null, "honeypot_register", { ip: clientMeta.ip });
     return { ok: false, error: "Kayıt reddedildi." };
