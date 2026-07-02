@@ -207,6 +207,21 @@ async function playerNeedsRecovery(db, userId, snap, created) {
   if (snap.sehre_hukmet?.aktif) {
     const { sehreHukmediyorMu } = require("./karaListeService");
     if (!(await sehreHukmediyorMu(db, userId))) return true;
+    if (snap.sehre_hukmet.baslangic) {
+      const aktif = await get(
+        db,
+        `SELECT baslangic FROM sehir_hukumranlik WHERE user_id = ? AND bitis IS NULL ORDER BY id DESC LIMIT 1`,
+        [userId]
+      );
+      const snapBas = parseInt(snap.sehre_hukmet.baslangic, 10);
+      if (
+        aktif &&
+        !Number.isNaN(snapBas) &&
+        Math.abs(Number(aktif.baslangic || 0) - snapBas) >= 3600
+      ) {
+        return true;
+      }
+    }
   }
 
   if (snap.meslek?.meslek_id) {
@@ -1001,6 +1016,19 @@ async function enforceLiveSnapshotPolicies(db) {
       }
 
       if (!snap.force_restore) continue;
+
+      if (snap.sehre_hukmet?.aktif && snap.sehre_hukmet.baslangic) {
+        const { syncAktifHukumBaslangic } = require("./saygiDuvariService");
+        const synced = await syncAktifHukumBaslangic(
+          db,
+          userId,
+          parseInt(snap.sehre_hukmet.baslangic, 10)
+        );
+        if (synced) {
+          console.log(`[restore] Hukum baslangic senkron: ${snap.username}`);
+          results.push({ username: snap.username, hukumBaslangicSynced: true });
+        }
+      }
 
       const need = await playerNeedsRecovery(db, userId, snap, false);
       if (!need) continue;

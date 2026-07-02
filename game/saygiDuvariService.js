@@ -182,12 +182,38 @@ async function yeniHukumdarRejimBaslat(db, userId, oncekiUserId) {
   if (oncekiUserId && oncekiUserId !== userId) {
     await hukumranlikKapat(db, oncekiUserId, oncekiUserId, userId);
   }
+  const kendiAktif = await get(
+    db,
+    `SELECT id FROM sehir_hukumranlik WHERE user_id = ? AND bitis IS NULL ORDER BY id DESC LIMIT 1`,
+    [userId]
+  );
+  if (kendiAktif) {
+    await hukumranlikKapat(db, userId, userId, null);
+  }
   await hukumranlikBaslat(db, userId, oncekiUserId || null);
 }
 
 async function hukumdarligiBitir(db, userId) {
   await ensureSaygiTables(db);
   await hukumranlikKapat(db, userId, userId, null);
+}
+
+async function syncAktifHukumBaslangic(db, userId, baslangicUnix) {
+  await ensureSaygiTables(db);
+  const hedef = parseInt(baslangicUnix, 10);
+  if (!hedef || hedef <= 0) return false;
+  const row = await get(
+    db,
+    `SELECT id, baslangic FROM sehir_hukumranlik WHERE user_id = ? AND bitis IS NULL ORDER BY id DESC LIMIT 1`,
+    [userId]
+  );
+  if (!row) return false;
+  if (Math.abs(Number(row.baslangic || 0) - hedef) < 3600) return false;
+  await run(db, `UPDATE sehir_hukumranlik SET baslangic = ? WHERE id = ?`, [hedef, row.id]);
+  console.log(
+    `[saygi] Hukum baslangic guncellendi: user=${userId} ${row.baslangic} -> ${hedef}`
+  );
+  return true;
 }
 
 async function saygiDuvariniGetir(db) {
@@ -311,6 +337,7 @@ module.exports = {
   yeniHukumdarRejimBaslat,
   hukumdarligiBitir,
   hukumGunSayisi,
+  syncAktifHukumBaslangic,
   saygiDuvariniGetir,
   sehirTarihiniGetir,
 };
