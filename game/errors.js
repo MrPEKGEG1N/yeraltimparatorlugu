@@ -1,5 +1,5 @@
 /* AUTO-GENERATED — scripts/generate-errors-module.js */
-const LANGS = ["tr","en","en-US","de","fr","es","it","pt","pt-BR","nl","ro","cs","el","ru","zh","ar"];
+const LANGS = ["tr","en","en-US","de","fr","es","it","pt","pt-BR","nl","ro","cs","pl","el","ru","zh","ar"];
 
 const CATALOG = {
   "AD_DEĞIŞTIRMEK_IÇIN_YETERLI_KAZANCIN_YOK": {

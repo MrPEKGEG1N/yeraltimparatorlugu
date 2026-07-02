@@ -14,6 +14,7 @@
     { code: 'nl', flag: '🇳🇱', label: 'Nederlands', rtl: false },
     { code: 'ro', flag: '🇷🇴', label: 'Română', rtl: false },
     { code: 'cs', flag: '🇨🇿', label: 'Čeština', rtl: false },
+    { code: 'pl', flag: '🇵🇱', label: 'Polski', rtl: false },
     { code: 'el', flag: '🇬🇷', label: 'Ελληνικά', rtl: false },
     { code: 'ru', flag: '🇷🇺', label: 'Русский', rtl: false },
     { code: 'zh', flag: '🇨🇳', label: '中文', rtl: false },

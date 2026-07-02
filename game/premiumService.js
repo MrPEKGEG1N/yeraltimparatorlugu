@@ -148,7 +148,7 @@ const EUROZONE_ULKELER = new Set([
 const PARA_SEMBOL = { TRY: "₺", USD: "$", EUR: "€" };
 
 /** Avrupa oyun dilleri → € fiyatlandırma */
-const EUR_OYUN_DILLERI = new Set(["de", "fr", "es", "it", "pt", "nl", "ro", "cs", "el"]);
+const EUR_OYUN_DILLERI = new Set(["de", "fr", "es", "it", "pt", "nl", "ro", "cs", "pl", "el"]);
 
 function buildElmasLocale(userRow, clientMeta = {}) {
   const oyunDili = clientMeta.lang || userRow?.oyun_dili || "tr";

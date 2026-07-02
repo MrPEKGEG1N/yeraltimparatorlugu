@@ -1,7 +1,7 @@
 (function (global) {
   "use strict";
 
-  var C = ["tr", "en", "en-US", "de", "fr", "es", "it", "pt", "pt-BR", "nl", "ro", "cs", "el", "ru", "zh", "ar"];
+  var C = ["tr", "en", "en-US", "de", "fr", "es", "it", "pt", "pt-BR", "nl", "ro", "cs", "el", "ru", "zh", "ar", "pl"];
 
   function row(key, vals) {
     var o = {};
@@ -59,7 +59,7 @@
     row("auth.submitLogin", ["[ ⚔️ GİRİŞ YAP ]", "[ ⚔️ LOG IN ]", "[ ⚔️ LOG IN ]", "[ ⚔️ EINLOGGEN ]", "[ ⚔️ SE CONNECTER ]", "[ ⚔️ INICIAR SESIÓN ]", "[ ⚔️ ACCEDI ]", "[ ⚔️ ENTRAR ]", "[ ⚔️ ENTRAR ]", "[ ⚔️ INLOGGEN ]", "[ ⚔️ INTRĂ ]", "[ ⚔️ PŘIHLÁSIT SE ]", "[ ⚔️ ΣΥΝΔΕΣΗ ]", "[ ⚔️ ВОЙТИ ]", "[ ⚔️ 登录 ]", "[ ⚔️ دخول ]"]),
     row("auth.submitRegister", ["[ 👑 REİS OL ]", "[ 👑 BECOME THE BOSS ]", "[ 👑 BECOME THE BOSS ]", "[ 👑 WERDE ZUM BOSS ]", "[ 👑 DEVIENS LE BOSS ]", "[ 👑 CONVIÉRTETE EN JEFE ]", "[ 👑 DIVENTA IL BOSS ]", "[ 👑 TORNA-TE O CHEFE ]", "[ 👑 VIRE O CHEFE ]", "[ 👑 WORD DE BAAS ]", "[ 👑 DEVINO ȘEFUL ]", "[ 👑 STAŇ SE BOSSEM ]", "[ 👑 ΓΙΝΕ ΤΟ ΑΦΕΝΤΙΚΟ ]", "[ 👑 СТАНЬ БОССОМ ]", "[ 👑 成为老大 ]", "[ 👑 كن الزعيم ]"]),
     row("auth.loading", ["⏳ Yükleniyor...", "⏳ Loading...", "⏳ Loading...", "⏳ Laden...", "⏳ Chargement...", "⏳ Cargando...", "⏳ Caricamento...", "⏳ A carregar...", "⏳ Carregando...", "⏳ Laden...", "⏳ Se încarcă...", "⏳ Načítání...", "⏳ Φόρτωση...", "⏳ Загрузка...", "⏳ 加载中...", "⏳ جارٍ التحميل..."]),
-    row("lang.changed", ["Dil değiştirildi.", "Language changed.", "Language changed.", "Sprache geändert.", "Langue changée.", "Idioma cambiado.", "Lingua cambiata.", "Idioma alterado.", "Idioma alterado.", "Taal gewijzigd.", "Limba a fost schimbată.", "Jazyk změněn.", "Η γλώσσα άλλαξε.", "Язык изменен.", "语言已切换。", "تم تغيير اللغة."]),
+    row("lang.changed", ["Dil değiştirildi.", "Language changed.", "Language changed.", "Sprache geändert.", "Langue changée.", "Idioma cambiado.", "Lingua cambiata.", "Idioma alterado.", "Idioma alterado.", "Taal gewijzigd.", "Limba a fost schimbată.", "Jazyk změněn.", "Η γλώσσα άλλαξε.", "Язык изменен.", "语言已切换。", "تم تغيير اللغة.", "Język został zmieniony."]),
 
     row("header.leaderboard", ["Liderlik Tablosu", "Leaderboard", "Leaderboard", "Bestenliste", "Classement", "Clasificación", "Classifica", "Ranking", "Ranking", "Ranglijst", "Clasament", "Žebříček", "Πίνακας Κατάταξης", "Таблица лидеров", "排行榜", "لوحة الصدارة"]),
     row("header.icraat", ["İcraat", "Actions", "Actions", "Aktionen", "Actions", "Acciones", "Azioni", "Ações", "Ações", "Acties", "Acțiuni", "Akce", "Ενέργειες", "Действия", "行动", "التحركات"]),

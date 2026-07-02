@@ -13,6 +13,7 @@ const SUPPORTED_LANGS = new Set([
   "nl",
   "ro",
   "cs",
+  "pl",
   "el",
   "ru",
   "zh",
