@@ -187,6 +187,64 @@
   transform: scale(0.98);
 }
 
+#masterLayout .profil-premium-kalan {
+  max-width: 200px;
+  margin: 8px auto 0;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 196, 64, 0.55);
+  background: linear-gradient(135deg, rgba(120, 24, 8, 0.92) 0%, rgba(48, 10, 4, 0.95) 55%, rgba(18, 6, 2, 0.98) 100%);
+  box-shadow: 0 0 14px rgba(255, 140, 0, 0.25), inset 0 0 12px rgba(255, 80, 0, 0.08);
+  text-align: center;
+  animation: profil-premium-kalan-pulse 2.4s ease-in-out infinite;
+}
+
+#masterLayout .profil-premium-kalan-rozet {
+  display: block;
+  font-size: 16px;
+  line-height: 1;
+  margin-bottom: 4px;
+  filter: drop-shadow(0 0 6px rgba(255, 200, 80, 0.65));
+}
+
+#masterLayout .profil-premium-kalan-metin {
+  display: block;
+  font-family: 'Oswald', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: #ffd27a;
+  line-height: 1.35;
+}
+
+#masterLayout .profil-premium-kalan-sure {
+  display: inline;
+  font-size: 12px;
+  letter-spacing: 0.4px;
+  color: #fff4c8;
+  text-shadow: 0 0 8px rgba(255, 180, 60, 0.55);
+}
+
+#masterLayout .profil-premium-kalan-bitis {
+  display: block;
+  margin-top: 4px;
+  font-size: 10px;
+  color: #ff9b5c;
+  letter-spacing: 0.3px;
+}
+
+@keyframes profil-premium-kalan-pulse {
+  0%, 100% {
+    border-color: rgba(255, 196, 64, 0.45);
+    box-shadow: 0 0 10px rgba(255, 140, 0, 0.18), inset 0 0 10px rgba(255, 80, 0, 0.06);
+  }
+  50% {
+    border-color: rgba(255, 220, 120, 0.85);
+    box-shadow: 0 0 18px rgba(255, 160, 40, 0.42), inset 0 0 14px rgba(255, 100, 20, 0.12);
+  }
+}
+
 @keyframes profil-elmas-pulse {
   0%, 100% {
     box-shadow:

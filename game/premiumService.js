@@ -5,6 +5,7 @@ const SMS_GUNLUK_VARSAYILAN = 50;
 const BANKA_HAK_GUNLUK_VARSAYILAN = 20;
 
 const PAKET_SIRA = { tetikci: 1, racon: 2, baron: 3 };
+const PAKET_SURE_SN = 30 * 24 * 3600;
 
 const ICRAAT_PAKET = {
   id: "icraat_paket",
@@ -213,10 +214,90 @@ function paketListesi() {
   }));
 }
 
+async function ensurePremiumColumns(db) {
+  for (const [col, def] of [
+    ["last_icraat_paket_at", "INTEGER NOT NULL DEFAULT 0"],
+    ["premium_paket_bitis", "INTEGER NOT NULL DEFAULT 0"],
+  ]) {
+    try {
+      await run(db, `ALTER TABLE players ADD COLUMN ${col} ${def}`);
+    } catch (_) {}
+  }
+}
+
+function formatPremiumBitis(bitisUnix) {
+  if (!bitisUnix) return "";
+  return new Date(bitisUnix * 1000).toLocaleString("tr-TR", {
+    timeZone: "Europe/Istanbul",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function premiumKalanMetni(kalanSn) {
+  if (kalanSn <= 0) return "";
+  const gun = Math.floor(kalanSn / 86400);
+  const saat = Math.floor((kalanSn % 86400) / 3600);
+  const dk = Math.floor((kalanSn % 3600) / 60);
+  const sn = kalanSn % 60;
+  if (gun > 0) return `${gun} g ${saat} sa ${dk} dk`;
+  if (saat > 0) return `${saat} sa ${dk} dk ${sn} sn`;
+  if (dk > 0) return `${dk} dk ${sn} sn`;
+  return `${sn} sn`;
+}
+
+async function expirePremiumIfNeeded(db, userId) {
+  await ensurePremiumColumns(db);
+  const row = await get(db, `SELECT premium_paket, premium_paket_bitis FROM players WHERE user_id = ?`, [
+    userId,
+  ]);
+  if (!row?.premium_paket) return;
+  const bitis = Number(row.premium_paket_bitis || 0);
+  const simdi = Math.floor(Date.now() / 1000);
+  if (bitis > 0 && bitis <= simdi) {
+    await run(db, `UPDATE players SET premium_paket = '', premium_paket_bitis = 0 WHERE user_id = ?`, [
+      userId,
+    ]);
+  }
+}
+
+async function getPremiumStatus(db, userId) {
+  await expirePremiumIfNeeded(db, userId);
+  const row = await get(db, `SELECT premium_paket, premium_paket_bitis FROM players WHERE user_id = ?`, [
+    userId,
+  ]);
+  let paketId = String(row?.premium_paket || "").trim();
+  if (!paketTanim(paketId)) paketId = "";
+  let bitis = paketId ? Number(row?.premium_paket_bitis || 0) : 0;
+  const simdi = Math.floor(Date.now() / 1000);
+  if (paketId && bitis <= 0) {
+    bitis = simdi + PAKET_SURE_SN;
+    await run(db, `UPDATE players SET premium_paket_bitis = ? WHERE user_id = ?`, [bitis, userId]);
+  }
+  const kalanSn = bitis > simdi ? bitis - simdi : 0;
+  if (paketId && kalanSn <= 0) {
+    await run(db, `UPDATE players SET premium_paket = '', premium_paket_bitis = 0 WHERE user_id = ?`, [
+      userId,
+    ]);
+    paketId = "";
+    bitis = 0;
+  }
+  return {
+    paket: paketId,
+    bitis,
+    kalanSn: paketId ? Math.max(0, bitis - simdi) : 0,
+    bitisMetin: bitis ? formatPremiumBitis(bitis) : "",
+    kalanMetin: premiumKalanMetni(Math.max(0, bitis - simdi)),
+    aktif: !!paketId && bitis > simdi,
+  };
+}
+
 async function getPlayerPremiumPaket(db, userId) {
-  const row = await get(db, `SELECT premium_paket FROM players WHERE user_id = ?`, [userId]);
-  const id = String(row?.premium_paket || "").trim();
-  return paketTanim(id) ? id : "";
+  const st = await getPremiumStatus(db, userId);
+  return st.paket;
 }
 
 async function getPremiumBonuses(db, userId) {
@@ -237,9 +318,7 @@ async function getPremiumBonuses(db, userId) {
 }
 
 async function ensureIcraatPaketColumn(db) {
-  try {
-    await run(db, `ALTER TABLE players ADD COLUMN last_icraat_paket_at INTEGER NOT NULL DEFAULT 0`);
-  } catch (_) {}
+  await ensurePremiumColumns(db);
 }
 
 function icraatPaketKalanMetni(kalanSn) {
@@ -272,38 +351,44 @@ async function icraatPaketPanel(db, userId) {
 }
 
 async function icraatPaketSatinAl(db, userId) {
-  const panel = await icraatPaketPanel(db, userId);
-  if (!panel.satinAlinabilir) {
-    return {
-      ok: false,
-      error: panel.kalanMetin
-        ? `İcraat Paketi için ${panel.kalanMetin} beklemen gerekir.`
-        : "İcraat Paketi şu an alınamaz.",
-    };
-  }
-  if (!panel.yeterliElmas) {
-    return {
-      ok: false,
-      error: `Yeterli elmasın yok! ${panel.elmasMaliyet.toLocaleString("tr-TR")} elmas gerekir.`,
-    };
-  }
+  try {
+    await ensurePremiumColumns(db);
+    const panel = await icraatPaketPanel(db, userId);
+    if (!panel.satinAlinabilir) {
+      return {
+        ok: false,
+        error: panel.kalanMetin
+          ? `İcraat Paketi için ${panel.kalanMetin} beklemen gerekir.`
+          : "İcraat Paketi şu an alınamaz.",
+      };
+    }
+    if (!panel.yeterliElmas) {
+      return {
+        ok: false,
+        error: `Yeterli elmasın yok! ${panel.elmasMaliyet.toLocaleString("tr-TR")} elmas gerekir.`,
+      };
+    }
 
-  const { syncIcraatRegen } = require("./icraatService");
-  const synced = await syncIcraatRegen(db, userId);
-  const simdi = Math.floor(Date.now() / 1000);
-  const yeniIcraat = Math.min(ICRAAT_MAX, (synced.icraat || 0) + ICRAAT_PAKET.icraatMiktar);
-  const res = await run(
-    db,
-    `UPDATE players SET elmas = elmas - ?, icraat = ?, last_icraat_paket_at = ? WHERE user_id = ? AND elmas >= ?`,
-    [ICRAAT_PAKET.elmasMaliyet, yeniIcraat, simdi, userId, ICRAAT_PAKET.elmasMaliyet]
-  );
-  if (!res?.changes) return { ok: false, error: "Satın alma başarısız." };
+    const { syncIcraatRegen } = require("./icraatService");
+    const synced = await syncIcraatRegen(db, userId);
+    const simdi = Math.floor(Date.now() / 1000);
+    const yeniIcraat = Math.min(ICRAAT_MAX, (synced.icraat || 0) + ICRAAT_PAKET.icraatMiktar);
+    const res = await run(
+      db,
+      `UPDATE players SET elmas = elmas - ?, icraat = ?, last_icraat_paket_at = ? WHERE user_id = ? AND elmas >= ?`,
+      [ICRAAT_PAKET.elmasMaliyet, yeniIcraat, simdi, userId, ICRAAT_PAKET.elmasMaliyet]
+    );
+    if (!res?.changes) return { ok: false, error: "Satın alma başarısız. Elmas bakiyeni kontrol et." };
 
-  return {
-    ok: true,
-    mesaj: `İcraat Paketi alındı! +${ICRAAT_PAKET.icraatMiktar} İcraat.`,
-    icraatPaket: await icraatPaketPanel(db, userId),
-  };
+    return {
+      ok: true,
+      mesaj: `İcraat Paketi alındı! +${ICRAAT_PAKET.icraatMiktar} İcraat.`,
+      icraatPaket: await icraatPaketPanel(db, userId),
+    };
+  } catch (err) {
+    console.error("[premium] icraat paket satin al:", err.message);
+    return { ok: false, error: "İcraat Paketi alınamadı. Sayfayı yenileyip tekrar dene." };
+  }
 }
 
 async function elmasPaketSatinAl(db, userId, paketId) {
@@ -322,15 +407,17 @@ async function elmasPaketSatinAl(db, userId, paketId) {
 }
 
 async function premiumSatinAl(db, userId, paketId) {
+  await ensurePremiumColumns(db);
   const paket = paketTanim(paketId);
   if (!paket) return { ok: false, error: "Geçersiz premium paket." };
 
-  const mevcut = await getPlayerPremiumPaket(db, userId);
-  if (mevcut && (PAKET_SIRA[mevcut] || 0) >= (PAKET_SIRA[paket.id] || 0)) {
-    return { ok: false, error: "Zaten bu pakete veya daha üst bir pakete sahipsin." };
+  const st = await getPremiumStatus(db, userId);
+  const mevcut = st.paket;
+  if (mevcut && (PAKET_SIRA[mevcut] || 0) > (PAKET_SIRA[paket.id] || 0)) {
+    return { ok: false, error: "Zaten daha üst bir pakete sahipsin." };
   }
 
-  const row = await get(db, `SELECT elmas FROM players WHERE user_id = ?`, [userId]);
+  const row = await get(db, `SELECT elmas, premium_paket_bitis FROM players WHERE user_id = ?`, [userId]);
   const elmas = row?.elmas || 0;
   if (elmas < paket.elmasMaliyet) {
     return {
@@ -339,18 +426,27 @@ async function premiumSatinAl(db, userId, paketId) {
     };
   }
 
-  await run(db, `UPDATE players SET elmas = elmas - ?, premium_paket = ? WHERE user_id = ?`, [
-    paket.elmasMaliyet,
-    paket.id,
-    userId,
-  ]);
+  const simdi = Math.floor(Date.now() / 1000);
+  const mevcutBitis = Number(row?.premium_paket_bitis || 0);
+  const yeniBitis =
+    mevcut === paket.id && mevcutBitis > simdi
+      ? mevcutBitis + PAKET_SURE_SN
+      : simdi + PAKET_SURE_SN;
+
+  const res = await run(
+    db,
+    `UPDATE players SET elmas = elmas - ?, premium_paket = ?, premium_paket_bitis = ? WHERE user_id = ? AND elmas >= ?`,
+    [paket.elmasMaliyet, paket.id, yeniBitis, userId, paket.elmasMaliyet]
+  );
+  if (!res?.changes) return { ok: false, error: "Satın alma başarısız." };
 
   await applyPremiumPaketAvantajlari(db, userId, paket);
 
   return {
     ok: true,
-    mesaj: `${paket.baslik} aktif edildi! Ayrıcalıkların hemen geçerli.`,
+    mesaj: `${paket.baslik} aktif! Bitiş: ${formatPremiumBitis(yeniBitis)}`,
     paket: paket.id,
+    premiumPaketBitis: yeniBitis,
   };
 }
 
@@ -363,6 +459,7 @@ module.exports = {
   paketListesi,
   elmasPaketListesi,
   getPlayerPremiumPaket,
+  getPremiumStatus,
   getPremiumBonuses,
   premiumSatinAl,
   elmasPaketSatinAl,

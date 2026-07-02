@@ -655,6 +655,8 @@ async function initDatabase() {
     ["last_saatlik_gelir_hour", "TEXT"],
     ["elmas", "INTEGER NOT NULL DEFAULT 0"],
     ["premium_paket", "TEXT NOT NULL DEFAULT ''"],
+    ["last_icraat_paket_at", "INTEGER NOT NULL DEFAULT 0"],
+    ["premium_paket_bitis", "INTEGER NOT NULL DEFAULT 0"],
   ];
   for (const [col, def] of playerCols) {
     try {

@@ -22,7 +22,7 @@ const {
 const { sektorPanel, mekanAl, mekanDevret } = require("./sectorService");
 const { processSaatlikGelir, oyuncuSaatlikKazanc } = require("./saatlikGelirService");
 const { karaListeSenkronize } = require("./karaListeService");
-const { paketListesi, getPremiumBonuses, premiumSatinAl, elmasPaketListesi, elmasPaketSatinAl, icraatPaketPanel, icraatPaketSatinAl } = require("./premiumService");
+const { paketListesi, getPremiumBonuses, getPremiumStatus, premiumSatinAl, elmasPaketListesi, elmasPaketSatinAl, icraatPaketPanel, icraatPaketSatinAl } = require("./premiumService");
 const { logStatHareket } = require("./statService");
 const { gelistir: guvenliYerGelistir, panelGetir: guvenliYerPanelGetir, kasaSatinAl: guvenliYerKasaSatinAl } = require("./guvenliYerService");
 const { panelGetir: sabotajPanelGetir, sabotajBaslat, sabotajIptal } = require("./sabotajService");
@@ -425,6 +425,10 @@ async function publicPlayerFull(db, userId, player) {
     icraatRegenSec: ICRAAT_REGEN_SEC,
     icraatSaatlikBonus: premium.icraatSaatlik,
     premiumPaket: premium.paket,
+    premiumPaketBitis: premiumSt.bitis,
+    premiumKalanSn: premiumSt.kalanSn,
+    premiumBitisMetin: premiumSt.bitisMetin,
+    premiumKalanMetin: premiumSt.kalanMetin,
     premiumBonuses: {
       smsSinirsiz: premium.smsSinirsiz,
       bankaHakSinirsiz: premium.bankaHakSinirsiz,
