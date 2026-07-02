@@ -197,6 +197,20 @@ async function playerNeedsRecovery(db, userId, snap, created) {
     if (!(await sehreHukmediyorMu(db, userId))) return true;
   }
 
+  if (snap.meslek?.meslek_id) {
+    const row = await get(db, `SELECT meslek_id FROM oyuncu_meslek WHERE user_id = ?`, [userId]);
+    if (!row || row.meslek_id !== snap.meslek.meslek_id) return true;
+  }
+
+  if (snap.sirket_calisan?.pozisyon_id) {
+    const row = await get(
+      db,
+      `SELECT pozisyon_id FROM sirket_calisanlari WHERE user_id = ?`,
+      [userId]
+    );
+    if (!row || row.pozisyon_id !== snap.sirket_calisan.pozisyon_id) return true;
+  }
+
   return false;
 }
 
@@ -250,6 +264,8 @@ async function applyForceSnapshot(db, userId, snap) {
   }
   await applyMafya(db, userId, snap.mafya);
   await applySehreHukmet(db, userId, snap.sehre_hukmet);
+  await applyMeslek(db, userId, snap.meslek);
+  await applySirketCalisan(db, userId, snap.sirket_calisan);
 }
 
 async function applySehreHukmet(db, userId, cfg) {
@@ -333,6 +349,52 @@ async function applyYetenekler(db, userId, yetenekler) {
   if (!sets.length) return;
   vals.push(userId);
   await run(db, `UPDATE players SET ${sets.join(", ")} WHERE user_id = ?`, vals);
+}
+
+async function applyMeslek(db, userId, meslek) {
+  if (!meslek?.meslek_id) return;
+  const { ensureMeslekTables } = require("./meslekService");
+  const { meslekBul } = require("./meslekCatalog");
+  if (!meslekBul(meslek.meslek_id)) return;
+  await ensureMeslekTables(db);
+  await run(db, `DELETE FROM sirket_calisanlari WHERE user_id = ?`, [userId]);
+  await run(
+    db,
+    `INSERT OR REPLACE INTO oyuncu_meslek (user_id, meslek_id, ise_baslama, son_gelir_gunu)
+     VALUES (?, ?, ?, ?)`,
+    [
+      userId,
+      meslek.meslek_id,
+      parseInt(meslek.ise_baslama, 10) || Math.floor(Date.now() / 1000),
+      meslek.son_gelir_gunu || null,
+    ]
+  );
+}
+
+async function applySirketCalisan(db, userId, calisan) {
+  if (!calisan?.pozisyon_id) return;
+  await ensureSirketTables(db);
+  let sirketId = parseInt(calisan.sirket_id, 10) || null;
+  if (!sirketId && calisan.sirket_sahip) {
+    const owner = await get(db, `SELECT id FROM users WHERE username = ?`, [
+      String(calisan.sirket_sahip).trim().toLowerCase(),
+    ]);
+    if (owner) {
+      const sirket = await get(db, `SELECT id FROM oyuncu_sirketleri WHERE sahip_user_id = ?`, [
+        owner.id,
+      ]);
+      sirketId = sirket?.id || null;
+    }
+  }
+  if (!sirketId) return;
+  await run(db, `DELETE FROM oyuncu_meslek WHERE user_id = ?`, [userId]);
+  await run(db, `DELETE FROM sirket_calisanlari WHERE user_id = ?`, [userId]);
+  await run(
+    db,
+    `INSERT INTO sirket_calisanlari (sirket_id, user_id, pozisyon_id, gunluk_maas)
+     VALUES (?, ?, ?, ?)`,
+    [sirketId, userId, calisan.pozisyon_id, parseInt(calisan.gunluk_maas, 10) || 0]
+  );
 }
 
 async function clearOwnedSirket(db, userId) {
@@ -644,6 +706,13 @@ async function restoreOyuncuSnapshots(db) {
 function mergeSnapshot(existing, exported) {
   const out = { ...existing, ...exported, force_restore: true };
   out.player = { ...(existing.player || {}), ...(exported.player || {}) };
+  for (const col of FLOOR_COLS) {
+    const a = parseInt(existing.player?.[col], 10);
+    const b = parseInt(exported.player?.[col], 10);
+    if (!Number.isNaN(a) || !Number.isNaN(b)) {
+      out.player[col] = Math.max(Number.isNaN(a) ? 0 : a, Number.isNaN(b) ? 0 : b);
+    }
+  }
   out.guvenli_yer = { ...(existing.guvenli_yer || {}), ...(exported.guvenli_yer || {}) };
   out.istihbarat = { ...(existing.istihbarat || {}), ...(exported.istihbarat || {}) };
   if (exported.sirket_kapali === true) {
@@ -657,6 +726,10 @@ function mergeSnapshot(existing, exported) {
   }
   if (exported.mafya) out.mafya = exported.mafya;
   else if (!out.mafya && existing.mafya) out.mafya = existing.mafya;
+  if (exported.meslek) out.meslek = exported.meslek;
+  else if (existing.meslek) out.meslek = existing.meslek;
+  if (exported.sirket_calisan) out.sirket_calisan = exported.sirket_calisan;
+  else if (existing.sirket_calisan) out.sirket_calisan = existing.sirket_calisan;
   if (exported.sehre_hukmet) {
     if (exported.sehre_hukmet.aktif === false) delete out.sehre_hukmet;
     else out.sehre_hukmet = exported.sehre_hukmet;
@@ -737,6 +810,40 @@ function mapYeteneklerForSeed(full) {
   };
 }
 
+function mapMeslekForSeed(full) {
+  if (full._seedMeslek) {
+    return {
+      meslek_id: full._seedMeslek.meslek_id,
+      ise_baslama: full._seedMeslek.ise_baslama,
+      son_gelir_gunu: full._seedMeslek.son_gelir_gunu,
+    };
+  }
+  const m = full.aktifMeslek;
+  if (!m?.id) return null;
+  return {
+    meslek_id: m.id,
+    ise_baslama: m.iseBaslama,
+    son_gelir_gunu: m.sonGelirGunu,
+  };
+}
+
+function mapSirketCalisanForSeed(full) {
+  if (full._seedSirketCalisan) {
+    const c = full._seedSirketCalisan;
+    return {
+      sirket_sahip: c.sirket_sahip,
+      pozisyon_id: c.pozisyon_id,
+      gunluk_maas: c.gunluk_maas,
+    };
+  }
+  const c = full.sirketCalisan;
+  if (!c?.pozisyon_id) return null;
+  return {
+    pozisyon_id: c.pozisyon_id,
+    gunluk_maas: c.gunluk_maas,
+  };
+}
+
 async function enrichExportForSeed(db, userId, full) {
   const { yetenekleriGetir } = require("./meslekService");
   const sirket = await get(db, `SELECT * FROM oyuncu_sirketleri WHERE sahip_user_id = ?`, [userId]);
@@ -780,6 +887,22 @@ async function enrichExportForSeed(db, userId, full) {
     [userId]
   );
   if (extra) full._seedPlayerExtra = extra;
+  const meslekRow = await get(
+    db,
+    `SELECT meslek_id, ise_baslama, son_gelir_gunu FROM oyuncu_meslek WHERE user_id = ?`,
+    [userId]
+  );
+  if (meslekRow) full._seedMeslek = meslekRow;
+  const calisanRow = await get(
+    db,
+    `SELECT c.sirket_id, c.pozisyon_id, c.gunluk_maas, su.username AS sirket_sahip
+     FROM sirket_calisanlari c
+     JOIN oyuncu_sirketleri s ON s.id = c.sirket_id
+     JOIN users su ON su.id = s.sahip_user_id
+     WHERE c.user_id = ?`,
+    [userId]
+  );
+  if (calisanRow) full._seedSirketCalisan = calisanRow;
   return full;
 }
 
@@ -837,6 +960,10 @@ function mapExportToSeed(full) {
   if (mafya) out.mafya = mafya;
   const yetenekler = mapYeteneklerForSeed(full);
   if (yetenekler) out.yetenekler = yetenekler;
+  const meslek = mapMeslekForSeed(full);
+  if (meslek) out.meslek = meslek;
+  const sirketCalisan = mapSirketCalisanForSeed(full);
+  if (sirketCalisan) out.sirket_calisan = sirketCalisan;
   return out;
 }
 

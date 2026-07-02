@@ -299,6 +299,9 @@ async function mulakatBasvur(db, userId, meslekId) {
     [userId, meslek.id, simdi, bugun]
   );
 
+  const { schedulePlayerSnapshotPersist } = require("./oyuncuSnapshotPersist");
+  schedulePlayerSnapshotPersist(db, userId);
+
   return {
     ok: true,
     alindi: true,
@@ -319,6 +322,10 @@ async function istifaEt(db, userId) {
   if (!mevcut) return { ok: false, error: "Aktif bir işin yok." };
 
   await run(db, `DELETE FROM oyuncu_meslek WHERE user_id = ?`, [userId]);
+
+  const { schedulePlayerSnapshotPersist } = require("./oyuncuSnapshotPersist");
+  schedulePlayerSnapshotPersist(db, userId);
+
   return {
     ok: true,
     mesaj: `${mevcut.isyeriAd} — ${mevcut.unvan} görevinden ayrıldın.`,

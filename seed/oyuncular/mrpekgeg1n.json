@@ -5,15 +5,27 @@
   "lakap": "Mafya",
   "force_restore": true,
   "sirket_kapali": true,
+  "meslek": {
+    "meslek_id": "fastfood_mutfak",
+    "ise_baslama": 1782941461,
+    "son_gelir_gunu": "2026-07-01"
+  },
   "player": {
-    "kasa": 1308327815,
+    "kasa": 1309287815,
     "guc": 1000000500,
     "puan": 2400,
     "icraat": 5306,
     "sms_hakki": 300,
     "elmas": 0,
     "kara_listede": 0,
-    "sehir_efsane": 0
+    "sehir_efsane": 0,
+    "sehre_hukmet_sayisi": 0,
+    "liman_istanbul": 0,
+    "dostlar": "",
+    "dusmanlar": "",
+    "aktif_ekran": "profilim",
+    "son_aksiyon": "guvenli_yer_kasa_al",
+    "son_aksiyon_detay": "Altın Hazine Kasası süre uzatıldı! %50 nakit koruması 30 gün geçerli (bitiş: 30."
   },
   "guvenli_yer": {
     "base_seviye": 15
@@ -95,5 +107,19 @@
   ],
   "son_ip": "127.0.0.1",
   "visitor_id": "957864a276d8be6d24bf0454f419c589",
-  "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36"
+  "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+  "sehre_hukmet_kapali": true,
+  "mafya": {
+    "lider": true,
+    "isim": "$BaBaLaR$",
+    "aciklama": "aa",
+    "rutbe": "Mafya Lideri",
+    "created_at": 1782485384
+  },
+  "yetenekler": {
+    "guc": 9,
+    "zeka": 9,
+    "dayaniklilik": 9,
+    "beceri": 9
+  }
 }

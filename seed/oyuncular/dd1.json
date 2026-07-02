@@ -5,20 +5,20 @@
   "lakap": "Mafya",
   "force_restore": true,
   "player": {
-    "kasa": 1953428000,
+    "kasa": 2059016000,
     "guc": 86296950,
     "puan": 159850,
-    "icraat": 3574,
-    "sms_hakki": 399,
+    "icraat": 724,
+    "sms_hakki": 349,
     "dostlar": "",
     "dusmanlar": "",
     "kara_listede": 1,
     "sehir_efsane": 0,
-    "sehre_hukmet_sayisi": 1,
+    "sehre_hukmet_sayisi": 26,
     "liman_istanbul": 1,
-    "aktif_ekran": "meslekler",
+    "aktif_ekran": "liderlik",
     "son_aksiyon": "ekran_goruntule",
-    "son_aksiyon_detay": "meslekler",
+    "son_aksiyon_detay": "Liderlik Tablosu",
     "elmas": 0
   },
   "guvenli_yer": {
@@ -37,7 +37,7 @@
     "tur_id": "gece_kulubu",
     "isim": "Gece Kulübü dd1",
     "aciklama": "Şehrin en gözde gece kulübü.",
-    "kasa": 3200000,
+    "kasa": 3194000,
     "ise_alim_acik": 1,
     "kapasite_seviye": 5,
     "depo_seviye": 5,
@@ -48,20 +48,20 @@
     "populerlik": 6,
     "stok": [
       {
-        "malzeme_id": "icecek_stok",
-        "miktar": 180
-      },
-      {
-        "malzeme_id": "ses_isik",
-        "miktar": 95
+        "malzeme_id": "ambalaj",
+        "miktar": 70
       },
       {
         "malzeme_id": "guvenlik_ekipman",
         "miktar": 45
       },
       {
-        "malzeme_id": "ambalaj",
-        "miktar": 70
+        "malzeme_id": "icecek_stok",
+        "miktar": 180
+      },
+      {
+        "malzeme_id": "ses_isik",
+        "miktar": 95
       }
     ]
   },
@@ -69,20 +69,21 @@
     "lider": true,
     "isim": "$dd1$",
     "aciklama": "Gece kulübünden sokağa uzanan aile.",
-    "rutbe": "Mafya Lideri"
+    "rutbe": "Mafya Lideri",
+    "created_at": 1782852510
   },
   "sehre_hukmet": {
     "aktif": true,
-    "baslangic": 1782762119,
-    "sehre_hukmet_sayisi": 1,
+    "baslangic": 1770420751,
+    "sehre_hukmet_sayisi": 26,
     "limanlar": [
+      "hatay",
       "istanbul",
-      "izmir",
-      "hatay"
+      "izmir"
     ],
     "makamlar": [
-      "sozunu_gecir",
-      "sadakat_yemini"
+      "sadakat_yemini",
+      "sozunu_gecir"
     ]
   },
   "mekanlar": [
@@ -157,7 +158,7 @@
       "adet": 16
     }
   ],
-  "son_ip": "127.0.0.1",
-  "visitor_id": "20158b2393f6330b65580c3aaff7d931",
-  "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Cursor/3.5.33 Chrome/142.0.7444.265 Electron/39.8.1 Safari/537.36"
+  "son_ip": "78.180.30.95",
+  "visitor_id": "957864a276d8be6d24bf0454f419c589",
+  "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36"
 }
