@@ -535,6 +535,8 @@ function createGameRouter(db) {
 
   router.get("/sehir-tarihi", async (req, res) => {
     try {
+      const { reconcileHukumBaslangicFromImageSeeds } = require("../game/oyuncuRestoreService");
+      await reconcileHukumBaslangicFromImageSeeds(db);
       const liste = await sehirTarihiniGetir(db);
       res.json({ ok: true, liste });
     } catch (err) {

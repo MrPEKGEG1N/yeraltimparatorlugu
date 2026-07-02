@@ -108,10 +108,66 @@ function elmasPaketTanim(paketId) {
   return ELMAS_TL_PAKETLER[id] || null;
 }
 
-function elmasPaketListesi() {
+/** Uluslararası elmas paket fiyatları (USD/EUR) */
+const ELMAS_INTL_FIYATLAR = {
+  ufaklik: 4.99,
+  raconcu: 7.99,
+  baron_elmas: 9.99,
+  imparator: 14.99,
+};
+
+const EUROZONE_ULKELER = new Set([
+  "AT",
+  "BE",
+  "CY",
+  "EE",
+  "FI",
+  "FR",
+  "DE",
+  "GR",
+  "IE",
+  "IT",
+  "LV",
+  "LT",
+  "LU",
+  "MT",
+  "NL",
+  "PT",
+  "SK",
+  "SI",
+  "ES",
+  "HR",
+  "AD",
+  "MC",
+  "SM",
+  "VA",
+  "ME",
+  "XK",
+]);
+
+const PARA_SEMBOL = { TRY: "₺", USD: "$", EUR: "€" };
+
+function resolveElmasParaBirimi(kayitUlkesi, oyunDili) {
+  const ulke = String(kayitUlkesi || "")
+    .trim()
+    .toUpperCase();
+  const dilHam = String(oyunDili || "tr")
+    .trim()
+    .toLowerCase();
+  const dilBase = dilHam.split("-")[0] || "tr";
+  if (ulke === "TR" && dilBase === "tr") return "TRY";
+  if (EUROZONE_ULKELER.has(ulke)) return "EUR";
+  return "USD";
+}
+
+function elmasPaketListesi(locale = {}) {
+  const paraBirimi = resolveElmasParaBirimi(locale.kayitUlkesi, locale.oyunDili);
   return Object.values(ELMAS_TL_PAKETLER).map((p) => {
     const toplam = p.elmas + (p.bonusElmas || 0);
-    const birimMaliyet = toplam > 0 ? Math.round((p.tlFiyat / toplam) * 100) / 100 : 0;
+    const fiyat =
+      paraBirimi === "TRY" ? p.tlFiyat : ELMAS_INTL_FIYATLAR[p.id] ?? 0;
+    const birimMaliyet =
+      toplam > 0 ? Math.round((fiyat / toplam) * 100) / 100 : 0;
     return {
       id: p.id,
       ikon: p.ikon,
@@ -119,7 +175,10 @@ function elmasPaketListesi() {
       elmas: p.elmas,
       bonusElmas: p.bonusElmas || 0,
       toplamElmas: toplam,
-      tlFiyat: p.tlFiyat,
+      fiyat,
+      paraBirimi,
+      sembol: PARA_SEMBOL[paraBirimi] || "$",
+      tlFiyat: paraBirimi === "TRY" ? p.tlFiyat : undefined,
       birimMaliyet,
     };
   });
@@ -458,6 +517,7 @@ module.exports = {
   elmasPaketTanim,
   paketListesi,
   elmasPaketListesi,
+  resolveElmasParaBirimi,
   getPlayerPremiumPaket,
   getPremiumStatus,
   getPremiumBonuses,

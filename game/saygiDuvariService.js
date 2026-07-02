@@ -77,7 +77,7 @@ async function temizleHukumranlikKopyalari(db) {
       db,
       `SELECT id, baslangic FROM sehir_hukumranlik
        WHERE user_id = ? AND bitis IS NULL
-       ORDER BY baslangic ASC, id ASC`,
+       ORDER BY baslangic DESC, id DESC`,
       [row.user_id]
     );
     const keeper = aktifler[0];
@@ -102,7 +102,7 @@ async function aktifHukumdarKaydi(db) {
      JOIN users u ON u.id = p.user_id
      JOIN sehir_hukumranlik h ON h.user_id = p.user_id AND h.bitis IS NULL
      WHERE p.kara_listede = 1
-     ORDER BY h.baslangic ASC, h.id ASC
+     ORDER BY h.baslangic DESC, h.id DESC
      LIMIT 1`
   );
   if (row) return row;
@@ -113,7 +113,7 @@ async function aktifHukumdarKaydi(db) {
      FROM sehir_hukumranlik h
      JOIN users u ON u.id = h.user_id
      WHERE h.bitis IS NULL
-     ORDER BY h.baslangic ASC, h.id ASC
+     ORDER BY h.baslangic DESC, h.id DESC
      LIMIT 1`
   );
 }

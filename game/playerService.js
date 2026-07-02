@@ -414,6 +414,9 @@ async function publicPlayerFull(db, userId, player) {
     aktifSirketCalisan = await calisanGetir(db, userId);
     maasAntrenmanPuani = await maasAntrenmanPuaniGetir(db, userId);
   } catch (_) {}
+  const userLocale = await get(db, `SELECT kayit_ulkesi, oyun_dili FROM users WHERE id = ?`, [
+    userId,
+  ]);
   return {
     userId,
     kasa: player.kasa,
@@ -439,7 +442,12 @@ async function publicPlayerFull(db, userId, player) {
       prestijEtiket: premium.prestijEtiket,
     },
     premiumMagaza: paketListesi(),
-    elmasPaketler: elmasPaketListesi(),
+    elmasPaketler: elmasPaketListesi({
+      kayitUlkesi: userLocale?.kayit_ulkesi,
+      oyunDili: userLocale?.oyun_dili,
+    }),
+    kayitUlkesi: userLocale?.kayit_ulkesi || "",
+    oyunDili: userLocale?.oyun_dili || "tr",
     icraatPaket: await icraatPaketPanel(db, userId),
     limanlar: {
       istanbul: sahipLimanlar.includes("istanbul"),

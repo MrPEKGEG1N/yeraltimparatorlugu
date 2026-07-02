@@ -759,7 +759,15 @@ function mergeSnapshot(existing, exported) {
   else if (existing.sirket_calisan) out.sirket_calisan = existing.sirket_calisan;
   if (exported.sehre_hukmet) {
     if (exported.sehre_hukmet.aktif === false) delete out.sehre_hukmet;
-    else out.sehre_hukmet = exported.sehre_hukmet;
+    else {
+      const merged = { ...(existing.sehre_hukmet || {}), ...exported.sehre_hukmet };
+      const onceki = parseInt(existing.sehre_hukmet?.baslangic, 10);
+      const yeni = parseInt(exported.sehre_hukmet.baslangic, 10);
+      if (!Number.isNaN(onceki) && !Number.isNaN(yeni)) {
+        merged.baslangic = Math.max(onceki, yeni);
+      }
+      out.sehre_hukmet = merged;
+    }
   } else if (!out.sehre_hukmet && existing.sehre_hukmet) out.sehre_hukmet = existing.sehre_hukmet;
   if (exported.yetenekler) out.yetenekler = exported.yetenekler;
   else if (!out.yetenekler && existing.yetenekler) out.yetenekler = existing.yetenekler;
@@ -994,6 +1002,31 @@ function mapExportToSeed(full) {
   return out;
 }
 
+/** Image seed (deploy paketi) — volume/DB yanlış baslangic taşısa bile düzeltir */
+async function reconcileHukumBaslangicFromImageSeeds(db) {
+  if (!fs.existsSync(IMAGE_SNAPSHOT_DIR)) return [];
+  const { syncAktifHukumBaslangic } = require("./saygiDuvariService");
+  const results = [];
+  for (const file of fs.readdirSync(IMAGE_SNAPSHOT_DIR).filter((f) => f.endsWith(".json"))) {
+    try {
+      const snap = JSON.parse(fs.readFileSync(path.join(IMAGE_SNAPSHOT_DIR, file), "utf8"));
+      if (!snap.sehre_hukmet?.aktif || !snap.sehre_hukmet.baslangic) continue;
+      const userId = await findSnapshotUser(db, snap);
+      if (!userId) continue;
+      const hedef = parseInt(snap.sehre_hukmet.baslangic, 10);
+      if (!hedef || hedef <= 0) continue;
+      const synced = await syncAktifHukumBaslangic(db, userId, hedef);
+      if (synced) {
+        console.log(`[restore] Image seed hukum baslangic: ${snap.username || file}`);
+        results.push({ username: snap.username, hukumBaslangicSynced: true });
+      }
+    } catch (err) {
+      console.warn(`[restore] image seed hukum ${file}:`, err.message);
+    }
+  }
+  return results;
+}
+
 async function enforceLiveSnapshotPolicies(db) {
   if (!fs.existsSync(getSnapshotDir())) return [];
   const files = fs
@@ -1104,6 +1137,7 @@ module.exports = {
   updatePlayerSeedSnapshot,
   enrichExportForSeed,
   bootstrapVolumeSnapshots,
+  reconcileHukumBaslangicFromImageSeeds,
   getSnapshotDir,
   playerNeedsRecovery,
 };

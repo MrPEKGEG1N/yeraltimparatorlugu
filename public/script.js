@@ -3584,6 +3584,22 @@ function profilEkranSablonu(opts) {
     + '</div>';
 }
 
+function elmasFiyatGoster(p) {
+  var fiyat = p.fiyat != null ? p.fiyat : p.tlFiyat;
+  var birim = p.paraBirimi || 'TRY';
+  var sembol = p.sembol || (birim === 'EUR' ? '€' : birim === 'USD' ? '$' : '₺');
+  if (birim === 'TRY') return fmt(fiyat) + ' <small>TL</small>';
+  var txt = String(fiyat).replace('.', ',');
+  return txt + ' <small>' + escHtml(sembol) + '</small>';
+}
+
+function elmasBirimMaliyetGoster(p) {
+  var birim = String(p.birimMaliyet).replace('.', ',');
+  var sembol = p.sembol || (p.paraBirimi === 'EUR' ? '€' : p.paraBirimi === 'USD' ? '$' : 'TL');
+  if (p.paraBirimi && p.paraBirimi !== 'TRY') return birim + ' ' + sembol + ' / 💎';
+  return birim + ' TL / 💎';
+}
+
 function elmasMagazaTlKartHtml(p) {
   var oneCikan = p.id === 'imparator' || p.id === 'baron_elmas';
   var cls = 'elmas-vip-tl-kart elmas-vip-tl-kart--' + p.id;
@@ -3591,7 +3607,6 @@ function elmasMagazaTlKartHtml(p) {
   var bonusHtml = p.bonusElmas > 0
     ? '<span class="elmas-vip-tl-bonus">+' + fmt(p.bonusElmas) + ' 💎 ' + escHtml(t('game.premium.bonusLabel')) + '</span>'
     : '';
-  var birim = String(p.birimMaliyet).replace('.', ',');
   return '<article class="' + cls + '">'
     + (oneCikan ? '<span class="elmas-vip-tl-etiket">' + escHtml(t('game.premium.featured')) + '</span>' : '')
     + '<div class="elmas-vip-tl-ust">'
@@ -3606,8 +3621,8 @@ function elmasMagazaTlKartHtml(p) {
       ? '<div class="elmas-vip-tl-detay"><span>' + fmt(p.elmas) + ' 💎</span>' + bonusHtml + '</div>'
       : '<div class="elmas-vip-tl-detay elmas-vip-tl-detay--tek">' + fmt(p.elmas) + ' 💎</div>')
     + '<div class="elmas-vip-tl-fiyat-satir">'
-    + '<span class="elmas-vip-tl-fiyat">' + fmt(p.tlFiyat) + ' <small>TL</small></span>'
-    + '<span class="elmas-vip-tl-birim">' + birim + ' TL / 💎</span>'
+    + '<span class="elmas-vip-tl-fiyat">' + elmasFiyatGoster(p) + '</span>'
+    + '<span class="elmas-vip-tl-birim">' + elmasBirimMaliyetGoster(p) + '</span>'
     + '</div>'
     + '<button type="button" class="elmas-vip-tl-btn" onclick="elmasTlPaketSatinAl(\'' + p.id + '\')">'
     + '<span class="elmas-vip-tl-btn-parilti" aria-hidden="true"></span>'
@@ -3618,10 +3633,10 @@ function elmasMagazaTlKartHtml(p) {
 
 function elmasMagazaTlTabloHtml() {
   var paketler = oyuncuElmasPaketler.length ? oyuncuElmasPaketler : [
-    { id: 'ufaklik', ikon: '💰', baslik: 'Ufaklık Paketi', elmas: 100, bonusElmas: 0, toplamElmas: 100, tlFiyat: 75, birimMaliyet: 0.75 },
-    { id: 'raconcu', ikon: '💼', baslik: 'Raconcu Paketi', elmas: 250, bonusElmas: 25, toplamElmas: 275, tlFiyat: 175, birimMaliyet: 0.63 },
-    { id: 'baron_elmas', ikon: '🦅', baslik: 'Baron Paketi', elmas: 500, bonusElmas: 75, toplamElmas: 575, tlFiyat: 300, birimMaliyet: 0.52 },
-    { id: 'imparator', ikon: '👑', baslik: 'İmparator Paketi', elmas: 1000, bonusElmas: 250, toplamElmas: 1250, tlFiyat: 550, birimMaliyet: 0.44 }
+    { id: 'ufaklik', ikon: '💰', baslik: 'Ufaklık Paketi', elmas: 100, bonusElmas: 0, toplamElmas: 100, fiyat: 75, paraBirimi: 'TRY', sembol: '₺', birimMaliyet: 0.75 },
+    { id: 'raconcu', ikon: '💼', baslik: 'Raconcu Paketi', elmas: 250, bonusElmas: 25, toplamElmas: 275, fiyat: 175, paraBirimi: 'TRY', sembol: '₺', birimMaliyet: 0.63 },
+    { id: 'baron_elmas', ikon: '🦅', baslik: 'Baron Paketi', elmas: 500, bonusElmas: 75, toplamElmas: 575, fiyat: 300, paraBirimi: 'TRY', sembol: '₺', birimMaliyet: 0.52 },
+    { id: 'imparator', ikon: '👑', baslik: 'İmparator Paketi', elmas: 1000, bonusElmas: 250, toplamElmas: 1250, fiyat: 550, paraBirimi: 'TRY', sembol: '₺', birimMaliyet: 0.44 }
   ];
   return '<section class="elmas-magaza-bolum elmas-magaza-bolum--tl">'
     + '<div class="elmas-vip-bolum-baslik">'
