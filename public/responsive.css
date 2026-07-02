@@ -93,14 +93,6 @@
     white-space: nowrap;
   }
 
-  #masterLayout .ml-header-right button[onclick*="sehirTarihi"] {
-    display: none;
-  }
-
-  #masterLayout #saygiDuvariKutu {
-    display: none;
-  }
-
   #masterLayout .ml-btn-liderlik {
     flex-shrink: 0;
     min-height: 34px;

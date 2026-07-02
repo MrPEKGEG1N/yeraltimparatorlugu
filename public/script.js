@@ -299,7 +299,6 @@ function oyuncuUygula(p, secenekler) {
   // Liderlik ekranı kullanıcı tab/sekme değiştirmedikçe yeniden çizilmez.
   profilOyuncuAdiUcretGuncelle();
   guncelleBgIsim();
-  saygiDuvariYukle();
 }
 
 async function elitFiyatDurumSenkronize() {
@@ -390,23 +389,7 @@ function guncelleBgIsim() {
 }
 
 async function saygiDuvariYukle() {
-  var ul = document.getElementById('saygiDuvariListe');
-  if (!ul || !sunucuBagli) return;
-  try {
-    var res = await apiFetch('/api/saygi-duvari');
-    var data = await res.json().catch(function() { return {}; });
-    if (!res.ok || !data.ok || !data.liste || !data.liste.length) {
-      ul.innerHTML = '<li style="color:#888;">' + escHtml(t('game.empty.noLegends')) + '</li>';
-      return;
-    }
-    ul.innerHTML = data.liste.map(function(o) {
-      var cls = o.efsane ? ' class="isim-efsane"' : '';
-      var gunTxt = (o.gun > 0 ? o.gun : 1) + t('game.daysUnit');
-      return '<li' + cls + ' onclick="oyuncuProfilGoster(' + o.userId + ')">' + o.reisAdi + ' <span style="color:#888;">(' + gunTxt + ')</span></li>';
-    }).join('');
-  } catch (_) {
-    ul.innerHTML = '<li style="color:#888;">—</li>';
-  }
+  /* Üst barda saygı duvarı kaldırıldı; kayıtlar yalnızca Şehir Tarihi ekranında gösterilir. */
 }
 
 async function sunucudanYukle(secenekler) {
@@ -5058,7 +5041,14 @@ function profilTrTarih(ts) {
   });
 }
 
-function hukumGunSayisi(baslangic, bitis, aktif) {
+function sehirTarihiGunSayisi(k) {
+  if (!k) return 0;
+  if (k.aktif) return hukumGunSayisi(k.baslangic, null);
+  if (k.gunSayisi > 0) return k.gunSayisi;
+  return hukumGunSayisi(k.baslangic, k.bitis);
+}
+
+function hukumGunSayisi(baslangic, bitis) {
   var bas = Number(baslangic);
   if (!bas) return 0;
   var bit = bitis ? Number(bitis) : Math.floor(Date.now() / 1000);
@@ -5093,8 +5083,7 @@ async function sehirTarihiEkranCiz(ic) {
     } else {
       html += '<div class="st-zaman-cizgi">';
       liste.forEach(function(k) {
-        var gun = hukumGunSayisi(k.baslangic, k.bitis, k.aktif);
-        if (!gun && k.gunSayisi > 0) gun = k.gunSayisi;
+        var gun = sehirTarihiGunSayisi(k);
         var gunTxt = gun + t('game.daysUnit');
         var isimHtml = k.userId ? oyuncuLink(k.userId, k.hukumdarAdi) : escHtml(k.hukumdarAdi);
         var cls = 'st-donem' + (k.aktif ? ' st-donem--aktif' : '');
