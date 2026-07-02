@@ -147,6 +147,9 @@ const EUROZONE_ULKELER = new Set([
 
 const PARA_SEMBOL = { TRY: "₺", USD: "$", EUR: "€" };
 
+/** Avrupa oyun dilleri → € fiyatlandırma */
+const EUR_OYUN_DILLERI = new Set(["de", "fr", "es", "it", "pt", "nl", "ro", "cs", "el"]);
+
 function buildElmasLocale(userRow, clientMeta = {}) {
   const oyunDili = clientMeta.lang || userRow?.oyun_dili || "tr";
   const kayitUlkesi = String(userRow?.kayit_ulkesi || clientMeta.country || "").trim();
@@ -157,7 +160,7 @@ function buildElmasLocale(userRow, clientMeta = {}) {
   };
 }
 
-/** Türkçe + Türkiye → TL; farklı dil → kayıt/IP ülkesine göre EUR veya USD */
+/** Türkçe + Türkiye → TL; Avrupa dili veya avro ülkesi → €; diğer diller → $ */
 function resolveElmasParaBirimi(kayitUlkesi, oyunDili, opts = {}) {
   const ulke = String(kayitUlkesi || opts.ulkeIp || "")
     .trim()
@@ -167,6 +170,8 @@ function resolveElmasParaBirimi(kayitUlkesi, oyunDili, opts = {}) {
     .toLowerCase();
   const dilBase = dilHam.split("-")[0] || "tr";
   if (dilBase === "tr" && ulke === "TR") return "TRY";
+  if (dilHam === "pt-br") return "USD";
+  if (EUR_OYUN_DILLERI.has(dilBase)) return "EUR";
   if (EUROZONE_ULKELER.has(ulke)) return "EUR";
   return "USD";
 }
