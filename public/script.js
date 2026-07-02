@@ -26,6 +26,7 @@ var oyuncuPremiumPaketBitis = 0;
 var oyuncuPremiumKalanSn = 0;
 var oyuncuPremiumMagaza = [];
 var oyuncuElmasPaketler = [];
+var oyuncuElmasParaBirimi = 'TRY';
 var oyuncuIcraatPaket = null;
 var oyuncuSmsSinirsiz = false;
 var bankaHakSinirsiz = false;
@@ -230,6 +231,9 @@ function oyuncuUygula(p, secenekler) {
   oyuncuPremiumKalanSn = p.premiumKalanSn != null ? p.premiumKalanSn : 0;
   oyuncuPremiumMagaza = p.premiumMagaza || [];
   oyuncuElmasPaketler = p.elmasPaketler || [];
+  oyuncuElmasParaBirimi = p.elmasParaBirimi
+    || (p.elmasPaketler && p.elmasPaketler[0] && p.elmasPaketler[0].paraBirimi)
+    || 'TRY';
   oyuncuIcraatPaket = p.icraatPaket || oyuncuIcraatPaket;
   oyuncuSmsSinirsiz = !!p.smsSinirsiz;
   bankaHakSinirsiz = !!p.bankaHakSinirsiz;
@@ -3584,6 +3588,19 @@ function profilEkranSablonu(opts) {
     + '</div>';
 }
 
+function elmasPaketFiyatMetin(p) {
+  if (!p) return '';
+  var fiyat = p.fiyat != null ? p.fiyat : p.tlFiyat;
+  var birim = p.paraBirimi || 'TRY';
+  if (birim === 'TRY') return fmt(fiyat) + ' TL';
+  return String(fiyat).replace('.', ',') + ' ' + (p.sembol || (birim === 'EUR' ? '€' : '$'));
+}
+
+function elmasMagazaElmasBaslik() {
+  if (oyuncuElmasParaBirimi === 'TRY') return t('game.premium.elmasLoadTitle');
+  return t('game.premium.elmasLoadTitle').replace(/\s*\(TL\)/i, '').replace(/\s*\(TRY\)/i, '') + ' (' + oyuncuElmasParaBirimi + ')';
+}
+
 function elmasFiyatGoster(p) {
   var fiyat = p.fiyat != null ? p.fiyat : p.tlFiyat;
   var birim = p.paraBirimi || 'TRY';
@@ -3641,7 +3658,7 @@ function elmasMagazaTlTabloHtml() {
   return '<section class="elmas-magaza-bolum elmas-magaza-bolum--tl">'
     + '<div class="elmas-vip-bolum-baslik">'
     + '<span class="elmas-vip-bolum-ikon elmas-vip-bolum-ikon--elmas" aria-hidden="true">💎</span>'
-    + '<div><h3 class="elmas-magaza-bolum-baslik">' + escHtml(t('game.premium.elmasLoadTitle')) + '</h3>'
+    + '<div><h3 class="elmas-magaza-bolum-baslik">' + escHtml(elmasMagazaElmasBaslik()) + '</h3>'
     + '<p class="elmas-magaza-bolum-alt">' + escHtml(t('game.premium.elmasLoadDesc')) + '</p></div>'
     + '</div>'
     + '<div class="elmas-vip-tl-grid">' + paketler.map(elmasMagazaTlKartHtml).join('') + '</div>'
@@ -3873,8 +3890,8 @@ function elmasMagazaKapat() {
 async function elmasTlPaketSatinAl(paketId) {
   var paket = (oyuncuElmasPaketler || []).find(function (p) { return p.id === paketId; });
   var ad = paket ? paket.baslik : paketId;
-  var fiyat = paket ? paket.tlFiyat : '';
-  if (!confirm(t('game.premium.tlConfirm', { paket: ad, fiyat: fiyat }))) return;
+  var fiyatMetin = elmasPaketFiyatMetin(paket);
+  if (!confirm(t('game.premium.tlConfirm', { paket: ad, fiyat: fiyatMetin }))) return;
   try {
     var payload = { action: 'elmas_satin_al', key: paketId, aktifEkran: aktifEkran || '' };
     var res = await apiFetch('/api/action', { method: 'POST', body: payload });
@@ -4711,6 +4728,10 @@ function sesKontroluBagla() {
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', sesKontroluBagla);
+  document.addEventListener('yi:langchange', function () {
+    var modal = document.getElementById('elmasMagazaModal');
+    if (modal && !modal.classList.contains('gizli')) elmasMagazaVeriYukle(modal);
+  });
 } else {
   sesKontroluBagla();
 }

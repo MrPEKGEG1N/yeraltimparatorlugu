@@ -147,21 +147,46 @@ const EUROZONE_ULKELER = new Set([
 
 const PARA_SEMBOL = { TRY: "₺", USD: "$", EUR: "€" };
 
-function resolveElmasParaBirimi(kayitUlkesi, oyunDili) {
-  const ulke = String(kayitUlkesi || "")
+function buildElmasLocale(userRow, clientMeta = {}) {
+  const oyunDili = clientMeta.lang || userRow?.oyun_dili || "tr";
+  const kayitUlkesi = String(userRow?.kayit_ulkesi || clientMeta.country || "").trim();
+  return {
+    kayitUlkesi,
+    oyunDili,
+    ulkeIp: String(clientMeta.country || "").trim(),
+  };
+}
+
+/** Türkçe + Türkiye → TL; farklı dil → kayıt/IP ülkesine göre EUR veya USD */
+function resolveElmasParaBirimi(kayitUlkesi, oyunDili, opts = {}) {
+  const ulke = String(kayitUlkesi || opts.ulkeIp || "")
     .trim()
     .toUpperCase();
   const dilHam = String(oyunDili || "tr")
     .trim()
     .toLowerCase();
   const dilBase = dilHam.split("-")[0] || "tr";
-  if (ulke === "TR" && dilBase === "tr") return "TRY";
+  if (dilBase === "tr" && ulke === "TR") return "TRY";
   if (EUROZONE_ULKELER.has(ulke)) return "EUR";
   return "USD";
 }
 
+function elmasPaketFiyat(paketId, paraBirimi) {
+  const paket = elmasPaketTanim(paketId);
+  if (!paket) return { fiyat: 0, paraBirimi: "TRY", sembol: "₺" };
+  const birim = paraBirimi || "TRY";
+  const fiyat = birim === "TRY" ? paket.tlFiyat : ELMAS_INTL_FIYATLAR[paketId] ?? 0;
+  return {
+    fiyat,
+    paraBirimi: birim,
+    sembol: PARA_SEMBOL[birim] || "$",
+  };
+}
+
 function elmasPaketListesi(locale = {}) {
-  const paraBirimi = resolveElmasParaBirimi(locale.kayitUlkesi, locale.oyunDili);
+  const paraBirimi = resolveElmasParaBirimi(locale.kayitUlkesi, locale.oyunDili, {
+    ulkeIp: locale.ulkeIp,
+  });
   return Object.values(ELMAS_TL_PAKETLER).map((p) => {
     const toplam = p.elmas + (p.bonusElmas || 0);
     const fiyat =
@@ -450,17 +475,29 @@ async function icraatPaketSatinAl(db, userId) {
   }
 }
 
-async function elmasPaketSatinAl(db, userId, paketId) {
+async function elmasPaketSatinAl(db, userId, paketId, clientMeta = null) {
   const paket = elmasPaketTanim(paketId);
   if (!paket) return { ok: false, error: "Geçersiz elmas paketi." };
+
+  const userRow = await get(db, `SELECT kayit_ulkesi, oyun_dili FROM users WHERE id = ?`, [userId]);
+  const locale = buildElmasLocale(userRow, clientMeta || {});
+  const paraBirimi = resolveElmasParaBirimi(locale.kayitUlkesi, locale.oyunDili, {
+    ulkeIp: locale.ulkeIp,
+  });
+  const { fiyat, sembol } = elmasPaketFiyat(paketId, paraBirimi);
+  const fiyatMetin =
+    paraBirimi === "TRY" ? `${fiyat} TL` : `${fiyat} ${sembol}`;
 
   // Gerçek ödeme entegrasyonu (Play Store / kart) buraya bağlanacak.
   return {
     ok: false,
-    error: `${paket.baslik} (${paket.tlFiyat} TL) için ödeme altyapısı çok yakında aktif olacak.`,
+    error: `${paket.baslik} (${fiyatMetin}) için ödeme altyapısı çok yakında aktif olacak.`,
     odemeBekliyor: true,
     paket: paket.id,
-    tlFiyat: paket.tlFiyat,
+    fiyat,
+    paraBirimi,
+    sembol,
+    fiyatMetin,
     toplamElmas: paket.elmas + (paket.bonusElmas || 0),
   };
 }
@@ -517,7 +554,9 @@ module.exports = {
   elmasPaketTanim,
   paketListesi,
   elmasPaketListesi,
+  buildElmasLocale,
   resolveElmasParaBirimi,
+  elmasPaketFiyat,
   getPlayerPremiumPaket,
   getPremiumStatus,
   getPremiumBonuses,

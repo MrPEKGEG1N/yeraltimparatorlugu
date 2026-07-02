@@ -72,7 +72,7 @@ function createGameRouter(db) {
   router.get("/player", async (req, res) => {
     try {
       const player = await loadPlayer(db, req.user.id);
-      res.json(await publicPlayerFull(db, req.user.id, player));
+      res.json(await publicPlayerFull(db, req.user.id, player, req.clientMeta || null));
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: "Oyuncu verisi yüklenemedi." });

@@ -22,7 +22,7 @@ const {
 const { sektorPanel, mekanAl, mekanDevret } = require("./sectorService");
 const { processSaatlikGelir, oyuncuSaatlikKazanc } = require("./saatlikGelirService");
 const { karaListeSenkronize } = require("./karaListeService");
-const { paketListesi, getPremiumBonuses, getPremiumStatus, premiumSatinAl, elmasPaketListesi, elmasPaketSatinAl, icraatPaketPanel, icraatPaketSatinAl } = require("./premiumService");
+const { paketListesi, getPremiumBonuses, getPremiumStatus, premiumSatinAl, elmasPaketListesi, buildElmasLocale, resolveElmasParaBirimi, elmasPaketSatinAl, icraatPaketPanel, icraatPaketSatinAl } = require("./premiumService");
 const { logStatHareket } = require("./statService");
 const { gelistir: guvenliYerGelistir, panelGetir: guvenliYerPanelGetir, kasaSatinAl: guvenliYerKasaSatinAl } = require("./guvenliYerService");
 const { panelGetir: sabotajPanelGetir, sabotajBaslat, sabotajIptal } = require("./sabotajService");
@@ -311,7 +311,7 @@ async function savePlayer(db, userId, player) {
   return player;
 }
 
-async function publicPlayerFull(db, userId, player) {
+async function publicPlayerFull(db, userId, player, clientMeta = null) {
   const icraatSync = await syncIcraatRegen(db, userId);
   player.icraat = icraatSync.icraat;
   player.last_icraat_at = icraatSync.last_icraat_at;
@@ -417,6 +417,12 @@ async function publicPlayerFull(db, userId, player) {
   const userLocale = await get(db, `SELECT kayit_ulkesi, oyun_dili FROM users WHERE id = ?`, [
     userId,
   ]);
+  const elmasLocale = buildElmasLocale(userLocale, clientMeta || {});
+  const elmasParaBirimi = resolveElmasParaBirimi(
+    elmasLocale.kayitUlkesi,
+    elmasLocale.oyunDili,
+    { ulkeIp: elmasLocale.ulkeIp }
+  );
   return {
     userId,
     kasa: player.kasa,
@@ -442,12 +448,10 @@ async function publicPlayerFull(db, userId, player) {
       prestijEtiket: premium.prestijEtiket,
     },
     premiumMagaza: paketListesi(),
-    elmasPaketler: elmasPaketListesi({
-      kayitUlkesi: userLocale?.kayit_ulkesi,
-      oyunDili: userLocale?.oyun_dili,
-    }),
-    kayitUlkesi: userLocale?.kayit_ulkesi || "",
-    oyunDili: userLocale?.oyun_dili || "tr",
+    elmasPaketler: elmasPaketListesi(elmasLocale),
+    elmasParaBirimi,
+    kayitUlkesi: userLocale?.kayit_ulkesi || elmasLocale.kayitUlkesi || "",
+    oyunDili: elmasLocale.oyunDili || userLocale?.oyun_dili || "tr",
     icraatPaket: await icraatPaketPanel(db, userId),
     limanlar: {
       istanbul: sahipLimanlar.includes("istanbul"),
@@ -1678,13 +1682,13 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
   }
 
   if (action === "elmas_satin_al") {
-    const sonuc = await elmasPaketSatinAl(db, userId, key);
+    const sonuc = await elmasPaketSatinAl(db, userId, key, extra._securityMeta || null);
     if (!sonuc.ok) return sonuc;
     player = await loadPlayer(db, userId);
     return {
       ok: true,
       mesaj: sonuc.mesaj,
-      player: await publicPlayerFull(db, userId, player),
+      player: await publicPlayerFull(db, userId, player, extra._securityMeta || null),
       effect: { type: "elmas_satin_al", paket: sonuc.paket, elmas: sonuc.toplamElmas },
     };
   }

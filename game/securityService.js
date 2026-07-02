@@ -84,12 +84,13 @@ const { extractCountryFromReq, normalizeGameLang } = require("./localeMetaServic
 
 function extractClientMeta(req) {
   const body = req.body || {};
+  const headerLang = req.headers["x-game-lang"];
   return {
     ip: clientIp(req),
     userAgent: clientUserAgent(req),
     visitorId: clientVisitorId(req),
     country: extractCountryFromReq(req),
-    lang: normalizeGameLang(body.oyunDili || body.lang),
+    lang: normalizeGameLang(headerLang || body.oyunDili || body.lang),
   };
 }
 
