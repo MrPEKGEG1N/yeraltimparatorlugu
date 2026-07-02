@@ -27,14 +27,26 @@ function bootstrapVolumeSnapshots() {
   if (!vol) return 0;
   const target = path.join(vol, "oyuncular");
   if (!fs.existsSync(target)) fs.mkdirSync(target, { recursive: true });
-  const existing = fs.readdirSync(target).filter((f) => f.endsWith(".json"));
-  if (existing.length > 0 || !fs.existsSync(IMAGE_SNAPSHOT_DIR)) return existing.length;
+  if (!fs.existsSync(IMAGE_SNAPSHOT_DIR)) return 0;
+
   let n = 0;
   for (const file of fs.readdirSync(IMAGE_SNAPSHOT_DIR).filter((f) => f.endsWith(".json"))) {
-    fs.copyFileSync(path.join(IMAGE_SNAPSHOT_DIR, file), path.join(target, file));
-    n++;
+    const imagePath = path.join(IMAGE_SNAPSHOT_DIR, file);
+    const volPath = path.join(target, file);
+    try {
+      const imageSnap = JSON.parse(fs.readFileSync(imagePath, "utf8"));
+      let snap = imageSnap;
+      if (fs.existsSync(volPath)) {
+        const existing = JSON.parse(fs.readFileSync(volPath, "utf8"));
+        snap = mergeSnapshot(existing, imageSnap);
+      }
+      fs.writeFileSync(volPath, JSON.stringify(snap, null, 2) + "\n", "utf8");
+      n++;
+    } catch (err) {
+      console.warn(`[persist] Volume snapshot sync ${file}:`, err.message);
+    }
   }
-  if (n > 0) console.log(`[persist] Volume snapshot bootstrap: ${n} oyuncu (image -> volume)`);
+  if (n > 0) console.log(`[persist] Volume snapshot sync: ${n} oyuncu (image -> volume)`);
   return n;
 }
 
