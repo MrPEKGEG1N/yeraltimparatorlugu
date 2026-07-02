@@ -5,7 +5,7 @@ const path = require("path");
 const ROOT = path.join(__dirname, "..");
 const CACHE_PATH = path.join(__dirname, "i18n-cache.json");
 const TEMPLATES_PATH = path.join(__dirname, "message-templates.json");
-const LANGS = ["tr", "en", "en-US", "de", "fr", "es", "it", "pt", "pt-BR", "nl", "ro", "cs", "el", "ru", "zh", "ar"];
+const LANGS = ["tr", "en", "en-US", "de", "fr", "es", "it", "pt", "pt-BR", "nl", "ro", "cs", "pl", "el", "ru", "zh", "ar"];
 
 function loadTemplates() {
   if (!fs.existsSync(TEMPLATES_PATH)) return [];

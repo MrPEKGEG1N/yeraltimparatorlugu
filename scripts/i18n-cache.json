@@ -16,7 +16,8 @@
     "el": "Δεν έχετε αρκετά κέρδη για να αλλάξετε το όνομά σας.",
     "ru": "У вас недостаточно доходов, чтобы сменить имя.",
     "zh": "您没有足够的收入来更改您的姓名。",
-    "ar": "ليس لديك أرباح كافية لتغيير اسمك."
+    "ar": "ليس لديك أرباح كافية لتغيير اسمك.",
+    "pl": "Nie masz wystarczających zarobków, aby zmienić swoje imię i nazwisko."
   },
   "Aday başka şirkette çalışıyor.": {
     "code": "ADAY_BAŞKA_ŞIRKETTE_ÇALIŞIYOR",
@@ -35,7 +36,8 @@
     "el": "Ο υποψήφιος εργάζεται σε άλλη εταιρεία.",
     "ru": "Кандидат работает в другой компании.",
     "zh": "该候选人在另一家公司工作。",
-    "ar": "أن يعمل المرشح في شركة أخرى."
+    "ar": "أن يعمل المرشح في شركة أخرى.",
+    "pl": "Kandydat pracuje w innej firmie."
   },
   "Adayın NPC işi var.": {
     "code": "ADAYIN_NPC_IŞI_VAR",
@@ -54,7 +56,8 @@
     "el": "Ο υποψήφιος έχει δουλειά NPC.",
     "ru": "Кандидат имеет работу NPC.",
     "zh": "候选人拥有 NPC 职位。",
-    "ar": "المرشح لديه وظيفة NPC."
+    "ar": "المرشح لديه وظيفة NPC.",
+    "pl": "Kandydat ma stanowisko NPC."
   },
   "Adayın yetenekleri artık bu pozisyon için yetersiz.": {
     "code": "ADAYIN_YETENEKLERI_ARTIK_BU_POZISYON_IÇIN_YETERSIZ",
@@ -73,7 +76,8 @@
     "el": "Οι δεξιότητες του υποψηφίου δεν επαρκούν πλέον για αυτή τη θέση.",
     "ru": "Навыки кандидата уже недостаточны для этой должности.",
     "zh": "候选人的技能不再足以胜任该职位。",
-    "ar": "لم تعد مهارات المرشح كافية لهذا المنصب."
+    "ar": "لم تعد مهارات المرشح كافية لهذا المنصب.",
+    "pl": "Umiejętności kandydata nie są już wystarczające na to stanowisko."
   },
   "Aksiyon belirtilmedi.": {
     "code": "AKSIYON_BELIRTILMEDI",
@@ -92,7 +96,8 @@
     "el": "Η ενέργεια δεν προσδιορίζεται.",
     "ru": "Действие не указано.",
     "zh": "未指定操作。",
-    "ar": "الإجراء غير محدد."
+    "ar": "الإجراء غير محدد.",
+    "pl": "Nie określono działania."
   },
   "Aktif bir işin yok.": {
     "code": "AKTIF_BIR_IŞIN_YOK",
@@ -111,7 +116,8 @@
     "el": "Δεν έχεις ενεργή δουλειά.",
     "ru": "У вас нет активной работы.",
     "zh": "你没有积极的工作。",
-    "ar": "ليس لديك وظيفة نشطة."
+    "ar": "ليس لديك وظيفة نشطة.",
+    "pl": "Nie masz aktywnej pracy."
   },
   "Aktivite kaydedilemedi.": {
     "code": "AKTIVITE_KAYDEDILEMEDI",
@@ -130,7 +136,8 @@
     "el": "Δεν ήταν δυνατή η αποθήκευση της δραστηριότητας.",
     "ru": "Не удалось сохранить действие.",
     "zh": "无法保存该活动。",
-    "ar": "لا يمكن حفظ النشاط."
+    "ar": "لا يمكن حفظ النشاط.",
+    "pl": "Nie udało się zapisać działania."
   },
   "Alıcı reis adı gerekli.": {
     "code": "ALICI_REIS_ADI_GEREKLI",
@@ -149,7 +156,8 @@
     "el": "Απαιτείται το κύριο όνομα του παραλήπτη.",
     "ru": "Требуется имя руководителя получателя.",
     "zh": "收件人姓名必填。",
-    "ar": "مطلوب اسم رئيس المستلم."
+    "ar": "مطلوب اسم رئيس المستلم.",
+    "pl": "Wymagane jest imię i nazwisko głównego odbiorcy."
   },
   "Antrenman için ${maliyet} TL gerekli.": {
     "code": "ANTRENMAN_IÇIN_MALIYET_TL_GEREKLI",
@@ -168,7 +176,8 @@
     "el": "${maliyet} TL απαιτείται για την εκπαίδευση.",
     "ru": "Для обучения требуется ${maliyet} TL.",
     "zh": "培训需要 ${maliyet} TL。",
-    "ar": "${maliyet} مطلوب TL للتدريب."
+    "ar": "${maliyet} مطلوب TL للتدريب.",
+    "pl": "Do szkolenia wymagany jest ${maliyet} TL."
   },
   "Antrenman işlemi tamamlanamadı. Tekrar dene.": {
     "code": "ANTRENMAN_IŞLEMI_TAMAMLANAMADI_TEKRAR_DENE",
@@ -187,7 +196,8 @@
     "el": "Η εκπαιδευτική διαδικασία δεν μπόρεσε να ολοκληρωθεί. Προσπαθήστε ξανά.",
     "ru": "Учебный процесс не удалось завершить. Попробуйте еще раз.",
     "zh": "培训过程无法完成。 再试一次。",
-    "ar": "لا يمكن إكمال عملية التدريب. حاول ثانية."
+    "ar": "لا يمكن إكمال عملية التدريب. حاول ثانية.",
+    "pl": "Nie można ukończyć procesu szkoleniowego. Spróbuj ponownie."
   },
   "Antrenman puanı kullanılamadı. Tekrar dene.": {
     "code": "ANTRENMAN_PUANI_KULLANILAMADI_TEKRAR_DENE",
@@ -206,7 +216,8 @@
     "el": "Τα σημεία προπόνησης δεν μπορούσαν να χρησιμοποιηθούν. Προσπαθήστε ξανά.",
     "ru": "Очки обучения не могут быть использованы. Попробуйте еще раз.",
     "zh": "训练点数无法使用。 再试一次。",
-    "ar": "لا يمكن استخدام نقاط التدريب. حاول ثانية."
+    "ar": "لا يمكن استخدام نقاط التدريب. حاول ثانية.",
+    "pl": "Nie można było wykorzystać punktów treningowych. Spróbuj ponownie."
   },
   "Arama başarısız.": {
     "code": "ARAMA_BAŞARISIZ",
@@ -225,7 +236,8 @@
     "el": "Η αναζήτηση απέτυχε.",
     "ru": "Поиск не удался.",
     "zh": "搜索失败。",
-    "ar": "فشل البحث."
+    "ar": "فشل البحث.",
+    "pl": "Wyszukiwanie nie powiodło się."
   },
   "Avukat ilişkin zaten maksimumda (${AVUKAT_ILISKI_MAX}). Daha fazla rüşvet veremezsin.": {
     "code": "AVUKAT_ILIŞKIN_ZATEN_MAKSIMUMDA_AVUKAT_ILISKI_MAX_DAHA_FAZLA",
@@ -244,7 +256,8 @@
     "el": "Η σχέση δικηγόρου σας είναι ήδη στο μέγιστο (${AVUKAT_ILISKI_MAX}). Δεν μπορείς να δωροδοκήσεις άλλο.",
     "ru": "Ваши отношения с адвокатом уже достигли своего максимума (${AVUKAT_ILISKI_MAX}). Вы больше не сможете давать взятки.",
     "zh": "您的律师关系已达到最高水平 (${AVUKAT_ILISKI_MAX})。 你不能再行贿了。",
-    "ar": "لقد وصلت علاقة المحامي الخاصة بك بالفعل إلى الحد الأقصى (${AVUKAT_ILISKI_MAX}). لا يمكنك رشوة أكثر من ذلك."
+    "ar": "لقد وصلت علاقة المحامي الخاصة بك بالفعل إلى الحد الأقصى (${AVUKAT_ILISKI_MAX}). لا يمكنك رشوة أكثر من ذلك.",
+    "pl": "Twoja relacja prawnicza osiągnęła już maksimum (${AVUKAT_ILISKI_MAX}). Nie możesz już przekupić."
   },
   "Ban işlemi başarısız.": {
     "code": "BAN_IŞLEMI_BAŞARISIZ",
@@ -263,7 +276,8 @@
     "el": "Η λειτουργία απαγόρευσης απέτυχε.",
     "ru": "Операция запрета не удалась.",
     "zh": "禁止操作失败。",
-    "ar": "فشلت عملية الحظر."
+    "ar": "فشلت عملية الحظر.",
+    "pl": "Operacja zablokowania nie powiodła się."
   },
   "Ban kaldırma başarısız.": {
     "code": "BAN_KALDIRMA_BAŞARISIZ",
@@ -282,7 +296,8 @@
     "el": "Η κατάργηση αποκλεισμού απέτυχε.",
     "ru": "Разбанить не удалось.",
     "zh": "解禁失败。",
-    "ar": "فشل إلغاء الحظر."
+    "ar": "فشل إلغاء الحظر.",
+    "pl": "Odbanowanie nie powiodło się."
   },
   "Banka hakkın kalmadı! Her 24 saatte +20 hak yenilenir.": {
     "code": "BANKA_HAKKIN_KALMADI_HER_24_SAATTE_20_HAK_YENILENIR",
@@ -301,7 +316,8 @@
     "el": "Δεν έχετε πλέον τραπεζικά δικαιώματα! Τα +20 δικαιώματα ανανεώνονται κάθε 24 ώρες.",
     "ru": "У вас больше нет банковских прав! +20 прав продлеваются каждые 24 часа.",
     "zh": "您不再拥有银行权利！ +20 权利每 24 小时更新一次。",
-    "ar": "لم يعد لديك حقوق البنك! +20 حقوق يتم تجديدها كل 24 ساعة."
+    "ar": "لم يعد لديك حقوق البنك! +20 حقوق يتم تجديدها كل 24 ساعة.",
+    "pl": "Nie masz już praw bankowych! +20 praw odnawia się co 24 godziny."
   },
   "Bankada yeterli para yok. (Bankada: ${mevcut.toLocaleString(": {
     "code": "BANKADA_YETERLI_PARA_YOK_BANKADA_MEVCUT_TOLOCALESTRING",
@@ -320,7 +336,8 @@
     "el": "Δεν υπάρχουν αρκετά χρήματα στην τράπεζα. (Στην τράπεζα: ${available.toLocaleString(",
     "ru": "В банке недостаточно денег. (В банке: ${available.toLocaleString(",
     "zh": "银行里的钱不够了。 （在银行：${available.toLocaleString(",
-    "ar": "ليس هناك ما يكفي من المال في البنك. (في البنك: ${available.toLocaleString("
+    "ar": "ليس هناك ما يكفي من المال في البنك. (في البنك: ${available.toLocaleString(",
+    "pl": "W banku nie ma wystarczającej ilości pieniędzy. (W banku: ${available.toLocaleString("
   },
   "Başka bir şirkette çalışıyorsun.": {
     "code": "BAŞKA_BIR_ŞIRKETTE_ÇALIŞIYORSUN",
@@ -339,7 +356,8 @@
     "el": "Εργάζεσαι σε άλλη εταιρεία.",
     "ru": "Вы работаете в другой компании.",
     "zh": "你在另一家公司工作。",
-    "ar": "أنت تعمل في شركة أخرى."
+    "ar": "أنت تعمل في شركة أخرى.",
+    "pl": "Pracujesz dla innej firmy."
   },
   "Başvuru bulunamadı.": {
     "code": "BAŞVURU_BULUNAMADI",
@@ -358,7 +376,8 @@
     "el": "Η εφαρμογή δεν βρέθηκε.",
     "ru": "Приложение не найдено.",
     "zh": "未找到应用程序。",
-    "ar": "لم يتم العثور على التطبيق."
+    "ar": "لم يتم العثور على التطبيق.",
+    "pl": "Nie znaleziono aplikacji."
   },
   "Bilinmeyen aksiyon.": {
     "code": "BILINMEYEN_AKSIYON",
@@ -377,7 +396,8 @@
     "el": "Άγνωστη ενέργεια.",
     "ru": "Неизвестное действие.",
     "zh": "未知的行动。",
-    "ar": "عمل غير معروف."
+    "ar": "عمل غير معروف.",
+    "pl": "Nieznana akcja."
   },
   "Bir oyuncu şirketinde çalışıyorsun. Önce oradan istifa etmelisin.": {
     "code": "BIR_OYUNCU_ŞIRKETINDE_ÇALIŞIYORSUN_ÖNCE_ORADAN_ISTIFA_ETMELI",
@@ -396,7 +416,8 @@
     "el": "Εργάζεστε σε μια εταιρεία ηθοποιών. Θα πρέπει πρώτα να παραιτηθείτε από εκεί.",
     "ru": "Вы работаете в актерской компании. Сначала вам следует уйти оттуда.",
     "zh": "你在一家演员公司工作。 你应该先从那里辞职。",
-    "ar": "أنت تعمل في شركة ممثل. يجب عليك الاستقالة من هناك أولاً."
+    "ar": "أنت تعمل في شركة ممثل. يجب عليك الاستقالة من هناك أولاً.",
+    "pl": "Pracujesz w firmie aktorskiej. Najpierw powinieneś z tego zrezygnować."
   },
   "Bir şirkette çalışmıyorsun.": {
     "code": "BIR_ŞIRKETTE_ÇALIŞMIYORSUN",
@@ -415,7 +436,8 @@
     "el": "Δεν δουλεύεις σε εταιρεία.",
     "ru": "Вы не работаете в компании.",
     "zh": "你不为公司工作。",
-    "ar": "أنت لا تعمل في شركة."
+    "ar": "أنت لا تعمل في شركة.",
+    "pl": "Nie pracujesz dla firmy."
   },
   "Böyle bir oyuncu yok!": {
     "code": "BÖYLE_BIR_OYUNCU_YOK",
@@ -434,7 +456,8 @@
     "el": "Δεν υπάρχει τέτοιος παίκτης!",
     "ru": "Нет такого игрока!",
     "zh": "没有这样的球员！",
-    "ar": "لا يوجد مثل هذا اللاعب!"
+    "ar": "لا يوجد مثل هذا اللاعب!",
+    "pl": "Nie ma takiego gracza!"
   },
   "Bu cihazdan en fazla ${MAX_ACCOUNTS_PER_VISITOR} hesap açılabilir.": {
     "code": "BU_CIHAZDAN_EN_FAZLA_MAX_ACCOUNTS_PER_VISITOR_HESAP_AÇILABIL",
@@ -453,7 +476,8 @@
     "el": "Μπορούν να ανοίξουν έως και ${MAX_ACCOUNTS_PER_VISITOR} λογαριασμοί από αυτήν τη συσκευή.",
     "ru": "С этого устройства можно открыть максимум ${MAX_ACCOUNTS_PER_VISITOR} аккаунтов.",
     "zh": "从此设备最多可以开设 ${MAX_ACCOUNTS_PER_VISITOR} 帐户。",
-    "ar": "يمكن فتح حسابات ${MAX_ACCOUNTS_PER_VISITOR} كحد أقصى من هذا الجهاز."
+    "ar": "يمكن فتح حسابات ${MAX_ACCOUNTS_PER_VISITOR} كحد أقصى من هذا الجهاز.",
+    "pl": "Z tego urządzenia można otworzyć maksymalnie ${MAX_ACCOUNTS_PER_VISITOR} kont."
   },
   "Bu görev artık geçerli değil.": {
     "code": "BU_GÖREV_ARTIK_GEÇERLI_DEĞIL",
@@ -472,7 +496,8 @@
     "el": "Αυτή η εργασία δεν είναι πλέον έγκυρη.",
     "ru": "Эта задача больше не актуальна.",
     "zh": "该任务不再有效。",
-    "ar": "هذه المهمة لم تعد صالحة."
+    "ar": "هذه المهمة لم تعد صالحة.",
+    "pl": "To zadanie jest już nieaktualne."
   },
   "Bu görev henüz tamamlanmadı veya ödül alınamaz.": {
     "code": "BU_GÖREV_HENÜZ_TAMAMLANMADI_VEYA_ÖDÜL_ALINAMAZ",
@@ -491,7 +516,8 @@
     "el": "Αυτή η αποστολή δεν έχει ολοκληρωθεί ακόμη ή δεν μπορεί να διεκδικηθεί η ανταμοιβή.",
     "ru": "Этот квест еще не выполнен или награда не может быть получена.",
     "zh": "该任务尚未完成或无法领取奖励。",
-    "ar": "لم تكتمل هذه المهمة بعد أو لا يمكن المطالبة بالمكافأة."
+    "ar": "لم تكتمل هذه المهمة بعد أو لا يمكن المطالبة بالمكافأة.",
+    "pl": "To zadanie nie zostało jeszcze ukończone lub nie można odebrać nagrody."
   },
   "Bu görevi zaten kabul ettin.": {
     "code": "BU_GÖREVI_ZATEN_KABUL_ETTIN",
@@ -510,7 +536,8 @@
     "el": "Έχετε ήδη αποδεχτεί αυτήν την αποστολή.",
     "ru": "Вы уже приняли эту миссию.",
     "zh": "你已经接受了这个使命。",
-    "ar": "لقد قبلت بالفعل هذه المهمة."
+    "ar": "لقد قبلت بالفعل هذه المهمة.",
+    "pl": "Już zaakceptowałeś tę misję."
   },
   "Bu gruba mesaj gönderemezsin.": {
     "code": "BU_GRUBA_MESAJ_GÖNDEREMEZSIN",
@@ -529,7 +556,8 @@
     "el": "Δεν μπορείτε να στείλετε μηνύματα σε αυτήν την ομάδα.",
     "ru": "Вы не можете отправлять сообщения в эту группу.",
     "zh": "您无法向该组发送消息。",
-    "ar": "لا يمكنك إرسال رسائل إلى هذه المجموعة."
+    "ar": "لا يمكنك إرسال رسائل إلى هذه المجموعة.",
+    "pl": "Nie możesz wysyłać wiadomości do tej grupy."
   },
   "Bu gruplar arasında zaten aktif bir savaş var.": {
     "code": "BU_GRUPLAR_ARASINDA_ZATEN_AKTIF_BIR_SAVAŞ_VAR",
@@ -548,7 +576,8 @@
     "el": "Υπάρχει ήδη ένας ενεργός πόλεμος μεταξύ αυτών των ομάδων.",
     "ru": "Между этими группировками уже идет активная война.",
     "zh": "这些团体之间已经发生了激烈的战争。",
-    "ar": "هناك بالفعل حرب نشطة بين هذه المجموعات."
+    "ar": "هناك بالفعل حرب نشطة بين هذه المجموعات.",
+    "pl": "Między tymi grupami toczy się już aktywna wojna."
   },
   "Bu içeriği kısa süre önce raporladın.": {
     "code": "BU_IÇERIĞI_KISA_SÜRE_ÖNCE_RAPORLADIN",
@@ -567,7 +596,8 @@
     "el": "Αναφέρατε πρόσφατα αυτό το περιεχόμενο.",
     "ru": "Вы недавно сообщили об этом контенте.",
     "zh": "您最近举报了此内容。",
-    "ar": "لقد قمت مؤخرا بالإبلاغ عن هذا المحتوى."
+    "ar": "لقد قمت مؤخرا بالإبلاغ عن هذا المحتوى.",
+    "pl": "Niedawno zgłosiłeś tę treść."
   },
   "Bu IP adresinden çok fazla kayıt denemesi yapıldı.": {
     "code": "BU_IP_ADRESINDEN_ÇOK_FAZLA_KAYIT_DENEMESI_YAPILDI",
@@ -586,7 +616,8 @@
     "el": "Έχουν γίνει πάρα πολλές προσπάθειες εγγραφής από αυτήν τη διεύθυνση IP.",
     "ru": "С этого IP-адреса было предпринято слишком много попыток регистрации.",
     "zh": "从该 IP 地址进行的注册尝试次数过多。",
-    "ar": "تم إجراء العديد من محاولات التسجيل من عنوان IP هذا."
+    "ar": "تم إجراء العديد من محاولات التسجيل من عنوان IP هذا.",
+    "pl": "Podjęto zbyt wiele prób rejestracji z tego adresu IP."
   },
   "Bu isim zaten kullanılıyor.": {
     "code": "BU_ISIM_ZATEN_KULLANILIYOR",
@@ -605,7 +636,8 @@
     "el": "Αυτό το όνομα χρησιμοποιείται ήδη.",
     "ru": "Это имя уже используется.",
     "zh": "该名称已被使用。",
-    "ar": "هذا الاسم قيد الاستخدام بالفعل."
+    "ar": "هذا الاسم قيد الاستخدام بالفعل.",
+    "pl": "Ta nazwa jest już używana."
   },
   "Bu isimde grup zaten var.": {
     "code": "BU_ISIMDE_GRUP_ZATEN_VAR",
@@ -624,7 +656,8 @@
     "el": "Η ομάδα με αυτό το όνομα υπάρχει ήδη.",
     "ru": "Группа с таким названием уже существует.",
     "zh": "同名的组已存在。",
-    "ar": "المجموعة بهذا الاسم موجودة بالفعل."
+    "ar": "المجموعة بهذا الاسم موجودة بالفعل.",
+    "pl": "Grupa o tej nazwie już istnieje."
   },
   "Bu isimde mafya grubu bulunamadı.": {
     "code": "BU_ISIMDE_MAFYA_GRUBU_BULUNAMADI",
@@ -643,7 +676,8 @@
     "el": "Δεν βρέθηκε ομάδα μαφίας με αυτό το όνομα.",
     "ru": "Никакой мафиозной группировки с таким названием обнаружено не было.",
     "zh": "未找到同名的黑手党组织。",
-    "ar": "لم يتم العثور على مجموعة مافيا بهذا الاسم."
+    "ar": "لم يتم العثور على مجموعة مافيا بهذا الاسم.",
+    "pl": "Nie znaleziono żadnej grupy mafijnej o tej nazwie."
   },
   "Bu isimde oyuncu bulunamadı.": {
     "code": "BU_ISIMDE_OYUNCU_BULUNAMADI",
@@ -662,7 +696,8 @@
     "el": "Δεν βρέθηκε παίκτης με αυτό το όνομα.",
     "ru": "Игрок с таким именем не найден.",
     "zh": "未找到该名字的玩家。",
-    "ar": "لم يتم العثور على أي لاعب بهذا الإسم."
+    "ar": "لم يتم العثور على أي لاعب بهذا الإسم.",
+    "pl": "Nie znaleziono gracza o tej nazwie."
   },
   "Bu kasa zaten sende.": {
     "code": "BU_KASA_ZATEN_SENDE",
@@ -681,7 +716,8 @@
     "el": "Έχετε ήδη αυτό το χρηματοκιβώτιο.",
     "ru": "Этот сейф у вас уже есть.",
     "zh": "你已经有了这个保险箱。",
-    "ar": "لديك بالفعل هذه الخزنة."
+    "ar": "لديك بالفعل هذه الخزنة.",
+    "pl": "Masz już ten sejf."
   },
   "Bu kişi senin şirketinde değil.": {
     "code": "BU_KIŞI_SENIN_ŞIRKETINDE_DEĞIL",
@@ -700,7 +736,8 @@
     "el": "Αυτό το άτομο δεν είναι στην εταιρεία σας.",
     "ru": "Этот человек не из вашей компании.",
     "zh": "此人不在您的公司。",
-    "ar": "هذا الشخص ليس في شركتك."
+    "ar": "هذا الشخص ليس في شركتك.",
+    "pl": "Tej osoby nie ma w Twojej firmie."
   },
   "Bu kullanıcı adı zaten alınmış.": {
     "code": "BU_KULLANICI_ADI_ZATEN_ALINMIŞ",
@@ -719,7 +756,8 @@
     "el": "Αυτό το όνομα χρήστη έχει ήδη ληφθεί.",
     "ru": "Это имя пользователя уже занято.",
     "zh": "该用户名已被占用。",
-    "ar": "اسم المستخدم هذا مأخوذ بالفعل."
+    "ar": "اسم المستخدم هذا مأخوذ بالفعل.",
+    "pl": "Ta nazwa użytkownika jest już zajęta."
   },
   "Bu liman zaten sizin!": {
     "code": "BU_LIMAN_ZATEN_SIZIN",
@@ -738,7 +776,8 @@
     "el": "Αυτή η θύρα είναι ήδη δική σας!",
     "ru": "Этот порт уже ваш!",
     "zh": "这个端口已经是你的了！",
-    "ar": "هذا المنفذ هو لك بالفعل!"
+    "ar": "هذا المنفذ هو لك بالفعل!",
+    "pl": "Ten port jest już Twój!"
   },
   "Bu makam zaten sizin!": {
     "code": "BU_MAKAM_ZATEN_SIZIN",
@@ -757,7 +796,8 @@
     "el": "Αυτή η θέση είναι ήδη δική σας!",
     "ru": "Эта позиция уже ваша!",
     "zh": "这个位置已经是你的了！",
-    "ar": "هذا الموقف هو لك بالفعل!"
+    "ar": "هذا الموقف هو لك بالفعل!",
+    "pl": "To stanowisko jest już Twoje!"
   },
   "Bu malzeme şirket türüne uygun değil.": {
     "code": "BU_MALZEME_ŞIRKET_TÜRÜNE_UYGUN_DEĞIL",
@@ -776,7 +816,8 @@
     "el": "Αυτό το υλικό δεν είναι κατάλληλο για τον τύπο της εταιρείας.",
     "ru": "Этот материал не подходит для данного типа компании.",
     "zh": "该材料不适合该公司类型。",
-    "ar": "هذه المادة غير مناسبة لنوع الشركة."
+    "ar": "هذه المادة غير مناسبة لنوع الشركة.",
+    "pl": "Materiał ten nie jest odpowiedni dla tego typu firmy."
   },
   "Bu mesaja cevap verilemez.": {
     "code": "BU_MESAJA_CEVAP_VERILEMEZ",
@@ -795,7 +836,8 @@
     "el": "Δεν είναι δυνατή η απάντηση σε αυτό το μήνυμα.",
     "ru": "На это сообщение невозможно ответить.",
     "zh": "此消息无法回复。",
-    "ar": "لا يمكن الرد على هذه الرسالة."
+    "ar": "لا يمكن الرد على هذه الرسالة.",
+    "pl": "Na tę wiadomość nie można odpowiedzieć."
   },
   "Bu savaşa katılamazsın.": {
     "code": "BU_SAVAŞA_KATILAMAZSIN",
@@ -814,7 +856,8 @@
     "el": "Δεν μπορείτε να συμμετάσχετε σε αυτόν τον πόλεμο.",
     "ru": "Вы не можете присоединиться к этой войне.",
     "zh": "你不能加入这场战争。",
-    "ar": "لا يمكنك الانضمام إلى هذه الحرب."
+    "ar": "لا يمكنك الانضمام إلى هذه الحرب.",
+    "pl": "Nie możesz dołączyć do tej wojny."
   },
   "Bu şehirde tekrar kontrol toplamak için ${Math.ceil(kalan / 60)} dk bekle.": {
     "code": "BU_ŞEHIRDE_TEKRAR_KONTROL_TOPLAMAK_IÇIN_MATH_CEIL_KALAN_60_D",
@@ -833,7 +876,8 @@
     "el": "Περιμένετε ${Math.ceil(kalan / 60)} λεπτά για να συλλέξετε ξανά τον έλεγχο σε αυτήν την πόλη.",
     "ru": "Подождите ${Math.ceil(kalan / 60)} минут, чтобы снова получить контроль над этим городом.",
     "zh": "等待 ${Math.ceil(kalan / 60)} 分钟以再次控制这座城市。",
-    "ar": "انتظر ${Math.ceil(kalan / 60)} دقيقة لتجميع السيطرة مرة أخرى في هذه المدينة."
+    "ar": "انتظر ${Math.ceil(kalan / 60)} دقيقة لتجميع السيطرة مرة أخرى في هذه المدينة.",
+    "pl": "Poczekaj ${Math.ceil(kalan / 60)} minut, aby ponownie przejąć kontrolę w tym mieście."
   },
   "Bu şirket işe alım yapmıyor.": {
     "code": "BU_ŞIRKET_IŞE_ALIM_YAPMIYOR",
@@ -852,7 +896,8 @@
     "el": "Αυτή η εταιρεία δεν προσλαμβάνει.",
     "ru": "Эта компания не набирает сотрудников.",
     "zh": "这家公司不招人了。",
-    "ar": "هذه الشركة لا تقوم بالتوظيف."
+    "ar": "هذه الشركة لا تقوم بالتوظيف.",
+    "pl": "Ta firma nie zatrudnia."
   },
   "Bugün en fazla 3 görev kabul edebilirsin.": {
     "code": "BUGÜN_EN_FAZLA_3_GÖREV_KABUL_EDEBILIRSIN",
@@ -871,7 +916,8 @@
     "el": "Μπορείτε να δεχτείτε έως και 3 αποστολές σήμερα.",
     "ru": "Сегодня вы можете принять до 3 квестов.",
     "zh": "今天您最多可以接受 3 个任务。",
-    "ar": "يمكنك قبول ما يصل إلى 3 مهام اليوم."
+    "ar": "يمكنك قبول ما يصل إلى 3 مهام اليوم.",
+    "pl": "Dzisiaj możesz przyjąć maksymalnie 3 zadania."
   },
   "Canlı aktivite yüklenemedi.": {
     "code": "CANLI_AKTIVITE_YÜKLENEMEDI",
@@ -890,7 +936,8 @@
     "el": "Δεν ήταν δυνατή η φόρτωση της ζωντανής δραστηριότητας.",
     "ru": "Не удалось загрузить прямую трансляцию.",
     "zh": "无法加载实时活动。",
-    "ar": "تعذر تحميل النشاط المباشر."
+    "ar": "تعذر تحميل النشاط المباشر.",
+    "pl": "Nie udało się wczytać aktywności na żywo."
   },
   "${col} geçersiz.": {
     "code": "COL_GEÇERSIZ",
@@ -909,7 +956,8 @@
     "el": "Το ${col} δεν είναι έγκυρο.",
     "ru": "${col} недействителен.",
     "zh": "${col} 无效。",
-    "ar": "${col} غير صالح."
+    "ar": "${col} غير صالح.",
+    "pl": "${col} jest nieprawidłowy."
   },
   "Çalışan bulunamadı.": {
     "code": "ÇALIŞAN_BULUNAMADI",
@@ -928,7 +976,8 @@
     "el": "Δεν βρέθηκαν υπάλληλοι.",
     "ru": "Сотрудников не обнаружено.",
     "zh": "没有找到员工。",
-    "ar": "لم يتم العثور على موظفين."
+    "ar": "لم يتم العثور على موظفين.",
+    "pl": "Nie znaleziono pracowników."
   },
   "Çıkmak için ${CIKIS_UCRET.toLocaleString(": {
     "code": "ÇIKMAK_IÇIN_CIKIS_UCRET_TOLOCALESTRING",
@@ -947,7 +996,8 @@
     "el": "Για έξοδο από το ${EXIT_UCRET.toLocaleString(",
     "ru": "Чтобы выйти из ${EXIT_UCRET.toLocaleString(",
     "zh": "退出 ${EXIT_UCRET.toLocaleString(",
-    "ar": "للخروج من ${EXIT_UCRET.toLocaleString("
+    "ar": "للخروج من ${EXIT_UCRET.toLocaleString(",
+    "pl": "Aby wyjść z ${EXIT_UCRET.toLocaleString("
   },
   "Çok fazla başarısız giriş. Daha sonra tekrar dene veya şifreni sıfırla.": {
     "code": "ÇOK_FAZLA_BAŞARISIZ_GIRIŞ_DAHA_SONRA_TEKRAR_DENE_VEYA_ŞIFREN",
@@ -966,7 +1016,8 @@
     "el": "Πάρα πολλές αποτυχημένες συνδέσεις. Δοκιμάστε ξανά αργότερα ή επαναφέρετε τον κωδικό πρόσβασής σας.",
     "ru": "Слишком много неудачных входов. Повторите попытку позже или сбросьте пароль.",
     "zh": "登录失败次数太多。 请稍后重试或重置密码。",
-    "ar": "عدد كبير جدًا من عمليات تسجيل الدخول الفاشلة. حاول مرة أخرى لاحقًا أو أعد تعيين كلمة المرور الخاصة بك."
+    "ar": "عدد كبير جدًا من عمليات تسجيل الدخول الفاشلة. حاول مرة أخرى لاحقًا أو أعد تعيين كلمة المرور الخاصة بك.",
+    "pl": "Zbyt wiele nieudanych logowań. Spróbuj ponownie później lub zresetuj hasło."
   },
   "Çok fazla giriş denemesi. 15 dakika sonra tekrar dene.": {
     "code": "ÇOK_FAZLA_GIRIŞ_DENEMESI_15_DAKIKA_SONRA_TEKRAR_DENE",
@@ -985,7 +1036,8 @@
     "el": "Πάρα πολλές προσπάθειες σύνδεσης. Δοκιμάστε ξανά σε 15 λεπτά.",
     "ru": "Слишком много попыток входа. Повторите попытку через 15 минут.",
     "zh": "登录尝试次数过多。 15 分钟后重试。",
-    "ar": "عدد كبير جدًا من محاولات تسجيل الدخول. حاول مرة أخرى خلال 15 دقيقة."
+    "ar": "عدد كبير جدًا من محاولات تسجيل الدخول. حاول مرة أخرى خلال 15 دقيقة.",
+    "pl": "Zbyt wiele prób logowania. Spróbuj ponownie za 15 minut."
   },
   "Çok fazla yönetim isteği.": {
     "code": "ÇOK_FAZLA_YÖNETIM_ISTEĞI",
@@ -1004,7 +1056,8 @@
     "el": "Πάρα πολλά αιτήματα διαχείρισης.",
     "ru": "Слишком много запросов руководства.",
     "zh": "管理要求太多。",
-    "ar": "طلبات الإدارة كثيرة جدًا."
+    "ar": "طلبات الإدارة كثيرة جدًا.",
+    "pl": "Zbyt wiele żądań zarządzania."
   },
   "Depo dolu (${Math.floor(stokDolu)}/${depoKapasite}). Depo yükselt veya stok tüket.": {
     "code": "DEPO_DOLU_MATH_FLOOR_STOKDOLU_DEPOKAPASITE_DEPO_YÜKSELT_VEYA",
@@ -1023,7 +1076,8 @@
     "el": "Γεμάτη δεξαμενή (${Math.floor(stokDolu)}/${depoKapasite}). Αναβάθμιση αποθήκης ή εξάντληση αποθεμάτων.",
     "ru": "Бак полный (${Math.floor(stokDolu)}/${depoKapasite}). Обновите склад или истощите запасы.",
     "zh": "水箱已满 (${Math.floor(stokDolu)}/${depoKapasite})。 升级仓库或耗尽库存。",
-    "ar": "الخزان ممتلئ (${Math.floor(stokDolu)}/${depoKapasite}). ترقية المستودع أو استنزاف المخزون."
+    "ar": "الخزان ممتلئ (${Math.floor(stokDolu)}/${depoKapasite}). ترقية المستودع أو استنزاف المخزون.",
+    "pl": "Zbiornik pełny (${Math.floor(stokDolu)}/${depoKapasite}). Ulepsz magazyn lub uzupełnij zapasy."
   },
   "Detay yüklenemedi.": {
     "code": "DETAY_YÜKLENEMEDI",
@@ -1042,7 +1096,8 @@
     "el": "Δεν ήταν δυνατή η φόρτωση των λεπτομερειών.",
     "ru": "Не удалось загрузить деталь.",
     "zh": "无法加载详细信息。",
-    "ar": "لا يمكن تحميل التفاصيل."
+    "ar": "لا يمكن تحميل التفاصيل.",
+    "pl": "Nie udało się wczytać szczegółów."
   },
   "Devlet ilişkin çok kötü — hapistesin! İcraata çıkamazsın. Rüşvet vererek ilişkini düzelt.": {
     "code": "DEVLET_ILIŞKIN_ÇOK_KÖTÜ_HAPISTESIN_İCRAATA_ÇIKAMAZSIN_RÜŞVET",
@@ -1061,7 +1116,8 @@
     "el": "Η σχέση σου με το κράτος είναι τόσο κακή — είσαι στη φυλακή! Δεν μπορείτε να προχωρήσετε σε δράση. Διορθώστε τη σχέση σας με δωροδοκία.",
     "ru": "У тебя настолько плохие отношения с государством — ты в тюрьме! Вы не можете приступить к делу. Исправьте свои отношения, подкупив.",
     "zh": "你和国家的关系太糟糕了——你进监狱了！ 你不能采取行动。 通过贿赂来修复你们的关系。",
-    "ar": "علاقتك بالدولة سيئة للغاية – أنت في السجن! لا يمكنك البدء في العمل. أصلح علاقتك بالرشوة."
+    "ar": "علاقتك بالدولة سيئة للغاية – أنت في السجن! لا يمكنك البدء في العمل. أصلح علاقتك بالرشوة.",
+    "pl": "Twoje stosunki z państwem są tak złe – jesteś w więzieniu! Nie możesz przystąpić do działania. Napraw swój związek, przekupując."
   },
   "Devredilecek mekan seç.": {
     "code": "DEVREDILECEK_MEKAN_SEÇ",
@@ -1080,7 +1136,8 @@
     "el": "Επιλέξτε μια τοποθεσία για μεταφορά.",
     "ru": "Выберите место для переезда.",
     "zh": "选择要转移到的位置。",
-    "ar": "اختر موقعًا للانتقال إليه."
+    "ar": "اختر موقعًا للانتقال إليه.",
+    "pl": "Wybierz lokalizację, do której chcesz się przenieść."
   },
   "Dost reis adı gerekli.": {
     "code": "DOST_REIS_ADI_GEREKLI",
@@ -1099,7 +1156,8 @@
     "el": "Απαιτείται φιλικό όνομα αρχηγού.",
     "ru": "Требуется дружелюбное имя вождя.",
     "zh": "需要友好的酋长姓名。",
-    "ar": "مطلوب اسم رئيس ودية."
+    "ar": "مطلوب اسم رئيس ودية.",
+    "pl": "Wymagane jest przyjazne imię wodza."
   },
   "Düşman adını yaz.": {
     "code": "DÜŞMAN_ADINI_YAZ",
@@ -1118,7 +1176,8 @@
     "el": "Γράψτε το όνομα του εχθρού.",
     "ru": "Напишите имя врага.",
     "zh": "写下敌人的名字。",
-    "ar": "اكتب اسم العدو."
+    "ar": "اكتب اسم العدو.",
+    "pl": "Wpisz nazwę wroga."
   },
   "Eğitim için kasada ${EGITIM_MALIYET} TL gerekli.": {
     "code": "EĞITIM_IÇIN_KASADA_EGITIM_MALIYET_TL_GEREKLI",
@@ -1137,7 +1196,8 @@
     "el": "${EGITIM_MALIYET} TL απαιτείται στο ταμείο για εκπαίδευση.",
     "ru": "${EGITIM_MALIYET} TL требуется в кассовом аппарате для обучения.",
     "zh": "收银机中需要 ${EGITIM_MALIYET} TL 进行培训。",
-    "ar": "${EGITIM_MALIYET} مطلوب TL في السجل النقدي للتدريب."
+    "ar": "${EGITIM_MALIYET} مطلوب TL في السجل النقدي للتدريب.",
+    "pl": "${EGITIM_MALIYET} TL jest wymagany w kasie na szkolenie."
   },
   "En az 1 birim almalısın.": {
     "code": "EN_AZ_1_BIRIM_ALMALISIN",
@@ -1156,7 +1216,8 @@
     "el": "Πρέπει να αγοράσετε τουλάχιστον 1 μονάδα.",
     "ru": "Вам необходимо купить как минимум 1 единицу.",
     "zh": "您必须至少购买 1 件。",
-    "ar": "يجب عليك شراء وحدة واحدة على الأقل."
+    "ar": "يجب عليك شراء وحدة واحدة على الأقل.",
+    "pl": "Musisz kupić co najmniej 1 sztukę."
   },
   "En az 100 TL çekebilirsin.": {
     "code": "EN_AZ_100_TL_ÇEKEBILIRSIN",
@@ -1175,7 +1236,8 @@
     "el": "Μπορείτε να κάνετε ανάληψη τουλάχιστον 100 TL.",
     "ru": "Вы можете снять минимум 100 TL.",
     "zh": "您可以提取至少 100 TL。",
-    "ar": "يمكنك سحب ما لا يقل عن 100 ليرة تركية."
+    "ar": "يمكنك سحب ما لا يقل عن 100 ليرة تركية.",
+    "pl": "Możesz wypłacić co najmniej 100 TL."
   },
   "En az 100 TL yatırabilirsin.": {
     "code": "EN_AZ_100_TL_YATIRABILIRSIN",
@@ -1194,7 +1256,8 @@
     "el": "Μπορείτε να καταθέσετε τουλάχιστον 100 TL.",
     "ru": "Вы можете внести минимум 100 TL.",
     "zh": "您可以存入至少 100 TL。",
-    "ar": "يمكنك إيداع ما لا يقل عن 100 ليرة تركية."
+    "ar": "يمكنك إيداع ما لا يقل عن 100 ليرة تركية.",
+    "pl": "Możesz wpłacić co najmniej 100 TL."
   },
   "En fazla ${row ? row.adet : 0} adet devredebilirsin.": {
     "code": "EN_FAZLA_ROW_ROW_ADET_0_ADET_DEVREDEBILIRSIN",
@@ -1213,7 +1276,8 @@
     "el": "Μπορείτε να μεταφέρετε έως ${row ? row.adet : 0} μονάδες.",
     "ru": "Вы можете передать максимум ${row ? row.adet : 0} единиц.",
     "zh": "您最多可以传输 ${row ? row.adet : 0} 单位。",
-    "ar": "يمكنك نقل ${row ? row.adet : 0} كحد أقصى من الوحدات."
+    "ar": "يمكنك نقل ${row ? row.adet : 0} كحد أقصى من الوحدات.",
+    "pl": "Możesz przenieść maksymalnie ${row ? row.adet : 0} jednostek."
   },
   "Gazete yüklenemedi.": {
     "code": "GAZETE_YÜKLENEMEDI",
@@ -1232,7 +1296,8 @@
     "el": "Δεν ήταν δυνατή η φόρτωση της εφημερίδας.",
     "ru": "Газету невозможно загрузить.",
     "zh": "无法装入报纸。",
-    "ar": "لا يمكن تحميل الصحيفة."
+    "ar": "لا يمكن تحميل الصحيفة.",
+    "pl": "Nie można załadować gazety."
   },
   "Geçerli bir adet gir.": {
     "code": "GEÇERLI_BIR_ADET_GIR",
@@ -1251,7 +1316,8 @@
     "el": "Εισαγάγετε μια έγκυρη ποσότητα.",
     "ru": "Введите допустимое количество.",
     "zh": "输入有效数量。",
-    "ar": "أدخل كمية صالحة."
+    "ar": "أدخل كمية صالحة.",
+    "pl": "Wprowadź prawidłową ilość."
   },
   "Geçerli bir lakap seçmelisin.": {
     "code": "GEÇERLI_BIR_LAKAP_SEÇMELISIN",
@@ -1270,7 +1336,8 @@
     "el": "Πρέπει να επιλέξετε ένα έγκυρο ψευδώνυμο.",
     "ru": "Вы должны выбрать действительный псевдоним.",
     "zh": "您必须选择一个有效的昵称。",
-    "ar": "يجب عليك اختيار لقب صالح."
+    "ar": "يجب عليك اختيار لقب صالح.",
+    "pl": "Musisz wybrać prawidłowy pseudonim."
   },
   "Geçerli bir miktar gir.": {
     "code": "GEÇERLI_BIR_MIKTAR_GIR",
@@ -1289,7 +1356,8 @@
     "el": "Εισαγάγετε ένα έγκυρο ποσό.",
     "ru": "Введите действительную сумму.",
     "zh": "输入有效金额。",
-    "ar": "أدخل مبلغًا صالحًا."
+    "ar": "أدخل مبلغًا صالحًا.",
+    "pl": "Wprowadź prawidłową kwotę."
   },
   "Geçersiz görev slotu.": {
     "code": "GEÇERSIZ_GÖREV_SLOTU",
@@ -1308,7 +1376,8 @@
     "el": "Μη έγκυρη υποδοχή αποστολής.",
     "ru": "Неверный слот миссии.",
     "zh": "任务槽无效。",
-    "ar": "فتحة المهمة غير صالحة."
+    "ar": "فتحة المهمة غير صالحة.",
+    "pl": "Nieprawidłowe miejsce na misję."
   },
   "Geçersiz grup.": {
     "code": "GEÇERSIZ_GRUP",
@@ -1327,7 +1396,8 @@
     "el": "Μη έγκυρη ομάδα.",
     "ru": "Неверная группа.",
     "zh": "无效组。",
-    "ar": "مجموعة غير صالحة."
+    "ar": "مجموعة غير صالحة.",
+    "pl": "Nieprawidłowa grupa."
   },
   "Geçersiz hedef.": {
     "code": "GEÇERSIZ_HEDEF",
@@ -1346,7 +1416,8 @@
     "el": "Μη έγκυρος στόχος.",
     "ru": "Неверная цель.",
     "zh": "目标无效。",
-    "ar": "هدف غير صالح."
+    "ar": "هدف غير صالح.",
+    "pl": "Nieprawidłowy cel."
   },
   "Geçersiz iş.": {
     "code": "GEÇERSIZ_IŞ",
@@ -1365,7 +1436,8 @@
     "el": "Άκυρη εργασία.",
     "ru": "Недопустимое задание.",
     "zh": "无效工作。",
-    "ar": "وظيفة غير صالحة."
+    "ar": "وظيفة غير صالحة.",
+    "pl": "Nieprawidłowa praca."
   },
   "Geçersiz kasa.": {
     "code": "GEÇERSIZ_KASA",
@@ -1384,7 +1456,8 @@
     "el": "Μη έγκυρο χρηματοκιβώτιο.",
     "ru": "Недействительный сейф.",
     "zh": "无效的保险箱。",
-    "ar": "آمنة غير صالحة."
+    "ar": "آمنة غير صالحة.",
+    "pl": "Nieprawidłowy sejf."
   },
   "Geçersiz liman.": {
     "code": "GEÇERSIZ_LIMAN",
@@ -1403,7 +1476,8 @@
     "el": "Μη έγκυρη θύρα.",
     "ru": "Неверный порт.",
     "zh": "端口无效。",
-    "ar": "منفذ غير صالح."
+    "ar": "منفذ غير صالح.",
+    "pl": "Nieprawidłowy port."
   },
   "Geçersiz mafya işi.": {
     "code": "GEÇERSIZ_MAFYA_IŞI",
@@ -1422,7 +1496,8 @@
     "el": "Άκυρη επιχείρηση μαφίας.",
     "ru": "Неверный мафиозный бизнес.",
     "zh": "无效的黑手党生意。",
-    "ar": "أعمال المافيا غير صالحة."
+    "ar": "أعمال المافيا غير صالحة.",
+    "pl": "Nieprawidłowy biznes mafijny."
   },
   "Geçersiz makam.": {
     "code": "GEÇERSIZ_MAKAM",
@@ -1441,7 +1516,8 @@
     "el": "Μη έγκυρη αρχή.",
     "ru": "Недействительные полномочия.",
     "zh": "无效权限。",
-    "ar": "سلطة غير صالحة."
+    "ar": "سلطة غير صالحة.",
+    "pl": "Nieprawidłowy autorytet."
   },
   "Geçersiz mekan.": {
     "code": "GEÇERSIZ_MEKAN",
@@ -1460,7 +1536,8 @@
     "el": "Μη έγκυρος χώρος.",
     "ru": "Неверное место проведения.",
     "zh": "场地无效。",
-    "ar": "مكان غير صالح."
+    "ar": "مكان غير صالح.",
+    "pl": "Nieprawidłowe miejsce."
   },
   "Geçersiz mekan: ${key}": {
     "code": "GEÇERSIZ_MEKAN_KEY",
@@ -1479,7 +1556,8 @@
     "el": "Μη έγκυρος χώρος: ${key}",
     "ru": "Неверное место: ${key}.",
     "zh": "无效场地：${key}",
-    "ar": "مكان غير صالح: ${key}"
+    "ar": "مكان غير صالح: ${key}",
+    "pl": "Nieprawidłowe miejsce: ${key}"
   },
   "Geçersiz oy.": {
     "code": "GEÇERSIZ_OY",
@@ -1498,7 +1576,8 @@
     "el": "Άκυρη ψήφος.",
     "ru": "Недействительный голос.",
     "zh": "投票无效。",
-    "ar": "تصويت غير صالح."
+    "ar": "تصويت غير صالح.",
+    "pl": "Nieważny głos."
   },
   "Geçersiz oyuncu.": {
     "code": "GEÇERSIZ_OYUNCU",
@@ -1517,7 +1596,8 @@
     "el": "Μη έγκυρος παίκτης.",
     "ru": "Неверный игрок.",
     "zh": "无效玩家。",
-    "ar": "لاعب غير صالح."
+    "ar": "لاعب غير صالح.",
+    "pl": "Nieprawidłowy gracz."
   },
   "Geçersiz pozisyon.": {
     "code": "GEÇERSIZ_POZISYON",
@@ -1536,7 +1616,8 @@
     "el": "Μη έγκυρη θέση.",
     "ru": "Неверная позиция.",
     "zh": "位置无效。",
-    "ar": "موضع غير صالح."
+    "ar": "موضع غير صالح.",
+    "pl": "Nieprawidłowa pozycja."
   },
   "Geçersiz profil resmi.": {
     "code": "GEÇERSIZ_PROFIL_RESMI",
@@ -1555,7 +1636,8 @@
     "el": "Μη έγκυρη εικόνα προφίλ.",
     "ru": "Неверное изображение профиля.",
     "zh": "个人资料图片无效。",
-    "ar": "صورة الملف الشخصي غير صالحة."
+    "ar": "صورة الملف الشخصي غير صالحة.",
+    "pl": "Nieprawidłowe zdjęcie profilowe."
   },
   "Geçersiz reklam seviyesi.": {
     "code": "GEÇERSIZ_REKLAM_SEVIYESI",
@@ -1574,7 +1656,8 @@
     "el": "Μη έγκυρο επίπεδο διαφήμισης.",
     "ru": "Недопустимый уровень объявления.",
     "zh": "广告级别无效。",
-    "ar": "مستوى الإعلان غير صالح."
+    "ar": "مستوى الإعلان غير صالح.",
+    "pl": "Nieprawidłowy poziom reklamy."
   },
   "Geçersiz satın alma.": {
     "code": "GEÇERSIZ_SATIN_ALMA",
@@ -1593,7 +1676,8 @@
     "el": "Μη έγκυρη αγορά.",
     "ru": "Недействительная покупка.",
     "zh": "购买无效。",
-    "ar": "عملية شراء غير صالحة."
+    "ar": "عملية شراء غير صالحة.",
+    "pl": "Nieprawidłowy zakup."
   },
   "Geçersiz şehir.": {
     "code": "GEÇERSIZ_ŞEHIR",
@@ -1612,7 +1696,8 @@
     "el": "Μη έγκυρη πόλη.",
     "ru": "Неверный город.",
     "zh": "无效城市。",
-    "ar": "مدينة غير صالحة."
+    "ar": "مدينة غير صالحة.",
+    "pl": "Nieprawidłowe miasto."
   },
   "Geçersiz şirket türü.": {
     "code": "GEÇERSIZ_ŞIRKET_TÜRÜ",
@@ -1631,7 +1716,8 @@
     "el": "Μη έγκυρος τύπος εταιρείας.",
     "ru": "Неверный тип компании.",
     "zh": "公司类型无效。",
-    "ar": "نوع الشركة غير صالح."
+    "ar": "نوع الشركة غير صالح.",
+    "pl": "Nieprawidłowy typ firmy."
   },
   "Geçersiz yetenek.": {
     "code": "GEÇERSIZ_YETENEK",
@@ -1650,7 +1736,8 @@
     "el": "Άκυρη ικανότητα.",
     "ru": "Неверная способность.",
     "zh": "能力无效。",
-    "ar": "قدرة غير صالحة."
+    "ar": "قدرة غير صالحة.",
+    "pl": "Nieprawidłowa umiejętność."
   },
   "Geçersiz yükseltme.": {
     "code": "GEÇERSIZ_YÜKSELTME",
@@ -1669,7 +1756,8 @@
     "el": "Μη έγκυρη αναβάθμιση.",
     "ru": "Недопустимое обновление.",
     "zh": "升级无效。",
-    "ar": "ترقية غير صالحة."
+    "ar": "ترقية غير صالحة.",
+    "pl": "Nieprawidłowa aktualizacja."
   },
   "Geçersiz yükseltme türü.": {
     "code": "GEÇERSIZ_YÜKSELTME_TÜRÜ",
@@ -1688,7 +1776,8 @@
     "el": "Μη έγκυρος τύπος αναβάθμισης.",
     "ru": "Неверный тип обновления.",
     "zh": "升级类型无效。",
-    "ar": "نوع الترقية غير صالح."
+    "ar": "نوع الترقية غير صالح.",
+    "pl": "Nieprawidłowy typ uaktualnienia."
   },
   "Giriş sırasında hata oluştu.": {
     "code": "GIRIŞ_SIRASINDA_HATA_OLUŞTU",
@@ -1707,7 +1796,8 @@
     "el": "Παρουσιάστηκε σφάλμα κατά τη σύνδεση.",
     "ru": "Произошла ошибка при входе в систему.",
     "zh": "登录时发生错误。",
-    "ar": "حدث خطأ أثناء تسجيل الدخول."
+    "ar": "حدث خطأ أثناء تسجيل الدخول.",
+    "pl": "Wystąpił błąd podczas logowania."
   },
   "Görev bulunamadı.": {
     "code": "GÖREV_BULUNAMADI",
@@ -1726,7 +1816,8 @@
     "el": "Η εργασία δεν βρέθηκε.",
     "ru": "Задача не найдена.",
     "zh": "未找到任务。",
-    "ar": "لم يتم العثور على المهمة."
+    "ar": "لم يتم العثور على المهمة.",
+    "pl": "Nie znaleziono zadania."
   },
   "Görev tanımı bulunamadı.": {
     "code": "GÖREV_TANIMI_BULUNAMADI",
@@ -1745,7 +1836,8 @@
     "el": "Η περιγραφή εργασίας δεν βρέθηκε.",
     "ru": "Описание вакансии не найдено.",
     "zh": "未找到职位描述。",
-    "ar": "لم يتم العثور على الوصف الوظيفي."
+    "ar": "لم يتم العثور على الوصف الوظيفي.",
+    "pl": "Nie znaleziono opisu stanowiska."
   },
   "Grubun şu an başka bir soygun için hazırlanıyor.": {
     "code": "GRUBUN_ŞU_AN_BAŞKA_BIR_SOYGUN_IÇIN_HAZIRLANIYOR",
@@ -1764,7 +1856,8 @@
     "el": "Η ομάδα σας αυτή τη στιγμή προετοιμάζεται για άλλη μια ληστεία.",
     "ru": "Ваша группа в настоящее время готовится к очередному ограблению.",
     "zh": "你们的团队目前正在准备另一次抢劫。",
-    "ar": "تستعد مجموعتك حاليًا لسرقة أخرى."
+    "ar": "تستعد مجموعتك حاليًا لسرقة أخرى.",
+    "pl": "Twoja grupa przygotowuje się obecnie do kolejnego napadu."
   },
   "Grup adı en az 2 karakter.": {
     "code": "GRUP_ADI_EN_AZ_2_KARAKTER",
@@ -1783,7 +1876,8 @@
     "el": "Όνομα ομάδας τουλάχιστον 2 χαρακτήρων.",
     "ru": "Название группы не менее 2 символов.",
     "zh": "组名称至少 2 个字符。",
-    "ar": "اسم المجموعة مكون من حرفين على الأقل."
+    "ar": "اسم المجموعة مكون من حرفين على الأقل.",
+    "pl": "Nazwa grupy co najmniej 2 znaki."
   },
   "Grup bilgileri yüklenemedi.": {
     "code": "GRUP_BILGILERI_YÜKLENEMEDI",
@@ -1802,7 +1896,8 @@
     "el": "Η φόρτωση των πληροφοριών ομάδας απέτυχε.",
     "ru": "Не удалось загрузить информацию о группе.",
     "zh": "加载群组信息失败。",
-    "ar": "فشل تحميل معلومات المجموعة."
+    "ar": "فشل تحميل معلومات المجموعة.",
+    "pl": "Nie udało się załadować informacji o grupie."
   },
   "Grup bulunamadı.": {
     "code": "GRUP_BULUNAMADI",
@@ -1821,7 +1916,8 @@
     "el": "Η ομάδα δεν βρέθηκε.",
     "ru": "Группа не найдена.",
     "zh": "未找到组。",
-    "ar": "لم يتم العثور على المجموعة."
+    "ar": "لم يتم العثور على المجموعة.",
+    "pl": "Nie znaleziono grupy."
   },
   "Grup detayı yüklenemedi.": {
     "code": "GRUP_DETAYI_YÜKLENEMEDI",
@@ -1840,7 +1936,8 @@
     "el": "Η φόρτωση των λεπτομερειών της ομάδας απέτυχε.",
     "ru": "Не удалось загрузить сведения о группе.",
     "zh": "无法加载组详细信息。",
-    "ar": "فشل تحميل تفاصيل المجموعة."
+    "ar": "فشل تحميل تفاصيل المجموعة.",
+    "pl": "Nie udało się wczytać szczegółów grupy."
   },
   "Grup mesajı bulunamadı.": {
     "code": "GRUP_MESAJI_BULUNAMADI",
@@ -1859,7 +1956,8 @@
     "el": "Το ομαδικό μήνυμα δεν βρέθηκε.",
     "ru": "Групповое сообщение не найдено.",
     "zh": "未找到群组消息。",
-    "ar": "لم يتم العثور على رسالة المجموعة."
+    "ar": "لم يتم العثور على رسالة المجموعة.",
+    "pl": "Nie znaleziono wiadomości grupowej."
   },
   "Grup mesajları yüklenemedi.": {
     "code": "GRUP_MESAJLARI_YÜKLENEMEDI",
@@ -1878,7 +1976,8 @@
     "el": "Αποτυχία φόρτωσης ομαδικών μηνυμάτων.",
     "ru": "Не удалось загрузить групповые сообщения.",
     "zh": "加载群组消息失败。",
-    "ar": "فشل تحميل الرسائل الجماعية."
+    "ar": "فشل تحميل الرسائل الجماعية.",
+    "pl": "Nie udało się załadować wiadomości grupowych."
   },
   "Grupta değilsin.": {
     "code": "GRUPTA_DEĞILSIN",
@@ -1897,7 +1996,8 @@
     "el": "Δεν είσαι στην ομάδα.",
     "ru": "Вас нет в группе.",
     "zh": "你不在群里。",
-    "ar": "أنت لست في المجموعة."
+    "ar": "أنت لست في المجموعة.",
+    "pl": "Nie jesteś w grupie."
   },
   "Gücün yetersiz! En az ${job.minGuc.toLocaleString(": {
     "code": "GÜCÜN_YETERSIZ_EN_AZ_JOB_MINGUC_TOLOCALESTRING",
@@ -1916,7 +2016,8 @@
     "el": "Δεν έχεις αρκετή δύναμη! Τουλάχιστον ${job.minGuc.toLocaleString(",
     "ru": "У тебя не хватит сил! По крайней мере, ${job.minGuc.toLocaleString(",
     "zh": "你的实力还不够！ 至少 ${job.minGuc.toLocaleString(",
-    "ar": "ليس لديك القوة الكافية! على الأقل ${job.minGuc.toLocaleString("
+    "ar": "ليس لديك القوة الكافية! على الأقل ${job.minGuc.toLocaleString(",
+    "pl": "Nie masz dość sił! Co najmniej ${job.minGuc.toLocaleString("
   },
   "Güncellenecek alan yok.": {
     "code": "GÜNCELLENECEK_ALAN_YOK",
@@ -1935,7 +2036,8 @@
     "el": "Δεν υπάρχουν πεδία για ενημέρωση.",
     "ru": "Нет полей для обновления.",
     "zh": "没有要更新的字段。",
-    "ar": "لا توجد حقول للتحديث."
+    "ar": "لا توجد حقول للتحديث.",
+    "pl": "Brak pól do aktualizacji."
   },
   "Güncellenecek mekan yok.": {
     "code": "GÜNCELLENECEK_MEKAN_YOK",
@@ -1954,7 +2056,8 @@
     "el": "Δεν υπάρχουν τοποθεσίες για ενημέρωση.",
     "ru": "Нет местоположений для обновления.",
     "zh": "没有要更新的位置。",
-    "ar": "لا توجد مواقع للتحديث."
+    "ar": "لا توجد مواقع للتحديث.",
+    "pl": "Brak lokalizacji do aktualizacji."
   },
   "Günlük antrenman hakkın doldu (${GUNLUK_ANTRENMAN_LIMIT}/gün). Yarın tekrar dene.": {
     "code": "GÜNLÜK_ANTRENMAN_HAKKIN_DOLDU_GUNLUK_ANTRENMAN_LIMIT_GÜN_YAR",
@@ -1973,7 +2076,8 @@
     "el": "Το ημερήσιο επίδομα εκπαίδευσης σας έχει λήξει (${GUNLUK_ANTRENMAN_LIMIT}/ημέρα). Δοκιμάστε ξανά αύριο.",
     "ru": "Срок действия вашего ежедневного пособия на обучение истек (${GUNLUK_ANTRENMAN_LIMIT}/день). Попробуйте еще раз завтра.",
     "zh": "您的每日培训津贴已过期（${GUNLUK_ANTRENMAN_LIMIT}/天）。 明天再试一次。",
-    "ar": "لقد انتهت صلاحية بدل التدريب اليومي الخاص بك (${GUNLUK_ANTRENMAN_LIMIT}/اليوم). حاول مرة أخرى غدا."
+    "ar": "لقد انتهت صلاحية بدل التدريب اليومي الخاص بك (${GUNLUK_ANTRENMAN_LIMIT}/اليوم). حاول مرة أخرى غدا.",
+    "pl": "Twój dzienny dodatek szkoleniowy wygasł (${GUNLUK_ANTRENMAN_LIMIT}/dzień). Spróbuj ponownie jutro."
   },
   "Günlük eğitim slotu doldu (${slotLimit}/gün). Personel odasını yükselt.": {
     "code": "GÜNLÜK_EĞITIM_SLOTU_DOLDU_SLOTLIMIT_GÜN_PERSONEL_ODASINI_YÜK",
@@ -1992,7 +2096,8 @@
     "el": "Η ημερήσια υποδοχή προπόνησης είναι πλήρης (${slotLimit}/ημέρα). Αναβάθμιση δωματίου προσωπικού.",
     "ru": "Слот ежедневного обучения заполнен (${slotLimit}/день). Обновить комнату для персонала.",
     "zh": "每日培训时段已满（${slotLimit}/天）。 升级员工房。",
-    "ar": "فترة التدريب اليومية ممتلئة (${slotLimit}/اليوم). ترقية غرفة الموظفين."
+    "ar": "فترة التدريب اليومية ممتلئة (${slotLimit}/اليوم). ترقية غرفة الموظفين.",
+    "pl": "Dzienny przedział szkoleniowy jest pełny (${slotLimit}/dzień). Ulepsz pokój personelu."
   },
   "Günlük görevler yüklenemedi.": {
     "code": "GÜNLÜK_GÖREVLER_YÜKLENEMEDI",
@@ -2011,7 +2116,8 @@
     "el": "Δεν ήταν δυνατή η φόρτωση των καθημερινών αποστολών.",
     "ru": "Не удалось загрузить ежедневные квесты.",
     "zh": "无法加载每日任务。",
-    "ar": "لا يمكن تحميل المهام اليومية."
+    "ar": "لا يمكن تحميل المهام اليومية.",
+    "pl": "Nie można wczytać codziennych zadań."
   },
   "Güvenli Yer güncellenemedi.": {
     "code": "GÜVENLI_YER_GÜNCELLENEMEDI",
@@ -2030,7 +2136,8 @@
     "el": "Δεν ήταν δυνατή η ενημέρωση του Safe Place.",
     "ru": "Не удалось обновить Safe Place.",
     "zh": "安全地点无法更新。",
-    "ar": "تعذر تحديث المكان الآمن."
+    "ar": "تعذر تحديث المكان الآمن.",
+    "pl": "Nie można zaktualizować bezpiecznego miejsca."
   },
   "Güvenli Yer seviyesi 1-${MAX_SEVIYE} arasında olmalı.": {
     "code": "GÜVENLI_YER_SEVIYESI_1_MAX_SEVIYE_ARASINDA_OLMALI",
@@ -2049,7 +2156,8 @@
     "el": "Το επίπεδο ασφαλούς εδάφους πρέπει να είναι μεταξύ 1-${MAX_SEVIYE}.",
     "ru": "Безопасный уровень земли должен находиться в пределах 1-${MAX_SEVIYE}.",
     "zh": "安全接地电平必须介于 1-${MAX_SEVIYE} 之间。",
-    "ar": "يجب أن يكون مستوى الأرض الآمن بين 1-${MAX_SEVIYE}."
+    "ar": "يجب أن يكون مستوى الأرض الآمن بين 1-${MAX_SEVIYE}.",
+    "pl": "Bezpieczny poziom gruntu musi znajdować się w przedziale 1-${MAX_SEVIYE}."
   },
   "Güvenli Yer yüklenemedi.": {
     "code": "GÜVENLI_YER_YÜKLENEMEDI",
@@ -2068,7 +2176,8 @@
     "el": "Δεν ήταν δυνατή η φόρτωση του Safe Place.",
     "ru": "Не удалось загрузить Safe Place.",
     "zh": "无法加载安全地点。",
-    "ar": "تعذر تحميل المكان الآمن."
+    "ar": "تعذر تحميل المكان الآمن.",
+    "pl": "Nie można załadować bezpiecznego miejsca."
   },
   "Güvenlik: Aynı cihaz veya ağ üzerinden kayıtlı hesaplar arasında bu işlem yapılamaz.": {
     "code": "GÜVENLIK_AYNI_CIHAZ_VEYA_AĞ_ÜZERINDEN_KAYITLI_HESAPLAR_ARASI",
@@ -2087,7 +2196,8 @@
     "el": "Ασφάλεια: Αυτή η λειτουργία δεν μπορεί να εκτελεστεί μεταξύ λογαριασμών που είναι εγγεγραμμένοι στην ίδια συσκευή ή δίκτυο.",
     "ru": "Безопасность: Эту операцию нельзя выполнить между учетными записями, зарегистрированными на одном устройстве или в одной сети.",
     "zh": "安全性：同一设备或网络上注册的账户之间不能执行此操作。",
-    "ar": "الأمان: لا يمكن تنفيذ هذه العملية بين الحسابات المسجلة على نفس الجهاز أو الشبكة."
+    "ar": "الأمان: لا يمكن تنفيذ هذه العملية بين الحسابات المسجلة على نفس الجهاز أو الشبكة.",
+    "pl": "Bezpieczeństwo: tej operacji nie można wykonać pomiędzy kontami zarejestrowanymi na tym samym urządzeniu lub w tej samej sieci."
   },
   "Güvenlik günlüğü yüklenemedi.": {
     "code": "GÜVENLIK_GÜNLÜĞÜ_YÜKLENEMEDI",
@@ -2106,7 +2216,8 @@
     "el": "Η φόρτωση του αρχείου καταγραφής ασφαλείας απέτυχε.",
     "ru": "Не удалось загрузить журнал безопасности.",
     "zh": "无法加载安全日志。",
-    "ar": "فشل تحميل سجل الأمان."
+    "ar": "فشل تحميل سجل الأمان.",
+    "pl": "Nie udało się załadować dziennika zabezpieczeń."
   },
   "Haber metni çok kısa.": {
     "code": "HABER_METNI_ÇOK_KISA",
@@ -2125,7 +2236,8 @@
     "el": "Το κείμενο ειδήσεων είναι πολύ σύντομο.",
     "ru": "Текст новости слишком короткий.",
     "zh": "新闻正文太短。",
-    "ar": "نص الأخبار قصير جدًا."
+    "ar": "نص الأخبار قصير جدًا.",
+    "pl": "Tekst wiadomości jest za krótki."
   },
   "Haber metni çok uzun (max 200 karakter).": {
     "code": "HABER_METNI_ÇOK_UZUN_MAX_200_KARAKTER",
@@ -2144,7 +2256,8 @@
     "el": "Το κείμενο ειδήσεων είναι πολύ μεγάλο (έως 200 χαρακτήρες).",
     "ru": "Текст новости слишком длинный (максимум 200 символов).",
     "zh": "新闻文本太长（最多 200 个字符）。",
-    "ar": "نص الخبر طويل جدًا (بحد أقصى 200 حرف)."
+    "ar": "نص الخبر طويل جدًا (بحد أقصى 200 حرف).",
+    "pl": "Tekst wiadomości jest za długi (maks. 200 znaków)."
   },
   "Haberler yüklenemedi.": {
     "code": "HABERLER_YÜKLENEMEDI",
@@ -2163,7 +2276,8 @@
     "el": "Δεν ήταν δυνατή η φόρτωση των ειδήσεων.",
     "ru": "Не удалось загрузить новости.",
     "zh": "News could not be loaded.",
-    "ar": "لا يمكن تحميل الأخبار."
+    "ar": "لا يمكن تحميل الأخبار.",
+    "pl": "Nie udało się załadować wiadomości."
   },
   "Hedef grubun en az 3 üyesi olmalı (savaş ilan edilemez).": {
     "code": "HEDEF_GRUBUN_EN_AZ_3_ÜYESI_OLMALI_SAVAŞ_ILAN_EDILEMEZ",
@@ -2182,7 +2296,8 @@
     "el": "Πρέπει να υπάρχουν τουλάχιστον 3 μέλη της ομάδας στόχου (δεν μπορεί να κηρυχτεί πόλεμος).",
     "ru": "В целевой группе должно быть не менее 3 членов (война не может быть объявлена).",
     "zh": "目标群体必须至少有 3 名成员（不能宣战）。",
-    "ar": "يجب أن يكون هناك 3 أعضاء على الأقل من المجموعة المستهدفة (لا يمكن إعلان الحرب)."
+    "ar": "يجب أن يكون هناك 3 أعضاء على الأقل من المجموعة المستهدفة (لا يمكن إعلان الحرب).",
+    "pl": "Grupa docelowa musi składać się z co najmniej 3 członków (nie można wypowiedzieć wojny)."
   },
   "Hedef mafya grubu adı gerekli.": {
     "code": "HEDEF_MAFYA_GRUBU_ADI_GEREKLI",
@@ -2201,7 +2316,8 @@
     "el": "Απαιτείται όνομα ομάδας στόχευσης.",
     "ru": "Требуется название целевой группы мобов.",
     "zh": "需要目标生物组名称。",
-    "ar": "اسم مجموعة الغوغاء المستهدفة مطلوب."
+    "ar": "اسم مجموعة الغوغاء المستهدفة مطلوب.",
+    "pl": "Wymagana jest nazwa docelowej grupy mobów."
   },
   "Hesabınız askıya alındı.": {
     "code": "HESABINIZ_ASKIYA_ALINDI",
@@ -2220,7 +2336,8 @@
     "el": "Ο λογαριασμός σας έχει τεθεί σε αναστολή.",
     "ru": "Ваш аккаунт заблокирован.",
     "zh": "您的帐户已被暂停。",
-    "ar": "لقد تم تعليق حسابك."
+    "ar": "لقد تم تعليق حسابك.",
+    "pl": "Twoje konto zostało zawieszone."
   },
   "Hibe geçmişi yüklenemedi.": {
     "code": "HIBE_GEÇMIŞI_YÜKLENEMEDI",
@@ -2239,7 +2356,8 @@
     "el": "Δεν ήταν δυνατή η φόρτωση του ιστορικού επιχορήγησης.",
     "ru": "Не удалось загрузить историю грантов.",
     "zh": "无法加载授予历史记录。",
-    "ar": "تعذر تحميل سجل المنح."
+    "ar": "تعذر تحميل سجل المنح.",
+    "pl": "Nie można wczytać historii grantów."
   },
   "Hibe miktarı geçersiz.": {
     "code": "HIBE_MIKTARI_GEÇERSIZ",
@@ -2258,7 +2376,8 @@
     "el": "Το ποσό της επιχορήγησης δεν είναι έγκυρο.",
     "ru": "Сумма гранта недействительна.",
     "zh": "资助金额无效。",
-    "ar": "مبلغ المنحة غير صالح."
+    "ar": "مبلغ المنحة غير صالح.",
+    "pl": "Kwota dotacji jest nieprawidłowa."
   },
   "İstatistik güncellenemedi.": {
     "code": "İSTATISTIK_GÜNCELLENEMEDI",
@@ -2277,7 +2396,8 @@
     "el": "Δεν ήταν δυνατή η ενημέρωση των στατιστικών.",
     "ru": "Не удалось обновить статистику.",
     "zh": "统计数据无法更新。",
-    "ar": "لا يمكن تحديث الإحصائيات."
+    "ar": "لا يمكن تحديث الإحصائيات.",
+    "pl": "Nie udało się zaktualizować statystyk."
   },
   "İstihbarat eleman sayısı 0-100000 arasında olmalı.": {
     "code": "İSTIHBARAT_ELEMAN_SAYISI_0_100000_ARASINDA_OLMALI",
@@ -2296,7 +2416,8 @@
     "el": "Ο αριθμός του προσωπικού πληροφοριών πρέπει να είναι μεταξύ 0-100000.",
     "ru": "Численность разведывательного персонала должна находиться в пределах 0-100 000.",
     "zh": "情报人员的数量应在0-10万之间。",
-    "ar": "يجب أن يتراوح عدد أفراد المخابرات بين 0-100000."
+    "ar": "يجب أن يتراوح عدد أفراد المخابرات بين 0-100000.",
+    "pl": "Liczba pracowników wywiadu powinna mieścić się w przedziale od 0 do 100 000."
   },
   "İstihbarat elemanın yok. Önce eleman al.": {
     "code": "İSTIHBARAT_ELEMANIN_YOK_ÖNCE_ELEMAN_AL",
@@ -2315,7 +2436,8 @@
     "el": "Δεν έχετε προσωπικό πληροφοριών. Πρώτα προσλάβετε προσωπικό.",
     "ru": "У вас нет разведывательного персонала. Сначала наймите персонал.",
     "zh": "你们没有情报人员。 首先雇用员工。",
-    "ar": "ليس لديك أفراد مخابرات. تعيين الموظفين أولا."
+    "ar": "ليس لديك أفراد مخابرات. تعيين الموظفين أولا.",
+    "pl": "Nie macie personelu wywiadowczego. Najpierw zatrudnij personel."
   },
   "İstihbarat güncellenemedi.": {
     "code": "İSTIHBARAT_GÜNCELLENEMEDI",
@@ -2334,7 +2456,8 @@
     "el": "Δεν ήταν δυνατή η ενημέρωση της νοημοσύνης.",
     "ru": "Не удалось обновить разведданные.",
     "zh": "情报无法更新。",
-    "ar": "لا يمكن تحديث المعلومات الاستخباراتية."
+    "ar": "لا يمكن تحديث المعلومات الاستخباراتية.",
+    "pl": "Nie można zaktualizować danych wywiadowczych."
   },
   "İşlem başarısız.": {
     "code": "İŞLEM_BAŞARISIZ",
@@ -2353,7 +2476,8 @@
     "el": "Η επέμβαση απέτυχε.",
     "ru": "Операция провалилась.",
     "zh": "操作失败。",
-    "ar": "فشلت العملية."
+    "ar": "فشلت العملية.",
+    "pl": "Operacja nie powiodła się."
   },
   "Kadro dolu.": {
     "code": "KADRO_DOLU",
@@ -2372,7 +2496,8 @@
     "el": "Η ομάδα είναι γεμάτη.",
     "ru": "Отряд полный.",
     "zh": "队伍已满。",
-    "ar": "الفريق ممتلئ."
+    "ar": "الفريق ممتلئ.",
+    "pl": "Skład jest pełny."
   },
   "Kara liste yüklenemedi.": {
     "code": "KARA_LISTE_YÜKLENEMEDI",
@@ -2391,7 +2516,8 @@
     "el": "Η φόρτωση της μαύρης λίστας απέτυχε.",
     "ru": "Не удалось загрузить черный список.",
     "zh": "加载黑名单失败。",
-    "ar": "فشل تحميل القائمة السوداء."
+    "ar": "فشل تحميل القائمة السوداء.",
+    "pl": "Nie udało się załadować czarnej listy."
   },
   "Kasan yetersiz. Gerekli:": {
     "code": "KASAN_YETERSIZ_GEREKLI",
@@ -2410,7 +2536,8 @@
     "el": "Το χρηματοκιβώτιο σας είναι ανεπαρκές. Απαραίτητος:",
     "ru": "Вашего сейфа недостаточно. Необходимый:",
     "zh": "你的保险箱不够用了。 必要的：",
-    "ar": "خزانتك غير كافية. ضروري:"
+    "ar": "خزانتك غير كافية. ضروري:",
+    "pl": "Twój sejf jest niewystarczający. Niezbędny:"
   },
   "Kasanda ${sehir.kontrolMaliyet.toLocaleString(": {
     "code": "KASANDA_SEHIR_KONTROLMALIYET_TOLOCALESTRING",
@@ -2429,7 +2556,8 @@
     "el": "Στην ταμειακή σας μηχανή ${city.controlCost.toLocaleString(",
     "ru": "В вашем кассовом аппарате ${city.controlCost.toLocaleString(",
     "zh": "在您的收银机中 ${city.controlCost.toLocaleString(",
-    "ar": "في السجل النقدي الخاص بك ${city.controlCost.toLocaleString("
+    "ar": "في السجل النقدي الخاص بك ${city.controlCost.toLocaleString(",
+    "pl": "W Twojej kasie ${city.controlCost.toLocaleString("
   },
   "Kasanda yeterli nakit yok!": {
     "code": "KASANDA_YETERLI_NAKIT_YOK",
@@ -2448,7 +2576,8 @@
     "el": "Δεν υπάρχουν αρκετά μετρητά στο χρηματοκιβώτιο σας!",
     "ru": "В вашем сейфе недостаточно денег!",
     "zh": "您的保险箱内现金不足！",
-    "ar": "ليس هناك ما يكفي من النقود في خزانتك!"
+    "ar": "ليس هناك ما يكفي من النقود في خزانتك!",
+    "pl": "W Twoim sejfie nie ma wystarczającej ilości gotówki!"
   },
   "Kasanda yeterli nakit yok.": {
     "code": "KASANDA_YETERLI_NAKIT_YOK_1",
@@ -2467,7 +2596,8 @@
     "el": "Δεν υπάρχουν αρκετά μετρητά στο χρηματοκιβώτιο σας.",
     "ru": "В вашем сейфе недостаточно денег.",
     "zh": "您的保险箱中没有足够的现金。",
-    "ar": "ليس هناك ما يكفي من النقود في خزانتك."
+    "ar": "ليس هناك ما يكفي من النقود في خزانتك.",
+    "pl": "W Twoim sejfie nie ma wystarczającej ilości gotówki."
   },
   "Kasanda yeterli nakit yok! ${adet} adet için ${toplamMaliyet.toLocaleString(": {
     "code": "KASANDA_YETERLI_NAKIT_YOK_ADET_ADET_IÇIN_TOPLAMMALIYET_TOLOC",
@@ -2486,7 +2616,8 @@
     "el": "Δεν υπάρχουν αρκετά μετρητά στο χρηματοκιβώτιο σας! ${totalCost.toLocaleString( για ${adet} ποσότητα",
     "ru": "В вашем сейфе недостаточно денег! ${totalCost.toLocaleString( для количества ${adet}",
     "zh": "您的保险箱内现金不足！ ${totalCost.toLocaleString( ${adet} 数量",
-    "ar": "ليس هناك ما يكفي من النقود في خزانتك! ${totalCost.toLocaleString( لكمية ${adet}"
+    "ar": "ليس هناك ما يكفي من النقود في خزانتك! ${totalCost.toLocaleString( لكمية ${adet}",
+    "pl": "W Twoim sejfie nie ma wystarczającej ilości gotówki! ilość ${totalCost.toLocaleString( for ${adet}"
   },
   "Kasanda yeterli nakit yok! Haber için": {
     "code": "KASANDA_YETERLI_NAKIT_YOK_HABER_IÇIN",
@@ -2505,7 +2636,8 @@
     "el": "Δεν υπάρχουν αρκετά μετρητά στο χρηματοκιβώτιο σας! για νέα",
     "ru": "В вашем сейфе недостаточно денег! для новостей",
     "zh": "您的保险箱内现金不足！ 新闻",
-    "ar": "ليس هناك ما يكفي من النقود في خزانتك! للأخبار"
+    "ar": "ليس هناك ما يكفي من النقود في خزانتك! للأخبار",
+    "pl": "W Twoim sejfie nie ma wystarczającej ilości gotówki! dla wiadomości"
   },
   "Kasanda yeterli nakit yok! ${miktar} eleman için ${toplamMaliyet.toLocaleString(": {
     "code": "KASANDA_YETERLI_NAKIT_YOK_MIKTAR_ELEMAN_IÇIN_TOPLAMMALIYET_T",
@@ -2524,7 +2656,8 @@
     "el": "Δεν υπάρχουν αρκετά μετρητά στο χρηματοκιβώτιο σας! ${totalCost.toLocaleString( για ${miktar} στοιχείο",
     "ru": "В вашем сейфе недостаточно денег! ${totalCost.toLocaleString( для элемента ${miktar}",
     "zh": "您的保险箱内现金不足！ ${totalCost.toLocaleString( 对于 ${miktar} 元素",
-    "ar": "ليس هناك ما يكفي من النقود في خزانتك! ${totalCost.toLocaleString( لعنصر ${miktar}"
+    "ar": "ليس هناك ما يكفي من النقود في خزانتك! ${totalCost.toLocaleString( لعنصر ${miktar}",
+    "pl": "W Twoim sejfie nie ma wystarczającej ilości gotówki! Element ${totalCost.toLocaleString( for ${miktar}"
   },
   "Kasanda yeterli nakit yok! ${satinAlinacakAdet} adet için ${toplamMaliyet.toLocaleString(": {
     "code": "KASANDA_YETERLI_NAKIT_YOK_SATINALINACAKADET_ADET_IÇIN_TOPLAM",
@@ -2543,7 +2676,8 @@
     "el": "Δεν υπάρχουν αρκετά μετρητά στο χρηματοκιβώτιο σας! ${totalCost.toLocaleString( για ${satinAlinacakAdet} ποσότητα",
     "ru": "В вашем сейфе недостаточно денег! ${totalCost.toLocaleString( для количества ${satinAlinacakAdet}",
     "zh": "您的保险箱内现金不足！ ${totalCost.toLocaleString( ${satinAlinacakAdet} 数量",
-    "ar": "ليس هناك ما يكفي من النقود في خزانتك! ${totalCost.toLocaleString( لكمية ${satinAlinacakAdet}"
+    "ar": "ليس هناك ما يكفي من النقود في خزانتك! ${totalCost.toLocaleString( لكمية ${satinAlinacakAdet}",
+    "pl": "W Twoim sejfie nie ma wystarczającej ilości gotówki! ilość ${totalCost.toLocaleString( for ${satinAlinacakAdet}"
   },
   "Kayıt reddedildi.": {
     "code": "KAYIT_REDDEDILDI",
@@ -2562,7 +2696,8 @@
     "el": "Απορρίφθηκε η εγγραφή.",
     "ru": "В регистрации отказано.",
     "zh": "注册被拒绝。",
-    "ar": "تم رفض التسجيل."
+    "ar": "تم رفض التسجيل.",
+    "pl": "Rejestracja odrzucona."
   },
   "Kayıt sırasında hata oluştu.": {
     "code": "KAYIT_SIRASINDA_HATA_OLUŞTU",
@@ -2581,7 +2716,8 @@
     "el": "Παρουσιάστηκε σφάλμα κατά την εγγραφή.",
     "ru": "При регистрации произошла ошибка.",
     "zh": "注册时发生错误。",
-    "ar": "حدث خطأ أثناء التسجيل."
+    "ar": "حدث خطأ أثناء التسجيل.",
+    "pl": "Wystąpił błąd podczas rejestracji."
   },
   "Kendi grubuna savaş ilan edemezsin.": {
     "code": "KENDI_GRUBUNA_SAVAŞ_ILAN_EDEMEZSIN",
@@ -2600,7 +2736,8 @@
     "el": "Δεν μπορείς να κηρύξεις πόλεμο στη δική σου ομάδα.",
     "ru": "Вы не можете объявить войну своей группе.",
     "zh": "你不能向自己的团体宣战。",
-    "ar": "لا يمكنك إعلان الحرب على مجموعتك الخاصة."
+    "ar": "لا يمكنك إعلان الحرب على مجموعتك الخاصة.",
+    "pl": "Nie możesz wypowiedzieć wojny własnej grupie."
   },
   "Kendi grubunu raporlayamazsın.": {
     "code": "KENDI_GRUBUNU_RAPORLAYAMAZSIN",
@@ -2619,7 +2756,8 @@
     "el": "Δεν μπορείτε να αναφέρετε τη δική σας ομάδα.",
     "ru": "Вы не можете пожаловаться на свою группу.",
     "zh": "您无法举报自己的群组。",
-    "ar": "لا يمكنك الإبلاغ عن مجموعتك الخاصة."
+    "ar": "لا يمكنك الإبلاغ عن مجموعتك الخاصة.",
+    "pl": "Nie możesz zgłosić własnej grupy."
   },
   "Kendi profilini raporlayamazsın.": {
     "code": "KENDI_PROFILINI_RAPORLAYAMAZSIN",
@@ -2638,7 +2776,8 @@
     "el": "Δεν μπορείτε να αναφέρετε το δικό σας προφίλ.",
     "ru": "Вы не можете пожаловаться на свой профиль.",
     "zh": "您无法举报您自己的个人资料。",
-    "ar": "لا يمكنك الإبلاغ عن ملف التعريف الخاص بك."
+    "ar": "لا يمكنك الإبلاغ عن ملف التعريف الخاص بك.",
+    "pl": "Nie możesz zgłosić własnego profilu."
   },
   "Kendi şirketine başvuramazsın.": {
     "code": "KENDI_ŞIRKETINE_BAŞVURAMAZSIN",
@@ -2657,7 +2796,8 @@
     "el": "Δεν μπορείτε να κάνετε αίτηση στη δική σας εταιρεία.",
     "ru": "Вы не можете подать заявку в свою собственную компанию.",
     "zh": "您不能向自己的公司申请。",
-    "ar": "لا يمكنك التقديم لشركتك الخاصة."
+    "ar": "لا يمكنك التقديم لشركتك الخاصة.",
+    "pl": "Nie możesz aplikować do własnej firmy."
   },
   "Kendine mekan devredemezsin.": {
     "code": "KENDINE_MEKAN_DEVREDEMEZSIN",
@@ -2676,7 +2816,8 @@
     "el": "Δεν μπορείτε να μεταφέρετε χώρο στον εαυτό σας.",
     "ru": "Вы не можете перенести пространство на себя.",
     "zh": "您无法将空间转移给自己。",
-    "ar": "لا يمكنك نقل المساحة لنفسك."
+    "ar": "لا يمكنك نقل المساحة لنفسك.",
+    "pl": "Nie możesz przenieść przestrzeni na siebie."
   },
   "Kendine mesaj atamazsın.": {
     "code": "KENDINE_MESAJ_ATAMAZSIN",
@@ -2695,7 +2836,8 @@
     "el": "Δεν μπορείτε να στείλετε μήνυμα στον εαυτό σας.",
     "ru": "Вы не можете писать себе.",
     "zh": "你不能给自己发短信。",
-    "ar": "لا يمكنك إرسال رسالة نصية لنفسك."
+    "ar": "لا يمكنك إرسال رسالة نصية لنفسك.",
+    "pl": "Nie możesz do siebie pisać."
   },
   "Kendine para gönderemezsin.": {
     "code": "KENDINE_PARA_GÖNDEREMEZSIN",
@@ -2714,7 +2856,8 @@
     "el": "Δεν μπορείτε να στείλετε χρήματα στον εαυτό σας.",
     "ru": "Вы не можете отправить деньги себе.",
     "zh": "您不能汇款给自己。",
-    "ar": "لا يمكنك إرسال الأموال لنفسك."
+    "ar": "لا يمكنك إرسال الأموال لنفسك.",
+    "pl": "Nie możesz wysyłać pieniędzy do siebie."
   },
   "Kendine saldıramazsın Reis!": {
     "code": "KENDINE_SALDIRAMAZSIN_REIS",
@@ -2733,7 +2876,8 @@
     "el": "Δεν μπορείς να επιτεθείς στον εαυτό σου, Αρχηγέ!",
     "ru": "Вы не можете нападать на себя, шеф!",
     "zh": "你不能攻击自己，酋长！",
-    "ar": "لا يمكنك مهاجمة نفسك أيها الرئيس!"
+    "ar": "لا يمكنك مهاجمة نفسك أيها الرئيس!",
+    "pl": "Nie możesz się atakować, szefie!"
   },
   "Kendini banlayamazsın.": {
     "code": "KENDINI_BANLAYAMAZSIN",
@@ -2752,7 +2896,8 @@
     "el": "Δεν μπορείτε να απαγορεύσετε τον εαυτό σας.",
     "ru": "Вы не можете запретить себя.",
     "zh": "你不能禁止自己。",
-    "ar": "لا يمكنك حظر نفسك."
+    "ar": "لا يمكنك حظر نفسك.",
+    "pl": "Nie możesz sobie zakazać."
   },
   "Kendini çıkaramazsın.": {
     "code": "KENDINI_ÇIKARAMAZSIN",
@@ -2771,7 +2916,8 @@
     "el": "Δεν μπορείς να βγάλεις τον εαυτό σου.",
     "ru": "Ты не можешь вывести себя из себя.",
     "zh": "你不能把自己带出去。",
-    "ar": "لا يمكنك إخراج نفسك."
+    "ar": "لا يمكنك إخراج نفسك.",
+    "pl": "Nie możesz się wyprowadzić."
   },
   "Kendini düşman olarak arayamazsın Reis!": {
     "code": "KENDINI_DÜŞMAN_OLARAK_ARAYAMAZSIN_REIS",
@@ -2790,7 +2936,8 @@
     "el": "Δεν μπορείς να αποκαλείς τον εαυτό σου εχθρό, Αρχηγέ!",
     "ru": "Вы не можете называть себя врагом, Шеф!",
     "zh": "你不能称自己为敌人，酋长！",
-    "ar": "لا يمكنك أن تسمي نفسك عدواً أيها الرئيس!"
+    "ar": "لا يمكنك أن تسمي نفسك عدواً أيها الرئيس!",
+    "pl": "Nie możesz nazywać siebie wrogiem, szefie!"
   },
   "Kendinin oturumunu sonlandıramazsın.": {
     "code": "KENDININ_OTURUMUNU_SONLANDIRAMAZSIN",
@@ -2809,7 +2956,8 @@
     "el": "Δεν μπορείτε να αποσυνδεθείτε.",
     "ru": "Вы не можете выйти из системы.",
     "zh": "您无法自行退出。",
-    "ar": "لا يمكنك تسجيل الخروج بنفسك."
+    "ar": "لا يمكنك تسجيل الخروج بنفسك.",
+    "pl": "Nie możesz się wylogować."
   },
   "Kontrol toplamak için 1 İcraat Hakkı gerekir!": {
     "code": "KONTROL_TOPLAMAK_IÇIN_1_İCRAAT_HAKKI_GEREKIR",
@@ -2828,7 +2976,8 @@
     "el": "Απαιτείται 1 Δικαίωμα Εκτέλεσης για τη συλλογή επιταγών!",
     "ru": "Для сбора чеков требуется 1 Право исполнения!",
     "zh": "领取支票需要 1 个执行权！",
-    "ar": "1 حق التنفيذ مطلوب لتحصيل الشيكات!"
+    "ar": "1 حق التنفيذ مطلوب لتحصيل الشيكات!",
+    "pl": "Do odbioru czeków wymagane jest 1 Prawo Wykonawcze!"
   },
   "Kullanıcı adı 3-20 karakter; harf, rakam ve _ olabilir.": {
     "code": "KULLANICI_ADI_3_20_KARAKTER_HARF_RAKAM_VE_OLABILIR",
@@ -2847,7 +2996,8 @@
     "el": "Όνομα χρήστη 3-20 χαρακτήρες. Μπορεί να είναι γράμματα, αριθμοί και _.",
     "ru": "Имя пользователя 3-20 символов; Это могут быть буквы, цифры и _.",
     "zh": "用户名3-20个字符；它可以是字母、数字和_。",
-    "ar": "اسم المستخدم 3-20 حرفا؛ يمكن أن تكون حروفًا وأرقامًا و_."
+    "ar": "اسم المستخدم 3-20 حرفا؛ يمكن أن تكون حروفًا وأرقامًا و_.",
+    "pl": "Nazwa użytkownika 3-20 znaków; Mogą to być litery, cyfry i _."
   },
   "Kullanıcı adı veya şifre hatalı.": {
     "code": "KULLANICI_ADI_VEYA_ŞIFRE_HATALI",
@@ -2866,7 +3016,8 @@
     "el": "Το όνομα χρήστη ή ο κωδικός πρόσβασης είναι λανθασμένο.",
     "ru": "Имя пользователя или пароль неверны.",
     "zh": "用户名或密码不正确。",
-    "ar": "اسم المستخدم أو كلمة المرور غير صحيحة."
+    "ar": "اسم المستخدم أو كلمة المرور غير صحيحة.",
+    "pl": "Nazwa użytkownika lub hasło jest nieprawidłowe."
   },
   "Kullanıcı bulunamadı.": {
     "code": "KULLANICI_BULUNAMADI",
@@ -2885,7 +3036,8 @@
     "el": "Ο χρήστης δεν βρέθηκε.",
     "ru": "Пользователь не найден.",
     "zh": "未找到用户。",
-    "ar": "لم يتم العثور على المستخدم."
+    "ar": "لم يتم العثور على المستخدم.",
+    "pl": "Nie znaleziono użytkownika."
   },
   "Kullanılabilir maaş antrenman puanın yok.": {
     "code": "KULLANILABILIR_MAAŞ_ANTRENMAN_PUANIN_YOK",
@@ -2904,7 +3056,8 @@
     "el": "Δεν έχετε διαθέσιμους πόντους εκπαίδευσης μισθού.",
     "ru": "У вас нет доступных баллов обучения по заработной плате.",
     "zh": "您没有可用的工资培训点。",
-    "ar": "ليس لديك نقاط تدريب متاحة للراتب."
+    "ar": "ليس لديك نقاط تدريب متاحة للراتب.",
+    "pl": "Nie masz dostępnych punktów szkolenia płacowego."
   },
   "Kuruluş için ${tur.kurulusUcreti} TL gerekli.": {
     "code": "KURULUŞ_IÇIN_TUR_KURULUSUCRETI_TL_GEREKLI",
@@ -2923,7 +3076,8 @@
     "el": "${tur.kurulusUcreti} TL απαιτείται για την εγκατάσταση.",
     "ru": "Для создания требуется ${tur.kurulusUcreti} TL.",
     "zh": "建立需要 ${tur.kurulusUcreti} TL。",
-    "ar": "${tur.kurulusUcreti} مطلوب TL للتأسيس."
+    "ar": "${tur.kurulusUcreti} مطلوب TL للتأسيس.",
+    "pl": "Do założenia wymagane jest ${tur.kurulusUcreti} TL."
   },
   "Lider önce liderliği devretmeli veya grubu dağıtmalı.": {
     "code": "LIDER_ÖNCE_LIDERLIĞI_DEVRETMELI_VEYA_GRUBU_DAĞITMALI",
@@ -2942,7 +3096,8 @@
     "el": "Ο αρχηγός πρέπει πρώτα να παραδώσει την ηγεσία ή να διαλύσει την ομάδα.",
     "ru": "Лидер должен сначала передать руководство или распустить группу.",
     "zh": "领导者必须首先交出领导权或解散团体。",
-    "ar": "يجب على القائد أولاً تسليم القيادة أو حل المجموعة."
+    "ar": "يجب على القائد أولاً تسليم القيادة أو حل المجموعة.",
+    "pl": "Lider musi najpierw przekazać przywództwo lub rozwiązać grupę."
   },
   "${lider.reisAdi} senden güçlü! Önce güçlen veya daha fazla kontrol topla.": {
     "code": "LIDER_REISADI_SENDEN_GÜÇLÜ_ÖNCE_GÜÇLEN_VEYA_DAHA_FAZLA_KONTR",
@@ -2961,7 +3116,8 @@
     "el": "Ο ${lider.reisAdi} είναι πιο δυνατός από σένα! Γίνετε πιο δυνατοί ή αποκτήστε πρώτα περισσότερο έλεγχο.",
     "ru": "${lider.reisAdi} сильнее тебя! Сначала станьте сильнее или получите больше контроля.",
     "zh": "${lider.reisAdi} 比你强！ 首先变得更强或获得更多控制权。",
-    "ar": "${lider.reisAdi} أقوى منك! كن أقوى أو اكتسب المزيد من التحكم أولاً."
+    "ar": "${lider.reisAdi} أقوى منك! كن أقوى أو اكتسب المزيد من التحكم أولاً.",
+    "pl": "${lider.reisAdi} jest silniejszy od ciebie! Najpierw stań się silniejszy lub zyskaj większą kontrolę."
   },
   "Liderin rütbesi sabittir.": {
     "code": "LIDERIN_RÜTBESI_SABITTIR",
@@ -2980,7 +3136,8 @@
     "el": "Η βαθμίδα του αρχηγού είναι σταθερή.",
     "ru": "Ранг лидера фиксирован.",
     "zh": "领导者的等级是固定的。",
-    "ar": "رتبة القائد ثابتة."
+    "ar": "رتبة القائد ثابتة.",
+    "pl": "Ranga lidera jest stała."
   },
   "Liderlik tablosu yüklenemedi.": {
     "code": "LIDERLIK_TABLOSU_YÜKLENEMEDI",
@@ -2999,7 +3156,8 @@
     "el": "Η φόρτωση του βαθμολογικού πίνακα απέτυχε.",
     "ru": "Не удалось загрузить таблицу лидеров.",
     "zh": "排行榜加载失败。",
-    "ar": "فشل تحميل لوحة الصدارة."
+    "ar": "فشل تحميل لوحة الصدارة.",
+    "pl": "Nie udało się wczytać tabeli liderów."
   },
   "Liman baskını için 1 İcraat Hakkı gerekir!": {
     "code": "LIMAN_BASKINI_IÇIN_1_İCRAAT_HAKKI_GEREKIR",
@@ -3018,7 +3176,8 @@
     "el": "Το Port Raid απαιτεί 1 Δικαίωμα Εκτέλεσης!",
     "ru": "Для рейда в порту требуется 1 право на исполнение!",
     "zh": "港口袭击需要 1 个执行权！",
-    "ar": "تتطلب غارة الميناء حق تنفيذ واحد!"
+    "ar": "تتطلب غارة الميناء حق تنفيذ واحد!",
+    "pl": "Nalot na port wymaga 1 prawa wykonania!"
   },
   "Mafya Evi kapasitesi dolu (max ${cap}). Seviye yükseltin.": {
     "code": "MAFYA_EVI_KAPASITESI_DOLU_MAX_CAP_SEVIYE_YÜKSELTIN",
@@ -3037,7 +3196,8 @@
     "el": "Το Mafia House έχει χωρητικότητα (max ${cap}). Ανεβείτε επίπεδο.",
     "ru": "Дом Мафии заполнен (максимум ${cap}). Повышайте уровень.",
     "zh": "Mafia House 已满员（最大 ${cap}）。 升级。",
-    "ar": "بيت المافيا بكامل طاقته (الحد الأقصى ${cap}). المستوى الأعلى."
+    "ar": "بيت المافيا بكامل طاقته (الحد الأقصى ${cap}). المستوى الأعلى.",
+    "pl": "Dom Mafijny ma pełną pojemność (maks. ${cap}). Podnieść do właściwego poziomu."
   },
   "Mafya evi yüklenemedi.": {
     "code": "MAFYA_EVI_YÜKLENEMEDI",
@@ -3056,7 +3216,8 @@
     "el": "Απέτυχε η φόρτωση του μαφιόζου.",
     "ru": "Не удалось загрузить дом мобов.",
     "zh": "无法加载怪物之家。",
-    "ar": "فشل تحميل منزل الغوغاء."
+    "ar": "فشل تحميل منزل الغوغاء.",
+    "pl": "Nie udało się załadować domu mafii."
   },
   "Mafya grubu üyesi değilsin.": {
     "code": "MAFYA_GRUBU_ÜYESI_DEĞILSIN",
@@ -3075,7 +3236,8 @@
     "el": "Δεν είσαι μέλος ομάδας μαφίας.",
     "ru": "Вы не являетесь членом мафиозной группировки.",
     "zh": "您不是黑手党组织的成员。",
-    "ar": "أنت لست عضوا في مجموعة المافيا."
+    "ar": "أنت لست عضوا في مجموعة المافيا.",
+    "pl": "Nie jesteś członkiem grupy mafijnej."
   },
   "Mafya grubuna üye değilsin.": {
     "code": "MAFYA_GRUBUNA_ÜYE_DEĞILSIN",
@@ -3094,7 +3256,8 @@
     "el": "Δεν είσαι μέλος της μαφίας.",
     "ru": "Вы не являетесь членом мафиозной группировки.",
     "zh": "您不是黑手党组织的成员。",
-    "ar": "أنت لست عضوا في مجموعة المافيا."
+    "ar": "أنت لست عضوا في مجموعة المافيا.",
+    "pl": "Nie jesteś członkiem grupy mafijnej."
   },
   "Mafya grupları yüklenemedi.": {
     "code": "MAFYA_GRUPLARI_YÜKLENEMEDI",
@@ -3113,7 +3276,8 @@
     "el": "Δεν ήταν δυνατή η φόρτωση των ομάδων μαφίας.",
     "ru": "Не удалось загрузить мафиозные группы.",
     "zh": "无法加载黑手党群组。",
-    "ar": "لا يمكن تحميل مجموعات المافيا."
+    "ar": "لا يمكن تحميل مجموعات المافيا.",
+    "pl": "Nie udało się wczytać grup mafijnych."
   },
   "Mafya işi için grubunda en az 3 üye olmalı.": {
     "code": "MAFYA_IŞI_IÇIN_GRUBUNDA_EN_AZ_3_ÜYE_OLMALI",
@@ -3132,7 +3296,8 @@
     "el": "Για δουλειά στη μαφία πρέπει να υπάρχουν τουλάχιστον 3 μέλη στην ομάδα σας.",
     "ru": "Для работы в мафии в вашей группе должно быть не менее 3-х участников.",
     "zh": "对于黑手党工作，您的团队中必须至少有 3 名成员。",
-    "ar": "بالنسبة لوظيفة المافيا يجب أن يكون هناك 3 أعضاء على الأقل في مجموعتك."
+    "ar": "بالنسبة لوظيفة المافيا يجب أن يكون هناك 3 أعضاء على الأقل في مجموعتك.",
+    "pl": "Aby pracować w mafii, w Twojej grupie musi znajdować się co najmniej 3 członków."
   },
   "Mafya işleri yüklenemedi.": {
     "code": "MAFYA_IŞLERI_YÜKLENEMEDI",
@@ -3151,7 +3316,8 @@
     "el": "Οι υποθέσεις της μαφίας δεν μπορούσαν να φορτωθούν.",
     "ru": "Дела мафии загрузить не удалось.",
     "zh": "无法加载黑手党事务。",
-    "ar": "لا يمكن تحميل شؤون المافيا."
+    "ar": "لا يمكن تحميل شؤون المافيا.",
+    "pl": "Nie udało się wczytać spraw mafijnych."
   },
   "Mafya verisi yüklenemedi:": {
     "code": "MAFYA_VERISI_YÜKLENEMEDI",
@@ -3170,7 +3336,8 @@
     "el": "Αποτυχία φόρτωσης δεδομένων mob:",
     "ru": "Не удалось загрузить данные моба:",
     "zh": "无法加载生物数据：",
-    "ar": "فشل تحميل بيانات الغوغاء:"
+    "ar": "فشل تحميل بيانات الغوغاء:",
+    "pl": "Nie udało się załadować danych moba:"
   },
   "Makam baskını için 1 İcraat Hakkı gerekir!": {
     "code": "MAKAM_BASKINI_IÇIN_1_İCRAAT_HAKKI_GEREKIR",
@@ -3189,7 +3356,8 @@
     "el": "Απαιτείται 1 Δικαίωμα Εκτέλεσης για επιδρομή σε γραφείο!",
     "ru": "Для совершения рейда на офис требуется 1 право на исполнение!",
     "zh": "突袭办公室需要1个执行权！",
-    "ar": "1 حق التنفيذ مطلوب لمداهمة مكتب!"
+    "ar": "1 حق التنفيذ مطلوب لمداهمة مكتب!",
+    "pl": "Aby napaść na biuro, wymagane jest 1 prawo do wykonania!"
   },
   "Maksimum seviyeye ulaşıldı.": {
     "code": "MAKSIMUM_SEVIYEYE_ULAŞILDI",
@@ -3208,7 +3376,8 @@
     "el": "Το μέγιστο επίπεδο έχει επιτευχθεί.",
     "ru": "Максимальный уровень достигнут.",
     "zh": "已达到最高级别。",
-    "ar": "تم الوصول إلى الحد الأقصى للمستوى."
+    "ar": "تم الوصول إلى الحد الأقصى للمستوى.",
+    "pl": "Osiągnięto maksymalny poziom."
   },
   "Malzeme maliyeti ${maliyet} TL — kasada yeterli para yok.": {
     "code": "MALZEME_MALIYETI_MALIYET_TL_KASADA_YETERLI_PARA_YOK",
@@ -3227,7 +3396,8 @@
     "el": "Κόστος υλικού ${maliyet} TL — δεν υπάρχουν αρκετά χρήματα στο ταμείο.",
     "ru": "Стоимость материала ${maliyet} TL — недостаточно денег в кассе.",
     "zh": "材料成本 ${maliyet} TL — 收银机里的钱不够。",
-    "ar": "تكلفة المواد ${maliyet} TL — لا يوجد ما يكفي من المال في ماكينة تسجيل النقد."
+    "ar": "تكلفة المواد ${maliyet} TL — لا يوجد ما يكفي من المال في ماكينة تسجيل النقد.",
+    "pl": "Koszt materiału ${maliyet} TL — za mało pieniędzy w kasie."
   },
   "${mekanKey} adedi geçersiz.": {
     "code": "MEKANKEY_ADEDI_GEÇERSIZ",
@@ -3246,7 +3416,8 @@
     "el": "Η ποσότητα ${mekanKey} δεν είναι έγκυρη.",
     "ru": "Количество ${mekanKey} недействительно.",
     "zh": "数量 ${mekanKey} 无效。",
-    "ar": "الكمية ${mekanKey} غير صالحة."
+    "ar": "الكمية ${mekanKey} غير صالحة.",
+    "pl": "Ilość ${mekanKey} jest nieprawidłowa."
   },
   "Mekanlar güncellenemedi.": {
     "code": "MEKANLAR_GÜNCELLENEMEDI",
@@ -3265,7 +3436,8 @@
     "el": "Δεν ήταν δυνατή η ενημέρωση των τοποθεσιών.",
     "ru": "Не удалось обновить местоположения.",
     "zh": "无法更新位置。",
-    "ar": "لا يمكن تحديث المواقع."
+    "ar": "لا يمكن تحديث المواقع.",
+    "pl": "Nie udało się zaktualizować lokalizacji."
   },
   "Mesaj boş olamaz.": {
     "code": "MESAJ_BOŞ_OLAMAZ",
@@ -3284,7 +3456,8 @@
     "el": "Το μήνυμα δεν μπορεί να είναι κενό.",
     "ru": "Сообщение не может быть пустым.",
     "zh": "消息不能为空。",
-    "ar": "لا يمكن أن تكون الرسالة فارغة."
+    "ar": "لا يمكن أن تكون الرسالة فارغة.",
+    "pl": "Wiadomość nie może być pusta."
   },
   "Mesaj bulunamadı.": {
     "code": "MESAJ_BULUNAMADI",
@@ -3303,7 +3476,8 @@
     "el": "Το μήνυμα δεν βρέθηκε.",
     "ru": "Сообщение не найдено.",
     "zh": "未找到消息。",
-    "ar": "لم يتم العثور على الرسالة."
+    "ar": "لم يتم العثور على الرسالة.",
+    "pl": "Nie znaleziono wiadomości."
   },
   "Mesaj temizleme başarısız.": {
     "code": "MESAJ_TEMIZLEME_BAŞARISIZ",
@@ -3322,7 +3496,8 @@
     "el": "Η εκκαθάριση του μηνύματος απέτυχε.",
     "ru": "Очистка сообщения не удалась.",
     "zh": "消息清除失败。",
-    "ar": "فشل مسح الرسالة."
+    "ar": "فشل مسح الرسالة.",
+    "pl": "Usuwanie wiadomości nie powiodło się."
   },
   "Mesajlar yüklenemedi.": {
     "code": "MESAJLAR_YÜKLENEMEDI",
@@ -3341,7 +3516,8 @@
     "el": "Δεν ήταν δυνατή η φόρτωση των μηνυμάτων.",
     "ru": "Не удалось загрузить сообщения.",
     "zh": "无法加载消息。",
-    "ar": "لا يمكن تحميل الرسائل."
+    "ar": "لا يمكن تحميل الرسائل.",
+    "pl": "Nie udało się załadować wiadomości."
   },
   "Meslek paneli yüklenemedi.": {
     "code": "MESLEK_PANELI_YÜKLENEMEDI",
@@ -3360,7 +3536,8 @@
     "el": "Δεν ήταν δυνατή η φόρτωση του πίνακα επαγγέλματος.",
     "ru": "Не удалось загрузить панель профессий.",
     "zh": "无法加载职业面板。",
-    "ar": "لا يمكن تحميل لوحة المهنة."
+    "ar": "لا يمكن تحميل لوحة المهنة.",
+    "pl": "Nie udało się wczytać panelu profesji."
   },
   "Mevcut şifre hatalı.": {
     "code": "MEVCUT_ŞIFRE_HATALI",
@@ -3379,7 +3556,8 @@
     "el": "Ο τρέχων κωδικός πρόσβασης είναι λανθασμένος.",
     "ru": "Текущий пароль неверен.",
     "zh": "当前密码不正确。",
-    "ar": "كلمة المرور الحالية غير صحيحة."
+    "ar": "كلمة المرور الحالية غير صحيحة.",
+    "pl": "Bieżące hasło jest nieprawidłowe."
   },
   "Minimum ihale teklifi ${sehir.ihaleMin.toLocaleString(": {
     "code": "MINIMUM_IHALE_TEKLIFI_SEHIR_IHALEMIN_TOLOCALESTRING",
@@ -3398,7 +3576,8 @@
     "el": "Ελάχιστη προσφορά προσφοράς ${city.tenderMin.toLocaleString(",
     "ru": "Минимальная тендерная ставка ${city.tenderMin.toLocaleString(",
     "zh": "最低投标出价 ${city.tenderMin.toLocaleString(",
-    "ar": "الحد الأدنى لعطاء العطاء ${city.tenderMin.toLocaleString("
+    "ar": "الحد الأدنى لعطاء العطاء ${city.tenderMin.toLocaleString(",
+    "pl": "Minimalna oferta przetargowa ${city.tenderMin.toLocaleString("
   },
   "Multi-hesap listesi yüklenemedi.": {
     "code": "MULTI_HESAP_LISTESI_YÜKLENEMEDI",
@@ -3417,7 +3596,8 @@
     "el": "Η φόρτωση της λίστας πολλών λογαριασμών απέτυχε.",
     "ru": "Не удалось загрузить список нескольких аккаунтов.",
     "zh": "加载多帐户列表失败。",
-    "ar": "فشل تحميل قائمة الحسابات المتعددة."
+    "ar": "فشل تحميل قائمة الحسابات المتعددة.",
+    "pl": "Nie udało się wczytać listy wielu kont."
   },
   "NPC işindesin. Önce istifa et.": {
     "code": "NPC_IŞINDESIN_ÖNCE_ISTIFA_ET",
@@ -3436,7 +3616,8 @@
     "el": "Είστε στην επιχείρηση NPC. Παραιτηθείτε πρώτα.",
     "ru": "Вы занимаетесь бизнесом NPC. Сначала уйди в отставку.",
     "zh": "你是做NPC生意的。 先辞职吧",
-    "ar": "أنت تعمل في مجال NPC. الاستقالة أولا."
+    "ar": "أنت تعمل في مجال NPC. الاستقالة أولا.",
+    "pl": "Działasz w branży NPC. Najpierw zrezygnuj."
   },
   "Online değilsin. Sayfayı açık tut ve tekrar dene.": {
     "code": "ONLINE_DEĞILSIN_SAYFAYI_AÇIK_TUT_VE_TEKRAR_DENE",
@@ -3455,7 +3636,8 @@
     "el": "Δεν είστε συνδεδεμένοι. Κρατήστε τη σελίδα ανοιχτή και δοκιμάστε ξανά.",
     "ru": "Вы не онлайн. Оставьте страницу открытой и повторите попытку.",
     "zh": "你不在线。 保持页面打开并重试。",
-    "ar": "أنت لست على الانترنت. أبقِ الصفحة مفتوحة وحاول مرة أخرى."
+    "ar": "أنت لست على الانترنت. أبقِ الصفحة مفتوحة وحاول مرة أخرى.",
+    "pl": "Nie jesteś online. Pozostaw stronę otwartą i spróbuj ponownie."
   },
   "Oturum doğrulanamadı.": {
     "code": "OTURUM_DOĞRULANAMADI",
@@ -3474,7 +3656,8 @@
     "el": "Δεν ήταν δυνατή η επαλήθευση της συνεδρίας.",
     "ru": "Не удалось подтвердить сеанс.",
     "zh": "无法验证会话。",
-    "ar": "تعذر التحقق من الجلسة."
+    "ar": "تعذر التحقق من الجلسة.",
+    "pl": "Nie można zweryfikować sesji."
   },
   "Oturum sonlandırma başarısız.": {
     "code": "OTURUM_SONLANDIRMA_BAŞARISIZ",
@@ -3493,7 +3676,8 @@
     "el": "Ο τερματισμός της συνεδρίας απέτυχε.",
     "ru": "Завершение сеанса не удалось.",
     "zh": "会话终止失败。",
-    "ar": "فشل إنهاء الجلسة."
+    "ar": "فشل إنهاء الجلسة.",
+    "pl": "Zakończenie sesji nie powiodło się."
   },
   "Oyuncu adı 1-${OYUNCU_ADI_MAX} karakter olmalı.": {
     "code": "OYUNCU_ADI_1_OYUNCU_ADI_MAX_KARAKTER_OLMALI",
@@ -3512,7 +3696,8 @@
     "el": "Το όνομα του παίκτη πρέπει να αποτελείται από 1-${OYUNCU_ADI_MAX} χαρακτήρες.",
     "ru": "Имя игрока должно состоять из символов 1-${OYUNCU_ADI_MAX}.",
     "zh": "玩家姓名必须是 1-${OYUNCU_ADI_MAX} 个字符。",
-    "ar": "يجب أن يتكون اسم اللاعب من 1-${OYUNCU_ADI_MAX} حرفًا."
+    "ar": "يجب أن يتكون اسم اللاعب من 1-${OYUNCU_ADI_MAX} حرفًا.",
+    "pl": "Nazwa gracza musi składać się z 1-${OYUNCU_ADI_MAX} znaków."
   },
   "Oyuncu bulunamadı.": {
     "code": "OYUNCU_BULUNAMADI",
@@ -3531,7 +3716,8 @@
     "el": "Ο παίκτης δεν βρέθηκε.",
     "ru": "Игрок не найден.",
     "zh": "未找到播放器。",
-    "ar": "لم يتم العثور على اللاعب."
+    "ar": "لم يتم العثور على اللاعب.",
+    "pl": "Nie znaleziono gracza."
   },
   "Oyuncu bulunamadı. Reis adını doğru yaz.": {
     "code": "OYUNCU_BULUNAMADI_REIS_ADINI_DOĞRU_YAZ",
@@ -3550,7 +3736,8 @@
     "el": "Ο παίκτης δεν βρέθηκε. Γράψε σωστά το όνομα του Αρχηγού.",
     "ru": "Игрок не найден. Назовите имя начальника правильно.",
     "zh": "未找到播放器。 正确拼写酋长的名字。",
-    "ar": "لم يتم العثور على اللاعب. تهجئة اسم الرئيس بشكل صحيح."
+    "ar": "لم يتم العثور على اللاعب. تهجئة اسم الرئيس بشكل صحيح.",
+    "pl": "Nie znaleziono gracza. Przeliteruj poprawnie imię Szefa."
   },
   "Oyuncu verisi yüklenemedi.": {
     "code": "OYUNCU_VERISI_YÜKLENEMEDI",
@@ -3569,7 +3756,8 @@
     "el": "Η φόρτωση των δεδομένων του προγράμματος αναπαραγωγής απέτυχε.",
     "ru": "Не удалось загрузить данные игрока.",
     "zh": "无法加载玩家数据。",
-    "ar": "فشل في تحميل بيانات اللاعب."
+    "ar": "فشل في تحميل بيانات اللاعب.",
+    "pl": "Nie udało się załadować danych gracza."
   },
   "Ödül zaten alındı.": {
     "code": "ÖDÜL_ZATEN_ALINDI",
@@ -3588,7 +3776,8 @@
     "el": "Η ανταμοιβή έχει ήδη ληφθεί.",
     "ru": "Награда уже получена.",
     "zh": "奖励已经收到了。",
-    "ar": "لقد تم استلام المكافأة بالفعل."
+    "ar": "لقد تم استلام المكافأة بالفعل.",
+    "pl": "Nagroda została już odebrana."
   },
   "Önce ${onceki.ad} satın almalısın.": {
     "code": "ÖNCE_ONCEKI_AD_SATIN_ALMALISIN",
@@ -3607,7 +3796,8 @@
     "el": "Θα πρέπει πρώτα να αγοράσετε ${onceki.ad}.",
     "ru": "Сначала вам следует купить ${onceki.ad}.",
     "zh": "您应该先购买 ${onceki.ad}。",
-    "ar": "يجب عليك شراء ${onceki.ad} أولاً."
+    "ar": "يجب عليك شراء ${onceki.ad} أولاً.",
+    "pl": "Najpierw powinieneś kupić ${onceki.ad}."
   },
   "Panel verisi yüklenemedi.": {
     "code": "PANEL_VERISI_YÜKLENEMEDI",
@@ -3626,7 +3816,8 @@
     "el": "Αποτυχία φόρτωσης δεδομένων πίνακα.",
     "ru": "Не удалось загрузить данные панели.",
     "zh": "加载面板数据失败。",
-    "ar": "فشل تحميل بيانات اللوحة."
+    "ar": "فشل تحميل بيانات اللوحة.",
+    "pl": "Nie udało się załadować danych panelu."
   },
   "Profil kaydedilemedi.": {
     "code": "PROFIL_KAYDEDILEMEDI",
@@ -3645,7 +3836,8 @@
     "el": "Δεν ήταν δυνατή η αποθήκευση του προφίλ.",
     "ru": "Не удалось сохранить профиль.",
     "zh": "无法保存配置文件。",
-    "ar": "لا يمكن حفظ الملف الشخصي."
+    "ar": "لا يمكن حفظ الملف الشخصي.",
+    "pl": "Nie można zapisać profilu."
   },
   "Profil yüklenemedi.": {
     "code": "PROFIL_YÜKLENEMEDI",
@@ -3664,7 +3856,8 @@
     "el": "Δεν ήταν δυνατή η φόρτωση του προφίλ.",
     "ru": "Не удалось загрузить профиль.",
     "zh": "无法加载配置文件。",
-    "ar": "لا يمكن تحميل الملف الشخصي."
+    "ar": "لا يمكن تحميل الملف الشخصي.",
+    "pl": "Nie można załadować profilu."
   },
   "Rakip listesi yüklenemedi.": {
     "code": "RAKIP_LISTESI_YÜKLENEMEDI",
@@ -3683,7 +3876,8 @@
     "el": "Δεν ήταν δυνατή η φόρτωση της λίστας αντιπάλων.",
     "ru": "Не удалось загрузить список противников.",
     "zh": "无法加载对手列表。",
-    "ar": "لا يمكن تحميل قائمة المعارضين."
+    "ar": "لا يمكن تحميل قائمة المعارضين.",
+    "pl": "Nie można załadować listy przeciwników."
   },
   "Rapor gönderilemedi.": {
     "code": "RAPOR_GÖNDERILEMEDI",
@@ -3702,7 +3896,8 @@
     "el": "Δεν ήταν δυνατή η αποστολή της αναφοράς.",
     "ru": "Не удалось отправить отчет.",
     "zh": "无法发送报告。",
-    "ar": "لا يمكن إرسال التقرير."
+    "ar": "لا يمكن إرسال التقرير.",
+    "pl": "Nie udało się wysłać raportu."
   },
   "Raporlar yüklenemedi.": {
     "code": "RAPORLAR_YÜKLENEMEDI",
@@ -3721,7 +3916,8 @@
     "el": "Δεν ήταν δυνατή η φόρτωση των αναφορών.",
     "ru": "Не удалось загрузить отчеты.",
     "zh": "无法加载报告。",
-    "ar": "لا يمكن تحميل التقارير."
+    "ar": "لا يمكن تحميل التقارير.",
+    "pl": "Nie udało się wczytać raportów."
   },
   "Reis adı 1-${REIS_MAX} karakter olmalı.": {
     "code": "REIS_ADI_1_REIS_MAX_KARAKTER_OLMALI",
@@ -3740,7 +3936,8 @@
     "el": "Το κύριο όνομα πρέπει να αποτελείται από 1-${REIS_MAX} χαρακτήρες.",
     "ru": "Имя главного должно состоять из символов 1-${REIS_MAX}.",
     "zh": "主要姓名必须为 1-${REIS_MAX} 个字符。",
-    "ar": "يجب أن يتكون الاسم الرئيسي من 1-${REIS_MAX} حرفًا."
+    "ar": "يجب أن يتكون الاسم الرئيسي من 1-${REIS_MAX} حرفًا.",
+    "pl": "Imię główne musi składać się z 1–${REIS_MAX} znaków."
   },
   "Rüşvet en az ${min.toLocaleString(": {
     "code": "RÜŞVET_EN_AZ_MIN_TOLOCALESTRING",
@@ -3759,7 +3956,8 @@
     "el": "Η δωροδοκία πρέπει να είναι τουλάχιστον ${min.toLocaleString(",
     "ru": "Взятка должна быть не менее ${min.toLocaleString(",
     "zh": "贿赂金额必须至少为 ${min.toLocaleString(",
-    "ar": "يجب أن تكون قيمة الرشوة على الأقل ${min.toLocaleString("
+    "ar": "يجب أن تكون قيمة الرشوة على الأقل ${min.toLocaleString(",
+    "pl": "Łapówka musi wynosić co najmniej ${min.toLocaleString("
   },
   "Sadece grup lideri savaş ilan edebilir.": {
     "code": "SADECE_GRUP_LIDERI_SAVAŞ_ILAN_EDEBILIR",
@@ -3778,7 +3976,8 @@
     "el": "Μόνο ο αρχηγός της ομάδας μπορεί να κηρύξει πόλεμο.",
     "ru": "Только лидер группы может объявить войну.",
     "zh": "只有组长才能宣战。",
-    "ar": "فقط قائد المجموعة يمكنه إعلان الحرب."
+    "ar": "فقط قائد المجموعة يمكنه إعلان الحرب.",
+    "pl": "Tylko przywódca grupy może wypowiedzieć wojnę."
   },
   "Sadece lider rütbe verir.": {
     "code": "SADECE_LIDER_RÜTBE_VERIR",
@@ -3797,7 +3996,8 @@
     "el": "Μόνο ο αρχηγός δίνει βαθμό.",
     "ru": "Звания присваивает только лидер.",
     "zh": "只有领导者才能赋予等级。",
-    "ar": "القائد فقط هو من يعطي الرتبة."
+    "ar": "القائد فقط هو من يعطي الرتبة.",
+    "pl": "Rangę nadaje tylko lider."
   },
   "Sadece Mafya Grubu lideri açıklamayı değiştirebilir.": {
     "code": "SADECE_MAFYA_GRUBU_LIDERI_AÇIKLAMAYI_DEĞIŞTIREBILIR",
@@ -3816,7 +4016,8 @@
     "el": "Μόνο ο αρχηγός της Μαφίας μπορεί να αλλάξει τη δήλωση.",
     "ru": "Только лидер мафиозной группы может изменить заявление.",
     "zh": "只有黑手党集团领导人才能改变声明。",
-    "ar": "فقط زعيم مجموعة المافيا يمكنه تغيير البيان."
+    "ar": "فقط زعيم مجموعة المافيا يمكنه تغيير البيان.",
+    "pl": "Tylko lider Grupy Mafijnej może zmienić oświadczenie."
   },
   "Sadece Mafya Grubu lideri grup adını değiştirebilir.": {
     "code": "SADECE_MAFYA_GRUBU_LIDERI_GRUP_ADINI_DEĞIŞTIREBILIR",
@@ -3835,7 +4036,8 @@
     "el": "Μόνο ο αρχηγός της Μαφίας μπορεί να αλλάξει το όνομα της ομάδας.",
     "ru": "Только лидер мафиозной группы может изменить название группы.",
     "zh": "只有黑手党组长才能更改组名。",
-    "ar": "يمكن لزعيم مجموعة المافيا فقط تغيير اسم المجموعة."
+    "ar": "يمكن لزعيم مجموعة المافيا فقط تغيير اسم المجموعة.",
+    "pl": "Tylko lider Grupy Mafijnej może zmienić nazwę grupy."
   },
   "Sadece Mafya Lideri seviye yükseltebilir.": {
     "code": "SADECE_MAFYA_LIDERI_SEVIYE_YÜKSELTEBILIR",
@@ -3847,7 +4049,8 @@
     "es": "Sólo el líder de la mafia puede subir de nivel.",
     "it": "Solo il leader mafioso può salire di livello.",
     "pt": "Somente o Líder da Máfia pode subir de nível.",
-    "pt-BR": "Somente o Líder da Máfia pode subir de nível."
+    "pt-BR": "Somente o Líder da Máfia pode subir de nível.",
+    "pl": "Tylko przywódca mafii może awansować na wyższy poziom."
   },
   "Sadece makam sahibi yazabilir.": {
     "code": "SADECE_MAKAM_SAHIBI_YAZABILIR",
@@ -3866,7 +4069,8 @@
     "el": "Μόνο ο κάτοχος της θέσης μπορεί να γράψει.",
     "ru": "Писать может только занимающий должность.",
     "zh": "只有职位持有者可以发言。",
-    "ar": "فقط صاحب المنصب يمكنه الكتابة."
+    "ar": "فقط صاحب المنصب يمكنه الكتابة.",
+    "pl": "Tylko osoba sprawująca urząd może pisać."
   },
   "Saldırı için 1 İcraat Hakkı gerekir!": {
     "code": "SALDIRI_IÇIN_1_İCRAAT_HAKKI_GEREKIR",
@@ -3885,7 +4089,8 @@
     "el": "Χρειάζεσαι 1 δικαίωμα εκτέλεσης για επίθεση!",
     "ru": "Для атаки нужно 1 право на операцию!",
     "zh": "攻击需要 1 点行动权！",
-    "ar": "تحتاج إلى 1 حق تنفيذ للهجوم!"
+    "ar": "تحتاج إلى 1 حق تنفيذ للهجوم!",
+    "pl": "Aby zaatakować, potrzebujesz 1 Punktu Akcji!"
   },
   "Savaş bulunamadı.": {
     "code": "SAVAŞ_BULUNAMADI",
@@ -3904,7 +4109,8 @@
     "el": "Ο πόλεμος δεν βρέθηκε.",
     "ru": "Война не найдена.",
     "zh": "未找到战争。",
-    "ar": "لم يتم العثور على الحرب."
+    "ar": "لم يتم العثور على الحرب.",
+    "pl": "Nie znaleziono wojny."
   },
   "Savaş ilan etmek için grubunda en az 3 üye olmalı.": {
     "code": "SAVAŞ_ILAN_ETMEK_IÇIN_GRUBUNDA_EN_AZ_3_ÜYE_OLMALI",
@@ -3923,7 +4129,8 @@
     "el": "Η ομάδα σου πρέπει να έχει τουλάχιστον 3 μέλη για να κηρύξει πόλεμο.",
     "ru": "В группе должно быть минимум 3 участника, чтобы объявить войну.",
     "zh": "宣战需要你的帮派至少有 3 名成员。",
-    "ar": "يجب أن يضم مجموعتك 3 أعضاء على الأقل لإعلان الحرب."
+    "ar": "يجب أن يضم مجموعتك 3 أعضاء على الأقل لإعلان الحرب.",
+    "pl": "Aby wypowiedzieć wojnę, twoja grupa musi mieć co najmniej 3 członków."
   },
   "Savaş katılmaya kapalı.": {
     "code": "SAVAŞ_KATILMAYA_KAPALI",
@@ -3942,7 +4149,8 @@
     "el": "Αυτός ο πόλεμος είναι κλειστός για συμμετοχή.",
     "ru": "К этой войне нельзя присоединиться.",
     "zh": "此战争已关闭参战。",
-    "ar": "هذه الحرب مغلقة أمام المشاركة."
+    "ar": "هذه الحرب مغلقة أمام المشاركة.",
+    "pl": "Ta wojna jest zamknięta dla udziału."
   },
   "Savaşlar yüklenemedi.": {
     "code": "SAVAŞLAR_YÜKLENEMEDI",
@@ -3961,7 +4169,8 @@
     "el": "Δεν ήταν δυνατή η φόρτωση των πολέμων.",
     "ru": "Не удалось загрузить войны.",
     "zh": "无法加载战争列表。",
-    "ar": "تعذر تحميل الحروب."
+    "ar": "تعذر تحميل الحروب.",
+    "pl": "Nie udało się wczytać wojen."
   },
   "Saygı duvarı yüklenemedi.": {
     "code": "SAYGI_DUVARI_YÜKLENEMEDI",
@@ -3980,7 +4189,8 @@
     "el": "Δεν ήταν δυνατή η φόρτωση του τοίχου σεβασμού.",
     "ru": "Не удалось загрузить стену уважения.",
     "zh": "无法加载声望墙。",
-    "ar": "تعذر تحميل جدار الاحترام."
+    "ar": "تعذر تحميل جدار الاحترام.",
+    "pl": "Nie można załadować ściany szacunku."
   },
   "Saygınlığına göre bu tur en fazla ${max.toLocaleString(": {
     "code": "SAYGINLIĞINA_GÖRE_BU_TUR_EN_FAZLA_MAX_TOLOCALESTRING",
@@ -3999,7 +4209,8 @@
     "el": "Ανάλογα με το κύρος σου, σε αυτόν τον γύρο μπορείς να δώσεις το πολύ ${max.toLocaleString(",
     "ru": "В зависимости от престижа в этом раунде можно внести не более ${max.toLocaleString(",
     "zh": "根据你的声望，本轮最多可捐赠 ${max.toLocaleString(",
-    "ar": "حسب مكانتك، في هذه الجولة يمكنك التبرع بحد أقصى ${max.toLocaleString("
+    "ar": "حسب مكانتك، في هذه الجولة يمكنك التبرع بحد أقصى ${max.toLocaleString(",
+    "pl": "Bazując na swoim prestiżu, możesz dać maksymalnie ${max.toLocaleString("
   },
   "Sebep en az ${SEBEP_MIN} karakter olmalı.": {
     "code": "SEBEP_EN_AZ_SEBEP_MIN_KARAKTER_OLMALI",
@@ -4018,7 +4229,8 @@
     "el": "Ο λόγος πρέπει να έχει τουλάχιστον ${SEBEP_MIN} χαρακτήρες.",
     "ru": "Причина должна содержать не менее ${SEBEP_MIN} символов.",
     "zh": "原因至少需要 ${SEBEP_MIN} 个字符。",
-    "ar": "يجب أن يكون السبب ${SEBEP_MIN} أحرف على الأقل."
+    "ar": "يجب أن يكون السبب ${SEBEP_MIN} أحرف على الأقل.",
+    "pl": "Powód musi mieć co najmniej ${SEBEP_MIN} znaków."
   },
   "${sehir.ad} boş — önce kontrol topla veya ihaleye gir.": {
     "code": "SEHIR_AD_BOŞ_ÖNCE_KONTROL_TOPLA_VEYA_IHALEYE_GIR",
@@ -4037,7 +4249,8 @@
     "el": "Η ${sehir.ad} είναι άδεια — συγκέντρωσε πρώτα έλεγχο ή μπες σε δημοπρασία.",
     "ru": "${sehir.ad} пуст — сначала накопи контроль или участвуй в аукционе.",
     "zh": "${sehir.ad} 为空 — 先积累控制权或参与拍卖。",
-    "ar": "${sehir.ad} فارغة — اجمع السيطرة أولاً أو ادخل المزاد."
+    "ar": "${sehir.ad} فارغة — اجمع السيطرة أولاً أو ادخل المزاد.",
+    "pl": "${sehir.ad} jest pusty — najpierw przejmij kontrolę lub weź udział w aukcji."
   },
   "${sehir.ad} stratejik şehirdir. Önce bir mafya grubuna katılmalısın.": {
     "code": "SEHIR_AD_STRATEJIK_ŞEHIRDIR_ÖNCE_BIR_MAFYA_GRUBUNA_KATILMALI",
@@ -4056,7 +4269,8 @@
     "el": "Η ${sehir.ad} είναι στρατηγική πόλη. Πρέπει πρώτα να μπεις σε μια μαφιόζικη ομάδα.",
     "ru": "${sehir.ad} — стратегический город. Сначала вступи в группу мафии.",
     "zh": "${sehir.ad} 是战略城市。你必须先加入一个黑帮帮派。",
-    "ar": "${sehir.ad} مدينة استراتيجية. يجب أن تنضم إلى مجموعة مافيا أولاً."
+    "ar": "${sehir.ad} مدينة استراتيجية. يجب أن تنضم إلى مجموعة مافيا أولاً.",
+    "pl": "${sehir.ad} to miasto strategiczne. Najpierw musisz dołączyć do grupy mafijnej."
   },
   "Silinemedi.": {
     "code": "SILINEMEDI",
@@ -4075,7 +4289,8 @@
     "el": "Δεν ήταν δυνατή η διαγραφή.",
     "ru": "Не удалось удалить.",
     "zh": "无法删除。",
-    "ar": "تعذر الحذف."
+    "ar": "تعذر الحذف.",
+    "pl": "Nie można usunąć."
   },
   "SMS hakkın kalmadı! Yarın 50 hak yenilenir.": {
     "code": "SMS_HAKKIN_KALMADI_YARIN_50_HAK_YENILENIR",
@@ -4094,7 +4309,8 @@
     "el": "Δεν έχεις άλλα SMS! Αύριο ανανεώνονται 50.",
     "ru": "SMS-лимит исчерпан! Завтра обновится 50.",
     "zh": "短信额度已用完！明天将恢复 50 条。",
-    "ar": "لم يتبق لديك رصيد SMS! يتجدد 50 غداً."
+    "ar": "لم يتبق لديك رصيد SMS! يتجدد 50 غداً.",
+    "pl": "Nie masz już środków na SMS-y! Jutro odnowione zostanie 50 kredytów."
   },
   "Sohbet yüklenemedi.": {
     "code": "SOHBET_YÜKLENEMEDI",
@@ -4113,7 +4329,8 @@
     "el": "Δεν ήταν δυνατή η φόρτωση της συνομιλίας.",
     "ru": "Не удалось загрузить чат.",
     "zh": "无法加载聊天。",
-    "ar": "تعذر تحميل الدردشة."
+    "ar": "تعذر تحميل الدردشة.",
+    "pl": "Nie udało się wczytać czatu."
   },
   "Soygun bulunamadı veya kapalı.": {
     "code": "SOYGUN_BULUNAMADI_VEYA_KAPALI",
@@ -4132,7 +4349,8 @@
     "el": "Η ληστεία δεν βρέθηκε ή είναι κλειστή.",
     "ru": "Ограбление не найдено или закрыто.",
     "zh": "未找到抢劫或已关闭。",
-    "ar": "لم يُعثر على السطو أو أنه مغلق."
+    "ar": "لم يُعثر على السطو أو أنه مغلق.",
+    "pl": "Nie znaleziono lub nie zamknięto napadu."
   },
   "Soygun tanımı bulunamadı.": {
     "code": "SOYGUN_TANIMI_BULUNAMADI",
@@ -4151,7 +4369,8 @@
     "el": "Ο ορισμός ληστείας δεν βρέθηκε.",
     "ru": "Определение ограбления не найдено.",
     "zh": "未找到抢劫定义。",
-    "ar": "تعريف السطو غير موجود."
+    "ar": "تعريف السطو غير موجود.",
+    "pl": "Nie znaleziono definicji napadu."
   },
   "Sunucu hatası.": {
     "code": "SUNUCU_HATASI",
@@ -4170,7 +4389,8 @@
     "el": "Σφάλμα διακομιστή.",
     "ru": "Ошибка сервера.",
     "zh": "服务器错误。",
-    "ar": "خطأ في الخادم."
+    "ar": "خطأ في الخادم.",
+    "pl": "Błąd serwera."
   },
   "Şartlar sağlanmadı. Online + güç gereksinimleri eksik.": {
     "code": "ŞARTLAR_SAĞLANMADI_ONLINE_GÜÇ_GEREKSINIMLERI_EKSIK",
@@ -4189,7 +4409,8 @@
     "el": "Οι προϋποθέσεις δεν πληρούνται. Λείπουν απαιτήσεις online και δύναμης.",
     "ru": "Условия не выполнены. Не хватает требований по онлайну и силе.",
     "zh": "条件未满足。缺少在线和实力要求。",
-    "ar": "لم تتحقق الشروط. متطلبات الاتصال والقوة ناقصة."
+    "ar": "لم تتحقق الشروط. متطلبات الاتصال والقوة ناقصة.",
+    "pl": "Wymagania nie zostały spełnione. Brak wymagań dotyczących trybu online i zasilania."
   },
   "Şehir bulunamadı.": {
     "code": "ŞEHIR_BULUNAMADI",
@@ -4208,7 +4429,8 @@
     "el": "Η πόλη δεν βρέθηκε.",
     "ru": "Город не найден.",
     "zh": "未找到城市。",
-    "ar": "المدينة غير موجودة."
+    "ar": "المدينة غير موجودة.",
+    "pl": "Nie znaleziono miasta."
   },
   "Şehir tarihi yüklenemedi.": {
     "code": "ŞEHIR_TARIHI_YÜKLENEMEDI",
@@ -4227,7 +4449,8 @@
     "el": "Δεν ήταν δυνατή η φόρτωση του ιστορικού της πόλης.",
     "ru": "Не удалось загрузить историю города.",
     "zh": "无法加载城市历史。",
-    "ar": "تعذر تحميل تاريخ المدينة."
+    "ar": "تعذر تحميل تاريخ المدينة.",
+    "pl": "Nie można wczytać historii miasta."
   },
   "Şifre en az ${PASS_MIN} karakter olmalı.": {
     "code": "ŞIFRE_EN_AZ_PASS_MIN_KARAKTER_OLMALI",
@@ -4246,7 +4469,8 @@
     "el": "Ο κωδικός πρέπει να έχει τουλάχιστον ${PASS_MIN} χαρακτήρες.",
     "ru": "Пароль должен содержать не менее ${PASS_MIN} символов.",
     "zh": "密码至少需要 ${PASS_MIN} 个字符。",
-    "ar": "يجب أن تكون كلمة المرور ${PASS_MIN} أحرف على الأقل."
+    "ar": "يجب أن تكون كلمة المرور ${PASS_MIN} أحرف على الأقل.",
+    "pl": "Hasło musi mieć co najmniej ${PASS_MIN} znaków."
   },
   "Şifre güncellenemedi.": {
     "code": "ŞIFRE_GÜNCELLENEMEDI",
@@ -4265,7 +4489,8 @@
     "el": "Δεν ήταν δυνατή η ενημέρωση του κωδικού.",
     "ru": "Не удалось обновить пароль.",
     "zh": "无法更新密码。",
-    "ar": "تعذر تحديث كلمة المرور."
+    "ar": "تعذر تحديث كلمة المرور.",
+    "pl": "Nie można zaktualizować hasła."
   },
   "Şirket adı en az 3 karakter olmalı.": {
     "code": "ŞIRKET_ADI_EN_AZ_3_KARAKTER_OLMALI",
@@ -4284,7 +4509,8 @@
     "el": "Το όνομα της εταιρείας πρέπει να έχει τουλάχιστον 3 χαρακτήρες.",
     "ru": "Название компании должно содержать не менее 3 символов.",
     "zh": "公司名称至少需要 3 个字符。",
-    "ar": "يجب أن يكون اسم الشركة 3 أحرف على الأقل."
+    "ar": "يجب أن يكون اسم الشركة 3 أحرف على الأقل.",
+    "pl": "Nazwa firmy musi składać się z co najmniej 3 znaków."
   },
   "Şirket kadrosu dolu.": {
     "code": "ŞIRKET_KADROSU_DOLU",
@@ -4303,7 +4529,8 @@
     "el": "Το προσωπικό της εταιρείας είναι πλήρες.",
     "ru": "Штат компании заполнен.",
     "zh": "公司人员已满。",
-    "ar": "طاقم الشركة مكتمل."
+    "ar": "طاقم الشركة مكتمل.",
+    "pl": "Lista firm jest pełna."
   },
   "Şirket kasasında yeterli para yok.": {
     "code": "ŞIRKET_KASASINDA_YETERLI_PARA_YOK",
@@ -4322,7 +4549,8 @@
     "el": "Δεν υπάρχουν αρκετά χρήματα στο ταμείο της εταιρείας.",
     "ru": "В кассе компании недостаточно денег.",
     "zh": "公司金库资金不足。",
-    "ar": "لا يوجد مال كافٍ في خزينة الشركة."
+    "ar": "لا يوجد مال كافٍ في خزينة الشركة.",
+    "pl": "Za mało pieniędzy w skarbcu firmy."
   },
   "Şirket paneli yüklenemedi.": {
     "code": "ŞIRKET_PANELI_YÜKLENEMEDI",
@@ -4341,7 +4569,8 @@
     "el": "Δεν ήταν δυνατή η φόρτωση του πίνακα εταιρείας.",
     "ru": "Не удалось загрузить панель компании.",
     "zh": "无法加载公司面板。",
-    "ar": "تعذر تحميل لوحة الشركة."
+    "ar": "تعذر تحميل لوحة الشركة.",
+    "pl": "Nie udało się wczytać panelu firmowego."
   },
   "Şirket sahibi iken NPC işine giremezsin.": {
     "code": "ŞIRKET_SAHIBI_IKEN_NPC_IŞINE_GIREMEZSIN",
@@ -4360,7 +4589,8 @@
     "el": "Δεν μπορείς να πάρεις δουλειά NPC ενώ είσαι ιδιοκτήτης εταιρείας.",
     "ru": "Владелец компании не может устроиться на NPC-работу.",
     "zh": "拥有公司时不能从事 NPC 工作。",
-    "ar": "لا يمكنك قبول وظيفة NPC وأنت مالك شركة."
+    "ar": "لا يمكنك قبول وظيفة NPC وأنت مالك شركة.",
+    "pl": "Nie możesz podjąć pracy u NPC, jeśli jesteś właścicielem firmy."
   },
   "Şirket türü geçersiz.": {
     "code": "ŞIRKET_TÜRÜ_GEÇERSIZ",
@@ -4379,7 +4609,8 @@
     "el": "Μη έγκυρος τύπος εταιρείας.",
     "ru": "Недопустимый тип компании.",
     "zh": "无效的公司类型。",
-    "ar": "نوع الشركة غير صالح."
+    "ar": "نوع الشركة غير صالح.",
+    "pl": "Nieprawidłowy typ firmy."
   },
   "Şirketin yok.": {
     "code": "ŞIRKETIN_YOK",
@@ -4398,7 +4629,8 @@
     "el": "Δεν έχεις εταιρεία.",
     "ru": "У тебя нет компании.",
     "zh": "你没有公司。",
-    "ar": "ليس لديك شركة."
+    "ar": "ليس لديك شركة.",
+    "pl": "Nie masz firmy."
   },
   "Tek seferde en fazla 5000 birim.": {
     "code": "TEK_SEFERDE_EN_FAZLA_5000_BIRIM",
@@ -4417,7 +4649,8 @@
     "el": "Μέγιστο 5000 μονάδες κάθε φορά.",
     "ru": "Не более 5000 единиц за раз.",
     "zh": "单次最多 5000 单位。",
-    "ar": "5000 وحدة كحد أقصى في المرة الواحدة."
+    "ar": "5000 وحدة كحد أقصى في المرة الواحدة.",
+    "pl": "Maksymalnie 5000 jednostek na raz."
   },
   "Tek seferde en fazla 999.999.999 TL çekebilirsin.": {
     "code": "TEK_SEFERDE_EN_FAZLA_999_999_999_TL_ÇEKEBILIRSIN",
@@ -4436,7 +4669,8 @@
     "el": "Μπορείς να αποσύρεις έως 999.999.999 TL κάθε φορά.",
     "ru": "За раз можно снять не более 999.999.999 TL.",
     "zh": "单次最多可提取 999,999,999 TL。",
-    "ar": "يمكنك سحب حتى 999,999,999 TL في المرة الواحدة."
+    "ar": "يمكنك سحب حتى 999,999,999 TL في المرة الواحدة.",
+    "pl": "Jednorazowo możesz wypłacić do 999 999 999 TL."
   },
   "Tek seferde en fazla 999.999.999 TL yatırabilirsin.": {
     "code": "TEK_SEFERDE_EN_FAZLA_999_999_999_TL_YATIRABILIRSIN",
@@ -4455,7 +4689,8 @@
     "el": "Μπορείς να καταθέσεις έως 999.999.999 TL κάθε φορά.",
     "ru": "За раз можно внести не более 999.999.999 TL.",
     "zh": "单次最多可存入 999,999,999 TL。",
-    "ar": "يمكنك إيداع حتى 999,999,999 TL في المرة الواحدة."
+    "ar": "يمكنك إيداع حتى 999,999,999 TL في المرة الواحدة.",
+    "pl": "Jednorazowo możesz wpłacić do 999 999 999 TL."
   },
   "Türkiye Sefirliği yüklenemedi.": {
     "code": "TÜRKIYE_SEFIRLIĞI_YÜKLENEMEDI",
@@ -4474,7 +4709,8 @@
     "el": "Δεν ήταν δυνατή η φόρτωση της πρεσβείας της Τουρκίας.",
     "ru": "Не удалось загрузить посольство Турции.",
     "zh": "无法加载土耳其大使馆。",
-    "ar": "تعذر تحميل سفارة تركيا."
+    "ar": "تعذر تحميل سفارة تركيا.",
+    "pl": "Nie można załadować Ambasady Turcji."
   },
   "Üs seviyesi en az ${kasa.minBaseSeviye} olmalı.": {
     "code": "ÜS_SEVIYESI_EN_AZ_KASA_MINBASESEVIYE_OLMALI",
@@ -4493,7 +4729,8 @@
     "el": "Το επίπεδο βάσης πρέπει να είναι τουλάχιστον ${kasa.minBaseSeviye}.",
     "ru": "Уровень базы должен быть не ниже ${kasa.minBaseSeviye}.",
     "zh": "基地等级至少需要 ${kasa.minBaseSeviye}。",
-    "ar": "يجب أن يكون مستوى القاعدة ${kasa.minBaseSeviye} على الأقل."
+    "ar": "يجب أن يكون مستوى القاعدة ${kasa.minBaseSeviye} على الأقل.",
+    "pl": "Poziom podstawowy musi wynosić co najmniej ${kasa.minBaseSeviye}."
   },
   "Üssün zaten maksimum seviyede.": {
     "code": "ÜSSÜN_ZATEN_MAKSIMUM_SEVIYEDE",
@@ -4512,7 +4749,8 @@
     "el": "Η βάση σου είναι ήδη στο μέγιστο επίπεδο.",
     "ru": "Твоя база уже на максимальном уровне.",
     "zh": "你的基地已是最高等级。",
-    "ar": "قاعدتك بالفعل على أقصى مستوى."
+    "ar": "قاعدتك بالفعل على أقصى مستوى.",
+    "pl": "Twoja baza jest już na maksymalnym poziomie."
   },
   "Üye bulunamadı.": {
     "code": "ÜYE_BULUNAMADI",
@@ -4531,7 +4769,8 @@
     "el": "Το μέλος δεν βρέθηκε.",
     "ru": "Участник не найден.",
     "zh": "未找到成员。",
-    "ar": "العضو غير موجود."
+    "ar": "العضو غير موجود.",
+    "pl": "Nie znaleziono członka."
   },
   "Yeni lider grupta olmalı.": {
     "code": "YENI_LIDER_GRUPTA_OLMALI",
@@ -4550,7 +4789,8 @@
     "el": "Ο νέος αρχηγός πρέπει να είναι στην ομάδα.",
     "ru": "Новый лидер должен быть в группе.",
     "zh": "新首领必须在帮派内。",
-    "ar": "يجب أن يكون الزعيم الجديد في المجموعة."
+    "ar": "يجب أن يكون الزعيم الجديد في المجموعة.",
+    "pl": "Nowy lider musi być w grupie."
   },
   "Yeni şifre en az ${PASS_MIN} karakter olmalı.": {
     "code": "YENI_ŞIFRE_EN_AZ_PASS_MIN_KARAKTER_OLMALI",
@@ -4569,7 +4809,8 @@
     "el": "Ο νέος κωδικός πρέπει να έχει τουλάχιστον ${PASS_MIN} χαρακτήρες.",
     "ru": "Новый пароль должен содержать не менее ${PASS_MIN} символов.",
     "zh": "新密码至少需要 ${PASS_MIN} 个字符。",
-    "ar": "يجب أن تكون كلمة المرور الجديدة ${PASS_MIN} أحرف على الأقل."
+    "ar": "يجب أن تكون كلمة المرور الجديدة ${PASS_MIN} أحرف على الأقل.",
+    "pl": "Nowe hasło musi mieć co najmniej ${PASS_MIN} znaków."
   },
   "Yeteneklerin bu pozisyon için yetersiz.": {
     "code": "YETENEKLERIN_BU_POZISYON_IÇIN_YETERSIZ",
@@ -4588,7 +4829,8 @@
     "el": "Οι δεξιότητές σου δεν επαρκούν για αυτή τη θέση.",
     "ru": "Твоих навыков недостаточно для этой должности.",
     "zh": "你的技能不足以胜任此职位。",
-    "ar": "مهاراتك غير كافية لهذا المنصب."
+    "ar": "مهاراتك غير كافية لهذا المنصب.",
+    "pl": "Twoje umiejętności są niewystarczające na to stanowisko."
   },
   "Yeterli gereksinimlere sahip değilsin! (Güç yetersiz)": {
     "code": "YETERLI_GEREKSINIMLERE_SAHIP_DEĞILSIN_GÜÇ_YETERSIZ",
@@ -4607,7 +4849,8 @@
     "el": "Δεν πληροίς τις απαιτήσεις! (Ανεπαρκής δύναμη)",
     "ru": "Ты не соответствуешь требованиям! (Недостаточно силы)",
     "zh": "你不满足要求！（实力不足）",
-    "ar": "لا تستوفي المتطلبات! (القوة غير كافية)"
+    "ar": "لا تستوفي المتطلبات! (القوة غير كافية)",
+    "pl": "Nie spełniasz wymagań! (Niewystarczająca moc)"
   },
   "Yeterli İcraat Hakkın kalmadı! Biraz bekle.": {
     "code": "YETERLI_İCRAAT_HAKKIN_KALMADI_BIRAZ_BEKLE",
@@ -4626,7 +4869,8 @@
     "el": "Δεν έχεις άλλα δικαιώματα εκτέλεσης! Περίμενε λίγο.",
     "ru": "У тебя не осталось прав на операции! Подожди.",
     "zh": "行动权已用完！请稍等。",
-    "ar": "لم يتبق لديك حقوق تنفيذ! انتظر قليلاً."
+    "ar": "لم يتبق لديك حقوق تنفيذ! انتظر قليلاً.",
+    "pl": "Nie masz już żadnych Punktów Akcji! Poczekaj chwilę."
   },
   "Yeterli paran yok.": {
     "code": "YETERLI_PARAN_YOK",
@@ -4645,7 +4889,8 @@
     "el": "Δεν έχεις αρκετά χρήματα.",
     "ru": "У тебя недостаточно денег.",
     "zh": "你的钱不够。",
-    "ar": "ليس لديك مال كافٍ."
+    "ar": "ليس لديك مال كافٍ.",
+    "pl": "Nie masz dość pieniędzy."
   },
   "Yeterli paran yok. (Kasanda: ${player.kasa.toLocaleString(": {
     "code": "YETERLI_PARAN_YOK_KASANDA_PLAYER_KASA_TOLOCALESTRING",
@@ -4664,7 +4909,8 @@
     "el": "Δεν έχεις αρκετά χρήματα. (Στο χρηματοκιβώτιο: ${player.kasa.toLocaleString(",
     "ru": "Недостаточно денег. (В сейфе: ${player.kasa.toLocaleString(",
     "zh": "钱不够。（金库：${player.kasa.toLocaleString(",
-    "ar": "لا يوجد مال كافٍ. (في الخزنة: ${player.kasa.toLocaleString("
+    "ar": "لا يوجد مال كافٍ. (في الخزنة: ${player.kasa.toLocaleString(",
+    "pl": "Nie masz dość pieniędzy. (W sejfie: ${player.kasa.toLocaleString("
   },
   "Yetersiz birikim. Kalan:": {
     "code": "YETERSIZ_BIRIKIM_KALAN",
@@ -4683,7 +4929,8 @@
     "el": "Ανεπαρκή αποταμιεύσεις. Υπόλοιπο:",
     "ru": "Недостаточно накоплений. Осталось:",
     "zh": "储蓄不足。剩余：",
-    "ar": "مدخرات غير كافية. المتبقي:"
+    "ar": "مدخرات غير كافية. المتبقي:",
+    "pl": "Niewystarczające oszczędności. Pozostały:"
   },
   "Yetkisiz.": {
     "code": "YETKISIZ",
@@ -4702,7 +4949,8 @@
     "el": "Μη εξουσιοδοτημένο.",
     "ru": "Нет доступа.",
     "zh": "未授权。",
-    "ar": "غير مصرح."
+    "ar": "غير مصرح.",
+    "pl": "Nieautoryzowane."
   },
   "Yönetici hesabı banlanamaz.": {
     "code": "YÖNETICI_HESABI_BANLANAMAZ",
@@ -4721,7 +4969,8 @@
     "el": "Οι λογαριασμοί διαχειριστή δεν μπορούν να αποκλειστούν.",
     "ru": "Администраторские аккаунты нельзя забанить.",
     "zh": "管理员账号无法封禁。",
-    "ar": "لا يمكن حظر حسابات المسؤول."
+    "ar": "لا يمكن حظر حسابات المسؤول.",
+    "pl": "Konta administratorów nie mogą zostać zablokowane."
   },
   "Yönetici oturumu sonlandırılamaz.": {
     "code": "YÖNETICI_OTURUMU_SONLANDIRILAMAZ",
@@ -4740,7 +4989,8 @@
     "el": "Η συνεδρία διαχειριστή δεν μπορεί να τερματιστεί.",
     "ru": "Сессию администратора нельзя завершить.",
     "zh": "无法终止管理员会话。",
-    "ar": "لا يمكن إنهاء جلسة المسؤول."
+    "ar": "لا يمكن إنهاء جلسة المسؤول.",
+    "pl": "Nie można zakończyć sesji administratora."
   },
   "Yükseltme hesaplanamadı.": {
     "code": "YÜKSELTME_HESAPLANAMADI",
@@ -4759,7 +5009,8 @@
     "el": "Δεν ήταν δυνατός ο υπολογισμός αναβάθμισης.",
     "ru": "Не удалось рассчитать улучшение.",
     "zh": "无法计算升级费用。",
-    "ar": "تعذر حساب الترقية."
+    "ar": "تعذر حساب الترقية.",
+    "pl": "Nie można obliczyć aktualizacji."
   },
   "Yükseltme ${maliyet} TL — yetersiz kasa.": {
     "code": "YÜKSELTME_MALIYET_TL_YETERSIZ_KASA",
@@ -4778,7 +5029,8 @@
     "el": "Η αναβάθμιση κοστίζει ${maliyet} TL — ανεπαρκές ταμείο.",
     "ru": "Улучшение стоит ${maliyet} TL — недостаточно средств.",
     "zh": "升级需 ${maliyet} TL — 资金不足。",
-    "ar": "الترقية ${maliyet} TL — رصيد غير كافٍ."
+    "ar": "الترقية ${maliyet} TL — رصيد غير كافٍ.",
+    "pl": "Koszty aktualizacji ${maliyet} TL — niewystarczające środki."
   },
   "Zaten bekleyen bir başvurun var.": {
     "code": "ZATEN_BEKLEYEN_BIR_BAŞVURUN_VAR",
@@ -4797,7 +5049,8 @@
     "el": "Έχεις ήδη αίτηση σε εκκρεμότητα.",
     "ru": "У тебя уже есть заявка на рассмотрении.",
     "zh": "你已有待处理的申请。",
-    "ar": "لديك بالفعل طلب قيد الانتظار."
+    "ar": "لديك بالفعل طلب قيد الانتظار.",
+    "pl": "Masz już oczekujący wniosek."
   },
   "Zaten bir gruptasın.": {
     "code": "ZATEN_BIR_GRUPTASIN",
@@ -4816,7 +5069,8 @@
     "el": "Είσαι ήδη σε ομάδα.",
     "ru": "Ты уже в группе.",
     "zh": "你已在帮派中。",
-    "ar": "أنت بالفعل في مجموعة."
+    "ar": "أنت بالفعل في مجموعة.",
+    "pl": "Jesteś już w grupie."
   },
   "Zaten bir işte çalışıyorsun. Önce istifa etmelisin.": {
     "code": "ZATEN_BIR_IŞTE_ÇALIŞIYORSUN_ÖNCE_ISTIFA_ETMELISIN",
@@ -4835,7 +5089,8 @@
     "el": "Έχεις ήδη δουλειά. Πρέπει πρώτα να παραιτηθείς.",
     "ru": "Ты уже работаешь. Сначала уволись.",
     "zh": "你已有工作。必须先辞职。",
-    "ar": "لديك وظيفة بالفعل. يجب أن تستقيل أولاً."
+    "ar": "لديك وظيفة بالفعل. يجب أن تستقيل أولاً.",
+    "pl": "Masz już pracę. Najpierw musisz podać się do dymisji."
   },
   "Zaten bir Mafya Grubundasın.": {
     "code": "ZATEN_BIR_MAFYA_GRUBUNDASIN",
@@ -4854,7 +5109,8 @@
     "el": "Είσαι ήδη σε μαφιόζικη ομάδα.",
     "ru": "Ты уже в группе мафии.",
     "zh": "你已在黑帮帮派中。",
-    "ar": "أنت بالفعل في مجموعة مافيا."
+    "ar": "أنت بالفعل في مجموعة مافيا.",
+    "pl": "Jesteś już w grupie mafijnej."
   },
   "Zaten bir şirketin var.": {
     "code": "ZATEN_BIR_ŞIRKETIN_VAR",
@@ -4873,7 +5129,8 @@
     "el": "Έχεις ήδη εταιρεία.",
     "ru": "У тебя уже есть компания.",
     "zh": "你已有公司。",
-    "ar": "لديك شركة بالفعل."
+    "ar": "لديك شركة بالفعل.",
+    "pl": "Masz już firmę."
   },
   "Zaten bir şirkette çalışıyorsun.": {
     "code": "ZATEN_BIR_ŞIRKETTE_ÇALIŞIYORSUN",
@@ -4892,7 +5149,8 @@
     "el": "Δουλεύεις ήδη σε εταιρεία.",
     "ru": "Ты уже работаешь в компании.",
     "zh": "你已在公司工作。",
-    "ar": "تعمل بالفعل في شركة."
+    "ar": "تعمل بالفعل في شركة.",
+    "pl": "Pracujesz już w firmie."
   },
   "Zaten bu ismi kullanıyorsun.": {
     "code": "ZATEN_BU_ISMI_KULLANIYORSUN",
@@ -4911,7 +5169,8 @@
     "el": "Χρησιμοποιείς ήδη αυτό το όνομα.",
     "ru": "Ты уже используешь это имя.",
     "zh": "你已在用此名称。",
-    "ar": "تستخدم هذا الاسم بالفعل."
+    "ar": "تستخدم هذا الاسم بالفعل.",
+    "pl": "Już używasz tej nazwy."
   },
   "Zaten bu savaşa katıldın.": {
     "code": "ZATEN_BU_SAVAŞA_KATILDIN",
@@ -4930,7 +5189,8 @@
     "el": "Έχεις ήδη μπει σε αυτόν τον πόλεμο.",
     "ru": "Ты уже участвуешь в этой войне.",
     "zh": "你已加入此战争。",
-    "ar": "لقد انضممت بالفعل إلى هذه الحرب."
+    "ar": "لقد انضممت بالفعل إلى هذه الحرب.",
+    "pl": "Już dołączyłeś do tej wojny."
   },
   "Zaten bu şehirde lidersin.": {
     "code": "ZATEN_BU_ŞEHIRDE_LIDERSIN",
@@ -4949,7 +5209,8 @@
     "el": "Είσαι ήδη αρχηγός σε αυτή την πόλη.",
     "ru": "Ты уже лидер в этом городе.",
     "zh": "你已是该城市的首领。",
-    "ar": "أنت بالفعل زعيم هذه المدينة."
+    "ar": "أنت بالفعل زعيم هذه المدينة.",
+    "pl": "Jesteś już liderem w tym mieście."
   },
   "Kahvehane": {
     "code": "UI_MEKAN_KAHVEHANE",
@@ -4968,7 +5229,8 @@
     "el": "Καφενείο",
     "ru": "Кофейня",
     "zh": "咖啡馆",
-    "ar": "مقهى"
+    "ar": "مقهى",
+    "pl": "Kawiarnia"
   },
   "Mahallede çay ocağı; küçük ama sürekli nakit.": {
     "code": "UI_MEKAN_MAHALLEDE_AY_OCA_",
@@ -4987,7 +5249,8 @@
     "el": "Τσαγάδικο της γειτονιάς· μικρό αλλά σταθερό κέρδος.",
     "ru": "Чайная в районе — скромная, но стабильный доход.",
     "zh": "街坊茶铺；小本但现金不断。",
-    "ar": "مقهى الحي؛ صغير لكن نقد مستمر."
+    "ar": "مقهى الحي؛ صغير لكن نقد مستمر.",
+    "pl": "Sąsiedzka herbaciarnia; mała, ale stała gotówka."
   },
   "Bar": {
     "code": "UI_MEKAN_BAR",
@@ -5006,7 +5269,8 @@
     "el": "Μπαρ",
     "ru": "Бар",
     "zh": "酒吧",
-    "ar": "بار"
+    "ar": "بار",
+    "pl": "Bar"
   },
   "Gece boyu akan içki ve müzik parası.": {
     "code": "UI_MEKAN_GECE_BOYU_AKAN_I_KI_",
@@ -5025,7 +5289,8 @@
     "el": "Χρήματα από ποτά και μουσική όλη νύχτα.",
     "ru": "Ночные деньги с алкоголя и музыки.",
     "zh": "通宵酒水和音乐收入。",
-    "ar": "أموال المشروبات والموسيقى طوال الليل."
+    "ar": "أموال المشروبات والموسيقى طوال الليل.",
+    "pl": "Pieniądze na alkohol i muzykę przez całą noc."
   },
   "Disco": {
     "code": "UI_MEKAN_DISCO",
@@ -5044,7 +5309,8 @@
     "el": "Ντίσκο",
     "ru": "Дискотека",
     "zh": "迪斯科",
-    "ar": "ديسكو"
+    "ar": "ديسكو",
+    "pl": "Dyskoteka"
   },
   "Işıklar altında dönen kapı parası.": {
     "code": "UI_MEKAN_I_KLAR_ALT_NDA_D_NE",
@@ -5063,7 +5329,8 @@
     "el": "Χρήματα εισόδου κάτω από τα φώτα.",
     "ru": "Входные под огнями софитов.",
     "zh": "灯光下的门票收入。",
-    "ar": "أموال الدخول تحت الأضواء."
+    "ar": "أموال الدخول تحت الأضواء.",
+    "pl": "Ładunek osłonowy wiruje pod światłami."
   },
   "Lunapark": {
     "code": "UI_MEKAN_LUNAPARK",
@@ -5082,7 +5349,8 @@
     "el": "Λούνα παρκ",
     "ru": "Луна-парк",
     "zh": "游乐园",
-    "ar": "مدينة ملاهٍ"
+    "ar": "مدينة ملاهٍ",
+    "pl": "Wesołe miasteczko"
   },
   "Aile işi görünümlü, arka planda büyük oyun.": {
     "code": "UI_MEKAN_AILE_I_I_G_R_N_ML_",
@@ -5101,7 +5369,8 @@
     "el": "Φαίνεται οικογενειακή επιχείρηση· μεγάλο παιχνίδι πίσω από τις σκηνές.",
     "ru": "Семейный бизнес на вид; за кулисами — большая игра.",
     "zh": "表面是家庭生意，背后是大买卖。",
-    "ar": "يبدو كعمل عائلي؛ لعبة كبيرة خلف الكواليس."
+    "ar": "يبدو كعمل عائلي؛ لعبة كبيرة خلف الكواليس.",
+    "pl": "Wygląda na firmę rodzinną; wielki mecz za kulisami."
   },
   "Kumarhane": {
     "code": "UI_MEKAN_KUMARHANE",
@@ -5120,7 +5389,8 @@
     "el": "Καζίνο",
     "ru": "Казино",
     "zh": "赌场",
-    "ar": "كازينو"
+    "ar": "كازينو",
+    "pl": "Kasyno"
   },
   "Masaların kralı; en yüksek yeraltı getirisi.": {
     "code": "UI_MEKAN_MASALAR_N_KRAL_EN_",
@@ -5139,7 +5409,8 @@
     "el": "Βασιλιάς των τραπεζιών· τα υψηλότερα υπόγεια κέρδη.",
     "ru": "Король столов; максимальная подпольная прибыль.",
     "zh": "赌桌之王；地下最高收益。",
-    "ar": "ملك الطاولات؛ أعلى عائد تحت الأرض."
+    "ar": "ملك الطاولات؛ أعلى عائد تحت الأرض.",
+    "pl": "Król stołów; najwyższe zyski z undergroundu."
   },
   "Sokak Arası Sektörü": {
     "code": "UI_MEKAN_SOKAK_ARAS_SEKT_R_",
@@ -5158,7 +5429,8 @@
     "el": "Τομέας δρόμου",
     "ru": "Уличный сектор",
     "zh": "街头板块",
-    "ar": "قطاع الشوارع"
+    "ar": "قطاع الشوارع",
+    "pl": "Sektor na poziomie ulicy"
   },
   "Mahalle silah ticareti ve stok.": {
     "code": "UI_MEKAN_MAHALLE_SILAH_TICARE",
@@ -5177,7 +5449,8 @@
     "el": "Εμπόριο και απόθεμα όπλων της γειτονιάς.",
     "ru": "Уличная торговля оружием и склад.",
     "zh": "街坊军火贸易与库存。",
-    "ar": "تجارة أسلحة الحي والمخزون."
+    "ar": "تجارة أسلحة الحي والمخزون.",
+    "pl": "Handel bronią i zapasy w okolicy."
   },
   "Şehirler Arası Sektörü": {
     "code": "UI_MEKAN__EHIRLER_ARAS_SEKT_",
@@ -5196,7 +5469,8 @@
     "el": "Διαπολιτειακός τομέας",
     "ru": "Межгородской сектор",
     "zh": "城际板块",
-    "ar": "قطاع بين المدن"
+    "ar": "قطاع بين المدن",
+    "pl": "Sektor Międzymiastowy"
   },
   "İl içi sevkiyat ve depo ağı.": {
     "code": "UI_MEKAN__L_I_I_SEVKIYAT_VE_D",
@@ -5215,7 +5489,8 @@
     "el": "Δίκτυο αποστολών και αποθηκών εντός επαρχίας.",
     "ru": "Внутрипровинциальная сеть поставок и складов.",
     "zh": "省内运输与仓储网络。",
-    "ar": "شبكة شحن ومستودعات داخل المقاطعة."
+    "ar": "شبكة شحن ومستودعات داخل المقاطعة.",
+    "pl": "Sieć wysyłkowa i magazynowa na terenie prowincji."
   },
   "Kaçakçılık Sektörü": {
     "code": "UI_MEKAN_KA_AK_L_K_SEKT_R_",
@@ -5234,7 +5509,8 @@
     "el": "Τομέας λαθρεμπορίας",
     "ru": "Контрабандный сектор",
     "zh": "走私板块",
-    "ar": "قطاع التهريب"
+    "ar": "قطاع التهريب",
+    "pl": "Sektor przemytu"
   },
   "Sınır geçişli silah hatları.": {
     "code": "UI_MEKAN_S_N_R_GE_I_LI_SILAH_",
@@ -5253,7 +5529,8 @@
     "el": "Διασυνοριακές διαδρομές όπλων.",
     "ru": "Трансграничные оружейные маршруты.",
     "zh": "跨境军火线路。",
-    "ar": "طرق أسلحة عبر الحدود."
+    "ar": "طرق أسلحة عبر الحدود.",
+    "pl": "Transgraniczne szlaki broni."
   },
   "Uluslararası Sektörü": {
     "code": "UI_MEKAN_ULUSLARARAS_SEKT_R_",
@@ -5272,7 +5549,8 @@
     "el": "Διεθνής τομέας",
     "ru": "Международный сектор",
     "zh": "国际板块",
-    "ar": "القطاع الدولي"
+    "ar": "القطاع الدولي",
+    "pl": "Sektor Międzynarodowy"
   },
   "Konteynerlerle gelen ağır cephane.": {
     "code": "UI_MEKAN_KONTEYNERLERLE_GELEN",
@@ -5291,7 +5569,8 @@
     "el": "Βαρύ πυροβολικό σε κοντέινερ.",
     "ru": "Тяжёлое вооружение в контейнерах.",
     "zh": "集装箱运来的重型军火。",
-    "ar": "ذخائر ثقيلة تصل في حاويات."
+    "ar": "ذخائر ثقيلة تصل في حاويات.",
+    "pl": "Ciężka amunicja przybywająca w kontenerach."
   },
   "Atom Sektörü": {
     "code": "UI_MEKAN_ATOM_SEKT_R_",
@@ -5310,7 +5589,8 @@
     "el": "Ατομικός τομέας",
     "ru": "Атомный сектор",
     "zh": "原子板块",
-    "ar": "القطاع الذري"
+    "ar": "القطاع الذري",
+    "pl": "Sektor Atomowy"
   },
   "En üst düzey — sadece efsaneler dokunur.": {
     "code": "UI_MEKAN_EN_ST_D_ZEY_SADEC",
@@ -5329,7 +5609,8 @@
     "el": "Κορυφαίο επίπεδο — μόνο θρύλοι το αγγίζουν.",
     "ru": "Высший уровень — только легенды.",
     "zh": "顶级——只有传奇能碰。",
-    "ar": "المستوى الأعلى — الأساطير فقط."
+    "ar": "المستوى الأعلى — الأساطير فقط.",
+    "pl": "Najwyższy poziom – dotykają go tylko legendy."
   },
   "Mahalle Teslimatı": {
     "code": "UI_MEKAN_MAHALLE_TESLIMAT_",
@@ -5348,7 +5629,8 @@
     "el": "Παράδοση γειτονιάς",
     "ru": "Доставка по району",
     "zh": "街坊配送",
-    "ar": "توصيل الحي"
+    "ar": "توصيل الحي",
+    "pl": "Dostawa sąsiedzka"
   },
   "Sokak köşelerine gizli paket dağıtımı.": {
     "code": "UI_MEKAN_SOKAK_K_ELERINE_GIZ",
@@ -5367,7 +5649,8 @@
     "el": "Μυστικές παραδόσεις πακέτων σε γωνίες.",
     "ru": "Тайная доставка посылок на углах.",
     "zh": "街角秘密包裹配送。",
-    "ar": "توصيل طرود سرية في زوايا الشوارع."
+    "ar": "توصيل طرود سرية في زوايا الشوارع.",
+    "pl": "Tajna paczka spada na rogach ulic."
   },
   "Şehirler Arası Teslimat": {
     "code": "UI_MEKAN__EHIRLER_ARAS_TESLI",
@@ -5386,7 +5669,8 @@
     "el": "Διαπολιτειακή παράδοση",
     "ru": "Межгородская доставка",
     "zh": "城际配送",
-    "ar": "توصيل بين المدن"
+    "ar": "توصيل بين المدن",
+    "pl": "Dostawa międzymiastowa"
   },
   "Şehir hatlarında hızlı kurye ağı.": {
     "code": "UI_MEKAN__EHIR_HATLAR_NDA_H_Z",
@@ -5405,7 +5689,8 @@
     "el": "Γρήγορο δίκτυο κούριερ στις αστικές γραμμές.",
     "ru": "Быстрая курьерская сеть по городским маршрутам.",
     "zh": "城市线路上的快速快递网。",
-    "ar": "شبكة سعاة سريعة على خطوط المدينة."
+    "ar": "شبكة سعاة سريعة على خطوط المدينة.",
+    "pl": "Szybka sieć kurierska na trasach miejskich."
   },
   "Ülke Çapında Teslimat": {
     "code": "UI_MEKAN__LKE_AP_NDA_TESLIMA",
@@ -5424,7 +5709,8 @@
     "el": "Πανεθνική παράδοση",
     "ru": "Доставка по всей стране",
     "zh": "全国配送",
-    "ar": "توصيل على مستوى البلاد"
+    "ar": "توصيل على مستوى البلاد",
+    "pl": "Dostawa ogólnokrajowa"
   },
   "Türkiye geneli lojistik örgütü.": {
     "code": "UI_MEKAN_T_RKIYE_GENELI_LOJIS",
@@ -5443,7 +5729,8 @@
     "el": "Πανεθνικός λογιστικός οργανισμός στην Τουρκία.",
     "ru": "Общенациональная логистическая сеть по Турции.",
     "zh": "土耳其全境物流组织。",
-    "ar": "منظمة لوجستية على مستوى تركيا."
+    "ar": "منظمة لوجستية على مستوى تركيا.",
+    "pl": "Ogólnokrajowa organizacja logistyczna na terenie Turcji."
   },
   "Uluslar Arası Teslimat": {
     "code": "UI_MEKAN_ULUSLAR_ARAS_TESLIM",
@@ -5462,7 +5749,8 @@
     "el": "Διεθνής παράδοση",
     "ru": "Международная доставка",
     "zh": "国际配送",
-    "ar": "توصيل دولي"
+    "ar": "توصيل دولي",
+    "pl": "Dostawa międzynarodowa"
   },
   "Pasaportsuz yük — dünya rotası.": {
     "code": "UI_MEKAN_PASAPORTSUZ_Y_K_D_",
@@ -5481,7 +5769,8 @@
     "el": "Φορτίο χωρίς διαβατήριο — παγκόσμιες διαδρομές.",
     "ru": "Груз без паспорта — мировые маршруты.",
     "zh": "无护照货物——全球路线。",
-    "ar": "شحن بلا جواز — طرق عالمية."
+    "ar": "شحن بلا جواز — طرق عالمية.",
+    "pl": "Ładunek bez paszportu — trasy na całym świecie."
   },
   "Oyuncu banlandı ve oturumu sonlandırıldı.": {
     "code": "MSG_OYUNCU_BANLAND_VE_OTURUMU_SON",
@@ -5500,7 +5789,8 @@
     "el": "Ο παίκτης αποκλείστηκε και η συνεδρία τερματίστηκε.",
     "ru": "Игрок забанен, сессия завершена.",
     "zh": "玩家已封禁并终止会话。",
-    "ar": "تم حظر اللاعب وإنهاء الجلسة."
+    "ar": "تم حظر اللاعب وإنهاء الجلسة.",
+    "pl": "Gracz zbanowany i sesja zakończona."
   },
   "Ban kaldırıldı.": {
     "code": "MSG_BAN_KALD_R_LD_",
@@ -5519,7 +5809,8 @@
     "el": "Η αποκλεισμός αφαιρέθηκε.",
     "ru": "Бан снят.",
     "zh": "已解除封禁。",
-    "ar": "تم رفع الحظر."
+    "ar": "تم رفع الحظر.",
+    "pl": "Zakaz usunięty."
   },
   "Aktif oturum sonlandırıldı.": {
     "code": "MSG_AKTIF_OTURUM_SONLAND_R_LD_",
@@ -5538,7 +5829,8 @@
     "el": "Η ενεργή συνεδρία τερματίστηκε.",
     "ru": "Активная сессия завершена.",
     "zh": "已终止活跃会话。",
-    "ar": "تم إنهاء الجلسة النشطة."
+    "ar": "تم إنهاء الجلسة النشطة.",
+    "pl": "Aktywna sesja została zakończona."
   },
   "Mekan adetleri güncellendi.": {
     "code": "MSG_MEKAN_ADETLERI_G_NCELLENDI_",
@@ -5557,7 +5849,8 @@
     "el": "Οι αριθμοί χώρων ενημερώθηκαν.",
     "ru": "Количество заведений обновлено.",
     "zh": "场所数量已更新。",
-    "ar": "تم تحديث عدد الأماكن."
+    "ar": "تم تحديث عدد الأماكن.",
+    "pl": "Liczba miejsc zaktualizowana."
   },
   "Oyuncu istatistikleri güncellendi.": {
     "code": "MSG_OYUNCU_ISTATISTIKLERI_G_NCELLE",
@@ -5576,7 +5869,8 @@
     "el": "Τα στατιστικά παίκτη ενημερώθηκαν.",
     "ru": "Статистика игрока обновлена.",
     "zh": "玩家数据已更新。",
-    "ar": "تم تحديث إحصائيات اللاعب."
+    "ar": "تم تحديث إحصائيات اللاعب.",
+    "pl": "Zaktualizowano statystyki graczy."
   },
   "Grup mesajı yazdı": {
     "code": "MSG_GRUP_MESAJ_YAZD_",
@@ -5595,7 +5889,8 @@
     "el": "Έγραψε μήνυμα ομάδας",
     "ru": "Написал групповое сообщение",
     "zh": "发送了群组消息",
-    "ar": "كتب رسالة جماعية"
+    "ar": "كتب رسالة جماعية",
+    "pl": "Napisałem wiadomość grupową"
   },
   "İstihbaratın daha güçlü, rakibin gücünü öğrendin!": {
     "code": "MSG__STIHBARAT_N_DAHA_G_L_RAKIB",
@@ -5614,7 +5909,8 @@
     "el": "Η πληροφορία σου είναι ισχυρότερη — έμαθες τη δύναμη του αντιπάλου!",
     "ru": "Твоя разведка сильнее — ты узнал силу соперника!",
     "zh": "你的情报更强——得知了对手实力！",
-    "ar": "استخباراتك أقوى — عرفت قوة الخصم!"
+    "ar": "استخباراتك أقوى — عرفت قوة الخصم!",
+    "pl": "Twoje dane wywiadowcze są silniejsze — poznałeś moc rywala!"
   },
   "Rakibin istihbaratı daha güçlü, bilgi alamadın!": {
     "code": "MSG_RAKIBIN_ISTIHBARAT_DAHA_G_L_",
@@ -5633,7 +5929,8 @@
     "el": "Η πληροφορία του αντιπάλου είναι ισχυρότερη — δεν έμαθες τίποτα!",
     "ru": "Разведка соперника сильнее — информации нет!",
     "zh": "对手情报更强——未获得信息！",
-    "ar": "استخبارات الخصم أقوى — لم تحصل على معلومات!"
+    "ar": "استخبارات الخصم أقوى — لم تحصل على معلومات!",
+    "pl": "Dane wywiadowcze rywala są silniejsze — nie masz żadnych informacji!"
   },
   "İstihbarat eşit, kısmi bilgi aldın.": {
     "code": "MSG__STIHBARAT_E_IT_K_SMI_BILGI_A",
@@ -5652,7 +5949,8 @@
     "el": "Η πληροφορία ισοδύναμη — μερικές πληροφορίες.",
     "ru": "Разведка равна — получена частичная информация.",
     "zh": "情报相当——获得部分信息。",
-    "ar": "الاستخبارات متكافئة — حصلت على معلومات جزئية."
+    "ar": "الاستخبارات متكافئة — حصلت على معلومات جزئية.",
+    "pl": "Intel jest równy — masz częściowe informacje."
   },
   "Soygun başarıyla gerçekleştirildi! Katılan her üyeye ": {
     "code": "MSG_SOYGUN_BA_AR_YLA_GER_EKLE_TIRI",
@@ -5671,7 +5969,8 @@
     "el": "Η ληστεία ολοκληρώθηκε! Κάθε συμμετέχων μέλος έλαβε ",
     "ru": "Ограбление успешно! Каждый участник получил ",
     "zh": "抢劫成功！每位参与成员获得 ",
-    "ar": "تم السطو بنجاح! كل عضو مشارك حصل على "
+    "ar": "تم السطو بنجاح! كل عضو مشارك حصل على ",
+    "pl": "Napad zakończony pomyślnie! Każdy członek uczestniczący otrzymał"
   },
   "Savaş ilan edildi! 8 saat sonra başlayacak.": {
     "code": "MSG_SAVA_ILAN_EDILDI_8_SAAT_SONR",
@@ -5690,7 +5989,8 @@
     "el": "Κηρύχθηκε πόλεμος! Θα ξεκινήσει σε 8 ώρες.",
     "ru": "Война объявлена! Начнётся через 8 часов.",
     "zh": "已宣战！8 小时后开始。",
-    "ar": "أُعلنت الحرب! ستبدأ بعد 8 ساعات."
+    "ar": "أُعلنت الحرب! ستبدأ بعد 8 ساعات.",
+    "pl": "Wojna ogłoszona! Rozpocznie się za 8 godzin."
   },
   "Savaşa katıldın!": {
     "code": "MSG_SAVA_A_KAT_LD_N_",
@@ -5709,7 +6009,8 @@
     "el": "Μπήκες στον πόλεμο!",
     "ru": "Ты вступил в войну!",
     "zh": "你已加入战争！",
-    "ar": "انضممت إلى الحرب!"
+    "ar": "انضممت إلى الحرب!",
+    "pl": "Dołączyłeś do wojny!"
   },
   "Haber yayınlandı! Gazete Oku → Yeraltı Manşetleri bölümünde görünecek.": {
     "code": "MSG_HABER_YAY_NLAND_GAZETE_OKU_",
@@ -5728,7 +6029,8 @@
     "el": "Δημοσιεύτηκε είδηση! Διάβασε εφημερίδα → Υπόγειοι τίτλοι.",
     "ru": "Новость опубликована! Газета → Подпольные заголовки.",
     "zh": "新闻已发布！读报 → 地下头条查看。",
-    "ar": "نُشر الخبر! اقرأ الجريدة → عناوين تحت الأرض."
+    "ar": "نُشر الخبر! اقرأ الجريدة → عناوين تحت الأرض.",
+    "pl": "Wiadomości opublikowane! Aby to zobaczyć, przeczytaj Gazetę → Nagłówki metra."
   },
   "Yeteneklerin bu pozisyon için yetersiz. Bir süre çalışıp geliştirdikten sonra tekrar dene.": {
     "code": "MSG_YETENEKLERIN_BU_POZISYON_I_IN_",
@@ -5747,7 +6049,8 @@
     "el": "Οι δεξιότητές σου δεν επαρκούν. Δούλεψε, βελτιώσου και ξαναπροσπάθησε.",
     "ru": "Навыков недостаточно. Поработай, прокачайся и попробуй снова.",
     "zh": "技能不足。先工作提升后再试。",
-    "ar": "مهاراتك غير كافية. اعمل وحسّن ثم حاول مجدداً."
+    "ar": "مهاراتك غير كافية. اعمل وحسّن ثم حاول مجدداً.",
+    "pl": "Twoje umiejętności są niewystarczające na to stanowisko. Popracuj chwilę, popraw i spróbuj ponownie."
   },
   "Hibe yapıldı.": {
     "code": "MSG_HIBE_YAP_LD_",
@@ -5766,7 +6069,8 @@
     "el": "Η δωρεά ολοκληρώθηκε.",
     "ru": "Пожертвование сделано.",
     "zh": "已捐赠。",
-    "ar": "تم التبرع."
+    "ar": "تم التبرع.",
+    "pl": "Przekazano darowiznę."
   },
   "Mafya Evi seviyesi yükseltildi!": {
     "code": "MSG_MAFYA_EVI_SEVIYESI_Y_KSELTILDI",
@@ -5785,7 +6089,8 @@
     "el": "Αναβαθμίστηκε το επίπεδο Σπιτιού Μαφίας!",
     "ru": "Уровень Дома мафии повышен!",
     "zh": "黑帮之家等级已提升！",
-    "ar": "تم ترقية مستوى بيت المافيا!"
+    "ar": "تم ترقية مستوى بيت المافيا!",
+    "pl": "Podniesiono poziom Domu Mafii!"
   },
   "Oyuncu adın ": {
     "code": "MSG_OYUNCU_AD_N_",
@@ -5804,7 +6109,8 @@
     "el": "Το όνομά σου παίκτη είναι ",
     "ru": "Твоё имя игрока: ",
     "zh": "你的玩家名已更新为 ",
-    "ar": "اسم لاعبك "
+    "ar": "اسم لاعبك ",
+    "pl": "Twoja nazwa gracza to"
   },
   "Mafya Grubu adı güncellendi: ": {
     "code": "MSG_MAFYA_GRUBU_AD_G_NCELLENDI_",
@@ -5823,7 +6129,8 @@
     "el": "Το όνομα μαφιόζικης ομάδας ενημερώθηκε: ",
     "ru": "Название группы мафии обновлено: ",
     "zh": "黑帮帮派名称已更新：",
-    "ar": "تم تحديث اسم مجموعة المافيا: "
+    "ar": "تم تحديث اسم مجموعة المافيا: ",
+    "pl": "Zaktualizowano nazwę grupy mafijnej:"
   },
   "Mafya Grubu açıklaması güncellendi.": {
     "code": "MSG_MAFYA_GRUBU_A_KLAMAS_G_NCELL",
@@ -5842,7 +6149,8 @@
     "el": "Η περιγραφή μαφιόζικης ομάδας ενημερώθηκε.",
     "ru": "Описание группы мафии обновлено.",
     "zh": "黑帮帮派描述已更新。",
-    "ar": "تم تحديث وصف مجموعة المافيا."
+    "ar": "تم تحديث وصف مجموعة المافيا.",
+    "pl": "Zaktualizowano opis Grupy Mafijnej."
   },
   "Raporun iletildi. Teşekkürler.": {
     "code": "MSG_RAPORUN_ILETILDI_TE_EKK_RLER_",
@@ -5861,7 +6169,8 @@
     "el": "Η αναφορά σου υποβλήθηκε. Ευχαριστούμε.",
     "ru": "Жалоба отправлена. Спасибо.",
     "zh": "举报已提交。谢谢。",
-    "ar": "تم إرسال بلاغك. شكراً."
+    "ar": "تم إرسال بلاغك. شكراً.",
+    "pl": "Twój raport został przesłany. Dziękuję."
   },
   "Başvuru reddedildi.": {
     "code": "MSG_BA_VURU_REDDEDILDI_",
@@ -5880,7 +6189,8 @@
     "el": "Η αίτηση απορρίφθηκε.",
     "ru": "Заявка отклонена.",
     "zh": "申请已拒绝。",
-    "ar": "تم رفض الطلب."
+    "ar": "تم رفض الطلب.",
+    "pl": "Wniosek odrzucony."
   },
   "Çalışan işten çıkarıldı.": {
     "code": "MSG__AL_AN_I_TEN_KAR_LD_",
@@ -5899,6 +6209,7 @@
     "el": "Ο υπάλληλος απολύθηκε.",
     "ru": "Сотрудник уволен.",
     "zh": "员工已解雇。",
-    "ar": "تم فصل الموظف."
+    "ar": "تم فصل الموظف.",
+    "pl": "Pracownik zwolniony."
   }
 }

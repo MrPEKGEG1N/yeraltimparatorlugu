@@ -19,7 +19,8 @@
     "el": "Ασφαλές καταφύγιο ορίστηκε στο επίπεδο ${s}.",
     "ru": "Уровень убежища установлен: ${s}.",
     "zh": "安全屋等级已设为 ${s}。",
-    "ar": "تم ضبط مستوى الملاذ الآمن إلى ${s}."
+    "ar": "تم ضبط مستوى الملاذ الآمن إلى ${s}.",
+    "pl": "Poziom bezpiecznego domu ustawiony na ${s}."
   },
   "İstihbarat eleman sayısı ${n} olarak ayarlandı.": {
     "tr": "İstihbarat eleman sayısı ${n} olarak ayarlandı.",
@@ -41,7 +42,8 @@
     "el": "Πράκτορες πληροφοριών ορίστηκαν σε ${n}.",
     "ru": "Число агентов разведки: ${n}.",
     "zh": "情报人员数量已设为 ${n}。",
-    "ar": "تم ضبط عدد عملاء الاستخبارات إلى ${n}."
+    "ar": "تم ضبط عدد عملاء الاستخبارات إلى ${n}.",
+    "pl": "Agenci wywiadu ustawili się na ${n}."
   },
   "Mesajlar temizlendi (gönderilen: ${sent.changes}, alınan: ${recv.changes}, sohbet: ${sohbet.changes}, grup: ${grup.changes}).": {
     "tr": "Mesajlar temizlendi (gönderilen: ${sent.changes}, alınan: ${recv.changes}, sohbet: ${sohbet.changes}, grup: ${grup.changes}).",
@@ -66,7 +68,8 @@
     "el": "Μηνύματα διαγράφηκαν (απεσταλμένα: ${sent.changes}, ληφθέντα: ${recv.changes}, συνομιλία: ${sohbet.changes}, ομάδα: ${grup.changes}).",
     "ru": "Сообщения очищены (отправлено: ${sent.changes}, получено: ${recv.changes}, чат: ${sohbet.changes}, группа: ${grup.changes}).",
     "zh": "消息已清除（发送：${sent.changes}，接收：${recv.changes}，聊天：${sohbet.changes}，群组：${grup.changes}）。",
-    "ar": "تم مسح الرسائل (مرسلة: ${sent.changes}، مستلمة: ${recv.changes}، الدردشة: ${sohbet.changes}، المجموعة: ${grup.changes})."
+    "ar": "تم مسح الرسائل (مرسلة: ${sent.changes}، مستلمة: ${recv.changes}، الدردشة: ${sohbet.changes}، المجموعة: ${grup.changes}).",
+    "pl": "Wiadomości usunięte (wysłane: ${sent.changes}, odebrane: ${recv.changes}, czat: ${sohbet.changes}, grupa: ${grup.changes})."
   },
   "Seviye ${sonraki.seviye}: ${sonraki.ad} tamamlandı!": {
     "tr": "Seviye ${sonraki.seviye}: ${sonraki.ad} tamamlandı!",
@@ -89,7 +92,8 @@
     "el": "Επίπεδο ${sonraki.seviye}: ${sonraki.ad} ολοκληρώθηκε!",
     "ru": "Уровень ${sonraki.seviye}: ${sonraki.ad} завершён!",
     "zh": "等级 ${sonraki.seviye}：${sonraki.ad} 已完成！",
-    "ar": "المستوى ${sonraki.seviye}: ${sonraki.ad} اكتمل!"
+    "ar": "المستوى ${sonraki.seviye}: ${sonraki.ad} اكتمل!",
+    "pl": "Poziom ${sonraki.seviye}: ${sonraki.ad} ukończony!"
   },
   "${kasa.ad} satın alındı! Kasandaki nakitin %${korumaYuzde}'i saldırıdan korunur.": {
     "tr": "${kasa.ad} satın alındı! Kasandaki nakitin %${korumaYuzde}'i saldırıdan korunur.",
@@ -112,7 +116,8 @@
     "el": "Αγοράστηκε ${kasa.ad}! Το ${korumaYuzde}% των μετρητών σου προστατεύεται από επιθέσεις.",
     "ru": "${kasa.ad} куплено! ${korumaYuzde}% наличных защищено от атак.",
     "zh": "已购买 ${kasa.ad}！现金的 ${korumaYuzde}% 受攻击保护。",
-    "ar": "تم شراء ${kasa.ad}! ${korumaYuzde}% من نقدك محمي من الهجمات."
+    "ar": "تم شراء ${kasa.ad}! ${korumaYuzde}% من نقدك محمي من الهجمات.",
+    "pl": "${kasa.ad} zakupione! ${korumaYuzde}% Twojej gotówki jest chroniony przed atakami."
   },
   "Tebrikler! ${isyeri ? isyeri.ad : \"\"} bünyesinde ${meslek.unvan} olarak işe alındın.": {
     "tr": "Tebrikler! ${isyeri ? isyeri.ad : \"\"} bünyesinde ${meslek.unvan} olarak işe alındın.",
@@ -135,7 +140,8 @@
     "el": "Συγχαρητήρια! Προσλήφθηκες ως ${meslek.unvan} στο ${isyeri ? isyeri.ad : \"\"}.",
     "ru": "Поздравляем! Тебя приняли на должность ${meslek.unvan} в ${isyeri ? isyeri.ad : \"\"}.",
     "zh": "恭喜！你以 ${meslek.unvan} 身份受雇于 ${isyeri ? isyeri.ad : \"\"}。",
-    "ar": "تهانينا! تم توظيفك كـ ${meslek.unvan} لدى ${isyeri ? isyeri.ad : \"\"}."
+    "ar": "تهانينا! تم توظيفك كـ ${meslek.unvan} لدى ${isyeri ? isyeri.ad : \"\"}.",
+    "pl": "Gratulacje! Zostałeś zatrudniony jako ${meslek.unvan} w ${isyeri ? isyeri.ad : \"\"}."
   },
   "${mevcut.isyeriAd} — ${mevcut.unvan} görevinden ayrıldın.": {
     "tr": "${mevcut.isyeriAd} — ${mevcut.unvan} görevinden ayrıldın.",
@@ -158,7 +164,8 @@
     "el": "Έφυγες από ${mevcut.isyeriAd} — ${mevcut.unvan}.",
     "ru": "Ты ушёл с ${mevcut.isyeriAd} — ${mevcut.unvan}.",
     "zh": "你已离开 ${mevcut.isyeriAd} — ${mevcut.unvan}。",
-    "ar": "تركت ${mevcut.isyeriAd} — ${mevcut.unvan}."
+    "ar": "تركت ${mevcut.isyeriAd} — ${mevcut.unvan}.",
+    "pl": "Opuściłeś ${mevcut.isyeriAd} — ${mevcut.unvan}."
   },
   "${miktar} adet ${m.ad}, ${hedefAd.reis_adi}'a devredildi.": {
     "tr": "${miktar} adet ${m.ad}, ${hedefAd.reis_adi}'a devredildi.",
@@ -182,7 +189,8 @@
     "el": "${miktar} × ${m.ad} μεταβιβάστηκε στον ${hedefAd.reis_adi}.",
     "ru": "${miktar} × ${m.ad} передано ${hedefAd.reis_adi}.",
     "zh": "${miktar} 个 ${m.ad} 已转让给 ${hedefAd.reis_adi}。",
-    "ar": "تم نقل ${miktar} × ${m.ad} إلى ${hedefAd.reis_adi}."
+    "ar": "تم نقل ${miktar} × ${m.ad} إلى ${hedefAd.reis_adi}.",
+    "pl": "${miktar} × ${m.ad} przeniesione do ${hedefAd.reis_adi}."
   },
   "${emp.sirket_adi} kasasında yeterli para yok — maaşın ödenemedi.": {
     "tr": "${emp.sirket_adi} kasasında yeterli para yok — maaşın ödenemedi.",
@@ -204,7 +212,8 @@
     "el": "Η ${emp.sirket_adi} δεν έχει αρκετά χρήματα — ο μισθός δεν πληρώθηκε.",
     "ru": "В кассе ${emp.sirket_adi} недостаточно средств — зарплата не выплачена.",
     "zh": "${emp.sirket_adi} 资金不足 — 工资未支付。",
-    "ar": "لا يوجد مال كافٍ في ${emp.sirket_adi} — لم يُدفع راتبك."
+    "ar": "لا يوجد مال كافٍ في ${emp.sirket_adi} — لم يُدفع راتبك.",
+    "pl": "${emp.sirket_adi} skarbiec jest pusty — Twoja pensja nie została wypłacona."
   },
   "${tur.emoji} ${temizIsim} kuruldu! Malzeme stoku al, çalışan işe al, günlük satışa başla.": {
     "tr": "${tur.emoji} ${temizIsim} kuruldu! Malzeme stoku al, çalışan işe al, günlük satışa başla.",
@@ -227,7 +236,8 @@
     "el": "${tur.emoji} ${temizIsim} ιδρύθηκε! Αγόρασε αποθέματα, πρόσλαβε, ξεκίνα πωλήσεις.",
     "ru": "${tur.emoji} ${temizIsim} создана! Закупи материалы, найми сотрудников, начни продажи.",
     "zh": "${tur.emoji} ${temizIsim} 已成立！进货、雇人、开始每日销售。",
-    "ar": "تم تأسيس ${tur.emoji} ${temizIsim}! اشترِ مخزونًا، وظّف موظفين، وابدأ المبيعات."
+    "ar": "تم تأسيس ${tur.emoji} ${temizIsim}! اشترِ مخزونًا، وظّف موظفين، وابدأ المبيعات.",
+    "pl": "${tur.emoji} ${temizIsim} założony! Kupuj materiały eksploatacyjne, zatrudniaj pracowników, rozpocznij codzienną sprzedaż."
   },
   "${tutar} TL şirket kasasına yatırıldı.": {
     "tr": "${tutar} TL şirket kasasına yatırıldı.",
@@ -249,7 +259,8 @@
     "el": "Κατατέθηκαν ${tutar} TL στο ταμείο της εταιρείας.",
     "ru": "${tutar} TL внесено в кассу компании.",
     "zh": "已向公司金库存入 ${tutar} TL。",
-    "ar": "تم إيداع ${tutar} TL في خزينة الشركة."
+    "ar": "تم إيداع ${tutar} TL في خزينة الشركة.",
+    "pl": "${tutar} TL zdeponowane w skarbcu firmy."
   },
   "${tutar} TL şirket kasasından çekildi.": {
     "tr": "${tutar} TL şirket kasasından çekildi.",
@@ -271,7 +282,8 @@
     "el": "Αναλήφθηκαν ${tutar} TL από το ταμείο της εταιρείας.",
     "ru": "${tutar} TL снято с кассы компании.",
     "zh": "已从公司金库取出 ${tutar} TL。",
-    "ar": "تم سحب ${tutar} TL من خزينة الشركة."
+    "ar": "تم سحب ${tutar} TL من خزينة الشركة.",
+    "pl": "${tutar} TL wycofany ze skarbca firmy."
   },
   "${sirket.isim} — ${poz.unvan} pozisyonuna başvurun alındı.": {
     "tr": "${sirket.isim} — ${poz.unvan} pozisyonuna başvurun alındı.",
@@ -294,7 +306,8 @@
     "el": "Λήφθηκε αίτηση για ${poz.unvan} στην ${sirket.isim}.",
     "ru": "Заявка на ${poz.unvan} в ${sirket.isim} получена.",
     "zh": "已收到 ${sirket.isim} 的 ${poz.unvan} 职位申请。",
-    "ar": "تم استلام طلبك لمنصب ${poz.unvan} في ${sirket.isim}."
+    "ar": "تم استلام طلبك لمنصب ${poz.unvan} في ${sirket.isim}.",
+    "pl": "Otrzymano wniosek dla ${poz.unvan} o ${sirket.isim}."
   },
   "${basvuru.username} ${poz.unvan} olarak işe alındı (${maas} TL/gün).": {
     "tr": "${basvuru.username} ${poz.unvan} olarak işe alındı (${maas} TL/gün).",
@@ -318,7 +331,8 @@
     "el": "Ο ${basvuru.username} προσλήφθηκε ως ${poz.unvan} (${maas} TL/ημέρα).",
     "ru": "${basvuru.username} принят как ${poz.unvan} (${maas} TL/день).",
     "zh": "${basvuru.username} 以 ${poz.unvan} 身份受雇（${maas} TL/天）。",
-    "ar": "تم توظيف ${basvuru.username} كـ ${poz.unvan} (${maas} TL/يوم)."
+    "ar": "تم توظيف ${basvuru.username} كـ ${poz.unvan} (${maas} TL/يوم).",
+    "pl": "${basvuru.username} zatrudniony jako ${poz.unvan} (${maas} TL/dzień)."
   },
   "Günlük maaş ${maas} TL olarak güncellendi.": {
     "tr": "Günlük maaş ${maas} TL olarak güncellendi.",
@@ -340,7 +354,8 @@
     "el": "Ο ημερήσιος μισθός ενημερώθηκε σε ${maas} TL.",
     "ru": "Дневная зарплата обновлена: ${maas} TL.",
     "zh": "日薪已更新为 ${maas} TL。",
-    "ar": "تم تحديث الراتب اليومي إلى ${maas} TL."
+    "ar": "تم تحديث الراتب اليومي إلى ${maas} TL.",
+    "pl": "Dzienne wynagrodzenie zaktualizowane do ${maas} TL."
   },
   "${emp.sirket_adi} — ${unvan} işinden ayrıldın.": {
     "tr": "${emp.sirket_adi} — ${unvan} işinden ayrıldın.",
@@ -363,7 +378,8 @@
     "el": "Έφυγες από ${emp.sirket_adi} — ${unvan}.",
     "ru": "Ты ушёл с ${emp.sirket_adi} — ${unvan}.",
     "zh": "你已离开 ${emp.sirket_adi} — ${unvan}。",
-    "ar": "تركت ${emp.sirket_adi} — ${unvan}."
+    "ar": "تركت ${emp.sirket_adi} — ${unvan}.",
+    "pl": "Opuściłeś ${emp.sirket_adi} — ${unvan}."
   },
   "Eğitim verildi: +${EGITIM_KAZANC} ${yetenek} (${EGITIM_MALIYET} TL).": {
     "tr": "Eğitim verildi: +${EGITIM_KAZANC} ${yetenek} (${EGITIM_MALIYET} TL).",
@@ -387,7 +403,8 @@
     "el": "Εκπαίδευση: +${EGITIM_KAZANC} ${yetenek} (${EGITIM_MALIYET} TL).",
     "ru": "Обучение: +${EGITIM_KAZANC} ${yetenek} (${EGITIM_MALIYET} TL).",
     "zh": "已培训：+${EGITIM_KAZANC} ${yetenek}（${EGITIM_MALIYET} TL）。",
-    "ar": "تم التدريب: +${EGITIM_KAZANC} ${yetenek} (${EGITIM_MALIYET} TL)."
+    "ar": "تم التدريب: +${EGITIM_KAZANC} ${yetenek} (${EGITIM_MALIYET} TL).",
+    "pl": "Przeprowadzone szkolenie: +${EGITIM_KAZANC} ${yetenek} (${EGITIM_MALIYET} TL)."
   },
   "${adet}× ${tanim.ad} satın alındı (${maliyet} TL).": {
     "tr": "${adet}× ${tanim.ad} satın alındı (${maliyet} TL).",
@@ -411,7 +428,8 @@
     "el": "${adet}× ${tanim.ad} αγοράστηκε (${maliyet} TL).",
     "ru": "Куплено ${adet}× ${tanim.ad} (${maliyet} TL).",
     "zh": "已购买 ${adet}× ${tanim.ad}（${maliyet} TL）。",
-    "ar": "تم شراء ${adet}× ${tanim.ad} (${maliyet} TL)."
+    "ar": "تم شراء ${adet}× ${tanim.ad} (${maliyet} TL).",
+    "pl": "${adet}× ${tanim.ad} zakupiono (${maliyet} TL)."
   },
   "${tip.emoji} ${tip.ad} seviye ${mevcut + 1} oldu (${maliyet} TL).": {
     "tr": "${tip.emoji} ${tip.ad} seviye ${mevcut + 1} oldu (${maliyet} TL).",
@@ -436,7 +454,8 @@
     "el": "${tip.emoji} ${tip.ad} ανέβηκε στο επίπεδο ${mevcut + 1} (${maliyet} TL).",
     "ru": "${tip.emoji} ${tip.ad} улучшен до уровня ${mevcut + 1} (${maliyet} TL).",
     "zh": "${tip.emoji} ${tip.ad} 已升至 ${mevcut + 1} 级（${maliyet} TL）。",
-    "ar": "${tip.emoji} ${tip.ad} ارتفع إلى المستوى ${mevcut + 1} (${maliyet} TL)."
+    "ar": "${tip.emoji} ${tip.ad} ارتفع إلى المستوى ${mevcut + 1} (${maliyet} TL).",
+    "pl": "${tip.emoji} ${tip.ad} zmodernizowany do poziomu ${mevcut + 1} (${maliyet} TL)."
   },
   "Satış fiyatı ${metin} olarak ayarlandı.": {
     "tr": "Satış fiyatı ${metin} olarak ayarlandı.",
@@ -458,7 +477,8 @@
     "el": "Η τιμή πώλησης ορίστηκε σε ${metin}.",
     "ru": "Цена продажи установлена: ${metin}.",
     "zh": "售价已设为 ${metin}。",
-    "ar": "تم ضبط سعر البيع على ${metin}."
+    "ar": "تم ضبط سعر البيع على ${metin}.",
+    "pl": "Cena promocyjna ustawiona na ${metin}."
   },
   "${sehir.ad}: +${sonuc.eklenen || sehir.kontrolKazanc} kontrol. Toplam: %${detay.benimKontrol}": {
     "tr": "${sehir.ad}: +${sonuc.eklenen || sehir.kontrolKazanc} kontrol. Toplam: %${detay.benimKontrol}",
@@ -482,7 +502,8 @@
     "el": "${sehir.ad}: +${sonuc.eklenen || sehir.kontrolKazanc} έλεγχος. Σύνολο: ${detay.benimKontrol}%",
     "ru": "${sehir.ad}: +${sonuc.eklenen || sehir.kontrolKazanc} контроль. Итого: ${detay.benimKontrol}%",
     "zh": "${sehir.ad}：+${sonuc.eklenen || sehir.kontrolKazanc} 控制。总计：${detay.benimKontrol}%",
-    "ar": "${sehir.ad}: +${sonuc.eklenen || sehir.kontrolKazanc} سيطرة. الإجمالي: ${detay.benimKontrol}%"
+    "ar": "${sehir.ad}: +${sonuc.eklenen || sehir.kontrolKazanc} سيطرة. الإجمالي: ${detay.benimKontrol}%",
+    "pl": "${sehir.ad}: +${sonuc.eklenen || sehir.kontrolKazanc} kontrola. Razem: ${detay.benimKontrol}%"
   },
   "${sehir.ad} ihalesi: +${sonuc.eklenen || kazanc} kontrol.": {
     "tr": "${sehir.ad} ihalesi: +${sonuc.eklenen || kazanc} kontrol.",
@@ -505,7 +526,8 @@
     "el": "Δημοπρασία ${sehir.ad}: +${sonuc.eklenen || kazanc} έλεγχος.",
     "ru": "Аукцион ${sehir.ad}: +${sonuc.eklenen || kazanc} контроль.",
     "zh": "${sehir.ad} 拍卖：+${sonuc.eklenen || kazanc} 控制。",
-    "ar": "مزاد ${sehir.ad}: +${sonuc.eklenen || kazanc} سيطرة."
+    "ar": "مزاد ${sehir.ad}: +${sonuc.eklenen || kazanc} سيطرة.",
+    "pl": "${sehir.ad} aukcja: +${sonuc.eklenen || kazanc} kontrola."
   },
   "${etiket} +${ANTRENMAN_KAZANC} (maaş antrenman puanı). Kalan puan: ${kalan}": {
     "tr": "${etiket} +${ANTRENMAN_KAZANC} (maaş antrenman puanı). Kalan puan: ${kalan}",
@@ -529,7 +551,8 @@
     "el": "${etiket} +${ANTRENMAN_KAZANC} (πόντος προπόνησης μισθού). Απομένουν: ${kalan}",
     "ru": "${etiket} +${ANTRENMAN_KAZANC} (тренировка с зарплаты). Осталось очков: ${kalan}",
     "zh": "${etiket} +${ANTRENMAN_KAZANC}（工资训练点）。剩余点数：${kalan}",
-    "ar": "${etiket} +${ANTRENMAN_KAZANC} (نقطة تدريب من الراتب). المتبقي: ${kalan}"
+    "ar": "${etiket} +${ANTRENMAN_KAZANC} (نقطة تدريب من الراتب). المتبقي: ${kalan}",
+    "pl": "${etiket} +${ANTRENMAN_KAZANC} (punkt szkolenia płacowego). Pozostało punktów: ${kalan}"
   },
   "${etiket} +${ANTRENMAN_KAZANC} (${maliyet} TL). Kalan antrenman: ${GUNLUK_ANTRENMAN_LIMIT - yeniSayac}/${GUNLUK_ANTRENMAN_LIMIT}": {
     "tr": "${etiket} +${ANTRENMAN_KAZANC} (${maliyet} TL). Kalan antrenman: ${GUNLUK_ANTRENMAN_LIMIT - yeniSayac}/${GUNLUK_ANTRENMAN_LIMIT}",
@@ -555,7 +578,8 @@
     "el": "${etiket} +${ANTRENMAN_KAZANC} (${maliyet} TL). Απομένουν προπονήσεις: ${GUNLUK_ANTRENMAN_LIMIT - yeniSayac}/${GUNLUK_ANTRENMAN_LIMIT}",
     "ru": "${etiket} +${ANTRENMAN_KAZANC} (${maliyet} TL). Осталось тренировок: ${GUNLUK_ANTRENMAN_LIMIT - yeniSayac}/${GUNLUK_ANTRENMAN_LIMIT}",
     "zh": "${etiket} +${ANTRENMAN_KAZANC}（${maliyet} TL）。剩余训练：${GUNLUK_ANTRENMAN_LIMIT - yeniSayac}/${GUNLUK_ANTRENMAN_LIMIT}",
-    "ar": "${etiket} +${ANTRENMAN_KAZANC} (${maliyet} TL). التدريب المتبقي: ${GUNLUK_ANTRENMAN_LIMIT - yeniSayac}/${GUNLUK_ANTRENMAN_LIMIT}"
+    "ar": "${etiket} +${ANTRENMAN_KAZANC} (${maliyet} TL). التدريب المتبقي: ${GUNLUK_ANTRENMAN_LIMIT - yeniSayac}/${GUNLUK_ANTRENMAN_LIMIT}",
+    "pl": "${etiket} +${ANTRENMAN_KAZANC} (${maliyet} TL). Pozostały trening: ${GUNLUK_ANTRENMAN_LIMIT - yeniSayac}/${GUNLUK_ANTRENMAN_LIMIT}"
   },
   "Saygınlığına göre bu tur en fazla ${max} TL verebilirsin.": {
     "tr": "Saygınlığına göre bu tur en fazla ${max} TL verebilirsin.",
@@ -576,7 +600,8 @@
     "el": "Με βάση τον σεβασμό σου, μπορείς να δώσεις το πολύ ${max} TL αυτόν τον γύρο.",
     "ru": "Согласно твоему уважению, в этом раунде можно дать не более ${max} TL.",
     "zh": "根据你的威望，本轮最多可给 ${max} TL。",
-    "ar": "حسب هيبتك، يمكنك إعطاء ${max} TL كحد أقصى في هذه الجولة."
+    "ar": "حسب هيبتك، يمكنك إعطاء ${max} TL كحد أقصى في هذه الجولة.",
+    "pl": "Bazując na Twoim szacunku, możesz w tej rundzie dać maksymalnie ${max} TL."
   },
   "Yeterli paran yok. (Kasanda: ${kasa} TL)": {
     "tr": "Yeterli paran yok. (Kasanda: ${kasa} TL)",
@@ -597,6 +622,7 @@
     "el": "Ανεπαρκή μετρητά. (Στο ταμείο: ${kasa} TL)",
     "ru": "Недостаточно наличных. (В кошельке: ${kasa} TL)",
     "zh": "现金不足。（钱包：${kasa} TL）",
-    "ar": "لا يوجد مال كافٍ. (في الخزنة: ${kasa} TL)"
+    "ar": "لا يوجد مال كافٍ. (في الخزنة: ${kasa} TL)",
+    "pl": "Za mało gotówki. (W portfelu: ${kasa} TL)"
   }
 }
