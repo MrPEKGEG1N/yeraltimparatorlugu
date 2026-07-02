@@ -351,6 +351,7 @@ async function publicPlayerFull(db, userId, player) {
   const { sahiplik, saatlikKazanc: sektorSaatlik } = await sektorPanel(db, userId);
   const limanSaatlik = limanSaatlikToplam(sahipLimanlar.length);
   const premium = await getPremiumBonuses(db, userId);
+  const premiumSt = await getPremiumStatus(db, userId);
   const saatlikKazancToplam = await oyuncuSaatlikKazanc(db, userId);
   const devletIliskisi = await getDevletIliskisi(db, userId);
   const smsHakki = await getSmsHakki(db, userId);
