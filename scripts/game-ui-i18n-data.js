@@ -327,8 +327,8 @@ module.exports = {
   "game.liman.izmir.desc": ["Ege'nin ticaret üssü; Avrupa bağlantılı sevkiyat hattı.", "Aegean trade hub; Europe-linked shipping route."],
   "game.liman.hatay.ad": ["Hatay Limanı", "Hatay Port"],
   "game.liman.hatay.desc": ["Akdeniz çıkışı; sınır ötesi yüklerin gizli rotası.", "Mediterranean exit; secret cross-border cargo route."],
-  "game.liman.quote": ["\"Boğazdan Akdeniz'e — güçlü olan limanı alır. Saatlik gelir sahibine otomatik işler.\"", "\"From the Bosphorus to the Mediterranean — the strong take the port. Hourly income runs automatically.\""],
-  "game.liman.incomeNote": ["⏱️ Türkiye saatiyle her saat başı liman başına <b>100.000 TL</b> kazanırsın. <b>Üç limanı birden elinde tutarsan saatlik toplam 500.000 TL kazanırsın!</b>", "⏱️ Every hour (TR time) you earn <b>100,000 TL</b> per port. <b>Hold all three for 500,000 TL/hour total!</b>"],
+  "game.liman.quote": ["\"Boğazdan Akdeniz'e — güçlü olan limanı alır.\"", "\"From the Bosphorus to the Mediterranean — the strong take the port.\""],
+  "game.liman.incomeNote": ["Şehre Hükmetmek için Limanları elinde tutmalısın!", "You must hold the ports to Rule the City!"],
 
   "game.buyume.mahalleTitle": ["🏡 MAHALLE İŞLERİ", "🏡 NEIGHBORHOOD AFFAIRS"],
   "game.buyume.mahalleQuote": ["\"Küçük işlerle sermaye yap.\"", "\"Build capital with small jobs.\""],
