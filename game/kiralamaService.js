@@ -3,7 +3,7 @@ const { HIRE } = require("./catalog");
 const { elitFiyatCarpani } = require("./elitFiyatService");
 
 function birimFiyat(baz, sahipAdet) {
-  return Math.floor(baz * Math.pow(1.01, sahipAdet));
+  return Math.floor(baz * Math.pow(1.05, sahipAdet));
 }
 
 function toplamFiyat(baz, sahipAdet, miktar) {

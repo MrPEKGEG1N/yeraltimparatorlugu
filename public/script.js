@@ -2401,7 +2401,7 @@ function guclenKartHTML(key, img, imgCls, baslik, alinti, bazMaliyet, guc, gucRe
 }
 
 function guclenBazBirimFiyat(baz, sahip) {
-  return Math.floor(baz * Math.pow(1.01, sahip || 0));
+  return Math.floor(baz * Math.pow(1.05, sahip || 0));
 }
 
 function guclenBirimFiyat(baz, sahip) {
@@ -2435,20 +2435,20 @@ function guclenKartlariCiz(keys, gorseller, imgCls, gucRenk, btnLabel, btnCls) {
 
 var HIRE_BILGI = {
   delikanli: { maliyet: 500, guc: 50 },
-  bodyguard: { maliyet: 2000, guc: 250 },
-  profesyonel: { maliyet: 8000, guc: 1100 },
-  harekat: { maliyet: 30000, guc: 4500 },
-  tabanca: { maliyet: 1200, guc: 100 },
-  pompali: { maliyet: 4500, guc: 450 },
-  ak47: { maliyet: 15000, guc: 1800 },
-  agir_silah: { maliyet: 45000, guc: 6000 },
-  sniper: { maliyet: 55000, guc: 7500 },
-  saat: { maliyet: 15000, guc: 2500 },
-  motorsiklet: { maliyet: 75000, guc: 15000 },
-  araba: { maliyet: 350000, guc: 80000 },
-  yat: { maliyet: 2500000, guc: 600000 },
-  helikopter: { maliyet: 8000000, guc: 2000000 },
-  jet: { maliyet: 45000000, guc: 10000000 }
+  bodyguard: { maliyet: 2000, guc: 185 },
+  profesyonel: { maliyet: 8000, guc: 690 },
+  harekat: { maliyet: 30000, guc: 2430 },
+  tabanca: { maliyet: 1200, guc: 115 },
+  pompali: { maliyet: 4500, guc: 400 },
+  ak47: { maliyet: 15000, guc: 1260 },
+  agir_silah: { maliyet: 45000, guc: 3570 },
+  sniper: { maliyet: 55000, guc: 4320 },
+  saat: { maliyet: 15000, guc: 1260 },
+  motorsiklet: { maliyet: 75000, guc: 5790 },
+  araba: { maliyet: 350000, guc: 25000 },
+  yat: { maliyet: 2500000, guc: 161000 },
+  helikopter: { maliyet: 8000000, guc: 486000 },
+  jet: { maliyet: 45000000, guc: 2500000 }
 };
 
 function isKartHTML(img, baslik, kazanc, icraat, guc, onclick, sayginlik) {
@@ -4958,27 +4958,27 @@ function ekranDegistir(tip) {
   if (tip === 'mahalle') {
     ic.innerHTML = '<h2>' + escHtml(t('game.buyume.mahalleTitle')) + '</h2><p>' + escHtml(t('game.buyume.mahalleQuote')) + '</p>'
       + buyumeIsKart('market', 'market', '+800 TL', '1', '300', 1)
-      + buyumeIsKart('tamirhane', 'tamirhane', '+1.450 TL', '1', '600', 2)
-      + buyumeIsKart('esnafa_guvence', 'koruma', '+2.700 TL', '2', '1.200', 4)
-      + buyumeIsKart('zar_salonu', 'kumarhane', '+4.300 TL', '2', '2.500', 6);
+      + buyumeIsKart('tamirhane', 'tamirhane', '+950 TL', '1', '500', 2)
+      + buyumeIsKart('esnafa_guvence', 'koruma', '+2.200 TL', '2', '800', 4)
+      + buyumeIsKart('zar_salonu', 'kumarhane', '+2.600 TL', '2', '1.250', 6);
     return;
   }
 
   if (tip === 'semt') {
     ic.innerHTML = '<h2>' + escHtml(t('game.buyume.semtTitle')) + '</h2><p>' + escHtml(t('game.buyume.semtQuote')) + '</p>'
-      + buyumeIsKart('gece_kulubu', 'gece_kulubu', '+11.500 TL', '3', '6.000', 10)
-      + buyumeIsKart('kumarhane_agi', 'kumarhane_agi', '+17.000 TL', '3', '8.000', 15)
-      + buyumeIsKart('kara_para', 'kara_para', '+24.000 TL', '4', '10.000', 22)
-      + buyumeIsKart('semt_galeri', 'galeri', '+30.000 TL', '4', '12.000', 30);
+      + buyumeIsKart('gece_kulubu', 'gece_kulubu', '+4.600 TL', '3', '2.000', 9)
+      + buyumeIsKart('kumarhane_agi', 'kumarhane_agi', '+5.400 TL', '3', '3.200', 14)
+      + buyumeIsKart('kara_para', 'kara_para', '+8.500 TL', '4', '5.150', 21)
+      + buyumeIsKart('semt_galeri', 'galeri', '+10.000 TL', '4', '8.250', 33);
     return;
   }
 
   if (tip === 'sehir') {
     ic.innerHTML = '<h2>' + escHtml(t('game.buyume.sehirTitle')) + '</h2><p>' + escHtml(t('game.buyume.sehirQuote')) + '</p>'
-      + buyumeIsKart('lojistik', 'lojistik', '+43.000 TL', '5', '15.000', 45)
-      + buyumeIsKart('gumruk', 'gumruk', '+76.000 TL', '6', '25.000', 60)
-      + buyumeIsKart('belediye', 'belediye', '+115.000 TL', '8', '40.000', 80)
-      + buyumeIsKart('buyuk_holding', 'holding', '+190.000 TL', '10', '55.000', 100);
+      + buyumeIsKart('lojistik', 'lojistik', '+14.700 TL', '5', '13.300', 51)
+      + buyumeIsKart('gumruk', 'gumruk', '+20.800 TL', '6', '21.300', 79)
+      + buyumeIsKart('belediye', 'belediye', '+32.700 TL', '8', '34.300', 90)
+      + buyumeIsKart('buyuk_holding', 'holding', '+48.000 TL', '10', '55.000', 100);
     return;
   }
 

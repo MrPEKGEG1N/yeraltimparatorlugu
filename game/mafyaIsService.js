@@ -15,6 +15,7 @@ const ISLER = [
     kazancKisi: 350_000,
     sayginlikKisi: 140,
     devletDus: 4,
+    gucRisk: 0.08,
     gorselKey: "mafya_oto",
   },
   {
@@ -22,10 +23,11 @@ const ISLER = [
     ad: "Şehrin Lüks Kuyumcusunu Soy",
     minOnline: 5,
     minGuc: 100_000,
-    icraat: 16,
-    kazancKisi: 900_000,
+    icraat: 18,
+    kazancKisi: 950_000,
     sayginlikKisi: 300,
-    devletDus: 7,
+    devletDus: 8,
+    gucRisk: 0.1,
     gorselKey: "mafya_kuyumcu",
   },
   {
@@ -33,10 +35,11 @@ const ISLER = [
     ad: "Şehrin En İşlek Bankasını Soy",
     minOnline: 7,
     minGuc: 500_000,
-    icraat: 20,
-    kazancKisi: 5_200_000,
-    sayginlikKisi: 520,
-    devletDus: 12,
+    icraat: 24,
+    kazancKisi: 2_300_000,
+    sayginlikKisi: 550,
+    devletDus: 14,
+    gucRisk: 0.14,
     gorselKey: "mafya_banka",
   },
   {
@@ -44,10 +47,11 @@ const ISLER = [
     ad: "Ülke Darphanesini Soy",
     minOnline: 15,
     minGuc: 2_500_000,
-    icraat: 25,
-    kazancKisi: 30_000_000,
-    sayginlikKisi: 850,
-    devletDus: 18,
+    icraat: 32,
+    kazancKisi: 5_600_000,
+    sayginlikKisi: 900,
+    devletDus: 22,
+    gucRisk: 0.2,
     gorselKey: "mafya_darphane",
   },
 ];
@@ -228,7 +232,7 @@ async function isGerceklestir(db, grupId, isId) {
       [k.userId]
     );
     if (!row) continue;
-    const gucSync = await gucKaybiOranliUygula(db, k.userId, row, 0.1);
+    const gucSync = await gucKaybiOranliUygula(db, k.userId, row, isDef.gucRisk ?? 0.1);
     const yeniPuan = row.puan + isDef.sayginlikKisi;
     const yeniDevlet = Math.max(0, (row.devlet_iliskisi ?? 100) - isDef.devletDus);
     const yeniKasa = row.kasa + isDef.kazancKisi;
