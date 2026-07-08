@@ -102,20 +102,20 @@
   border-radius: 4px;
 }
 
-/* Gri alt şerit — panel görselindeki orta bölüm (≈81–559 px / 1024×682) */
+/* Tuşlar — panel görselindeki orta-alt gri taş levhanın içine oturur (≈240–795px / 1024×682) */
 #tutorialModal .eg-panel-btns {
   position: absolute;
-  left: 34.8%;
-  top: 81.9%;
-  width: 53.8%;
-  height: 9.2%;
+  left: 25%;
+  top: 82%;
+  width: 51%;
+  height: 9%;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 3.5%;
+  gap: 4%;
   z-index: 2;
   box-sizing: border-box;
-  padding: 0 2%;
+  padding: 0 3%;
 }
 
 #tutorialModal .eg-btn {
@@ -123,7 +123,7 @@
   flex: 1 1 0;
   width: auto;
   max-width: 31%;
-  height: 88%;
+  height: 82%;
   min-width: 0;
   top: auto;
   left: auto;
@@ -131,21 +131,22 @@
   padding: 0 4px;
   margin: 0;
   border: none;
-  border-radius: 2px;
-  background: rgba(72, 68, 62, 0.55);
+  border-radius: 3px;
+  background: transparent;
   font-family: "Cinzel", Georgia, serif;
   font-size: clamp(8px, 0.95vw, 12px);
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #ece4d6;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
   cursor: pointer;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), inset 0 -2px 5px rgba(0, 0, 0, 0.28);
+  box-shadow: none;
   transition: background 0.15s ease, color 0.15s ease;
 }
 
 #tutorialModal .eg-btn:hover:not(:disabled) {
-  background: rgba(88, 82, 72, 0.78);
+  background: rgba(255, 255, 255, 0.08);
   color: #fff;
 }
 
@@ -155,12 +156,12 @@
 }
 
 #tutorialModal .eg-btn--bitir {
-  background: rgba(58, 42, 28, 0.72);
+  background: transparent;
   color: #f4e0a8;
 }
 
 #tutorialModal .eg-btn--bitir:hover:not(:disabled) {
-  background: rgba(82, 58, 32, 0.88);
+  background: rgba(244, 224, 168, 0.12);
   color: #fff8e8;
 }
 
@@ -208,12 +209,12 @@
   }
 
   #tutorialModal .eg-panel-btns {
-    left: 36%;
-    top: 81.5%;
-    width: 54%;
+    left: 25%;
+    top: 82%;
+    width: 51%;
     height: 9%;
-    gap: 2.5%;
-    padding: 0 1.5%;
+    gap: 3%;
+    padding: 0 2%;
   }
 
   #tutorialModal .eg-btn {

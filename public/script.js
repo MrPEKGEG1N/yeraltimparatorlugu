@@ -1108,13 +1108,26 @@ function toast(mesaj, tip) {
   }, 3200);
 }
 
-function pencereAc(isAdi, netKazanc, icraat, gorselUrl, devletDusus, yeniDevletIliski) {
+function pencereAc(isAdi, netKazanc, icraat, gorselUrl, devletDusus, yeniDevletIliski, sayginlik) {
   sesCal('saldiri');
   document.getElementById('modalResim').src = gorselUrl || isGorselleri.varsayilan;
   document.getElementById('modalTebrik').innerHTML =
     t('game.jobComplete', { boss: aktifReisAdi, job: isAdi });
   document.getElementById('modalPara').innerText = '+' + fmt(netKazanc) + ' TL';
   document.getElementById('modalIcraat').innerText = icraat > 0 ? '-' + icraat + ' Hak' : '—';
+  var sayginlikSatir = document.getElementById('modalSayginlikSatir');
+  var sayginlikEl = document.getElementById('modalSayginlik');
+  var sayginlikLabel = document.getElementById('modalSayginlikLabel');
+  if (sayginlikSatir && sayginlikEl) {
+    if (sayginlik != null && sayginlik > 0) {
+      if (sayginlikLabel) sayginlikLabel.innerText = '🕶️ ' + t('game.job.modalRespect') + ':';
+      sayginlikEl.innerText = '+' + fmt(sayginlik);
+      sayginlikSatir.style.display = '';
+    } else {
+      sayginlikSatir.style.display = 'none';
+      sayginlikEl.innerText = '';
+    }
+  }
   var devSatir = document.getElementById('modalDevletSatir');
   var devEl = document.getElementById('modalDevlet');
   if (devSatir && devEl) {
@@ -2438,24 +2451,29 @@ var HIRE_BILGI = {
   jet: { maliyet: 45000000, guc: 10000000 }
 };
 
-function isKartHTML(img, baslik, kazanc, icraat, guc, onclick) {
+function isKartHTML(img, baslik, kazanc, icraat, guc, onclick, sayginlik) {
+  var sayginlikSatiri = (sayginlik != null)
+    ? '<p style="color:#c5a059;font-weight:600;">' + t('game.job.respectLine', { puan: sayginlik }) + '</p>'
+    : '';
   return '<div class="is-kart"><div class="is-yapi">'
     + '<img src="' + img + '" class="vesikalik-resim" onerror="imgFallback(this)">'
     + '<div class="is-detay"><h3>' + baslik + '</h3>'
     + '<p>' + escHtml(t('game.job.netGain')) + ' <b style="color:#28a745;">' + kazanc + '</b></p>'
+    + sayginlikSatiri
     + '<p style="color:#00e5ff;font-weight:600;">' + t('game.job.requiredLine', { icraat: icraat, guc: guc }) + '</p>'
     + '<button class="btn-is" onclick="' + onclick + '">' + escHtml(t('game.job.doIt')) + '</button>'
     + '</div></div></div>';
 }
 
-function buyumeIsKart(key, imgKey, kazanc, icraat, guc) {
+function buyumeIsKart(key, imgKey, kazanc, icraat, guc, sayginlik) {
   return isKartHTML(
     isGorselleri[imgKey],
     t('game.buyume.job.' + key + '.title'),
     kazanc,
     icraat + t('game.job.actionUnit'),
     guc + t('game.job.powerUnit'),
-    "isYap('" + key + "')"
+    "isYap('" + key + "')",
+    sayginlik
   );
 }
 
@@ -4939,28 +4957,28 @@ function ekranDegistir(tip) {
 
   if (tip === 'mahalle') {
     ic.innerHTML = '<h2>' + escHtml(t('game.buyume.mahalleTitle')) + '</h2><p>' + escHtml(t('game.buyume.mahalleQuote')) + '</p>'
-      + buyumeIsKart('market', 'market', '+800 TL', '1', '300')
-      + buyumeIsKart('tamirhane', 'tamirhane', '+1.450 TL', '1', '600')
-      + buyumeIsKart('esnafa_guvence', 'koruma', '+2.700 TL', '2', '1.200')
-      + buyumeIsKart('zar_salonu', 'kumarhane', '+4.300 TL', '2', '2.500');
+      + buyumeIsKart('market', 'market', '+800 TL', '1', '300', 1)
+      + buyumeIsKart('tamirhane', 'tamirhane', '+1.450 TL', '1', '600', 2)
+      + buyumeIsKart('esnafa_guvence', 'koruma', '+2.700 TL', '2', '1.200', 4)
+      + buyumeIsKart('zar_salonu', 'kumarhane', '+4.300 TL', '2', '2.500', 6);
     return;
   }
 
   if (tip === 'semt') {
     ic.innerHTML = '<h2>' + escHtml(t('game.buyume.semtTitle')) + '</h2><p>' + escHtml(t('game.buyume.semtQuote')) + '</p>'
-      + buyumeIsKart('gece_kulubu', 'gece_kulubu', '+11.500 TL', '3', '6.000')
-      + buyumeIsKart('kumarhane_agi', 'kumarhane_agi', '+17.000 TL', '3', '8.000')
-      + buyumeIsKart('kara_para', 'kara_para', '+24.000 TL', '4', '10.000')
-      + buyumeIsKart('semt_galeri', 'galeri', '+30.000 TL', '4', '12.000');
+      + buyumeIsKart('gece_kulubu', 'gece_kulubu', '+11.500 TL', '3', '6.000', 10)
+      + buyumeIsKart('kumarhane_agi', 'kumarhane_agi', '+17.000 TL', '3', '8.000', 15)
+      + buyumeIsKart('kara_para', 'kara_para', '+24.000 TL', '4', '10.000', 22)
+      + buyumeIsKart('semt_galeri', 'galeri', '+30.000 TL', '4', '12.000', 30);
     return;
   }
 
   if (tip === 'sehir') {
     ic.innerHTML = '<h2>' + escHtml(t('game.buyume.sehirTitle')) + '</h2><p>' + escHtml(t('game.buyume.sehirQuote')) + '</p>'
-      + buyumeIsKart('lojistik', 'lojistik', '+43.000 TL', '5', '15.000')
-      + buyumeIsKart('gumruk', 'gumruk', '+76.000 TL', '6', '25.000')
-      + buyumeIsKart('belediye', 'belediye', '+115.000 TL', '8', '40.000')
-      + buyumeIsKart('buyuk_holding', 'holding', '+190.000 TL', '10', '55.000');
+      + buyumeIsKart('lojistik', 'lojistik', '+43.000 TL', '5', '15.000', 45)
+      + buyumeIsKart('gumruk', 'gumruk', '+76.000 TL', '6', '25.000', 60)
+      + buyumeIsKart('belediye', 'belediye', '+115.000 TL', '8', '40.000', 80)
+      + buyumeIsKart('buyuk_holding', 'holding', '+190.000 TL', '10', '55.000', 100);
     return;
   }
 
@@ -5252,7 +5270,7 @@ async function adamKirala(key) {
 async function isYap(key) {
   var ef = await sunucuAksiyon('job', key);
   if (!ef) return;
-  pencereAc(ef.isAdi, ef.netKazanc, ef.icraat, isGorselleri[ef.gorselKey] || FALLBACK, ef.devletDusus, ef.yeniDevletIliski);
+  pencereAc(ef.isAdi, ef.netKazanc, ef.icraat, isGorselleri[ef.gorselKey] || FALLBACK, ef.devletDusus, ef.yeniDevletIliski, ef.puan);
   if (ef.devletDusus) {
     toast(t('game.toast.lawyerRelationDrop', { points: ef.devletDusus }), 'uyari');
   }

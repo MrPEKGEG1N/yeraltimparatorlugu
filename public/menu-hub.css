@@ -1,4 +1,4 @@
-/* Görsel menü hub — Güçlen, Büyüme Adımları & Mekan Sahibi */
+/* Görsel menü hub — Güçlen/Silahlan, İcraat İşleri & Mekan Sahibi */
 #masterLayout #anaIcerik .vizuel-menu-hub {
   display: flex;
   flex-direction: column;
@@ -186,7 +186,7 @@
     radial-gradient(ellipse 90% 70% at 50% 55%, rgba(220, 90, 70, 0.32) 0%, transparent 75%);
 }
 
-/* —— Büyüme Adımları —— */
+/* —— İcraat İşleri —— */
 #masterLayout #anaIcerik .vizuel-menu--buyume .vizuel-menu-wrap:has(.vizuel-menu-zone--mahalle:hover) .vizuel-menu-img {
   filter: brightness(0.77) saturate(0.9);
 }

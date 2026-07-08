@@ -21,7 +21,7 @@ const JOBS = {
   market: {
     isAdi: "Köşedeki Marketi Haraca Bağla",
     netKazanc: 800,
-    puan: 5,
+    puan: 1,
     icraat: 1,
     minGuc: 300,
     gorselKey: "market",
@@ -29,7 +29,7 @@ const JOBS = {
   tamirhane: {
     isAdi: "Kaçak Otomobil Tamirhanesi",
     netKazanc: 1450,
-    puan: 9,
+    puan: 2,
     icraat: 1,
     minGuc: 600,
     gorselKey: "tamirhane",
@@ -37,7 +37,7 @@ const JOBS = {
   esnafa_guvence: {
     isAdi: "Esnafa Güvence Sağlama",
     netKazanc: 2700,
-    puan: 14,
+    puan: 4,
     icraat: 2,
     minGuc: 1200,
     gorselKey: "koruma",
@@ -45,7 +45,7 @@ const JOBS = {
   zar_salonu: {
     isAdi: "Yeraltı Zar Salonu",
     netKazanc: 4300,
-    puan: 22,
+    puan: 6,
     icraat: 2,
     minGuc: 2500,
     gorselKey: "kumarhane",
@@ -53,7 +53,7 @@ const JOBS = {
   gece_kulubu: {
     isAdi: "Lüks Gece Kulübü Güvenliği",
     netKazanc: 11500,
-    puan: 55,
+    puan: 10,
     icraat: 3,
     minGuc: 6000,
     gorselKey: "gece_kulubu",
@@ -61,7 +61,7 @@ const JOBS = {
   kumarhane_agi: {
     isAdi: "Kumarhane Ağı",
     netKazanc: 17000,
-    puan: 70,
+    puan: 15,
     icraat: 3,
     minGuc: 8000,
     gorselKey: "kumarhane_agi",
@@ -69,7 +69,7 @@ const JOBS = {
   kara_para: {
     isAdi: "Kara Para Aklama",
     netKazanc: 24000,
-    puan: 90,
+    puan: 22,
     icraat: 4,
     minGuc: 10000,
     gorselKey: "kara_para",
@@ -77,7 +77,7 @@ const JOBS = {
   semt_galeri: {
     isAdi: "Semt Galerisine Çök",
     netKazanc: 30000,
-    puan: 110,
+    puan: 30,
     icraat: 4,
     minGuc: 12000,
     gorselKey: "galeri",
@@ -85,7 +85,7 @@ const JOBS = {
   lojistik: {
     isAdi: "Lojistik İhalesi",
     netKazanc: 43000,
-    puan: 140,
+    puan: 45,
     icraat: 5,
     minGuc: 15000,
     gorselKey: "lojistik",
@@ -93,7 +93,7 @@ const JOBS = {
   gumruk: {
     isAdi: "Gümrük Müdürünü Satın Al",
     netKazanc: 76000,
-    puan: 185,
+    puan: 60,
     icraat: 6,
     minGuc: 25000,
     gorselKey: "gumruk",
@@ -101,7 +101,7 @@ const JOBS = {
   belediye: {
     isAdi: "Belediye İhalesi",
     netKazanc: 115000,
-    puan: 285,
+    puan: 80,
     icraat: 8,
     minGuc: 40000,
     gorselKey: "belediye",
@@ -109,7 +109,7 @@ const JOBS = {
   buyuk_holding: {
     isAdi: "Büyük Holdinge Güvence Sağla",
     netKazanc: 190000,
-    puan: 380,
+    puan: 100,
     icraat: 10,
     minGuc: 55000,
     gorselKey: "holding",

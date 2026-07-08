@@ -60,6 +60,31 @@
     {
       step: 12,
       textKey: 'tutorial.step.12',
+      targetPage: '/guvenli-yer',
+    },
+    {
+      step: 13,
+      textKey: 'tutorial.step.13',
+      targetPage: '/gunluk-gorevler',
+    },
+    {
+      step: 14,
+      textKey: 'tutorial.step.14',
+      targetPage: '/meslekler',
+    },
+    {
+      step: 15,
+      textKey: 'tutorial.step.15',
+      targetPage: '/sabotaj',
+    },
+    {
+      step: 16,
+      textKey: 'tutorial.step.16',
+      targetPage: '/borsa',
+    },
+    {
+      step: 17,
+      textKey: 'tutorial.step.17',
       targetPage: 'close-tutorial',
     },
   ];
@@ -77,6 +102,11 @@
     '/sohbet': 'mesajKutusu',
     '/dusmana-cok': 'dusmanaCok',
     '/devlet-iliskileri': 'devletIliskisi',
+    '/guvenli-yer': 'guvenliYer',
+    '/gunluk-gorevler': 'gunlukGorevler',
+    '/meslekler': 'meslekler',
+    '/sabotaj': 'sabotaj',
+    '/borsa': 'borsa',
     'close-tutorial': null,
   };
 

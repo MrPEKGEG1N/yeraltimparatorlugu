@@ -600,6 +600,7 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
         isAdi: job.isAdi,
         netKazanc: job.netKazanc,
         icraat: job.icraat,
+        puan: job.puan,
         gorselKey: job.gorselKey,
         devletDusus,
         yeniDevletIliski,

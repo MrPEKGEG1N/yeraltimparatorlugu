@@ -114,7 +114,7 @@ rep(
 
 // Hubs
 rep(
-  "vizuelMenuHubHTML('guclen', '/images/guclen/guclen-menu.png?v=101', 'Güçlenme — sokak dükkanları', [",
+  "vizuelMenuHubHTML('guclen', '/images/guclen/guclen-menu.png?v=101', 'Güçlen/Silahlan — sokak dükkanları', [",
   "vizuelMenuHubHTML('guclen', '/images/guclen/guclen-menu.png?v=101', t('game.hub.guclenSubtitle'), [",
   "hub guclen"
 );
@@ -124,7 +124,7 @@ rep(
   "hub luks"
 );
 rep(
-  "vizuelMenuHubHTML('buyume', '/images/buyume/buyume-menu.png?v=101', 'Büyüme Adımları — yol ayrımı', [",
+  "vizuelMenuHubHTML('buyume', '/images/buyume/buyume-menu.png?v=101', 'İcraat İşleri — yol ayrımı', [",
   "vizuelMenuHubHTML('buyume', '/images/buyume/buyume-menu.png?v=101', t('game.hub.buyumeSubtitle'), [",
   "hub buyume"
 );
