@@ -247,6 +247,8 @@
   font-size: 12px;
   line-height: 1.45;
   color: rgba(190, 180, 165, 0.88);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
 #masterLayout #anaIcerik .sh-kart-sahip {

@@ -309,9 +309,9 @@ module.exports = {
 
   "game.sehre.title": ["ŞEHRE HÜKMET", "RULE THE CITY"],
   "game.sehre.subtitle": ["Tahtın üç kapısı — söz, sadakat ve liman.", "The throne's three gates — word, loyalty and port."],
-  "game.sehre.wordDesc": ["Alemde en büyük söz burada konur; herkes dinler.", "The biggest word in the underworld is spoken here; everyone listens."],
-  "game.sehre.loyaltyDesc": ["Babaya biat eden asla yarı yolda kalmaz.", "Those who swear loyalty to the Boss never fall halfway."],
-  "game.sehre.portsDesc": ["İstanbul, İzmir ve Hatay — saatlik dev gelir.", "Istanbul, Izmir and Hatay — massive hourly income."],
+  "game.sehre.wordDesc": ["Alemde en büyük söz burada söylenir. Herkes dinler!", "The biggest word in the underworld is spoken here; everyone listens."],
+  "game.sehre.loyaltyDesc": ["Babaya yemin eden asla yarı yolda kalmaz.", "Those who swear loyalty to the Boss never fall halfway."],
+  "game.sehre.portsDesc": ["Güç ve saygınlığın göstergesi..", "A mark of power and respect."],
   "game.sehre.note": ["Makam veya liman ele geçirmek için 1 İcraat gerekir. Kazanan rakibin saygınlığının %5'ini alır.", "Seizing a seat or port costs 1 Action. Winner takes 5% of rival's respect."],
   "game.sehre.portsAvailable": ["3 liman müsait", "3 ports available"],
   "game.sehre.loyaltyTitle": ["SADAKAT YEMİNİ", "OATH OF LOYALTY"],
