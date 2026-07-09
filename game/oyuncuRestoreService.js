@@ -196,9 +196,6 @@ async function playerNeedsRecovery(db, userId, snap, created) {
   if (snap.sirket_kapali === true) {
     const owned = await get(db, `SELECT id FROM oyuncu_sirketleri WHERE sahip_user_id = ?`, [userId]);
     if (owned) return true;
-  } else if (snap.sirket?.tur_id) {
-    const owned = await get(db, `SELECT id FROM oyuncu_sirketleri WHERE sahip_user_id = ?`, [userId]);
-    if (!owned) return true;
   }
   if (snap.mafya) {
     const m = await get(db, `SELECT 1 AS n FROM mafya_uyeleri WHERE user_id = ?`, [userId]);
@@ -241,7 +238,7 @@ async function playerNeedsRecovery(db, userId, snap, created) {
   return false;
 }
 
-async function applyForceSnapshot(db, userId, snap) {
+async function applyForceSnapshot(db, userId, snap, { allowCreate = false } = {}) {
   const player = snap.player || {};
   const cur = await get(
     db,
@@ -286,8 +283,11 @@ async function applyForceSnapshot(db, userId, snap) {
   await applyYetenekler(db, userId, snap.yetenekler);
   if (snap.sirket_kapali === true) {
     await clearOwnedSirket(db, userId);
-  } else {
-    await applySirket(db, userId, snap.sirket);
+  } else if (snap.sirket?.tur_id) {
+    const owned = await get(db, `SELECT id FROM oyuncu_sirketleri WHERE sahip_user_id = ?`, [userId]);
+    if (owned || allowCreate) {
+      await applySirket(db, userId, snap.sirket);
+    }
   }
   await applyMafya(db, userId, snap.mafya);
   await applySehreHukmet(db, userId, snap.sehre_hukmet);
@@ -698,7 +698,7 @@ async function restoreOneSnapshot(db, snap) {
   if (snap.force_restore) {
     const need = await playerNeedsRecovery(db, userId, snap, created);
     if (need) {
-      await applyForceSnapshot(db, userId, snap);
+      await applyForceSnapshot(db, userId, snap, { allowCreate: created });
       console.log(`[restore] Kurtarma uygulandi: ${username}`);
     }
   }
@@ -742,11 +742,17 @@ function mergeSnapshot(existing, exported) {
   }
   out.guvenli_yer = { ...(existing.guvenli_yer || {}), ...(exported.guvenli_yer || {}) };
   out.istihbarat = { ...(existing.istihbarat || {}), ...(exported.istihbarat || {}) };
-  if (exported.sirket_kapali === true) {
+  if (existing.sirket_kapali === true) {
+    delete out.sirket;
+    out.sirket_kapali = true;
+  } else if (exported.sirket_kapali === true) {
     delete out.sirket;
     out.sirket_kapali = true;
   } else if (exported.sirket) {
     out.sirket = exported.sirket;
+    delete out.sirket_kapali;
+  } else if (existing.sirket) {
+    out.sirket = existing.sirket;
     delete out.sirket_kapali;
   } else if (exported.sirket_kapali === false) {
     delete out.sirket_kapali;
@@ -1066,7 +1072,7 @@ async function enforceLiveSnapshotPolicies(db) {
       const need = await playerNeedsRecovery(db, userId, snap, false);
       if (!need) continue;
 
-      await applyForceSnapshot(db, userId, snap);
+      await applyForceSnapshot(db, userId, snap, { allowCreate: false });
       console.log(`[restore] Canli DB kurtarma: ${snap.username}`);
       results.push({ username: snap.username, recovered: true });
     } catch (err) {

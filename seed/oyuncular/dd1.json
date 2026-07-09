@@ -4,16 +4,17 @@
   "reis_adi": "dd1",
   "lakap": "Mafya",
   "force_restore": true,
+  "sirket_kapali": true,
   "player": {
-    "kasa": 2059016000,
-    "guc": 86296950,
-    "puan": 257870,
-    "icraat": 724,
-    "sms_hakki": 349,
+    "kasa": 5888117781,
+    "guc": 600525150,
+    "puan": 292810,
+    "icraat": 3749,
+    "sms_hakki": 399,
     "dostlar": "",
     "dusmanlar": "",
     "kara_listede": 1,
-    "sehir_efsane": 0,
+    "sehir_efsane": 1,
     "sehre_hukmet_sayisi": 26,
     "liman_istanbul": 1,
     "aktif_ekran": "liderlik",
@@ -32,38 +33,6 @@
     "zeka": 8,
     "dayaniklilik": 8,
     "beceri": 8
-  },
-  "sirket": {
-    "tur_id": "gece_kulubu",
-    "isim": "Gece Kulübü dd1",
-    "aciklama": "Şehrin en gözde gece kulübü.",
-    "kasa": 3194000,
-    "ise_alim_acik": 1,
-    "kapasite_seviye": 5,
-    "depo_seviye": 5,
-    "personel_odasi_seviye": 4,
-    "reklam_seviye": 3,
-    "fiyat_carpani": 1,
-    "yildiz": 0,
-    "populerlik": 6,
-    "stok": [
-      {
-        "malzeme_id": "ambalaj",
-        "miktar": 70
-      },
-      {
-        "malzeme_id": "guvenlik_ekipman",
-        "miktar": 45
-      },
-      {
-        "malzeme_id": "icecek_stok",
-        "miktar": 180
-      },
-      {
-        "malzeme_id": "ses_isik",
-        "miktar": 95
-      }
-    ]
   },
   "mafya": {
     "lider": true,
