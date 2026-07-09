@@ -68,6 +68,39 @@
     z-index: 1;
   }
 
+  html.mobile-immersive-forced {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  html.mobile-immersive-forced body {
+    overflow: hidden;
+    min-height: var(--app-vh, 100dvh);
+  }
+
+  html.mobile-immersive-forced #masterLayout {
+    position: fixed;
+    inset: 0;
+    z-index: 2;
+    height: var(--app-vh, 100dvh) !important;
+    max-height: var(--app-vh, 100dvh) !important;
+    --ml-ribbon-h: 26px;
+  }
+
+  html.mobile-immersive-forced #masterLayout .ml-header-right > button:not(#mlMobileFullscreenHdrBtn) {
+    display: none;
+  }
+
+  html.mobile-immersive-forced #masterLayout .ml-header-right .lang-mount {
+    display: none;
+  }
+
+  html.mobile-immersive-forced #mlMobileFullscreenHdrBtn {
+    box-shadow: 0 0 14px rgba(240, 208, 96, 0.55);
+    border-color: #f0d060;
+    background: rgba(197, 160, 89, 0.28);
+  }
+
   /* —— Üst bar: tek satır, kaydırmalı istatistikler —— */
   #masterLayout .ml-header {
     grid-area: hdr;

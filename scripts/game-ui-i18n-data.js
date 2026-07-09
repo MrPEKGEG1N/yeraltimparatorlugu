@@ -332,6 +332,8 @@ module.exports = {
   "game.mobile.back": ["← Geri Git", "← Go Back"],
   "game.mobile.fullscreen": ["⛶ Tam Ekran", "⛶ Full Screen"],
   "game.mobile.exitFullscreen": ["✕ Tam Ekrandan Çık", "✕ Exit Full Screen"],
+  "game.mobile.immersiveOn": ["Tam ekran modu açık — oyun alanı genişletildi", "Full screen mode on — game area expanded"],
+  "game.mobile.immersiveOff": ["Tam ekran modu kapatıldı", "Full screen mode off"],
 
   "game.buyume.mahalleTitle": ["🏡 MAHALLE İŞLERİ", "🏡 NEIGHBORHOOD AFFAIRS"],
   "game.buyume.mahalleQuote": ["\"Küçük işlerle sermaye yap.\"", "\"Build capital with small jobs.\""],

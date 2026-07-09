@@ -1,10 +1,12 @@
 /**
- * Mobil tarayıcıda (Safari / Chrome) üst-alt adres çubuklarını gizlemeye yardımcı olur.
+ * Mobil tarayıcıda tam ekran / immersive mod.
+ * iOS Safari'de requestFullscreen çalışmaz; CSS immersive + scroll nudge kullanılır.
  */
 (function () {
   "use strict";
 
   var MOBILE_MQ = window.matchMedia("(max-width: 768px), (pointer: coarse)");
+  var immersiveForced = false;
 
   function isMobile() {
     return MOBILE_MQ.matches;
@@ -34,6 +36,10 @@
     );
   }
 
+  function isImmersiveActive() {
+    return fullscreenActive() || immersiveForced;
+  }
+
   function tryFullscreen() {
     var el = document.documentElement;
     var fn =
@@ -41,10 +47,15 @@
       el.webkitRequestFullscreen ||
       el.webkitEnterFullscreen ||
       el.msRequestFullscreen;
-    if (!fn) return Promise.reject();
+    if (!fn) return Promise.reject(new Error("no-fs"));
     try {
       var p = fn.call(el);
-      if (p && typeof p.catch === "function") return p.catch(function () {});
+      if (p && typeof p.then === "function") {
+        return p.then(function () {
+          if (!fullscreenActive()) return Promise.reject(new Error("fs-not-active"));
+        });
+      }
+      if (!fullscreenActive()) return Promise.reject(new Error("fs-not-active"));
       return Promise.resolve();
     } catch (e) {
       return Promise.reject(e);
@@ -57,7 +68,7 @@
       document.webkitExitFullscreen ||
       document.webkitCancelFullScreen ||
       document.msExitFullscreen;
-    if (!fn) return Promise.reject();
+    if (!fn) return Promise.reject(new Error("no-exit"));
     try {
       var p = fn.call(document);
       if (p && typeof p.catch === "function") return p.catch(function () {});
@@ -75,10 +86,47 @@
     return fallback;
   }
 
+  function showImmersiveToast(aktif) {
+    var msg = aktif
+      ? mobileLabel(
+          "game.mobile.immersiveOn",
+          "Tam ekran modu açık — oyun alanı genişletildi"
+        )
+      : mobileLabel("game.mobile.immersiveOff", "Tam ekran modu kapatıldı");
+    if (typeof window.toast === "function") {
+      window.toast(msg, "altin");
+    }
+  }
+
+  function applyImmersiveForced(on) {
+    immersiveForced = !!on;
+    document.documentElement.classList.toggle(
+      "mobile-immersive-forced",
+      immersiveForced
+    );
+    try {
+      sessionStorage.setItem("yi_immersive", immersiveForced ? "1" : "0");
+    } catch (_) {}
+    setAppVh();
+    nudgeBrowserChrome();
+    if (immersiveForced) {
+      setTimeout(nudgeBrowserChrome, 150);
+      setTimeout(nudgeBrowserChrome, 450);
+    }
+  }
+
+  function restoreImmersivePreference() {
+    try {
+      if (sessionStorage.getItem("yi_immersive") === "1") {
+        applyImmersiveForced(true);
+      }
+    } catch (_) {}
+  }
+
   function updateFullscreenBtn() {
     var btn = document.getElementById("mlMobileFullscreenHdrBtn");
     if (!btn) return;
-    var aktif = fullscreenActive();
+    var aktif = isImmersiveActive();
     btn.textContent = aktif ? "✕" : "⛶";
     btn.classList.toggle("ml-mobile-fs-btn--aktif", aktif);
     var label = aktif
@@ -90,14 +138,25 @@
 
   function toggleGameFullscreen() {
     if (!isMobile()) return;
-    var p = fullscreenActive() ? exitFullscreen() : tryFullscreen();
-    if (p && typeof p.then === "function") {
-      p.then(updateFullscreenBtn).catch(function () {
-        nudgeBrowserChrome();
-      });
-    } else {
+
+    if (isImmersiveActive()) {
+      applyImmersiveForced(false);
+      exitFullscreen().catch(function () {});
       updateFullscreenBtn();
+      showImmersiveToast(false);
+      return;
     }
+
+    tryFullscreen()
+      .then(function () {
+        updateFullscreenBtn();
+        showImmersiveToast(true);
+      })
+      .catch(function () {
+        applyImmersiveForced(true);
+        updateFullscreenBtn();
+        showImmersiveToast(true);
+      });
   }
 
   window.toggleGameFullscreen = toggleGameFullscreen;
@@ -109,7 +168,10 @@
 
   function refreshImmersive() {
     if (!isMobile()) return;
-    document.documentElement.classList.toggle("mobile-immersive", layoutVisible());
+    document.documentElement.classList.toggle(
+      "mobile-immersive",
+      layoutVisible() || immersiveForced
+    );
     setAppVh();
     if (layoutVisible()) nudgeBrowserChrome();
     updateFullscreenBtn();
@@ -125,7 +187,6 @@
       "touchstart",
       function once() {
         nudgeBrowserChrome();
-        tryFullscreen().then(updateFullscreenBtn).catch(function () {});
         layout.removeEventListener("touchstart", once);
       },
       { passive: true }
@@ -143,12 +204,17 @@
     }
     if (fs && !fs.dataset.bound) {
       fs.dataset.bound = "1";
-      fs.addEventListener("click", toggleGameFullscreen);
+      fs.addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleGameFullscreen();
+      });
     }
   }
 
   function init() {
     bindChromeButtons();
+    restoreImmersivePreference();
     if (!isMobile()) return;
 
     setAppVh();
@@ -156,7 +222,11 @@
 
     window.addEventListener("resize", refreshImmersive);
     window.addEventListener("orientationchange", function () {
-      setTimeout(refreshImmersive, 300);
+      setTimeout(function () {
+        setAppVh();
+        refreshImmersive();
+        if (immersiveForced) nudgeBrowserChrome();
+      }, 300);
     });
     window.addEventListener("pageshow", refreshImmersive);
     document.addEventListener("fullscreenchange", updateFullscreenBtn);
@@ -191,6 +261,6 @@
   });
 
   document.addEventListener("DOMContentLoaded", function () {
-    setTimeout(updateFullscreenBtn, 0);
+    setTimeout(updateFullscreenBtn, 50);
   });
 })();

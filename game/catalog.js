@@ -31,7 +31,7 @@ const JOBS = {
     netKazanc: 950,
     puan: 2,
     icraat: 1,
-    minGuc: 500,
+    minGuc: 580,
     gorselKey: "tamirhane",
   },
   esnafa_guvence: {
@@ -39,7 +39,7 @@ const JOBS = {
     netKazanc: 2200,
     puan: 4,
     icraat: 2,
-    minGuc: 800,
+    minGuc: 1110,
     gorselKey: "koruma",
   },
   zar_salonu: {
@@ -47,7 +47,7 @@ const JOBS = {
     netKazanc: 2600,
     puan: 6,
     icraat: 2,
-    minGuc: 1250,
+    minGuc: 2135,
     gorselKey: "kumarhane",
   },
   gece_kulubu: {
@@ -55,7 +55,7 @@ const JOBS = {
     netKazanc: 4600,
     puan: 9,
     icraat: 3,
-    minGuc: 2000,
+    minGuc: 4106,
     gorselKey: "gece_kulubu",
   },
   kumarhane_agi: {
@@ -63,7 +63,7 @@ const JOBS = {
     netKazanc: 5400,
     puan: 14,
     icraat: 3,
-    minGuc: 3200,
+    minGuc: 7899,
     gorselKey: "kumarhane_agi",
   },
   kara_para: {
@@ -71,7 +71,7 @@ const JOBS = {
     netKazanc: 8500,
     puan: 21,
     icraat: 4,
-    minGuc: 5150,
+    minGuc: 15193,
     gorselKey: "kara_para",
   },
   semt_galeri: {
@@ -79,7 +79,7 @@ const JOBS = {
     netKazanc: 10000,
     puan: 33,
     icraat: 4,
-    minGuc: 8250,
+    minGuc: 29223,
     gorselKey: "galeri",
   },
   lojistik: {
@@ -87,7 +87,7 @@ const JOBS = {
     netKazanc: 14700,
     puan: 51,
     icraat: 5,
-    minGuc: 13300,
+    minGuc: 56209,
     gorselKey: "lojistik",
   },
   gumruk: {
@@ -95,7 +95,7 @@ const JOBS = {
     netKazanc: 20800,
     puan: 79,
     icraat: 6,
-    minGuc: 21300,
+    minGuc: 108116,
     gorselKey: "gumruk",
   },
   belediye: {
@@ -103,7 +103,7 @@ const JOBS = {
     netKazanc: 32700,
     puan: 90,
     icraat: 8,
-    minGuc: 34300,
+    minGuc: 207958,
     gorselKey: "belediye",
   },
   buyuk_holding: {
@@ -111,7 +111,7 @@ const JOBS = {
     netKazanc: 48000,
     puan: 100,
     icraat: 10,
-    minGuc: 55000,
+    minGuc: 400000,
     gorselKey: "holding",
   },
 };

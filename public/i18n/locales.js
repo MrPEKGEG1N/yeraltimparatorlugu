@@ -941,6 +941,8 @@
     row("game.mobile.back", ["← Geri Git", "← Go Back", "← Wróć", , , , , , , , , , , , , , "← Wróć"]),
     row("game.mobile.fullscreen", ["⛶ Tam Ekran", "⛶ Full Screen", "⛶ Pełny ekran", , , , , , , , , , , , , , "⛶ Pełny ekran"]),
     row("game.mobile.exitFullscreen", ["✕ Tam Ekrandan Çık", "✕ Exit Full Screen", "✕ Wyjdź z pełnego ekranu", , , , , , , , , , , , , , "✕ Wyjdź z pełnego ekranu"]),
+    row("game.mobile.immersiveOn", ["Tam ekran modu açık — oyun alanı genişletildi", "Full screen mode on — game area expanded", "Tryb pełnoekranowy włączony — powiększono obszar gry", , , , , , , , , , , , , , "Tryb pełnoekranowy włączony — powiększono obszar gry"]),
+    row("game.mobile.immersiveOff", ["Tam ekran modu kapatıldı", "Full screen mode off", "Tryb pełnoekranowy wyłączony", , , , , , , , , , , , , , "Tryb pełnoekranowy wyłączony"]),
     row("game.liman.istanbul.ad", ["İstanbul Limanı", "Istanbul Port", "Port w Stambule", , , , , , , , , , , , , , "Port w Stambule"]),
     row("game.liman.istanbul.desc", ["Boğazın altın kapısı; konteyner ve kaçak yükün kalbi.", "Golden gate of the Bosphorus; heart of containers and contraband.", "Złota Brama Bosforu; serce kontenerów i kontrabandy.", , , , , , , , , , , , , , "Złota Brama Bosforu; serce kontenerów i kontrabandy."]),
     row("game.liman.izmir.ad", ["İzmir Limanı", "Izmir Port", "Port w Izmirze", , , , , , , , , , , , , , "Port w Izmirze"]),

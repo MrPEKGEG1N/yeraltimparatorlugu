@@ -5035,27 +5035,27 @@ function ekranDegistir(tip) {
   if (tip === 'mahalle') {
     ic.innerHTML = '<h2>' + escHtml(t('game.buyume.mahalleTitle')) + '</h2><p>' + escHtml(t('game.buyume.mahalleQuote')) + '</p>'
       + buyumeIsKart('market', 'market', '+800 TL', '1', '300', 1)
-      + buyumeIsKart('tamirhane', 'tamirhane', '+950 TL', '1', '500', 2)
-      + buyumeIsKart('esnafa_guvence', 'koruma', '+2.200 TL', '2', '800', 4)
-      + buyumeIsKart('zar_salonu', 'kumarhane', '+2.600 TL', '2', '1.250', 6);
+      + buyumeIsKart('tamirhane', 'tamirhane', '+950 TL', '1', '580', 2)
+      + buyumeIsKart('esnafa_guvence', 'koruma', '+2.200 TL', '2', '1.110', 4)
+      + buyumeIsKart('zar_salonu', 'kumarhane', '+2.600 TL', '2', '2.135', 6);
     return;
   }
 
   if (tip === 'semt') {
     ic.innerHTML = '<h2>' + escHtml(t('game.buyume.semtTitle')) + '</h2><p>' + escHtml(t('game.buyume.semtQuote')) + '</p>'
-      + buyumeIsKart('gece_kulubu', 'gece_kulubu', '+4.600 TL', '3', '2.000', 9)
-      + buyumeIsKart('kumarhane_agi', 'kumarhane_agi', '+5.400 TL', '3', '3.200', 14)
-      + buyumeIsKart('kara_para', 'kara_para', '+8.500 TL', '4', '5.150', 21)
-      + buyumeIsKart('semt_galeri', 'galeri', '+10.000 TL', '4', '8.250', 33);
+      + buyumeIsKart('gece_kulubu', 'gece_kulubu', '+4.600 TL', '3', '4.106', 9)
+      + buyumeIsKart('kumarhane_agi', 'kumarhane_agi', '+5.400 TL', '3', '7.899', 14)
+      + buyumeIsKart('kara_para', 'kara_para', '+8.500 TL', '4', '15.193', 21)
+      + buyumeIsKart('semt_galeri', 'galeri', '+10.000 TL', '4', '29.223', 33);
     return;
   }
 
   if (tip === 'sehir') {
     ic.innerHTML = '<h2>' + escHtml(t('game.buyume.sehirTitle')) + '</h2><p>' + escHtml(t('game.buyume.sehirQuote')) + '</p>'
-      + buyumeIsKart('lojistik', 'lojistik', '+14.700 TL', '5', '13.300', 51)
-      + buyumeIsKart('gumruk', 'gumruk', '+20.800 TL', '6', '21.300', 79)
-      + buyumeIsKart('belediye', 'belediye', '+32.700 TL', '8', '34.300', 90)
-      + buyumeIsKart('buyuk_holding', 'holding', '+48.000 TL', '10', '55.000', 100);
+      + buyumeIsKart('lojistik', 'lojistik', '+14.700 TL', '5', '56.209', 51)
+      + buyumeIsKart('gumruk', 'gumruk', '+20.800 TL', '6', '108.116', 79)
+      + buyumeIsKart('belediye', 'belediye', '+32.700 TL', '8', '207.958', 90)
+      + buyumeIsKart('buyuk_holding', 'holding', '+48.000 TL', '10', '400.000', 100);
     return;
   }
 
