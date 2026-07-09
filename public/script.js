@@ -556,7 +556,11 @@ function ltTab(mod, label, on) {
 function ltIsimHtml(r) {
   var tag = r.benim ? '<span class="lt-tag">sen</span>' : '';
   var locale = oyuncuLocaleChipHtml(r.kayitUlkesi, r.oyunDili);
-  var premCls = r.premiumPaket === 'baron' ? ' lt-name-txt--baron' : (r.premiumPaket === 'racon' ? ' lt-name-txt--racon' : '');
+  var premCls = r.premiumPaket === 'baron'
+    ? ' lt-name-txt--baron'
+    : (r.premiumPaket === 'racon'
+      ? ' lt-name-txt--racon'
+      : (r.premiumPaket === 'tetikci' ? ' lt-name-txt--tetikci' : ''));
   var rozet = premiumRozetHtml(r.premiumPaket);
   if (r.bot || !r.userId) {
     return '<span class="lt-name-txt' + premCls + '">' + escHtml(r.isim) + locale + rozet + tag + '</span>';

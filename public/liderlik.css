@@ -345,6 +345,10 @@
   color: var(--lt-wine-bright);
 }
 
+#masterLayout .lt-name-txt--tetikci {
+  color: #e8c878 !important;
+}
+
 #masterLayout .lt-name-txt--racon {
   color: #5eb0ff !important;
 }
