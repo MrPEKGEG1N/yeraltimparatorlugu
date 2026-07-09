@@ -4757,6 +4757,52 @@ if (document.readyState === 'loading') {
 // ========================
 // EKRAN DEĞİŞTİR
 // ========================
+var EKRAN_PARENT = {
+  mahalle: 'buyume',
+  semt: 'buyume',
+  sehir: 'buyume',
+  korumaEkibi: 'guclen',
+  silahlan: 'guclen',
+  luksYasam: 'guclen',
+  sektor_yeralti: 'mekan',
+  sektor_silah: 'mekan',
+  sektor_paket: 'mekan',
+  baba_soz: 'sehreHukmet',
+  baba_sadakat: 'sehreHukmet',
+  liman: 'sehreHukmet',
+  mafya_olustur: 'mafya',
+  mafya_katil: 'mafya',
+  mafya_gurubum: 'mafya',
+  mafya_isler: 'mafya',
+  profil_ziyaret: 'profilim'
+};
+
+function mobilTarayiciMi() {
+  return window.matchMedia('(max-width: 768px), (pointer: coarse)').matches;
+}
+
+function ekranGeriGit() {
+  var parent = EKRAN_PARENT[aktifEkran];
+  if (parent) ekranDegistir(parent);
+}
+
+function mobilGeriBarGuncelle() {
+  var bar = document.getElementById('mlMobileChrome');
+  var layout = document.getElementById('masterLayout');
+  if (!bar || !layout) return;
+  var goster = mobilTarayiciMi() && !layout.classList.contains('gizli') && !!EKRAN_PARENT[aktifEkran];
+  bar.classList.toggle('gizli', !goster);
+  bar.setAttribute('aria-hidden', goster ? 'false' : 'true');
+  layout.classList.toggle('ml-mobile-chrome-visible', goster);
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('resize', mobilGeriBarGuncelle);
+  window.addEventListener('orientationchange', function () {
+    setTimeout(mobilGeriBarGuncelle, 200);
+  });
+}
+
 function masterFramePlaqueGuncelle(tip, altBaslik) {
   var el = document.getElementById('masterFramePlaque');
   if (!el) return;
@@ -4836,6 +4882,7 @@ function ekranDegistir(tip) {
   masterFramePlaqueGuncelle(tip);
   sehirBannerGuncelle();
   sidebarMenuAktif(tip);
+  mobilGeriBarGuncelle();
   var ic = document.getElementById('anaIcerik');
   if (tip === 'liderlik') {
     ic.innerHTML = '<p style="color:#888;text-align:center;">' + escHtml(t('game.loading')) + '</p>';

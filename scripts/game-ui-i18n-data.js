@@ -329,6 +329,9 @@ module.exports = {
   "game.liman.hatay.desc": ["Akdeniz çıkışı; sınır ötesi yüklerin gizli rotası.", "Mediterranean exit; secret cross-border cargo route."],
   "game.liman.quote": ["\"Boğazdan Akdeniz'e — güçlü olan limanı alır.\"", "\"From the Bosphorus to the Mediterranean — the strong take the port.\""],
   "game.liman.incomeNote": ["Şehre Hükmetmek için Limanları elinde tutmalısın!", "You must hold the ports to Rule the City!"],
+  "game.mobile.back": ["← Geri Git", "← Go Back"],
+  "game.mobile.fullscreen": ["⛶ Tam Ekran", "⛶ Full Screen"],
+  "game.mobile.exitFullscreen": ["✕ Tam Ekrandan Çık", "✕ Exit Full Screen"],
 
   "game.buyume.mahalleTitle": ["🏡 MAHALLE İŞLERİ", "🏡 NEIGHBORHOOD AFFAIRS"],
   "game.buyume.mahalleQuote": ["\"Küçük işlerle sermaye yap.\"", "\"Build capital with small jobs.\""],

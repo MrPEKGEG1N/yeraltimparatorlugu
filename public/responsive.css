@@ -38,7 +38,7 @@
     --ml-bottom-nav-h: 58px;
     display: grid;
     grid-template-columns: 1fr;
-    grid-template-rows: auto var(--ml-ribbon-h) minmax(0, 1fr) var(--ml-bottom-nav-h);
+    grid-template-rows: minmax(40px, auto) var(--ml-ribbon-h) minmax(0, 1fr) var(--ml-bottom-nav-h);
     grid-template-areas:
       "hdr"
       "ribbon"
@@ -71,7 +71,9 @@
     gap: 4px;
     padding: 4px 6px;
     padding-top: max(4px, env(safe-area-inset-top, 0px));
-    min-height: 0;
+    min-height: 40px;
+    flex-shrink: 0;
+    z-index: 12;
     overflow: hidden;
   }
 
@@ -214,6 +216,7 @@
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
     scroll-behavior: smooth;
+    scroll-padding-bottom: calc(var(--ml-bottom-nav-h) + env(safe-area-inset-bottom, 0px) + 56px);
   }
 
   #masterLayout #anaIcerik {
@@ -222,6 +225,15 @@
     overflow-x: hidden;
     word-wrap: break-word;
     overflow-wrap: anywhere;
+    padding-bottom: calc(var(--ml-bottom-nav-h) + env(safe-area-inset-bottom, 0px) + 12px);
+  }
+
+  #masterLayout.ml-mobile-chrome-visible #anaIcerik {
+    padding-bottom: calc(var(--ml-bottom-nav-h) + env(safe-area-inset-bottom, 0px) + 52px);
+  }
+
+  #masterLayout .is-kart:last-child {
+    margin-bottom: 8px;
   }
 
   #masterLayout #anaIcerik > * {
@@ -785,6 +797,48 @@
     max-width: calc(100vw - 24px);
     z-index: 36;
   }
+
+  #mlMobileChrome {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: calc(var(--ml-bottom-nav-h) + env(safe-area-inset-bottom, 0px));
+    z-index: 55;
+    display: flex;
+    gap: 8px;
+    padding: 6px 10px;
+    background: linear-gradient(180deg, rgba(8, 6, 4, 0) 0%, rgba(8, 6, 4, 0.92) 35%);
+    pointer-events: none;
+  }
+
+  #mlMobileChrome:not(.gizli) {
+    pointer-events: auto;
+  }
+
+  #mlMobileChrome .ml-mobile-chrome-btn {
+    flex: 1;
+    min-height: 36px;
+    padding: 6px 10px;
+    border: 1px solid rgba(197, 160, 89, 0.45);
+    border-radius: 6px;
+    background: rgba(18, 12, 8, 0.94);
+    color: #f0d060;
+    font-family: "Roboto Condensed", sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  #mlMobileChrome .ml-mobile-chrome-btn:active {
+    transform: scale(0.98);
+  }
+
+  #mlMobileChrome .ml-mobile-chrome-btn--ghost {
+    flex: 0 0 auto;
+    min-width: 108px;
+  }
 }
 
 /* Dikey telefon — maksimum oyun alanı */
@@ -880,7 +934,11 @@
   }
 
   #masterLayout #anaIcerik {
-    padding-bottom: 6px;
+    padding-bottom: calc(var(--ml-bottom-nav-h) + env(safe-area-inset-bottom, 0px) + 12px);
+  }
+
+  #masterLayout.ml-mobile-chrome-visible #anaIcerik {
+    padding-bottom: calc(var(--ml-bottom-nav-h) + env(safe-area-inset-bottom, 0px) + 52px);
   }
 
   #masterLayout #anaIcerik .vizuel-menu-hub {

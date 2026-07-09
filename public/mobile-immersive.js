@@ -26,6 +26,15 @@
     } catch (_) {}
   }
 
+  function fullscreenActive() {
+    return !!(
+      document.fullscreenElement ||
+      document.webkitFullscreenElement ||
+      document.webkitCurrentFullScreenElement ||
+      document.msFullscreenElement
+    );
+  }
+
   function tryFullscreen() {
     var el = document.documentElement;
     var fn =
@@ -33,12 +42,64 @@
       el.webkitRequestFullscreen ||
       el.webkitEnterFullscreen ||
       el.msRequestFullscreen;
-    if (!fn) return;
+    if (!fn) return Promise.reject();
     try {
       var p = fn.call(el);
-      if (p && typeof p.catch === "function") p.catch(function () {});
-    } catch (_) {}
+      if (p && typeof p.catch === "function") return p.catch(function () {});
+      return Promise.resolve();
+    } catch (e) {
+      return Promise.reject(e);
+    }
   }
+
+  function exitFullscreen() {
+    var fn =
+      document.exitFullscreen ||
+      document.webkitExitFullscreen ||
+      document.webkitCancelFullScreen ||
+      document.msExitFullscreen;
+    if (!fn) return Promise.reject();
+    try {
+      var p = fn.call(document);
+      if (p && typeof p.catch === "function") return p.catch(function () {});
+      return Promise.resolve();
+    } catch (e) {
+      return Promise.reject(e);
+    }
+  }
+
+  function fullscreenLabel() {
+    if (typeof window.t === "function") {
+      return fullscreenActive()
+        ? window.t("game.mobile.exitFullscreen")
+        : window.t("game.mobile.fullscreen");
+    }
+    return fullscreenActive() ? "✕ Çık" : "⛶ Tam Ekran";
+  }
+
+  function updateFullscreenBtn() {
+    var btn = document.getElementById("mlMobileFullscreenBtn");
+    if (!btn) return;
+    btn.textContent = fullscreenLabel();
+    btn.setAttribute(
+      "aria-label",
+      fullscreenActive() ? "Tam ekrandan çık" : "Tam ekran yap"
+    );
+  }
+
+  function toggleGameFullscreen() {
+    if (!isMobile()) return;
+    var p = fullscreenActive() ? exitFullscreen() : tryFullscreen();
+    if (p && typeof p.then === "function") {
+      p.then(updateFullscreenBtn).catch(function () {
+        nudgeBrowserChrome();
+      });
+    } else {
+      updateFullscreenBtn();
+    }
+  }
+
+  window.toggleGameFullscreen = toggleGameFullscreen;
 
   function layoutVisible() {
     var layout = document.getElementById("masterLayout");
@@ -50,6 +111,7 @@
     document.documentElement.classList.toggle("mobile-immersive", layoutVisible());
     setAppVh();
     if (layoutVisible()) nudgeBrowserChrome();
+    updateFullscreenBtn();
   }
 
   var touchBound = false;
@@ -62,14 +124,30 @@
       "touchstart",
       function once() {
         nudgeBrowserChrome();
-        tryFullscreen();
+        tryFullscreen().then(updateFullscreenBtn).catch(function () {});
         layout.removeEventListener("touchstart", once);
       },
       { passive: true }
     );
   }
 
+  function bindChromeButtons() {
+    var geri = document.getElementById("mlMobileGeriBtn");
+    var fs = document.getElementById("mlMobileFullscreenBtn");
+    if (geri && !geri.dataset.bound) {
+      geri.dataset.bound = "1";
+      geri.addEventListener("click", function () {
+        if (typeof window.ekranGeriGit === "function") window.ekranGeriGit();
+      });
+    }
+    if (fs && !fs.dataset.bound) {
+      fs.dataset.bound = "1";
+      fs.addEventListener("click", toggleGameFullscreen);
+    }
+  }
+
   function init() {
+    bindChromeButtons();
     if (!isMobile()) return;
 
     setAppVh();
@@ -80,6 +158,8 @@
       setTimeout(refreshImmersive, 300);
     });
     window.addEventListener("pageshow", refreshImmersive);
+    document.addEventListener("fullscreenchange", updateFullscreenBtn);
+    document.addEventListener("webkitfullscreenchange", updateFullscreenBtn);
 
     if (window.visualViewport) {
       window.visualViewport.addEventListener("resize", function () {
