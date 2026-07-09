@@ -1,6 +1,5 @@
 /**
  * Mobil tarayıcıda (Safari / Chrome) üst-alt adres çubuklarını gizlemeye yardımcı olur.
- * Oyun alanı sabit kalır; yalnızca belge 1px kaydırılarak tarayıcı minimal UI moduna geçer.
  */
 (function () {
   "use strict";
@@ -68,23 +67,25 @@
     }
   }
 
-  function fullscreenLabel() {
+  function mobileLabel(key, fallback) {
     if (typeof window.t === "function") {
-      return fullscreenActive()
-        ? window.t("game.mobile.exitFullscreen")
-        : window.t("game.mobile.fullscreen");
+      var val = window.t(key);
+      if (val && val !== key) return val;
     }
-    return fullscreenActive() ? "✕ Çık" : "⛶ Tam Ekran";
+    return fallback;
   }
 
   function updateFullscreenBtn() {
-    var btn = document.getElementById("mlMobileFullscreenBtn");
+    var btn = document.getElementById("mlMobileFullscreenHdrBtn");
     if (!btn) return;
-    btn.textContent = fullscreenLabel();
-    btn.setAttribute(
-      "aria-label",
-      fullscreenActive() ? "Tam ekrandan çık" : "Tam ekran yap"
-    );
+    var aktif = fullscreenActive();
+    btn.textContent = aktif ? "✕" : "⛶";
+    btn.classList.toggle("ml-mobile-fs-btn--aktif", aktif);
+    var label = aktif
+      ? mobileLabel("game.mobile.exitFullscreen", "Tam ekrandan çık")
+      : mobileLabel("game.mobile.fullscreen", "Tam ekran");
+    btn.title = label;
+    btn.setAttribute("aria-label", label);
   }
 
   function toggleGameFullscreen() {
@@ -133,7 +134,7 @@
 
   function bindChromeButtons() {
     var geri = document.getElementById("mlMobileGeriBtn");
-    var fs = document.getElementById("mlMobileFullscreenBtn");
+    var fs = document.getElementById("mlMobileFullscreenHdrBtn");
     if (geri && !geri.dataset.bound) {
       geri.dataset.bound = "1";
       geri.addEventListener("click", function () {
@@ -162,9 +163,7 @@
     document.addEventListener("webkitfullscreenchange", updateFullscreenBtn);
 
     if (window.visualViewport) {
-      window.visualViewport.addEventListener("resize", function () {
-        setAppVh();
-      });
+      window.visualViewport.addEventListener("resize", setAppVh);
       window.visualViewport.addEventListener("scroll", setAppVh);
     }
 
@@ -189,5 +188,9 @@
   MOBILE_MQ.addEventListener("change", function () {
     touchBound = false;
     init();
+  });
+
+  document.addEventListener("DOMContentLoaded", function () {
+    setTimeout(updateFullscreenBtn, 0);
   });
 })();

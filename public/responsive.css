@@ -3,6 +3,11 @@
    Sol menü → altta yatay kaydırmalı navigasyon
    ═══════════════════════════════════════════════════════════ */
 
+#mlMobileChrome,
+#mlMobileFullscreenHdrBtn {
+  display: none;
+}
+
 @media (max-width: 768px) {
   :root {
     --ml-bottom-nav-h: 58px;
@@ -799,15 +804,15 @@
   }
 
   #mlMobileChrome {
+    display: flex;
     position: fixed;
     left: 0;
     right: 0;
     bottom: calc(var(--ml-bottom-nav-h) + env(safe-area-inset-bottom, 0px));
-    z-index: 55;
+    z-index: 60;
     display: flex;
-    gap: 8px;
-    padding: 6px 10px;
-    background: linear-gradient(180deg, rgba(8, 6, 4, 0) 0%, rgba(8, 6, 4, 0.92) 35%);
+    padding: 6px 10px 8px;
+    background: linear-gradient(180deg, rgba(8, 6, 4, 0) 0%, rgba(8, 6, 4, 0.96) 40%);
     pointer-events: none;
   }
 
@@ -817,27 +822,68 @@
 
   #mlMobileChrome .ml-mobile-chrome-btn {
     flex: 1;
-    min-height: 36px;
-    padding: 6px 10px;
-    border: 1px solid rgba(197, 160, 89, 0.45);
-    border-radius: 6px;
-    background: rgba(18, 12, 8, 0.94);
+    width: 100%;
+    min-height: 44px;
+    padding: 8px 12px;
+    border: 1px solid rgba(197, 160, 89, 0.55);
+    border-radius: 8px;
+    background: rgba(18, 12, 8, 0.96);
     color: #f0d060;
     font-family: "Roboto Condensed", sans-serif;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 700;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.03em;
+    text-transform: none;
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
+    cursor: pointer;
   }
 
-  #mlMobileChrome .ml-mobile-chrome-btn:active {
+  #mlMobileChrome .ml-mobile-chrome-btn:disabled,
+  #mlMobileChrome .ml-mobile-chrome-btn.ml-mobile-chrome-btn--disabled {
+    opacity: 0.38;
+    pointer-events: none;
+    cursor: default;
+  }
+
+  #mlMobileChrome .ml-mobile-chrome-btn:active:not(:disabled) {
     transform: scale(0.98);
   }
 
-  #mlMobileChrome .ml-mobile-chrome-btn--ghost {
-    flex: 0 0 auto;
-    min-width: 108px;
+  #mlMobileFullscreenHdrBtn,
+  #masterLayout .ml-mobile-fs-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    margin-right: 2px;
+    border: 1px solid rgba(197, 160, 89, 0.5);
+    border-radius: 8px;
+    background: rgba(18, 12, 8, 0.92);
+    color: #f0d060;
+    font-size: 20px;
+    line-height: 1;
+    flex-shrink: 0;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    cursor: pointer;
+    z-index: 14;
+  }
+
+  #mlMobileFullscreenHdrBtn.ml-mobile-fs-btn:active,
+  #masterLayout .ml-mobile-fs-btn:active {
+    transform: scale(0.96);
+  }
+
+  #mlMobileFullscreenHdrBtn.ml-mobile-fs-btn--aktif,
+  #masterLayout .ml-mobile-fs-btn--aktif {
+    border-color: #c5a059;
+    background: rgba(197, 160, 89, 0.22);
+    color: #ffe08a;
   }
 }
 

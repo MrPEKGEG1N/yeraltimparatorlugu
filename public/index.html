@@ -11,7 +11,7 @@
   <meta http-equiv="Pragma" content="no-cache">
   <title>Yeraltı İmparatorluğu</title>
   <link rel="manifest" href="/manifest.json">
-  <link rel="stylesheet" href="/bildirim.css?v=3">
+  <link rel="stylesheet" href="/bildirim.css?v=4">
   <script>
     (function () {
       function authAktifMi() {
@@ -83,7 +83,7 @@
   <link rel="stylesheet" href="egitim.css?v=11">
   <link rel="stylesheet" href="kurallar.css?v=1">
   <link rel="stylesheet" href="gorus-oneri.css?v=1">
-  <link rel="stylesheet" href="responsive.css?v=114">
+  <link rel="stylesheet" href="responsive.css?v=115">
   <link rel="stylesheet" href="i18n/lang-picker.css?v=3">
   <link href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css" rel="stylesheet">
 </head>
@@ -176,6 +176,7 @@
       <span class="gizli" id="onlineSayisi">0</span>
     </div>
     <div class="ml-header-right ml-header-profile">
+      <button type="button" id="mlMobileFullscreenHdrBtn" class="ml-mobile-fs-btn" title="Tam ekran" aria-label="Tam ekran" data-i18n-title="game.mobile.fullscreen" data-i18n-aria="game.mobile.fullscreen">⛶</button>
       <div id="gameLangMount" class="lang-mount lang-mount--game"></div>
       <button type="button" onclick="ekranDegistir('profilim')" data-i18n-title="header.profile">👤 <span id="reisEtiket"></span></button>
       <button type="button" onclick="ekranDegistir('sehirTarihi')" data-i18n="header.cityHistory">ŞEHİR TARİHİ</button>
@@ -250,8 +251,7 @@
   </nav>
 
   <div id="mlMobileChrome" class="ml-mobile-chrome gizli" aria-hidden="true">
-    <button type="button" id="mlMobileGeriBtn" class="ml-mobile-chrome-btn" data-i18n="game.mobile.back">← Geri Git</button>
-    <button type="button" id="mlMobileFullscreenBtn" class="ml-mobile-chrome-btn ml-mobile-chrome-btn--ghost" data-i18n="game.mobile.fullscreen">⛶ Tam Ekran</button>
+    <button type="button" id="mlMobileGeriBtn" class="ml-mobile-chrome-btn ml-mobile-chrome-btn--geri" data-i18n="game.mobile.back" data-i18n-fallback="← Geri Git">← Geri Git</button>
   </div>
 
   <main class="ml-main-content">
@@ -430,7 +430,7 @@
 </div>
 <button type="button" id="tutorialResumeBtn" class="eg-devam-btn gizli" data-i18n-title="tutorial.resumeTitle" title="Eğitime kaldığın yerden devam et">📖 Eğitime Devam</button>
 
-<script src="mobile-immersive.js?v=2"></script>
+<script src="mobile-immersive.js?v=3"></script>
 <script src="https://openfpcdn.io/fingerprintjs/v4/iife.min.js"></script>
 <script src="security.js?v=1"></script>
 <script src="kurallar.js?v=2"></script>
@@ -448,7 +448,7 @@
 <script src="borsa.js?v=6"></script>
 <script src="kumarhane.js?v=25"></script>
 <script src="meslek.js?v=27"></script>
-<script src="script.js?v=286"></script>
+<script src="script.js?v=287"></script>
 <script src="bildirim.js?v=4"></script>
 </body>
 </html>

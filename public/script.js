@@ -4776,24 +4776,52 @@ var EKRAN_PARENT = {
   mafya_isler: 'mafya',
   profil_ziyaret: 'profilim'
 };
+var ekranGecmisi = [];
+var ekranGeriNav = false;
 
 function mobilTarayiciMi() {
   return window.matchMedia('(max-width: 768px), (pointer: coarse)').matches;
 }
 
+function navigasyonOncekiKaydet(hedef) {
+  if (ekranGeriNav) return;
+  if (!aktifEkran || aktifEkran === hedef) return;
+  ekranGecmisi.push(aktifEkran);
+  if (ekranGecmisi.length > 48) ekranGecmisi.shift();
+}
+
+function ekranGeriMumkunMu() {
+  return ekranGecmisi.length > 0 || !!EKRAN_PARENT[aktifEkran];
+}
+
 function ekranGeriGit() {
+  if (ekranGecmisi.length) {
+    var onceki = ekranGecmisi.pop();
+    ekranGeriNav = true;
+    ekranDegistir(onceki);
+    return;
+  }
   var parent = EKRAN_PARENT[aktifEkran];
-  if (parent) ekranDegistir(parent);
+  if (parent) {
+    ekranGeriNav = true;
+    ekranDegistir(parent);
+  }
 }
 
 function mobilGeriBarGuncelle() {
   var bar = document.getElementById('mlMobileChrome');
   var layout = document.getElementById('masterLayout');
+  var geriBtn = document.getElementById('mlMobileGeriBtn');
   if (!bar || !layout) return;
-  var goster = mobilTarayiciMi() && !layout.classList.contains('gizli') && !!EKRAN_PARENT[aktifEkran];
+  var goster = mobilTarayiciMi() && !layout.classList.contains('gizli');
+  var geriAktif = ekranGeriMumkunMu();
   bar.classList.toggle('gizli', !goster);
   bar.setAttribute('aria-hidden', goster ? 'false' : 'true');
   layout.classList.toggle('ml-mobile-chrome-visible', goster);
+  if (geriBtn) {
+    geriBtn.disabled = !geriAktif;
+    geriBtn.classList.toggle('ml-mobile-chrome-btn--disabled', !geriAktif);
+  }
 }
 
 if (typeof window !== 'undefined') {
@@ -4874,6 +4902,8 @@ function ekranDegistir(tip) {
     profilPremiumSayacDurdur();
   }
   if (tip !== 'profilim') profilQuillYokEt();
+  navigasyonOncekiKaydet(tip);
+  ekranGeriNav = false;
   mobilAltMenuKapat();
   var oyunScroll = document.getElementById('oyunEkran');
   if (oyunScroll) oyunScroll.scrollTop = 0;
@@ -5536,9 +5566,12 @@ async function medyaHaberleriYukle() {
 
 async function mafyaMenuSec(mod) {
   mobilAltMenuKapat();
+  navigasyonOncekiKaydet('mafya');
+  ekranGeriNav = false;
   aktifEkran = 'mafya';
   aktiviteBildir('mafya:' + mod, 'ekran_goruntule');
   masterFramePlaqueGuncelle('mafya', typeof mafyaTitle === 'function' ? mafyaTitle(mod) : (typeof I18n !== 'undefined' && I18n.mafyaTitle ? I18n.mafyaTitle(mod) : t('screen.mafya')));
+  mobilGeriBarGuncelle();
   var ic = document.getElementById('anaIcerik');
   ic.innerHTML = '<div id="mafyaAltIcerik" class="mafya-alt-icerik"></div>';
   var zatenUye = false;
@@ -7052,6 +7085,8 @@ async function oyunuBaslat() {
     await sunucudanYukle({ bootstrap: true });
     clearTimeout(yukTimeout);
     if (yuk) yuk.classList.add('gizli');
+    ekranGecmisi = [];
+    ekranGeriNav = false;
     sesUiGuncelle();
     if (sesAyar.acik) muzikBaslat();
     else muzikDurdur();
