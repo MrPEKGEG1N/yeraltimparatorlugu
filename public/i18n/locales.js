@@ -1024,6 +1024,8 @@
     row("game.mafya.renameBtn", ["[ ✎ AD DEĞİŞTİR ]", "[ ✎ RENAME ]", , , , , , , , , , , , , , , "[ ✎ ZMIEŃ NAZWĘ ]"]),
     row("game.mafya.reqOnline", ["👥 Şart:", "👥 Req:", "👥 Wymaganie:", , , , , , , , , , , , , , "👥 Wymaganie:"]),
     row("game.mafya.respectGain", ["🕶️ Saygınlık:", "🕶️ Respect:", "🕶️ Szacunek:", , , , , , , , , , , , , , "🕶️ Szacunek:"]),
+    row("game.mafya.powerLossRisk", ["⚔️ Güç kaybı riski:", "⚔️ Power loss risk:", "⚔️ Ryzyko utraty mocy:", , , , , , , , , , , , , , "⚔️ Ryzyko utraty mocy:"]),
+    row("game.mafya.stateRelationDrop", ["⚖️ Devlet ilişkisi düşüşü:", "⚖️ State relation drop:", "⚖️ Spadek relacji państwowych:", , , , , , , , , , , , , , "⚖️ Spadek relacji państwowych:"]),
     row("game.mafya.searchPlaceholder", ["Grup adı yaz", "Enter group name", "Wprowadź nazwę grupy", , , , , , , , , , , , , , "Wprowadź nazwę grupy"]),
     row("game.mafya.serverHelp", ["Terminal: <b>npm start</b> → tarayıcı: <b>http://localhost:3000</b> → <b>Ctrl+F5</b>", "Terminal: <b>npm start</b> → browser: <b>http://localhost:3000</b> → <b>Ctrl+F5</b>", "Terminal: <b>npm start</b> → przeglądarka: <b>http://localhost:3000</b> → <b>Ctrl+F5</b>", , , , , , , , , , , , , , "Terminal: <b>npm start</b> → przeglądarka: <b>http://localhost:3000</b> → <b>Ctrl+F5</b>"]),
     row("game.mafya.totalRespect", ["🕶️ Toplam Saygınlık:", "🕶️ Total Respect:", "🕶️ Całkowity szacunek:", , , , , , , , , , , , , , "🕶️ Całkowity szacunek:"]),

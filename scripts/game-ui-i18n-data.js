@@ -417,6 +417,8 @@ module.exports = {
   "game.mafya.powerWord": [" güç", " power"],
   "game.mafya.earnPerPerson": ["💵 Kazanç (kişi):", "💵 Earnings (each):"],
   "game.mafya.respectGain": ["🕶️ Saygınlık:", "🕶️ Respect:"],
+  "game.mafya.powerLossRisk": ["⚔️ Güç kaybı riski:", "⚔️ Power loss risk:"],
+  "game.mafya.stateRelationDrop": ["⚖️ Devlet ilişkisi düşüşü:", "⚖️ State relation drop:"],
   "game.mafya.executeHeist": ["[ 💥 SOYGUNU GERÇEKLEŞTİR ]", "[ 💥 EXECUTE HEIST ]"],
   "game.mafya.participants": ["Katılanlar:", "Participants:"],
   "game.mafya.houseTitle": ["🏠 MAFYA EVİ", "🏠 MAFIA HOUSE"],

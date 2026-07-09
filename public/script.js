@@ -5677,6 +5677,7 @@ async function mafyaIslerCiz(box) {
         + '<div class="is-detay"><h3>' + escHtml(tr(isDef.ad)) + '</h3>'
         + '<p>' + escHtml(t('game.mafya.reqOnline')) + ' <b>' + isDef.minOnline + '</b>' + escHtml(t('game.mafya.onlineMembers')) + ' &nbsp;|&nbsp; ' + escHtml(t('game.mafya.eachMinPower')) + ' <b>' + fmt(isDef.minGuc) + '</b>' + escHtml(t('game.mafya.powerWord')) + '</p>'
         + '<p>' + escHtml(t('game.mafya.earnPerPerson')) + ' <b style="color:#28a745;">' + fmt(isDef.kazancKisi) + ' TL</b> &nbsp;|&nbsp; ' + escHtml(t('game.mafya.respectGain')) + ' <b>+' + isDef.sayginlikKisi + '</b> &nbsp;|&nbsp; ' + escHtml(t('game.mafya.icraatCost')) + ' <b>' + isDef.icraat + '</b></p>'
+        + '<p>' + escHtml(t('game.mafya.powerLossRisk')) + ' <b>%' + Math.round((Number(isDef.gucRisk) || 0) * 100) + '</b> &nbsp;|&nbsp; ' + escHtml(t('game.mafya.stateRelationDrop')) + ' <b>-' + (isDef.devletDus != null ? isDef.devletDus : 0) + '</b></p>'
         + '<button class="btn-is" onclick="mafyaIsKatil(\'' + isDef.key + '\')">' + escHtml(t('game.mafya.joinHeist')) + '</button>';
       if (aktifMi) {
         html += '<button class="btn-is kirmizi-btn" style="margin-left:8px;" onclick="mafyaIsGerceklestir(' + aktif.id + ')">' + escHtml(t('game.mafya.executeHeist')) + '</button>';
