@@ -87,18 +87,88 @@
     --ml-ribbon-h: 26px;
   }
 
-  html.mobile-immersive-forced #masterLayout .ml-header-right > button:not(#mlMobileFullscreenHdrBtn) {
-    display: none;
-  }
-
-  html.mobile-immersive-forced #masterLayout .ml-header-right .lang-mount {
-    display: none;
-  }
-
   html.mobile-immersive-forced #mlMobileFullscreenHdrBtn {
     box-shadow: 0 0 14px rgba(240, 208, 96, 0.55);
     border-color: #f0d060;
     background: rgba(197, 160, 89, 0.28);
+  }
+
+  .mobil-tam-ekran-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 12000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: rgba(0, 0, 0, 0.72);
+  }
+
+  .mobil-tam-ekran-modal.gizli {
+    display: none;
+  }
+
+  .mobil-tam-ekran-modal__kart {
+    width: min(100%, 360px);
+    max-height: min(88vh, 520px);
+    overflow-y: auto;
+    padding: 18px 16px 16px;
+    border: 1px solid rgba(197, 160, 89, 0.45);
+    border-radius: 12px;
+    background: linear-gradient(180deg, #1a1410 0%, #0e0c0a 100%);
+    color: #e8dcc8;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+  }
+
+  .mobil-tam-ekran-modal__baslik {
+    margin: 0 0 10px;
+    font-size: 17px;
+    font-weight: 800;
+    color: #f0d060;
+    text-align: center;
+  }
+
+  .mobil-tam-ekran-modal__aciklama {
+    margin: 0 0 12px;
+    font-size: 13px;
+    line-height: 1.45;
+    color: #c8bca8;
+  }
+
+  .mobil-tam-ekran-modal__adimlar {
+    margin: 0 0 12px 18px;
+    padding: 0;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #ddd0b8;
+  }
+
+  .mobil-tam-ekran-modal__adimlar b {
+    color: #f0d060;
+  }
+
+  .mobil-tam-ekran-modal__not {
+    margin: 0 0 14px;
+    font-size: 12px;
+    line-height: 1.4;
+    color: #9ca3af;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .mobil-tam-ekran-modal__btn {
+    width: 100%;
+    min-height: 44px;
+    border: 1px solid rgba(197, 160, 89, 0.55);
+    border-radius: 8px;
+    background: rgba(197, 160, 89, 0.18);
+    color: #f0d060;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    touch-action: manipulation;
   }
 
   /* —— Üst bar: tek satır, kaydırmalı istatistikler —— */

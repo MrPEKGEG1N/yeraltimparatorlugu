@@ -83,7 +83,7 @@
   <link rel="stylesheet" href="egitim.css?v=11">
   <link rel="stylesheet" href="kurallar.css?v=1">
   <link rel="stylesheet" href="gorus-oneri.css?v=1">
-  <link rel="stylesheet" href="responsive.css?v=116">
+  <link rel="stylesheet" href="responsive.css?v=117">
   <link rel="stylesheet" href="i18n/lang-picker.css?v=3">
   <link href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css" rel="stylesheet">
 </head>
@@ -412,6 +412,20 @@
   <input type="range" id="sesSeviye" class="ses-slider" min="0" max="100" value="70">
 </div>
 
+<div id="mobilTamEkranModal" class="mobil-tam-ekran-modal gizli" role="dialog" aria-modal="true" aria-labelledby="mobilTamEkranBaslik">
+  <div class="mobil-tam-ekran-modal__kart">
+    <h2 id="mobilTamEkranBaslik" class="mobil-tam-ekran-modal__baslik" data-i18n="game.mobile.iosTitle">📱 Safari'de Tam Ekran</h2>
+    <p class="mobil-tam-ekran-modal__aciklama" data-i18n="game.mobile.iosBody">iPhone Safari, güvenlik nedeniyle adres çubuğunu gizlemeye izin vermez. Oyunu gerçek tam ekranda oynamak için Ana Ekrana ekleyin:</p>
+    <ol class="mobil-tam-ekran-modal__adimlar">
+      <li data-i18n="game.mobile.iosStep1">Alttaki <b>Paylaş</b> (□↑) simgesine dokunun</li>
+      <li data-i18n="game.mobile.iosStep2"><b>Ana Ekrana Ekle</b> seçeneğini seçin</li>
+      <li data-i18n="game.mobile.iosStep3">Ana ekrandaki kısayoldan oyuna girin — adres çubuğu olmaz</li>
+    </ol>
+    <p class="mobil-tam-ekran-modal__not" data-i18n="game.mobile.iosNote">⛶ butonu oyun alanını biraz genişletir; tarayıcı çubukları Safari'de kalır.</p>
+    <button type="button" id="mobilTamEkranModalKapat" class="mobil-tam-ekran-modal__btn" data-i18n="game.mobile.iosOk">Anladım</button>
+  </div>
+</div>
+
 <audio id="arkaPlanMuzik" class="gizli" loop playsinline preload="none"></audio>
 
 <!-- OYUN EĞİTİMİ -->
@@ -430,12 +444,12 @@
 </div>
 <button type="button" id="tutorialResumeBtn" class="eg-devam-btn gizli" data-i18n-title="tutorial.resumeTitle" title="Eğitime kaldığın yerden devam et">📖 Eğitime Devam</button>
 
-<script src="mobile-immersive.js?v=4"></script>
+<script src="mobile-immersive.js?v=5"></script>
 <script src="https://openfpcdn.io/fingerprintjs/v4/iife.min.js"></script>
 <script src="security.js?v=1"></script>
 <script src="kurallar.js?v=2"></script>
 <script src="i18n/languages.js?v=3"></script>
-<script src="i18n/locales.js?v=46"></script>
+<script src="i18n/locales.js?v=48"></script>
 <script src="i18n/catalog.js?v=6"></script>
 <script src="i18n/i18n.js?v=9"></script>
 <script src="auth.js?v=105"></script>

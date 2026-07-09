@@ -1,6 +1,6 @@
 /**
  * Mobil tarayıcıda tam ekran / immersive mod.
- * iOS Safari'de requestFullscreen çalışmaz; CSS immersive + scroll nudge kullanılır.
+ * iOS Safari'de requestFullscreen çalışmaz; gerçek tam ekran = Ana Ekrana Ekle (PWA).
  */
 (function () {
   "use strict";
@@ -12,13 +12,36 @@
     return MOBILE_MQ.matches;
   }
 
+  function isStandalone() {
+    if (window.navigator.standalone === true) return true;
+    try {
+      return window.matchMedia("(display-mode: standalone)").matches;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function isIosDevice() {
+    var ua = navigator.userAgent || "";
+    return (
+      /iPad|iPhone|iPod/.test(ua) ||
+      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
+    );
+  }
+
+  function isIosSafariBrowser() {
+    if (!isIosDevice() || isStandalone()) return false;
+    var ua = navigator.userAgent || "";
+    return /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua);
+  }
+
   function setAppVh() {
     var h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
     document.documentElement.style.setProperty("--app-vh", h + "px");
   }
 
   function nudgeBrowserChrome() {
-    if (!isMobile()) return;
+    if (!isMobile() || isStandalone()) return;
     try {
       window.scrollTo(0, 1);
       requestAnimationFrame(function () {
@@ -41,6 +64,7 @@
   }
 
   function tryFullscreen() {
+    if (isIosSafariBrowser()) return Promise.reject(new Error("ios-safari"));
     var el = document.documentElement;
     var fn =
       el.requestFullscreen ||
@@ -87,15 +111,61 @@
   }
 
   function showImmersiveToast(aktif) {
-    var msg = aktif
-      ? mobileLabel(
+    if (!aktif) {
+      if (typeof window.toast === "function") {
+        window.toast(
+          mobileLabel("game.mobile.immersiveOff", "Tam ekran modu kapatıldı"),
+          "altin"
+        );
+      }
+      return;
+    }
+    if (isIosSafariBrowser()) {
+      if (typeof window.toast === "function") {
+        window.toast(
+          mobileLabel(
+            "game.mobile.iosToast",
+            "Safari çubukları gizlenemez — Ana Ekrana Ekle ile tam ekran"
+          ),
+          "altin"
+        );
+      }
+      return;
+    }
+    if (typeof window.toast === "function") {
+      window.toast(
+        mobileLabel(
           "game.mobile.immersiveOn",
           "Tam ekran modu açık — oyun alanı genişletildi"
-        )
-      : mobileLabel("game.mobile.immersiveOff", "Tam ekran modu kapatıldı");
-    if (typeof window.toast === "function") {
-      window.toast(msg, "altin");
+        ),
+        "altin"
+      );
     }
+  }
+
+  function showIosInstallModal() {
+    var modal = document.getElementById("mobilTamEkranModal");
+    if (!modal) return;
+    if (typeof window.I18n !== "undefined" && window.I18n.apply) {
+      window.I18n.apply(modal);
+    }
+    modal.classList.remove("gizli");
+  }
+
+  function hideIosInstallModal() {
+    var modal = document.getElementById("mobilTamEkranModal");
+    if (modal) modal.classList.add("gizli");
+    try {
+      sessionStorage.setItem("yi_ios_fs_hint", "1");
+    } catch (_) {}
+  }
+
+  function maybeShowIosInstallModal() {
+    if (!isIosSafariBrowser()) return;
+    try {
+      if (sessionStorage.getItem("yi_ios_fs_hint") === "1") return;
+    } catch (_) {}
+    showIosInstallModal();
   }
 
   function applyImmersiveForced(on) {
@@ -109,13 +179,14 @@
     } catch (_) {}
     setAppVh();
     nudgeBrowserChrome();
-    if (immersiveForced) {
+    if (immersiveForced && !isIosSafariBrowser()) {
       setTimeout(nudgeBrowserChrome, 150);
       setTimeout(nudgeBrowserChrome, 450);
     }
   }
 
   function restoreImmersivePreference() {
+    if (isIosSafariBrowser()) return;
     try {
       if (sessionStorage.getItem("yi_immersive") === "1") {
         applyImmersiveForced(true);
@@ -127,17 +198,37 @@
     var btn = document.getElementById("mlMobileFullscreenHdrBtn");
     if (!btn) return;
     var aktif = isImmersiveActive();
-    btn.textContent = aktif ? "✕" : "⛶";
+    if (isIosSafariBrowser()) {
+      btn.textContent = "📲";
+    } else {
+      btn.textContent = aktif ? "✕" : "⛶";
+    }
     btn.classList.toggle("ml-mobile-fs-btn--aktif", aktif);
-    var label = aktif
-      ? mobileLabel("game.mobile.exitFullscreen", "Tam ekrandan çık")
-      : mobileLabel("game.mobile.fullscreen", "Tam ekran");
+    var label = isIosSafariBrowser()
+      ? mobileLabel("game.mobile.iosBtn", "Ana Ekrana Ekle rehberi")
+      : aktif
+        ? mobileLabel("game.mobile.exitFullscreen", "Tam ekrandan çık")
+        : mobileLabel("game.mobile.fullscreen", "Tam ekran");
     btn.title = label;
     btn.setAttribute("aria-label", label);
   }
 
   function toggleGameFullscreen() {
     if (!isMobile()) return;
+
+    if (isIosSafariBrowser()) {
+      if (isImmersiveActive()) {
+        applyImmersiveForced(false);
+        updateFullscreenBtn();
+        showImmersiveToast(false);
+        return;
+      }
+      applyImmersiveForced(true);
+      updateFullscreenBtn();
+      showImmersiveToast(true);
+      maybeShowIosInstallModal();
+      return;
+    }
 
     if (isImmersiveActive()) {
       applyImmersiveForced(false);
@@ -196,6 +287,9 @@
   function bindChromeButtons() {
     var geri = document.getElementById("mlMobileGeriBtn");
     var fs = document.getElementById("mlMobileFullscreenHdrBtn");
+    var modalKapat = document.getElementById("mobilTamEkranModalKapat");
+    var modal = document.getElementById("mobilTamEkranModal");
+
     if (geri && !geri.dataset.bound) {
       geri.dataset.bound = "1";
       geri.addEventListener("click", function () {
@@ -208,6 +302,16 @@
         e.preventDefault();
         e.stopPropagation();
         toggleGameFullscreen();
+      });
+    }
+    if (modalKapat && !modalKapat.dataset.bound) {
+      modalKapat.dataset.bound = "1";
+      modalKapat.addEventListener("click", hideIosInstallModal);
+    }
+    if (modal && !modal.dataset.bound) {
+      modal.dataset.bound = "1";
+      modal.addEventListener("click", function (e) {
+        if (e.target === modal) hideIosInstallModal();
       });
     }
   }
@@ -247,6 +351,7 @@
     }
 
     bindPlayTouch();
+    updateFullscreenBtn();
   }
 
   if (document.readyState === "loading") {
@@ -258,9 +363,5 @@
   MOBILE_MQ.addEventListener("change", function () {
     touchBound = false;
     init();
-  });
-
-  document.addEventListener("DOMContentLoaded", function () {
-    setTimeout(updateFullscreenBtn, 50);
   });
 })();
