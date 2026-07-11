@@ -1,4 +1,4 @@
-/** Mafya savaşı — gazete, lider otomatik katılım, %10 güç kaybı, 30k ödül payı */
+/** Mafya savaşı — gazete, lider otomatik katılım, %10 güç kaybı, oyundan gizli ödül */
 const path = require("path");
 const fs = require("fs");
 const sqlite3 = require("sqlite3").verbose();
@@ -222,13 +222,13 @@ async function main() {
   const beklenenGuc2 = Math.floor(50 * (1 - GUC_KAYBI_ORANI));
   if (p2.guc !== beklenenGuc2) throw new Error(`Oyuncu 2 güç ${p2.guc}, beklenen ${beklenenGuc2}`);
 
-  if (p1.kasa !== 20000) throw new Error(`Kaybeden 1 kasa ${p1.kasa}, beklenen 20000`);
-  if (p2.kasa !== 20000) throw new Error(`Kaybeden 2 kasa ${p2.kasa}, beklenen 20000`);
+  if (p1.kasa !== 50000) throw new Error(`Kaybeden 1 kasa değişmemeli: ${p1.kasa}`);
+  if (p2.kasa !== 50000) throw new Error(`Kaybeden 2 kasa değişmemeli: ${p2.kasa}`);
 
   const toplamOdul = 2 * KAYIP_ODEME_BIRIM;
   const kazananToplam = p4.kasa + p5.kasa + p6.kasa;
   if (kazananToplam !== toplamOdul) {
-    throw new Error(`Kazananlara dağıtılan ${kazananToplam}, beklenen ${toplamOdul}`);
+    throw new Error(`Kazananlara oyundan verilen ${kazananToplam}, beklenen ${toplamOdul}`);
   }
 
   const sonucHaber = await get(

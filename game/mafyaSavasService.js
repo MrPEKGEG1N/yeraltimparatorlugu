@@ -189,17 +189,6 @@ async function savasiCoz(db) {
     const kaybedenKatilim =
       kaybedenGrupId === savas.saldiran_grup_id ? saldiranKatilim : hedefKatilim;
 
-    let toplananOdul = 0;
-    for (const k of kaybedenKatilim) {
-      const player = await get(db, `SELECT kasa FROM players WHERE user_id = ?`, [k.user_id]);
-      if (!player) continue;
-      const kes = Math.min(Math.max(0, player.kasa), KAYIP_ODEME_BIRIM);
-      toplananOdul += kes;
-      if (kes > 0) {
-        await run(db, `UPDATE players SET kasa = kasa - ? WHERE user_id = ?`, [kes, k.user_id]);
-      }
-    }
-
     const tumKatilim = [...saldiranKatilim, ...hedefKatilim];
     for (const k of tumKatilim) {
       const player = await get(
@@ -212,9 +201,10 @@ async function savasiCoz(db) {
       await run(db, `UPDATE players SET guc = ? WHERE user_id = ?`, [gucSync.guc, k.user_id]);
     }
 
-    if (kazananKatilim.length > 0 && toplananOdul > 0) {
-      const payBase = Math.floor(toplananOdul / kazananKatilim.length);
-      let remainder = toplananOdul - payBase * kazananKatilim.length;
+    const odulHavuzu = kaybedenKatilim.length * KAYIP_ODEME_BIRIM;
+    if (kazananKatilim.length > 0 && odulHavuzu > 0) {
+      const payBase = Math.floor(odulHavuzu / kazananKatilim.length);
+      let remainder = odulHavuzu - payBase * kazananKatilim.length;
       for (let i = 0; i < kazananKatilim.length; i++) {
         const pay = payBase + (i < remainder ? 1 : 0);
         if (pay <= 0) continue;
