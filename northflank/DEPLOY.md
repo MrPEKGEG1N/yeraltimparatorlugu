@@ -2,14 +2,24 @@
 
 Railway süresi dolduğunda bu rehberle oyunu Northflank’a taşıyın. Oyuncu verisi **volume (/data)** + **Supabase yedek** + **seed/oyun.db** ile korunur.
 
-## 0. Northflank hesap (bir kez)
+## 0. Ücretsiz Sandbox planı
 
-Northflank servis/volume oluşturmak için **varsayılan ödeme yöntemi** gerekir (ücretsiz kota olsa bile kart doğrulaması istenir):
+Northflank **Developer Sandbox** = **$0/ay**, 2 ücretsiz servis. Bizim kurulum:
 
-1. https://app.northflank.com/t/mrpekgeg1ns-team/billing → kart ekle
-2. Terminalde: `npm run provision:northflank`
+| Seçim | Neden |
+|-------|--------|
+| `nf-compute-10` | En küçük plan — sandbox kotasına sığar |
+| Volume **yok** | Volume ayrı ücretli; sandbox'ta gerek yok |
+| Supabase yedek | Oyuncu verisi bulutta kalır, deploy'da geri yüklenir |
+| `seed/oyun.db` | Yedek katman (7 oyuncu) |
 
-Bu komut proje `yeralti-imparatorlugu` içinde volume + combined service kurar.
+> Northflank sandbox için bile **kart doğrulaması** ister (ücret çekmez). Billing'de **Developer Sandbox** planını seç.
+
+```powershell
+npm run provision:northflank
+```
+
+Volume isteyenler: `node tools/provision-northflank.js --volume` (ücretli).
 
 ## 1. Veriyi hazırla (yerelde) — TAMAMLANDI
 

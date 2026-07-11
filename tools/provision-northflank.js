@@ -1,6 +1,10 @@
 #!/usr/bin/env node
 /**
- * Northflank proje + volume + combined service kurulumu (CLI token kullanir).
+ * Northflank Sandbox (ucretsiz) — volume YOK, nf-compute-10, Supabase yedek.
+ * Sandbox: 2 ucretsiz servis; volume ayri ucretlidir, sandbox'ta atlanir.
+ *
+ * Kullanim: node tools/provision-northflank.js
+ *           node tools/provision-northflank.js --volume   (ucretli volume ile)
  */
 const fs = require("fs");
 const path = require("path");
@@ -9,18 +13,18 @@ const { spawnSync } = require("child_process");
 const ROOT = path.join(__dirname, "..");
 const PROJECT_ID = "yeralti-imparatorlugu";
 const SERVICE_NAME = "yeralti-game";
+const SANDBOX = !process.argv.includes("--volume");
+const COMPUTE_PLAN = SANDBOX ? "nf-compute-10" : "nf-compute-20";
 
-function nf(args, input) {
+function nf(args) {
   const r = spawnSync("npx", ["--yes", "@northflank/cli", ...args], {
     cwd: ROOT,
     encoding: "utf8",
-    input: input ? JSON.stringify(input) : undefined,
     shell: true,
     maxBuffer: 20 * 1024 * 1024,
   });
   if (r.status !== 0) {
-    const err = (r.stderr || r.stdout || "").trim();
-    throw new Error(`northflank ${args.join(" ")}\n${err}`);
+    throw new Error(`northflank ${args.join(" ")}\n${(r.stderr || r.stdout || "").trim()}`);
   }
   const out = (r.stdout || "").trim();
   if (!out) return null;
@@ -44,49 +48,66 @@ function railwayVars() {
   }
 }
 
+function failPayment() {
+  console.error("\n[nf] Northflank Sandbox icin bile kart dogrulamasi gerekli (ucret cekilmez).");
+  console.error("     1. https://app.northflank.com/t/mrpekgeg1ns-team/billing → kart ekle");
+  console.error("     2. Plan: Developer Sandbox (ucretsiz) secili olsun");
+  console.error("     3. npm run provision:northflank");
+  process.exit(2);
+}
+
 function main() {
   const rw = railwayVars();
   const supabaseUrl = process.env.SUPABASE_URL || rw.SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || rw.SUPABASE_SERVICE_ROLE_KEY;
   const jwt = process.env.JWT_SECRET || rw.JWT_SECRET || "yeralti-dev-gizli-anahtar-degistir";
 
-  console.log("[nf] Volume olusturuluyor...");
-  const volFile = path.join(ROOT, "northflank", "volume.generated.json");
-  fs.writeFileSync(
-    volFile,
-    JSON.stringify({
-      name: "yeralti-db",
-      mounts: [{ containerMountPath: "/data" }],
-      spec: { storageSize: 1024 },
-    }),
-    "utf8"
-  );
-  let volume;
-  try {
-    volume = nf(
-      ["create", "volume", "--projectId", PROJECT_ID, "-f", volFile, "-o", "json"]
+  console.log(`[nf] Mod: ${SANDBOX ? "SANDBOX (ucretsiz, volume yok)" : "VOLUME + compute-20"}`);
+  console.log(`[nf] Compute plan: ${COMPUTE_PLAN}`);
+
+  let volumeId = null;
+  if (!SANDBOX) {
+    const volFile = path.join(ROOT, "northflank", "volume.generated.json");
+    fs.writeFileSync(
+      volFile,
+      JSON.stringify({
+        name: "yeralti-db",
+        mounts: [{ containerMountPath: "/data" }],
+        spec: { storageSize: 1024 },
+      }),
+      "utf8"
     );
-  } catch (e) {
-    const msg = String(e);
-    if (/payment method/i.test(msg)) {
-      console.error("\n[nf] Northflank odeme yontemi gerekli.");
-      console.error("     https://app.northflank.com/t/mrpekgeg1ns-team/billing");
-      console.error("     Kart ekledikten sonra: npm run provision:northflank");
-      process.exit(2);
+    console.log("[nf] Volume olusturuluyor...");
+    try {
+      const volume = nf(["create", "volume", "--projectId", PROJECT_ID, "-f", volFile, "-o", "json"]);
+      volumeId = volume?.id || volume?.name;
+    } catch (e) {
+      const msg = String(e);
+      if (/payment method/i.test(msg)) failPayment();
+      if (!/already|409|exists/i.test(msg)) throw e;
+      volumeId = "yeralti-db";
     }
-    if (!/already|409|exists/i.test(msg)) throw e;
-    console.log("[nf] Volume zaten var, devam...");
-    volume = { id: "yeralti-db", name: "yeralti-db" };
+    console.log("[nf] Volume:", volumeId);
+  } else {
+    console.log("[nf] Volume atlandi — oyuncu verisi Supabase + seed ile korunur.");
   }
-  const volumeId = volume?.id || volume?.name || "yeralti-db";
-  console.log("[nf] Volume:", volumeId);
+
+  const runtimeEnvironment = {
+    NODE_ENV: "production",
+    PORT: "3000",
+    ADMIN_USERNAME: "mrpekgeg1n",
+    JWT_SECRET: jwt,
+    ...(supabaseUrl ? { SUPABASE_URL: supabaseUrl } : {}),
+    ...(supabaseKey ? { SUPABASE_SERVICE_ROLE_KEY: supabaseKey } : {}),
+  };
+  if (!SANDBOX) runtimeEnvironment.PERSISTENT_DATA_PATH = "/data";
 
   const serviceDef = {
     name: SERVICE_NAME,
-    description: "Yeralti Imparatorlugu oyun sunucusu",
+    description: "Yeralti Imparatorlugu Sandbox",
     billing: {
-      deploymentPlan: "nf-compute-20",
-      buildPlan: "nf-compute-20",
+      deploymentPlan: COMPUTE_PLAN,
+      buildPlan: COMPUTE_PLAN,
     },
     deployment: {
       instances: 1,
@@ -128,19 +149,12 @@ function main() {
         successThreshold: 1,
       },
     ],
-    runtimeEnvironment: {
-      PERSISTENT_DATA_PATH: "/data",
-      NODE_ENV: "production",
-      PORT: "3000",
-      ADMIN_USERNAME: "mrpekgeg1n",
-      JWT_SECRET: jwt,
-      ...(supabaseUrl ? { SUPABASE_URL: supabaseUrl } : {}),
-      ...(supabaseKey ? { SUPABASE_SERVICE_ROLE_KEY: supabaseKey } : {}),
-    },
-    createOptions: {
-      volumesToAttach: [volumeId],
-    },
+    runtimeEnvironment,
   };
+
+  if (volumeId) {
+    serviceDef.createOptions = { volumesToAttach: [volumeId] };
+  }
 
   const defFile = path.join(ROOT, "northflank", "combined-service.generated.json");
   fs.writeFileSync(defFile, JSON.stringify(serviceDef, null, 2));
@@ -153,32 +167,35 @@ function main() {
     );
   } catch (e) {
     const msg = String(e);
-    if (/payment method/i.test(msg)) {
-      console.error("\n[nf] Northflank odeme yontemi gerekli.");
-      console.error("     https://app.northflank.com/t/mrpekgeg1ns-team/billing");
-      console.error("     Kart ekledikten sonra: node tools/provision-northflank.js");
-      process.exit(2);
-    }
+    if (/payment method/i.test(msg)) failPayment();
     if (!/already|409|exists/i.test(msg)) throw e;
-    console.log("[nf] Servis zaten var, patch deneniyor...");
+    console.log("[nf] Servis guncelleniyor...");
     service = nf(
-      ["patch", "service", "combined", "--projectId", PROJECT_ID, "--serviceId", SERVICE_NAME, "-f", defFile, "-o", "json"]
+      [
+        "patch",
+        "service",
+        "combined",
+        "--projectId",
+        PROJECT_ID,
+        "--serviceId",
+        SERVICE_NAME,
+        "-f",
+        defFile,
+        "-o",
+        "json",
+      ]
     );
   }
 
   console.log("\n[nf] Kurulum tamam.");
-  console.log(JSON.stringify({ projectId: PROJECT_ID, service, volumeId }, null, 2));
+  console.log(JSON.stringify({ mode: SANDBOX ? "sandbox" : "volume", projectId: PROJECT_ID, service }, null, 2));
 
-  // Public URL al
   try {
     const info = nf(["get", "service", "--projectId", PROJECT_ID, "--serviceId", SERVICE_NAME, "-o", "json"]);
     const ports = info?.ports || info?.data?.ports || [];
     const pub = ports.find((p) => p.public);
-    if (pub?.domains?.length) {
-      console.log("\nPUBLIC_URL=https://" + pub.domains[0]);
-    } else if (pub?.dns) {
-      console.log("\nPUBLIC_URL=https://" + pub.dns);
-    }
+    const domain = pub?.domains?.[0] || pub?.dns;
+    if (domain) console.log("\nPUBLIC_URL=https://" + domain.replace(/^https?:\/\//, ""));
   } catch (_) {}
 }
 
