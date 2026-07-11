@@ -1001,8 +1001,11 @@ function kumarhanePiyangoHTML() {
     + '<div class="km-py-makine">'
     + '<div class="km-py-makine-baslik">'
     + '<span>' + escHtml(t('game.kumarhane.lotteryYourPick')) + '</span>'
+    + '<div class="km-py-makine-ust-aksiyon">'
+    + '<button type="button" class="km-py-rastgele-sec"' + (biletDolu ? ' disabled' : '') + ' onclick="kumarhanePiyangoRastgeleSec()">'
+    + '<span aria-hidden="true">🎲</span> ' + escHtml(t('game.kumarhane.lotteryRandomPick')) + '</button>'
     + '<span class="km-py-secim-sayac" id="kmPiyangoSecimSayac">0 / ' + secim + '</span>'
-    + '</div>'
+    + '</div></div>'
     + '<div class="km-py-secili-serit" id="kmPiyangoSeciliSerit">';
   for (var s = 0; s < secim; s++) {
     html += '<span class="km-py-top km-py-top--bos"><span class="km-py-top-rakam">?</span></span>';
@@ -1021,6 +1024,8 @@ function kumarhanePiyangoHTML() {
     + '<span class="km-py-btn-ikon" aria-hidden="true">🎟️</span> ' + escHtml(t('game.kumarhane.lotteryBuy')) + '</button>'
     + '<button type="button" class="km-btn km-py-btn-elmas"' + (biletDolu ? ' disabled' : '') + ' onclick="kumarhanePiyangoBiletElmasAl()">'
     + '<span class="km-py-btn-ikon" aria-hidden="true">💎</span> ' + escHtml(t('game.kumarhane.lotteryBuyDiamond', { n: p.biletElmasMaliyet || 2 })) + '</button>'
+    + '<button type="button" class="km-btn km-py-btn-sansli"' + (biletDolu ? ' disabled' : '') + ' onclick="kumarhanePiyangoRastgeleAl()">'
+    + '<span class="km-py-btn-ikon" aria-hidden="true">🎲</span> ' + escHtml(t('game.kumarhane.lotteryRandomBuy')) + '</button>'
     + '<button type="button" class="km-btn km-py-btn-temiz" onclick="kumarhanePiyangoTemizle()">' + escHtml(t('game.kumarhane.lotteryClear')) + '</button>'
     + '</div>';
 
@@ -1064,6 +1069,31 @@ function kumarhanePiyangoHTML() {
 
   html += '</div></div>';
   return html;
+}
+
+function kumarhanePiyangoRastgeleSayilar(secim, maxSayi) {
+  var havuz = [];
+  for (var i = 1; i <= maxSayi; i++) havuz.push(i);
+  for (var j = havuz.length - 1; j > 0; j--) {
+    var k = Math.floor(Math.random() * (j + 1));
+    var tmp = havuz[j];
+    havuz[j] = havuz[k];
+    havuz[k] = tmp;
+  }
+  return havuz.slice(0, secim).sort(function(a, b) { return a - b; });
+}
+
+function kumarhanePiyangoRastgeleSec() {
+  var p = kumarhanePanelVeri && kumarhanePanelVeri.piyango;
+  var secim = (p && p.secimSayisi) || 6;
+  var maxSayi = (p && p.sayiMax) || 25;
+  kumarhanePiyangoSecili = kumarhanePiyangoRastgeleSayilar(secim, maxSayi);
+  kumarhanePiyangoSayiGridGuncelle();
+}
+
+async function kumarhanePiyangoRastgeleAl() {
+  kumarhanePiyangoRastgeleSec();
+  await kumarhanePiyangoBiletAl();
 }
 
 function kumarhanePiyangoTemizle() {

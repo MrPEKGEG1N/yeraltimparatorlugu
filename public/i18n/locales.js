@@ -764,6 +764,8 @@
     row("game.kumarhane.lotteryLimitReached", ["Bu çekiliş döneminde en fazla {max} bilet alabilirsin.", "You can buy at most {max} tickets this draw.", "Na to losowanie możesz kupić maksymalnie {max} losów.", , , , , , , , , , , , , , "Na to losowanie możesz kupić maksymalnie {max} losów."]),
     row("game.kumarhane.lotteryFreeTicketsHint", ["Teselli (çip biletinde)", "Consolation (chip ticket)", "Pocieszenie (bilet z chipem)", , , , , , , , , , , , , , "Pocieszenie (bilet z chipem)"]),
     row("game.kumarhane.lotteryClear", ["Temizle", "Clear", "Jasne", , , , , , , , , , , , , , "Jasne"]),
+    row("game.kumarhane.lotteryRandomPick", ["Rastgele Seç", "Random Pick", "Losowy wybór", , , , , , , , , , , , , , "Losowy wybór"]),
+    row("game.kumarhane.lotteryRandomBuy", ["Şanslı Bilet Al", "Lucky Ticket", "Szczęśliwy los", , , , , , , , , , , , , , "Szczęśliwy los"]),
     row("game.kumarhane.lotteryMyTickets", ["Biletlerin", "Your tickets", "Twoje bilety", , , , , , , , , , , , , , "Twoje bilety"]),
     row("game.kumarhane.lotteryLastDraw", ["Son çekiliş", "Last draw", "Ostatnie losowanie", , , , , , , , , , , , , , "Ostatnie losowanie"]),
     row("game.kumarhane.lotteryMatch", ["{n} tuttu", "{n} matched", "{n} dopasowane", , , , , , , , , , , , , , "{n} dopasowane"]),
