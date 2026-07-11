@@ -358,6 +358,38 @@
   text-shadow: 0 0 10px rgba(255, 215, 100, 0.35);
 }
 
+#masterLayout .lt-name-txt--hukmeden .sehre-hukmeden-metin {
+  color: #ffe08a !important;
+  text-shadow: 0 0 10px rgba(255, 215, 100, 0.45);
+}
+
+#masterLayout .sehre-hukmeden-isim-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border: 1.5px solid #d4af37;
+  border-radius: 4px;
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.2) 0%, rgba(60, 40, 8, 0.4) 100%);
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.35), inset 0 0 6px rgba(212, 175, 55, 0.12);
+  vertical-align: middle;
+  max-width: 100%;
+}
+
+#masterLayout .sehre-hukmeden-tac {
+  flex-shrink: 0;
+  font-size: 13px;
+  line-height: 1;
+  filter: drop-shadow(0 0 4px rgba(255, 215, 100, 0.65));
+}
+
+#masterLayout .sehre-hukmeden-metin {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
 #masterLayout .premium-rozet {
   margin-left: 4px;
   font-size: 13px;

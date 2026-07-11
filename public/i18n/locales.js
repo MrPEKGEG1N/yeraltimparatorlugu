@@ -1532,6 +1532,7 @@
     row("game.profil.hourlyIncome", ["✦ Saatlik Kazanç", "✦ Hourly Income", "✦ Dochód godzinowy", , , , , , , , , , , , , , "✦ Dochód godzinowy"]),
     row("game.profil.leaderboardHint", ["Liderlik tablosundan seçebilir veya geçerli oyuncu adı yazabilirsin.", "Pick from the leaderboard or enter a valid player name.", "Wybierz z tabeli liderów lub wprowadź prawidłową nazwę gracza.", , , , , , , , , , , , , , "Wybierz z tabeli liderów lub wprowadź prawidłową nazwę gracza."]),
     row("game.profil.legendBadge", ["👑 Şehir tarihine işlenmiş efsane.", "👑 Legend etched in city history.", "👑 Legenda wpisana w historię miasta.", , , , , , , , , , , , , , "👑 Legenda wpisana w historię miasta."]),
+    row("game.profil.hukmedenTitle", ["Şehre Hükmeden — tüm limanlar ve baba makamları", "Ruler of the City — all ports and boss seats", "Władca miasta — wszystkie porty i stanowiska bossa", , , , , , , , , , , , , , "Władca miasta — wszystkie porty i stanowiska bossa"]),
     row("game.profil.logout", ["↪ Oyundan Çık", "↪ Log Out", "↪ Wyloguj się", , , , , , , , , , , , , , "↪ Wyloguj się"]),
     row("game.profil.mafiaDescPlaceholder", ["Grup açıklaması...", "Group description...", "Opis grupy...", , , , , , , , , , , , , , "Opis grupy..."]),
     row("game.profil.male", ["Erkek", "Male", "Mężczyzna", , , , , , , , , , , , , , "Mężczyzna"]),

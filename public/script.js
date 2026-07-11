@@ -33,6 +33,7 @@ var bankaHakSinirsiz = false;
 var saatlikKazanc = 0;
 var karaListede = false;
 var sehirEfsane = false;
+var sehreHukmeden = false;
 var ZAYIF_HAMLE_MSG = 'Zayıf hamle, büyük rezillik. Geri dur!';
 var sektorSahiplik = {};
 var rusvetBilgi = { min: 10, max: 50, onerilen: 30 };
@@ -251,6 +252,7 @@ function oyuncuUygula(p, secenekler) {
   onlineSayisi = p.onlineSayisi != null ? p.onlineSayisi : onlineSayisi;
   karaListede = !!p.karaListede;
   sehirEfsane = !!p.sehirEfsane;
+  sehreHukmeden = !!p.sehreHukmeden;
   if (p.sehirBanner) sehirBannerState = p.sehirBanner;
   yeniProfilZiyaret = p.yeniProfilZiyaret || 0;
   if (!secenekler.poll && p.offlineWelcome && p.offlineWelcome.hours >= 1) {
@@ -578,6 +580,13 @@ function ltTab(mod, label, on) {
   return '<button type="button" class="' + c + '" onclick="liderlikModDegistir(\'' + mod + '\')">' + label + '</button>';
 }
 
+function sehreHukmedenIsimSar(icerikHtml) {
+  return '<span class="sehre-hukmeden-isim-wrap" title="' + escHtml(t('game.profil.hukmedenTitle')) + '">'
+    + '<span class="sehre-hukmeden-tac" aria-hidden="true">👑</span>'
+    + '<span class="sehre-hukmeden-metin">' + icerikHtml + '</span>'
+    + '</span>';
+}
+
 function ltIsimHtml(r) {
   var tag = r.benim ? '<span class="lt-tag">sen</span>' : '';
   var locale = oyuncuLocaleChipHtml(r.kayitUlkesi, r.oyunDili);
@@ -586,11 +595,14 @@ function ltIsimHtml(r) {
     : (r.premiumPaket === 'racon'
       ? ' lt-name-txt--racon'
       : (r.premiumPaket === 'tetikci' ? ' lt-name-txt--tetikci' : ''));
+  var hukCls = r.sehreHukmeden ? ' lt-name-txt--hukmeden' : '';
   var rozet = premiumRozetHtml(r.premiumPaket);
+  var inner = escHtml(r.isim) + locale + rozet + tag;
+  if (r.sehreHukmeden) inner = sehreHukmedenIsimSar(inner);
   if (r.bot || !r.userId) {
-    return '<span class="lt-name-txt' + premCls + '">' + escHtml(r.isim) + locale + rozet + tag + '</span>';
+    return '<span class="lt-name-txt' + premCls + hukCls + '">' + inner + '</span>';
   }
-  return '<button type="button" class="oyuncu-link lt-name-txt' + premCls + '" onclick="oyuncuProfilGoster(' + r.userId + ')">' + escHtml(r.isim) + locale + rozet + tag + '</button>';
+  return '<button type="button" class="oyuncu-link lt-name-txt' + premCls + hukCls + '" onclick="oyuncuProfilGoster(' + r.userId + ')">' + inner + '</button>';
 }
 
 function ltGrupIsimHtml(r) {
@@ -3759,7 +3771,10 @@ function profilYetenekleriGuncelle(yetenekler, aktifMeslek, ozet) {
 function profilEkranSablonu(opts) {
   opts = opts || {};
   var ad = opts.oyuncuAdi || 'Reis';
-  var isimCls = 'profil-isim-script' + (opts.sehirEfsane ? ' isim-efsane' : '');
+  var isimCls = 'profil-isim-script'
+    + (opts.sehirEfsane ? ' isim-efsane' : '')
+    + (opts.sehreHukmeden ? ' isim-hukmeden' : '');
+  var isimIcerik = opts.sehreHukmeden ? sehreHukmedenIsimSar(escHtml(ad)) : escHtml(ad);
   var userId = opts.userId || window.__benimUserId || 'me';
   var avatarUrl = profilResmiUrl(userId, opts.profilResmi);
   var avatarCls = profilResmiOzelMi(avatarUrl) ? ' profil-avatar-ozel' : '';
@@ -3907,7 +3922,7 @@ function profilEkranSablonu(opts) {
     + '<div id="profilSekmeKarakter" class="profil-kart">'
     + '<div class="profil-ust">'
     + '<div class="profil-sol">'
-    + '<h2 class="' + isimCls + '" id="profilIsimBaslik">' + escHtml(ad) + '</h2>'
+    + '<h2 class="' + isimCls + '" id="profilIsimBaslik">' + isimIcerik + '</h2>'
     + '<div class="profil-avatar-kutu"><img id="profilAvatar" class="' + avatarCls.trim() + '" src="' + escHtml(avatarUrl) + '" alt="' + escHtml(ad) + '"></div>'
     + resimBtn
     + elmasBtn
@@ -5291,6 +5306,7 @@ function ekranDegistir(tip) {
       saatlik: saatlikKazanc,
       karaListede: karaListede,
       sehirEfsane: sehirEfsane,
+      sehreHukmeden: sehreHukmeden,
       yetenekler: oyuncuYetenekler,
       aktifMeslek: oyuncuAktifMeslek,
       icraatKalan: profilSureFormat(profilIcraatKalanSn(
@@ -7072,6 +7088,7 @@ async function oyuncuProfilGoster(userId) {
       kayitUlkesi: p.kayitUlkesi,
       oyunDili: p.oyunDili,
       sehirEfsane: p.sehirEfsane,
+      sehreHukmeden: p.sehreHukmeden,
       karaListede: p.karaListede,
       isDurumu: p.isDurumu
     });

@@ -15,7 +15,7 @@ const { savaslariListele } = require("../game/mafyaSavasService");
 const { haberleriGetir } = require("../game/medyaService");
 const { isPanel } = require("../game/mafyaIsService");
 const { eviGetir, hibeGecmisiGetir } = require("../game/mafyaEviService");
-const { karaListeyiGetir, karaListeSenkronize } = require("../game/karaListeService");
+const { karaListeyiGetir, karaListeSenkronize, sehreHukmediyorMu } = require("../game/karaListeService");
 const { saygiDuvariniGetir, sehirTarihiniGetir } = require("../game/saygiDuvariService");
 const { getGazetePanel, gazeteOkunduIsaretle } = require("../game/sehirGazeteService");
 const { ICRAAT_MAX, ICRAAT_REGEN_SEC, ICRAAT_SAATLIK_BONUS } = require("../game/catalog");
@@ -222,6 +222,7 @@ function createGameRouter(db) {
           dusmanlar: p.dusmanlar || "",
           profilResmi: p.profil_resmi || "",
           sehirEfsane: !!(p.sehir_efsane),
+          sehreHukmeden: await sehreHukmediyorMu(db, targetId),
           karaListede: !!(p.kara_listede),
           kayitTarihi,
           kayitUlkesi: p.kayit_ulkesi || "",

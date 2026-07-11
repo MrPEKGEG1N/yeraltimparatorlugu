@@ -1,6 +1,7 @@
 const { all, get } = require("../db/database");
 const { temizGrupAdi, gercekGrupAdi } = require("./grupAdi");
 const { kullaniciGrubu } = require("./mafiaService");
+const { getSehreHukmedenUserId } = require("./karaListeService");
 
 async function getLeaderboard(db, currentUserId) {
   const oyuncular = await all(
@@ -16,6 +17,8 @@ async function getLeaderboard(db, currentUserId) {
      LIMIT 50`
   );
 
+  const hukmedenId = await getSehreHukmedenUserId(db);
+
   return oyuncular.slice(0, 25).map((o) => ({
     userId: o.user_id,
     isim: o.isim,
@@ -24,6 +27,7 @@ async function getLeaderboard(db, currentUserId) {
     grupId: o.grup_id || null,
     puan: o.puan,
     sehreHukmetSayisi: o.sehre_hukmet_sayisi || 0,
+    sehreHukmeden: o.user_id === hukmedenId,
     kayitUlkesi: o.kayit_ulkesi || "",
     oyunDili: o.oyun_dili || "tr",
     premiumPaket: o.premium_paket || "",

@@ -48,6 +48,23 @@ async function sehreHukmediyorMu(db, userId) {
   return limanSahibi && makamSahibi;
 }
 
+/** Tüm liman ve makamlara sahip tek oyuncunun kimliği (liderlik vb. için). */
+async function getSehreHukmedenUserId(db) {
+  const adaylar = await all(
+    db,
+    `SELECT owner_user_id AS user_id
+     FROM liman_sahiplik
+     WHERE owner_user_id IS NOT NULL AND liman_id IN (${LIMAN_IDS.map(() => "?").join(",")})
+     GROUP BY owner_user_id
+     HAVING COUNT(DISTINCT liman_id) = ?`,
+    [...LIMAN_IDS, LIMAN_IDS.length]
+  );
+  for (const a of adaylar) {
+    if (a.user_id && (await sehreHukmediyorMu(db, a.user_id))) return a.user_id;
+  }
+  return null;
+}
+
 async function saatlikKazancHesapla(db, userId) {
   const { getLimanDurumu } = require("./worldService");
   const limanlar = await getLimanDurumu(db);
@@ -155,6 +172,7 @@ module.exports = {
   karaListedenCikar,
   karaListeyiGetir,
   sehreHukmediyorMu,
+  getSehreHukmedenUserId,
   sehreHukmetGuncelle,
   kaybedenHukumdariKontrol,
   karaListeSenkronize,
