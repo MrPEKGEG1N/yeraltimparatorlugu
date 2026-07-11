@@ -55,7 +55,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,300;1,400&family=Oswald:wght@400;600;700&family=Roboto+Condensed:wght@300;400;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="components/MasterLayout.module.css?v=133">
+  <link rel="stylesheet" href="components/MasterLayout.module.css?v=134">
   <link rel="stylesheet" href="liderlik.css?v=109">
   <link rel="stylesheet" href="ekran-icerik.css?v=114">
   <link rel="stylesheet" href="gazete.css?v=113">
@@ -313,7 +313,7 @@
   </div>
 </div>
 
-<!-- İCRAAT OLAY MODAL — Sokak Kavgası / Şanslı Fırsat -->
+<!-- İCRAAT OLAY MODAL — Sokak Kavgası / Şanslı Fırsat / Muhbir -->
 <div id="jobOlayModal" class="modal-arkaplan job-olay-modal">
   <div class="modal-pencere job-olay-pencere" id="jobOlayPencere">
     <div class="modal-hero job-olay-hero">
@@ -321,7 +321,7 @@
       <div class="job-olay-hero-overlay" aria-hidden="true"></div>
     </div>
     <div class="modal-icerik job-olay-icerik">
-      <div class="job-olay-uyari" data-i18n="game.job.event.ohNo">⚠️ Eyvah!</div>
+      <div class="job-olay-uyari" id="jobOlayUyari" data-i18n="game.job.event.ohNo">⚠️ Eyvah!</div>
       <div class="job-olay-baslik" id="jobOlayBaslik"></div>
       <p class="job-olay-aciklama" id="jobOlayAciklama"></p>
       <div class="job-olay-sure-wrap" id="jobOlaySureWrap">
@@ -331,6 +331,10 @@
         <div class="job-olay-sure-metin" id="jobOlaySureMetin">30</div>
       </div>
       <button type="button" class="kapat-btn job-olay-savun-btn" id="jobOlaySavunBtn" onclick="jobOlaySavun()">[ ⚔️ SAVUN ]</button>
+      <div class="job-olay-muhbir-btns gizli" id="jobOlayMuhbirBtns">
+        <button type="button" class="kapat-btn job-olay-muhbir-btn job-olay-muhbir-btn--rusvet" id="jobOlayRusvetBtn" onclick="jobOlayMuhbirSec('rusvet')">[ 💵 RÜŞVET VER ]</button>
+        <button type="button" class="kapat-btn job-olay-muhbir-btn job-olay-muhbir-btn--kac" id="jobOlayKacBtn" onclick="jobOlayMuhbirSec('kac')">[ ⚔️ SALDIR VE KAÇ ]</button>
+      </div>
     </div>
   </div>
 </div>
@@ -475,7 +479,7 @@
 <script src="security.js?v=1"></script>
 <script src="kurallar.js?v=2"></script>
 <script src="i18n/languages.js?v=3"></script>
-<script src="i18n/locales.js?v=65"></script>
+<script src="i18n/locales.js?v=66"></script>
 <script src="i18n/catalog.js?v=6"></script>
 <script src="i18n/i18n.js?v=9"></script>
 <script src="auth.js?v=106"></script>
@@ -488,7 +492,7 @@
 <script src="borsa.js?v=6"></script>
 <script src="kumarhane.js?v=28"></script>
 <script src="meslek.js?v=27"></script>
-<script src="script.js?v=309"></script>
+<script src="script.js?v=310"></script>
 <script src="bildirim.js?v=4"></script>
 </body>
 </html>

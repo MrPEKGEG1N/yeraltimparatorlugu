@@ -14,12 +14,17 @@ const { gorevOlayIsle } = require("./gunlukGorevService");
 const DIRECT_SUCCESS_CHANCE = 0.6;
 const SOKAK_EXTRA_ICRAAT = 1;
 const FIRSAT_EXTRA_ICRAAT = 2;
+const MUHBIR_EXTRA_ICRAAT = 1;
 const SOKAK_TIMER_MS = 30000;
 const FAIL_PARA_ORANI = 0.4;
 const GRACE_MS = 2500;
 const FIRSAT_BONUS_MIN = 20;
 const FIRSAT_BONUS_MAX = 50;
 const FIRSAT_BEKLE_MS = 5 * 60 * 1000;
+const MUHBIR_RUSVET_ORANI = 0.5;
+const MUHBIR_GUC_KAYIP_ORANI = 0.01;
+const MUHBIR_ICRAAT_KAYIP = 1;
+const MUHBIR_BEKLE_MS = 5 * 60 * 1000;
 
 function jsonParse(raw, fallback) {
   if (!raw) return fallback;
@@ -35,7 +40,10 @@ function rastgeleFirsatBonusu() {
 }
 
 function olayTipiSec() {
-  return Math.random() < 0.5 ? "sokak_kavgasi" : "sansli_firsat";
+  const r = Math.random();
+  if (r < 1 / 3) return "sokak_kavgasi";
+  if (r < 2 / 3) return "sansli_firsat";
+  return "muhbir";
 }
 
 async function ensureJobOlay(db) {
@@ -95,6 +103,9 @@ async function jobOdulleriUygula(db, userId, player, job, opts) {
     bonusPuan: opts.bonusPuan || 0,
     kazancBonusYuzde: opts.kazancBonusYuzde || 0,
     savunuldu: !!opts.savunuldu,
+    muhbirSecim: opts.muhbirSecim || "",
+    gucKaybi: opts.gucKaybi || 0,
+    icraatKaybi: opts.icraatKaybi || 0,
   };
 }
 
@@ -112,6 +123,9 @@ function jobEffectFromSonuc(job, sonuc, icraatToplam) {
     paraKaybi: sonuc.paraKaybi,
     bonusPuan: sonuc.bonusPuan,
     kazancBonusYuzde: sonuc.kazancBonusYuzde || 0,
+    muhbirSecim: sonuc.muhbirSecim || "",
+    gucKaybi: sonuc.gucKaybi || 0,
+    icraatKaybi: sonuc.icraatKaybi || 0,
   };
 }
 
@@ -132,6 +146,12 @@ function jobOlayEffectFromSession(job, session) {
       ...base,
       sureSn: SOKAK_TIMER_MS / 1000,
       ekstraIcraat: SOKAK_EXTRA_ICRAAT,
+    };
+  }
+  if (session.olayTipi === "muhbir") {
+    return {
+      ...base,
+      ekstraIcraat: MUHBIR_EXTRA_ICRAAT,
     };
   }
   return {
@@ -181,7 +201,12 @@ async function jobBaslat(db, userId, player, jobKey) {
   }
 
   const olayTipi = olayTipiSec();
-  const ekstraMaliyet = olayTipi === "sansli_firsat" ? FIRSAT_EXTRA_ICRAAT : SOKAK_EXTRA_ICRAAT;
+  const ekstraMaliyet =
+    olayTipi === "sansli_firsat"
+      ? FIRSAT_EXTRA_ICRAAT
+      : olayTipi === "muhbir"
+        ? MUHBIR_EXTRA_ICRAAT
+        : SOKAK_EXTRA_ICRAAT;
   const ekstraIcraat = await icraatHarca(db, userId, ekstraMaliyet);
   if (!ekstraIcraat.ok) {
     if (olayTipi === "sokak_kavgasi") {
@@ -223,6 +248,8 @@ async function jobBaslat(db, userId, player, jobKey) {
 
   if (olayTipi === "sokak_kavgasi") {
     session.bitisMs = basladiMs + SOKAK_TIMER_MS;
+  } else if (olayTipi === "muhbir") {
+    session.bitisMs = basladiMs + MUHBIR_BEKLE_MS;
   } else {
     session.bonusYuzde = rastgeleFirsatBonusu();
     session.bitisMs = basladiMs + FIRSAT_BEKLE_MS;
@@ -238,7 +265,7 @@ async function jobBaslat(db, userId, player, jobKey) {
   };
 }
 
-async function jobOlaySonuc(db, userId, player, { savunuldu, olayId }) {
+async function jobOlaySonuc(db, userId, player, { savunuldu, olayId, secim }) {
   const session = await jobOlayOku(db, userId);
   if (!session) return { ok: false, error: "Bekleyen icraat olayı yok." };
   if (olayId && session.olayId !== olayId) {
@@ -256,6 +283,9 @@ async function jobOlaySonuc(db, userId, player, { savunuldu, olayId }) {
   let paraKaybi = 0;
   let kazancBonusYuzde = 0;
   let basarili = false;
+  let muhbirSecim = "";
+  let gucKaybi = 0;
+  let icraatKaybi = 0;
 
   if (session.olayTipi === "sansli_firsat") {
     if (!savunuldu) {
@@ -264,6 +294,19 @@ async function jobOlaySonuc(db, userId, player, { savunuldu, olayId }) {
     kazancBonusYuzde = session.bonusYuzde || FIRSAT_BONUS_MIN;
     netKazanc = Math.floor(job.netKazanc * (1 + kazancBonusYuzde / 100));
     basarili = true;
+  } else if (session.olayTipi === "muhbir") {
+    const tercih = secim === "kac" ? "kac" : secim === "rusvet" ? "rusvet" : "";
+    if (!tercih) return { ok: false, error: "Kaçmak için bir seçenek belirlemelisin." };
+    muhbirSecim = tercih;
+    basarili = true;
+    if (tercih === "rusvet") {
+      paraKaybi = Math.floor(job.netKazanc * MUHBIR_RUSVET_ORANI);
+      netKazanc = job.netKazanc - paraKaybi;
+    } else {
+      netKazanc = job.netKazanc;
+      gucKaybi = Math.max(1, Math.floor((player.guc || 0) * MUHBIR_GUC_KAYIP_ORANI));
+      icraatKaybi = MUHBIR_ICRAAT_KAYIP;
+    }
   } else {
     const simdi = Date.now();
     basarili = !!savunuldu && simdi <= session.bitisMs + GRACE_MS;
@@ -286,7 +329,27 @@ async function jobOlaySonuc(db, userId, player, { savunuldu, olayId }) {
     kazancBonusYuzde,
     savunuldu: basarili,
     devletDusus: session.devletDusus,
+    muhbirSecim,
+    gucKaybi,
+    icraatKaybi,
   });
+
+  if (muhbirSecim === "kac" && (gucKaybi > 0 || icraatKaybi > 0)) {
+    const yeniGuc = Math.max(0, (player.guc || 0) - gucKaybi);
+    const yeniIcraat = Math.max(0, (player.icraat || 0) - icraatKaybi);
+    player.guc = yeniGuc;
+    player.icraat = yeniIcraat;
+    await run(db, `UPDATE players SET guc = ?, icraat = ? WHERE user_id = ?`, [
+      yeniGuc,
+      yeniIcraat,
+      userId,
+    ]);
+    sonuc.gucKaybi = gucKaybi;
+    sonuc.icraatKaybi = icraatKaybi;
+    sonuc.muhbirSecim = muhbirSecim;
+  } else if (muhbirSecim === "rusvet") {
+    sonuc.muhbirSecim = muhbirSecim;
+  }
 
   return {
     ok: true,

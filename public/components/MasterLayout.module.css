@@ -1649,6 +1649,43 @@ html, body {
   border-color: #f1c40f;
 }
 
+.job-olay-pencere--muhbir {
+  border-color: #8e44ad;
+  box-shadow: 0 0 40px rgba(142, 68, 173, 0.32), 0 24px 70px rgba(0, 0, 0, 0.75);
+}
+
+.job-olay-pencere--muhbir .job-olay-uyari {
+  color: #e8b4ff;
+}
+
+.job-olay-pencere--muhbir .job-olay-baslik {
+  color: #f5d0ff;
+}
+
+.job-olay-muhbir-btns {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.job-olay-muhbir-btns.gizli {
+  display: none !important;
+}
+
+.job-olay-savun-btn.gizli {
+  display: none !important;
+}
+
+.job-olay-muhbir-btn--rusvet {
+  background: linear-gradient(180deg, #8e6b1f 0%, #5c4510 100%);
+  border-color: #ffd700;
+}
+
+.job-olay-muhbir-btn--kac {
+  background: linear-gradient(180deg, #922b21 0%, #641e16 100%);
+  border-color: #ff8a80;
+}
+
 .ses-kontrol {
   position: fixed;
   bottom: 12px;

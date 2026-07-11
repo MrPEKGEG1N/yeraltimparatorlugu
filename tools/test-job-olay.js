@@ -95,6 +95,63 @@ async function main() {
   if (player.kasa !== kasaOnce + beklenen) throw new Error("firsat kasa yanlis");
 
   console.log("OK sansli firsat testi gecti");
+
+  const muhbirRusvetSession = {
+    olayId: "muhbir789",
+    jobKey: "market",
+    olayTipi: "muhbir",
+    basladiMs: Date.now(),
+    bitisMs: Date.now() + 300000,
+    devletDusus: 6,
+    icraatToplam: 2,
+  };
+  await run(db, `UPDATE players SET job_olay_json = ?, kasa = ?, guc = 5000, icraat = 10 WHERE user_id = ?`, [
+    JSON.stringify(muhbirRusvetSession),
+    player.kasa,
+    userId,
+  ]);
+  player = await loadPlayer(db, userId);
+  const kasaMuhbirOnce = player.kasa;
+  const muhbirRusvet = await jobOlaySonuc(db, userId, player, {
+    savunuldu: false,
+    olayId: "muhbir789",
+    secim: "rusvet",
+  });
+  if (!muhbirRusvet.ok) throw new Error(muhbirRusvet.error);
+  const yarimKayip = Math.floor(market.netKazanc / 2);
+  if (muhbirRusvet.effect.paraKaybi !== yarimKayip) throw new Error("muhbir rusvet kayip yanlis");
+  if (muhbirRusvet.effect.netKazanc !== market.netKazanc - yarimKayip) throw new Error("muhbir rusvet kazanc yanlis");
+  player = await loadPlayer(db, userId);
+  if (player.kasa !== kasaMuhbirOnce + market.netKazanc - yarimKayip) throw new Error("muhbir rusvet kasa yanlis");
+
+  const muhbirKacSession = {
+    olayId: "muhbir790",
+    jobKey: "market",
+    olayTipi: "muhbir",
+    basladiMs: Date.now(),
+    bitisMs: Date.now() + 300000,
+    devletDusus: 6,
+    icraatToplam: 2,
+  };
+  await run(db, `UPDATE players SET job_olay_json = ?, guc = 10000, icraat = 8 WHERE user_id = ?`, [
+    JSON.stringify(muhbirKacSession),
+    userId,
+  ]);
+  player = await loadPlayer(db, userId);
+  const gucOnce = player.guc;
+  const icraatOnce = player.icraat;
+  const muhbirKac = await jobOlaySonuc(db, userId, player, {
+    savunuldu: false,
+    olayId: "muhbir790",
+    secim: "kac",
+  });
+  if (!muhbirKac.ok) throw new Error(muhbirKac.error);
+  player = await loadPlayer(db, userId);
+  const beklenenGucKaybi = Math.max(1, Math.floor(gucOnce * 0.01));
+  if (player.guc !== gucOnce - beklenenGucKaybi) throw new Error("muhbir kac guc yanlis");
+  if (player.icraat !== icraatOnce - 1) throw new Error("muhbir kac icraat yanlis");
+
+  console.log("OK muhbir testleri gecti");
   console.log(JSON.stringify({ kasa: player.kasa, puan: player.puan, effect: firsat.effect }, null, 2));
 }
 

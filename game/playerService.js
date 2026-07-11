@@ -670,6 +670,7 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
     const sonuc = await jobOlaySonuc(db, userId, player, {
       savunuldu: extra.savunuldu === true,
       olayId: extra.olayId || key,
+      secim: extra.secim || "",
     });
     if (!sonuc.ok) return sonuc;
     player = await loadPlayer(db, userId);

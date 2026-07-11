@@ -720,6 +720,7 @@ var ozelGorseller = {
   catisma: yerelGorselPng('ozel', 'sokak-kavgasi'),
   sokakKavgasi: yerelGorselPng('ozel', 'sokak-kavgasi'),
   sansliFirsat: yerelGorselPng('ozel', 'sansli-firsat'),
+  muhbir: yerelGorselPng('ozel', 'muhbir'),
   hapishane: yerelGorselPng('ozel', 'hapishane')
 };
 
@@ -1244,15 +1245,30 @@ function jobOlayFirsatMi() {
   return aktifJobOlay && aktifJobOlay.olayTipi === 'sansli_firsat';
 }
 
+function jobOlayMuhbirMi() {
+  return aktifJobOlay && aktifJobOlay.olayTipi === 'muhbir';
+}
+
 function jobOlayModalKapat() {
   var modal = document.getElementById('jobOlayModal');
   if (modal) modal.classList.remove('acik');
   var pencere = document.getElementById('jobOlayPencere');
-  if (pencere) pencere.classList.remove('job-olay-pencere--firsat');
+  if (pencere) {
+    pencere.classList.remove('job-olay-pencere--firsat');
+    pencere.classList.remove('job-olay-pencere--muhbir');
+  }
   var sureWrap = document.getElementById('jobOlaySureWrap');
   if (sureWrap) sureWrap.classList.remove('job-olay-sure-wrap--gizli');
   var btn = document.getElementById('jobOlaySavunBtn');
-  if (btn) btn.classList.remove('job-olay-firsat-btn');
+  if (btn) {
+    btn.classList.remove('job-olay-firsat-btn', 'gizli');
+    btn.disabled = false;
+  }
+  var muhbirBtns = document.getElementById('jobOlayMuhbirBtns');
+  if (muhbirBtns) {
+    muhbirBtns.classList.add('gizli');
+    muhbirBtns.querySelectorAll('button').forEach(function (b) { b.disabled = false; });
+  }
   if (jobOlaySureTimer) {
     clearInterval(jobOlaySureTimer);
     jobOlaySureTimer = null;
@@ -1261,15 +1277,23 @@ function jobOlayModalKapat() {
 
 function jobOlayMetinleriGuncelle() {
   if (!aktifJobOlay) return;
-  var uyari = document.querySelector('#jobOlayModal .job-olay-uyari');
+  var uyari = document.getElementById('jobOlayUyari') || document.querySelector('#jobOlayModal .job-olay-uyari');
   var baslik = document.getElementById('jobOlayBaslik');
   var acik = document.getElementById('jobOlayAciklama');
   var btn = document.getElementById('jobOlaySavunBtn');
+  var rusvetBtn = document.getElementById('jobOlayRusvetBtn');
+  var kacBtn = document.getElementById('jobOlayKacBtn');
   if (jobOlayFirsatMi()) {
     if (uyari) uyari.textContent = t('game.job.event.luckyIntro');
     if (baslik) baslik.textContent = t('game.job.event.luckyTitle');
     if (acik) acik.textContent = t('game.job.event.luckyDesc');
     if (btn && !btn.disabled) btn.textContent = t('game.job.event.luckyRunBtn');
+  } else if (jobOlayMuhbirMi()) {
+    if (uyari) uyari.textContent = t('game.job.event.informantIntro');
+    if (baslik) baslik.textContent = t('game.job.event.informantTitle');
+    if (acik) acik.textContent = t('game.job.event.informantDesc');
+    if (rusvetBtn) rusvetBtn.textContent = t('game.job.event.informantBribeBtn');
+    if (kacBtn) kacBtn.textContent = t('game.job.event.informantFightBtn');
   } else {
     if (uyari) uyari.textContent = t('game.job.event.ohNo');
     if (baslik) baslik.textContent = t('game.job.event.streetFightTitle');
@@ -1279,7 +1303,7 @@ function jobOlayMetinleriGuncelle() {
 }
 
 function jobOlaySureGuncelle() {
-  if (!aktifJobOlay || jobOlayFirsatMi()) return;
+  if (!aktifJobOlay || jobOlayFirsatMi() || jobOlayMuhbirMi()) return;
   var kalanMs = aktifJobOlay.bitisTs - Date.now();
   var kalanSn = Math.max(0, Math.ceil(kalanMs / 1000));
   var dolgu = document.getElementById('jobOlaySureDolgu');
@@ -1296,6 +1320,7 @@ function jobOlaySureGuncelle() {
 
 function jobOlayModalAc(ef) {
   var firsat = ef.olayTipi === 'sansli_firsat';
+  var muhbir = ef.olayTipi === 'muhbir';
   aktifJobOlay = {
     olayId: ef.olayId,
     olayTipi: ef.olayTipi || 'sokak_kavgasi',
@@ -1306,56 +1331,75 @@ function jobOlayModalAc(ef) {
     netKazanc: ef.netKazanc,
     kazancBonusYuzde: ef.kazancBonusYuzde || 0
   };
-  if (!firsat) sesCal('saldiri');
+  if (!firsat && !muhbir) sesCal('saldiri');
   var resim = document.getElementById('jobOlayResim');
   if (resim) {
     resim.src = firsat
       ? (ozelGorseller.sansliFirsat || FALLBACK)
-      : (ozelGorseller.sokakKavgasi || ozelGorseller.catisma || FALLBACK);
+      : muhbir
+        ? (ozelGorseller.muhbir || FALLBACK)
+        : (ozelGorseller.sokakKavgasi || ozelGorseller.catisma || FALLBACK);
     resim.onerror = function() { imgFallback(resim); };
   }
   var pencere = document.getElementById('jobOlayPencere');
-  if (pencere) pencere.classList.toggle('job-olay-pencere--firsat', firsat);
+  if (pencere) {
+    pencere.classList.toggle('job-olay-pencere--firsat', firsat);
+    pencere.classList.toggle('job-olay-pencere--muhbir', muhbir);
+  }
   var sureWrap = document.getElementById('jobOlaySureWrap');
-  if (sureWrap) sureWrap.classList.toggle('job-olay-sure-wrap--gizli', firsat);
+  if (sureWrap) sureWrap.classList.toggle('job-olay-sure-wrap--gizli', firsat || muhbir);
   var btn = document.getElementById('jobOlaySavunBtn');
   if (btn) {
     btn.disabled = false;
     btn.classList.toggle('job-olay-firsat-btn', firsat);
+    btn.classList.toggle('gizli', muhbir);
     btn.textContent = firsat ? t('game.job.event.luckyRunBtn') : t('game.job.event.defendBtn');
   }
+  var muhbirBtns = document.getElementById('jobOlayMuhbirBtns');
+  if (muhbirBtns) muhbirBtns.classList.toggle('gizli', !muhbir);
   jobOlayMetinleriGuncelle();
   document.getElementById('jobOlayModal').classList.add('acik');
   if (jobOlaySureTimer) clearInterval(jobOlaySureTimer);
   jobOlaySureTimer = null;
-  if (!firsat) {
+  if (!firsat && !muhbir) {
     jobOlaySureGuncelle();
     jobOlaySureTimer = setInterval(jobOlaySureGuncelle, 100);
     toast(t('game.job.event.extraAction'), 'uyari');
-  } else {
+  } else if (firsat) {
     toast(t('game.job.event.extraAction2'), 'uyari');
+  } else {
+    toast(t('game.job.event.extraAction'), 'uyari');
   }
 }
 
-async function jobOlaySonucGonder(savunuldu) {
+async function jobOlaySonucGonder(savunuldu, secim) {
   if (!aktifJobOlay || aktifJobOlay.bekliyor) return;
   aktifJobOlay.bekliyor = true;
   var olayId = aktifJobOlay.olayId;
   var btn = document.getElementById('jobOlaySavunBtn');
   if (btn) btn.disabled = true;
+  var muhbirBtns = document.getElementById('jobOlayMuhbirBtns');
+  if (muhbirBtns) {
+    muhbirBtns.querySelectorAll('button').forEach(function (b) { b.disabled = true; });
+  }
   if (jobOlaySureTimer) {
     clearInterval(jobOlaySureTimer);
     jobOlaySureTimer = null;
   }
   var ef = await sunucuAksiyon('job_olay_sonuc', olayId, null, {
     savunuldu: savunuldu,
-    olayId: olayId
+    olayId: olayId,
+    secim: secim || ''
   });
   jobOlayModalKapat();
   aktifJobOlay = null;
   if (!ef) return;
   if (ef.kazancBonusYuzde > 0) {
     toast(t('game.job.event.luckySuccess', { bonus: ef.kazancBonusYuzde }), 'basari');
+  } else if (ef.muhbirSecim === 'rusvet' && ef.paraKaybi > 0) {
+    toast(t('game.job.event.informantBribeDone', { kayip: fmt(ef.paraKaybi) }), 'uyari');
+  } else if (ef.muhbirSecim === 'kac') {
+    toast(t('game.job.event.informantFightDone', { guc: fmt(ef.gucKaybi || 0), icraat: ef.icraatKaybi || 1 }), 'uyari');
   } else if (ef.savunuldu) {
     toast(t('game.job.event.defendSuccess'), 'basari');
   } else if (ef.paraKaybi > 0) {
@@ -1366,8 +1410,13 @@ async function jobOlaySonucGonder(savunuldu) {
 
 function jobOlaySavun() {
   if (!aktifJobOlay || aktifJobOlay.bekliyor) return;
-  if (!jobOlayFirsatMi() && Date.now() > aktifJobOlay.bitisTs) return;
+  if (!jobOlayFirsatMi() && !jobOlayMuhbirMi() && Date.now() > aktifJobOlay.bitisTs) return;
   jobOlaySonucGonder(true);
+}
+
+function jobOlayMuhbirSec(secim) {
+  if (!aktifJobOlay || aktifJobOlay.bekliyor || !jobOlayMuhbirMi()) return;
+  jobOlaySonucGonder(false, secim);
 }
 
 function isTamamlaPencereAc(ef) {
