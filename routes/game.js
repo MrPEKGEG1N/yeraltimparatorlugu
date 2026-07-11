@@ -452,6 +452,17 @@ function createGameRouter(db) {
     }
   });
 
+  router.get("/hapishane/panel", async (req, res) => {
+    try {
+      const { hapishanePanel } = require("../game/hapishaneService");
+      const panel = await hapishanePanel(db, req.user.id);
+      res.json({ ok: true, panel });
+    } catch (err) {
+      console.error("[hapishane/panel]", err?.message || err);
+      res.status(500).json({ ok: false, error: "Hapishane yüklenemedi." });
+    }
+  });
+
   router.get("/sirket/panel", async (req, res) => {
     try {
       const panel = await sirketPanelGetir(db, req.user.id);

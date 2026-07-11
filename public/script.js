@@ -37,6 +37,9 @@ var sehreHukmeden = false;
 var ZAYIF_HAMLE_MSG = 'Zayıf hamle, büyük rezillik. Geri dur!';
 var sektorSahiplik = {};
 var rusvetBilgi = { min: 10, max: 50, onerilen: 30 };
+var oyuncuHapis = { hapisAktif: false, mahkumSayisi: 0, rusvetBedeli: 0, elmasBedel: 5 };
+var hapishaneHedefBilgi = null;
+var hapishaneSureTimer = null;
 var AVUKAT_ILISKI_MAX = 600;
 var RUSVET_ARTIS_MAX = 50;
 var mekanTanimlari = {};
@@ -241,6 +244,8 @@ function oyuncuUygula(p, secenekler) {
   saatlikKazanc = p.saatlikKazanc || 0;
   sektorSahiplik = p.sektorSahiplik || {};
   rusvetBilgi = p.rusvet || rusvetBilgi;
+  if (p.hapishane) oyuncuHapis = p.hapishane;
+  hapishaneMenuGuncelle();
   mekanTanimlari = p.mekanlar || {};
   istihbaratEleman = p.istihbaratEleman || 0;
   istihbaratBirimMaliyet = p.istihbaratBirimMaliyet || istihbaratBirimMaliyetHesap(istihbaratEleman);
@@ -538,6 +543,7 @@ async function sunucuAksiyon(action, key, adet, extra) {
     if (aktifEkran === 'kumarhane' && typeof kumarhanePanelYukle === 'function') {
       await kumarhanePanelYukle(true);
     }
+    if (aktifEkran === 'hapishane') await hapishaneYukle();
     if (window.TutorialEngine && typeof TutorialEngine.tryAutoResume === 'function') {
       TutorialEngine.tryAutoResume(action);
     }
@@ -708,7 +714,8 @@ var isGorselleri = {
 var ozelGorseller = {
   catisma: yerelGorselPng('ozel', 'sokak-kavgasi'),
   sokakKavgasi: yerelGorselPng('ozel', 'sokak-kavgasi'),
-  sansliFirsat: yerelGorselPng('ozel', 'sansli-firsat')
+  sansliFirsat: yerelGorselPng('ozel', 'sansli-firsat'),
+  hapishane: yerelGorselPng('ozel', 'hapishane')
 };
 
 var mafyaIsGorseller = {
@@ -3146,6 +3153,166 @@ function avukatHTML() {
     + '</div></div></div></div>';
 }
 
+function hapishaneSureFormat(sn) {
+  sn = Math.max(0, Math.floor(sn || 0));
+  var sa = Math.floor(sn / 3600);
+  var dk = Math.floor((sn % 3600) / 60);
+  var snK = sn % 60;
+  return String(sa).padStart(2, '0') + ':' + String(dk).padStart(2, '0') + ':' + String(snK).padStart(2, '0');
+}
+
+function hapishaneMenuGuncelle() {
+  var btn = document.getElementById('hapishaneMenuBtn');
+  if (!btn) return;
+  var label = btn.querySelector('.ml-menu-label');
+  if (!label) return;
+  var sayi = oyuncuHapis && oyuncuHapis.mahkumSayisi ? oyuncuHapis.mahkumSayisi : 0;
+  var base = t('menu.hapishane');
+  label.textContent = sayi > 0 ? base + ' (' + sayi + ')' : base;
+}
+
+function hapishaneHTML(panel) {
+  panel = panel || oyuncuHapis || {};
+  var img = ozelGorseller.hapishane || FALLBACK;
+  var mahkum = panel.mahkumSayisi || 0;
+  var aktif = !!panel.hapisAktif;
+  var rusvet = panel.rusvetBedeli || 0;
+  var elmasBedel = panel.elmasBedel || 5;
+  var elmas = panel.elmas != null ? panel.elmas : oyuncuElmas;
+
+  var durumHtml = '';
+  if (aktif) {
+    durumHtml = '<div class="hp-durum" id="hpDurumMetin">'
+      + escHtml(t('game.prison.statusIn', { sure: hapishaneSureFormat(panel.hapisKalanSn) }))
+      + '</div>';
+  }
+
+  var gardiyanPanel = '';
+  if (aktif) {
+    gardiyanPanel = '<div class="hp-panel">'
+      + '<div class="hp-panel-baslik"><span aria-hidden="true">💵</span><h3>' + escHtml(t('game.prison.guardBribeTitle')) + '</h3></div>'
+      + '<p>' + escHtml(t('game.prison.guardBribeDesc', { saat: panel.rusvetSaat || 3 })) + '</p>'
+      + '<div class="hp-bedel">' + fmt(rusvet) + ' TL</div>'
+      + '<button type="button" class="hp-btn" onclick="hapishaneRusvetGardiyan()">' + escHtml(t('game.prison.guardBribeBtn')) + '</button>'
+      + '<button type="button" class="hp-btn hp-btn--elmas" onclick="hapishaneElmasCik()">' + escHtml(t('game.prison.diamondBtn', { n: elmasBedel })) + ' (' + fmt(elmas) + ')</button>'
+      + '</div>';
+  }
+
+  var kurtarPanel = '';
+  if (!aktif) {
+    kurtarPanel = '<div class="hp-panel">'
+      + '<div class="hp-panel-baslik"><span aria-hidden="true">🔓</span><h3>' + escHtml(t('game.prison.rescueTitle')) + '</h3></div>'
+      + '<p>' + escHtml(t('game.prison.rescueDesc')) + '</p>'
+      + '<div class="hp-alan"><label for="hpHedefAd">' + escHtml(t('game.prison.rescueLabel')) + '</label>'
+      + '<input type="text" id="hpHedefAd" class="hp-input" maxlength="24" placeholder="' + escHtml(t('game.prison.rescuePlaceholder')) + '"></div>'
+      + '<button type="button" class="hp-btn" onclick="hapishaneHedefSorgula()">' + escHtml(t('game.prison.rescueCheckBtn')) + '</button>'
+      + '<div id="hpHedefBilgi" class="hp-hedef-bilgi gizli"></div>'
+      + '<button type="button" id="hpKurtarBtn" class="hp-btn hp-btn--kurtar gizli" onclick="hapishaneOyuncuCikar()">' + escHtml(t('game.prison.rescueBtn')) + '</button>'
+      + '</div>';
+  }
+
+  return '<div class="hp-sayfa"><div class="hp-cerceve">'
+    + '<div class="hp-banner">'
+    + '<img src="' + img + '" alt="' + escHtml(t('game.prison.bannerAlt')) + '" onerror="imgFallback(this)">'
+    + '<div class="hp-banner-ortu"></div>'
+    + '<div class="hp-baslik-wrap">'
+    + '<h2>' + escHtml(t('game.prison.screenTitle')) + '</h2>'
+    + '<span class="hp-mahkum-sayac">' + escHtml(t('game.prison.inmateCount', { n: mahkum })) + '</span>'
+    + '</div></div>'
+    + '<div class="hp-govde">'
+    + '<div class="hp-uyari">' + escHtml(t('game.prison.rules')) + '</div>'
+    + durumHtml
+    + '<div class="hp-paneller' + (aktif && !kurtarPanel ? '' : ' hp-paneller--cift') + '">'
+    + gardiyanPanel
+    + kurtarPanel
+    + '</div></div></div></div>';
+}
+
+function hapishaneSureTimerDurdur() {
+  if (hapishaneSureTimer) {
+    clearInterval(hapishaneSureTimer);
+    hapishaneSureTimer = null;
+  }
+}
+
+function hapishaneSureTimerBaslat() {
+  hapishaneSureTimerDurdur();
+  if (!oyuncuHapis || !oyuncuHapis.hapisAktif) return;
+  hapishaneSureTimer = setInterval(function () {
+    if (!oyuncuHapis || !oyuncuHapis.hapisAktif) {
+      hapishaneSureTimerDurdur();
+      return;
+    }
+    oyuncuHapis.hapisKalanSn = Math.max(0, (oyuncuHapis.hapisKalanSn || 0) - 1);
+    var el = document.getElementById('hpDurumMetin');
+    if (el) {
+      el.textContent = t('game.prison.statusIn', { sure: hapishaneSureFormat(oyuncuHapis.hapisKalanSn) });
+    }
+    if (oyuncuHapis.hapisKalanSn <= 0) {
+      hapishaneSureTimerDurdur();
+      hapishaneYukle();
+    }
+  }, 1000);
+}
+
+async function hapishaneYukle() {
+  try {
+    var res = await apiFetch('/api/hapishane/panel');
+    if (!res.ok) return;
+    var data = await res.json();
+    if (!data.ok || !data.panel) return;
+    oyuncuHapis = data.panel;
+    hapishaneMenuGuncelle();
+    if (aktifEkran === 'hapishane') {
+      var ic = document.getElementById('anaIcerik');
+      if (ic) ic.innerHTML = hapishaneHTML(data.panel);
+      hapishaneSureTimerBaslat();
+    }
+  } catch (_) {}
+}
+
+async function hapishaneRusvetGardiyan() {
+  var ef = await sunucuAksiyon('hapishane_rusvet_gardiyan');
+  if (ef) toast(tr(ef.mesaj) || t('game.prison.released'), 'basari');
+  ekranDegistir('hapishane');
+}
+
+async function hapishaneElmasCik() {
+  var ef = await sunucuAksiyon('hapishane_elmas_cik');
+  if (ef) toast(tr(ef.mesaj) || t('game.prison.released'), 'basari');
+  ekranDegistir('hapishane');
+}
+
+async function hapishaneHedefSorgula() {
+  var el = document.getElementById('hpHedefAd');
+  var ad = el ? String(el.value || '').trim() : '';
+  if (!ad) { toast(t('game.prison.rescueNeedName'), 'hata'); return; }
+  var ef = await sunucuAksiyon('hapishane_hedef_bilgi', null, null, { hedef: ad });
+  if (!ef || !ef.hedef) return;
+  hapishaneHedefBilgi = ef.hedef;
+  var bilgi = document.getElementById('hpHedefBilgi');
+  var btn = document.getElementById('hpKurtarBtn');
+  if (bilgi) {
+    bilgi.classList.remove('gizli');
+    bilgi.textContent = t('game.prison.rescueCost', {
+      ad: ef.hedef.oyuncuAdi,
+      tutar: fmt(ef.hedef.rusvetBedeli)
+    });
+  }
+  if (btn) btn.classList.remove('gizli');
+}
+
+async function hapishaneOyuncuCikar() {
+  var el = document.getElementById('hpHedefAd');
+  var ad = el ? String(el.value || '').trim() : '';
+  if (!ad && hapishaneHedefBilgi) ad = hapishaneHedefBilgi.oyuncuAdi;
+  if (!ad) { toast(t('game.prison.rescueNeedName'), 'hata'); return; }
+  var ef = await sunucuAksiyon('hapishane_oyuncu_cikar', null, null, { hedef: ad });
+  if (ef) toast(tr(ef.mesaj) || t('game.prison.rescueDone'), 'basari');
+  hapishaneHedefBilgi = null;
+  ekranDegistir('hapishane');
+}
+
 function medyaHTML() {
   return '<div class="med-sayfa"><div class="med-cerceve">'
     + '<div class="med-banner">'
@@ -5556,6 +5723,12 @@ function ekranDegistir(tip) {
 
   if (tip === 'devletIliskisi') {
     ic.innerHTML = avukatHTML();
+    return;
+  }
+
+  if (tip === 'hapishane') {
+    ic.innerHTML = hapishaneHTML(oyuncuHapis);
+    hapishaneYukle();
     return;
   }
 

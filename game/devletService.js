@@ -30,21 +30,19 @@ async function getDevletIliskisi(db, userId) {
 
 async function devletDusur(db, userId, miktar) {
   const row = await get(db, `SELECT devlet_iliskisi FROM players WHERE user_id = ?`, [userId]);
-  const yeni = clampAvukatIliskisi((row?.devlet_iliskisi ?? 100) - miktar);
+  const onceki = clampAvukatIliskisi(row?.devlet_iliskisi ?? 100);
+  const yeni = clampAvukatIliskisi(onceki - miktar);
   await run(db, `UPDATE players SET devlet_iliskisi = ? WHERE user_id = ?`, [yeni, userId]);
+  try {
+    const { devletDususundeHapseGir } = require("./hapishaneService");
+    await devletDususundeHapseGir(db, userId, onceki, yeni);
+  } catch (_) {}
   return yeni;
 }
 
 async function hapisKontrol(db, userId) {
-  const d = await getDevletIliskisi(db, userId);
-  if (d < HAPSE_GIR_ESIK) {
-    return {
-      ok: false,
-      error:
-        "Devlet ilişkin çok kötü — hapistesin! İcraata çıkamazsın. Rüşvet vererek ilişkini düzelt.",
-    };
-  }
-  return { ok: true, devletIliskisi: d };
+  const { hapisKontrol: hapishaneKontrol } = require("./hapishaneService");
+  return hapishaneKontrol(db, userId);
 }
 
 async function rusvetVer(db, userId, player, miktar) {

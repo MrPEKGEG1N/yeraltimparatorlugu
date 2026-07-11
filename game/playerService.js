@@ -122,6 +122,14 @@ const {
 const { getKiralamaEnvanter, getKiralamaFiyatEnvanter, kiralamaSatinAl } = require("./kiralamaService");
 const { gorevKabul, gorevOdulAl, gorevElmasTamamla, gorevOlayIsle, gunlukGorevBildirimVarMi } = require("./gunlukGorevService");
 const { jobBaslat, jobOlaySonuc } = require("./jobEventService");
+const {
+  hapisAksiyonEngeli,
+  hapishanePanel,
+  hapishaneHedefBilgi,
+  gardiyanRusveti,
+  elmaslaCik,
+  oyuncuHapistenCikar,
+} = require("./hapishaneService");
 const { okunmamisBildirimSayisi, ensureTercihler } = require("./bildirimService");
 
 async function aksiyonOyuncuYaniti(db, userId, _player, gorevSonuc = null) {
@@ -521,6 +529,7 @@ async function publicPlayerFull(db, userId, player, clientMeta = null) {
     meslekGelirBilgi: player.meslekGelirBilgi || null,
     sirketGelirBilgi: player.sirketGelirBilgi || null,
     sirketMaasBilgi: player.sirketMaasBilgi || null,
+    hapishane: await hapishanePanel(db, userId),
   };
 }
 
@@ -551,7 +560,58 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
   };
   action = aliases[action] || action;
 
+  const hapisEngel = await hapisAksiyonEngeli(db, userId, action);
+  if (!hapisEngel.ok) return hapisEngel;
+
   let player = await loadPlayer(db, userId);
+
+  if (action === "hapishane_hedef_bilgi") {
+    const sonuc = await hapishaneHedefBilgi(db, userId, extra.hedef || key);
+    if (!sonuc.ok) return sonuc;
+    return { ok: true, effect: { type: "hapishane_hedef", hedef: sonuc.hedef } };
+  }
+
+  if (action === "hapishane_rusvet_gardiyan") {
+    const sonuc = await gardiyanRusveti(db, userId, player);
+    if (!sonuc.ok) return sonuc;
+    player = await loadPlayer(db, userId);
+    return {
+      ok: true,
+      player: await publicPlayerFull(db, userId, player),
+      effect: { type: "hapishane_cikis", mesaj: sonuc.mesaj, odenen: sonuc.odenen },
+    };
+  }
+
+  if (action === "hapishane_elmas_cik") {
+    const sonuc = await elmaslaCik(db, userId, player);
+    if (!sonuc.ok) return sonuc;
+    player = await loadPlayer(db, userId);
+    return {
+      ok: true,
+      player: await publicPlayerFull(db, userId, player),
+      effect: {
+        type: "hapishane_cikis",
+        mesaj: sonuc.mesaj,
+        harcananElmas: sonuc.harcananElmas,
+      },
+    };
+  }
+
+  if (action === "hapishane_oyuncu_cikar") {
+    const sonuc = await oyuncuHapistenCikar(db, userId, player, extra.hedef || key);
+    if (!sonuc.ok) return sonuc;
+    player = await loadPlayer(db, userId);
+    return {
+      ok: true,
+      player: await publicPlayerFull(db, userId, player),
+      effect: {
+        type: "hapishane_kurtar",
+        mesaj: sonuc.mesaj,
+        odenen: sonuc.odenen,
+        hedefAdi: sonuc.hedefAdi,
+      },
+    };
+  }
 
   if (action === "hire") {
     const sonuc = await kiralamaSatinAl(db, userId, player, key, adet);

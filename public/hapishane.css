@@ -1,0 +1,205 @@
+/* Hapishane */
+#masterLayout #anaIcerik .hp-sayfa {
+  display: flex;
+  justify-content: center;
+  padding: 10px 14px 32px;
+}
+
+#masterLayout #anaIcerik .hp-cerceve {
+  position: relative;
+  width: min(860px, 100%);
+  border: 2px solid rgba(120, 120, 130, 0.55);
+  border-radius: 6px;
+  background: linear-gradient(175deg, rgba(18, 18, 22, 0.98) 0%, rgba(6, 6, 8, 0.99) 100%);
+  box-shadow:
+    0 22px 60px rgba(0, 0, 0, 0.78),
+    inset 0 0 90px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+}
+
+#masterLayout #anaIcerik .hp-banner {
+  position: relative;
+  height: clamp(140px, 24vw, 190px);
+  overflow: hidden;
+}
+
+#masterLayout #anaIcerik .hp-banner img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 40%;
+  filter: saturate(0.55) contrast(1.1);
+}
+
+#masterLayout #anaIcerik .hp-banner-ortu {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(8,8,12,0.88) 100%);
+}
+
+#masterLayout #anaIcerik .hp-baslik-wrap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 12px;
+  padding: 0 18px;
+  z-index: 2;
+}
+
+#masterLayout #anaIcerik .hp-baslik-wrap h2 {
+  margin: 0;
+  font-family: 'Oswald', sans-serif;
+  font-size: clamp(22px, 4vw, 30px);
+  color: #e8e8ec;
+  letter-spacing: 0.06em;
+}
+
+#masterLayout #anaIcerik .hp-mahkum-sayac {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 4px 10px;
+  border: 1px solid rgba(200, 200, 210, 0.35);
+  border-radius: 4px;
+  font-size: 13px;
+  color: #c8c8d0;
+  background: rgba(0,0,0,0.45);
+}
+
+#masterLayout #anaIcerik .hp-govde {
+  padding: 16px 18px 22px;
+}
+
+#masterLayout #anaIcerik .hp-uyari {
+  border: 1px solid rgba(192, 57, 43, 0.45);
+  background: rgba(192, 57, 43, 0.12);
+  color: #f0b0a8;
+  padding: 12px 14px;
+  border-radius: 4px;
+  font-size: 13px;
+  line-height: 1.55;
+  margin-bottom: 16px;
+}
+
+#masterLayout #anaIcerik .hp-durum {
+  border: 1px solid rgba(184, 148, 42, 0.4);
+  background: rgba(184, 148, 42, 0.08);
+  color: #f1d592;
+  padding: 12px 14px;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+#masterLayout #anaIcerik .hp-paneller {
+  display: grid;
+  gap: 14px;
+}
+
+@media (min-width: 720px) {
+  #masterLayout #anaIcerik .hp-paneller--cift {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+#masterLayout #anaIcerik .hp-panel {
+  border: 1px solid rgba(120, 120, 130, 0.35);
+  border-radius: 5px;
+  padding: 14px;
+  background: rgba(0,0,0,0.25);
+}
+
+#masterLayout #anaIcerik .hp-panel-baslik {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+#masterLayout #anaIcerik .hp-panel-baslik h3 {
+  margin: 0;
+  font-family: 'Oswald', sans-serif;
+  font-size: 17px;
+  color: #d8d8e0;
+  letter-spacing: 0.04em;
+}
+
+#masterLayout #anaIcerik .hp-panel p {
+  margin: 0 0 10px;
+  color: #b8b8c0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+#masterLayout #anaIcerik .hp-bedel {
+  font-family: 'Oswald', sans-serif;
+  font-size: 20px;
+  color: #ffd700;
+  margin-bottom: 10px;
+}
+
+#masterLayout #anaIcerik .hp-alan {
+  margin-bottom: 10px;
+}
+
+#masterLayout #anaIcerik .hp-alan label {
+  display: block;
+  font-size: 12px;
+  color: #999;
+  margin-bottom: 4px;
+}
+
+#masterLayout #anaIcerik .hp-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid rgba(140, 140, 150, 0.45);
+  border-radius: 4px;
+  background: rgba(0,0,0,0.45);
+  color: #eee;
+  font-size: 14px;
+}
+
+#masterLayout #anaIcerik .hp-btn {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  padding: 12px 14px;
+  border: 1px solid rgba(184, 148, 42, 0.55);
+  border-radius: 4px;
+  background: linear-gradient(180deg, #4a4a52 0%, #2a2a32 100%);
+  color: #f5f5f8;
+  font-family: 'Oswald', sans-serif;
+  font-size: 15px;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+}
+
+#masterLayout #anaIcerik .hp-btn:hover {
+  border-color: #ffd700;
+  color: #ffd700;
+}
+
+#masterLayout #anaIcerik .hp-btn--elmas {
+  background: linear-gradient(180deg, #5b3a8c 0%, #3a2260 100%);
+  border-color: #b794f6;
+}
+
+#masterLayout #anaIcerik .hp-btn--kurtar {
+  background: linear-gradient(180deg, #2d5a3d 0%, #1a3a28 100%);
+  border-color: #6fcf97;
+}
+
+#masterLayout #anaIcerik .hp-hedef-bilgi {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border-radius: 4px;
+  background: rgba(255, 215, 0, 0.08);
+  border: 1px solid rgba(255, 215, 0, 0.25);
+  color: #f1d592;
+  font-size: 13px;
+}
+
+#masterLayout #anaIcerik .hp-hedef-bilgi.gizli {
+  display: none;
+}
