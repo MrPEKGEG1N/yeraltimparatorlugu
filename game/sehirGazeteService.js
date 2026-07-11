@@ -106,14 +106,14 @@ async function gunlukHaberUret(db) {
     `SELECT id FROM sehir_gazete WHERE mesaj LIKE '%Hükmü Sürüyor%' AND created_at > ? LIMIT 1`,
     [son24]
   );
-  if (son) return;
-
-  const kara = await get(
-    db,
-    `SELECT u.reis_adi FROM players p JOIN users u ON u.id = p.user_id WHERE p.kara_listede = 1 LIMIT 1`
-  );
-  if (kara?.reis_adi) {
-    await gazeteEkle(db, `Sokakların Tek Hakimi: ${kara.reis_adi} Hükmü Sürüyor!`);
+  if (!son) {
+    const kara = await get(
+      db,
+      `SELECT u.reis_adi FROM players p JOIN users u ON u.id = p.user_id WHERE p.kara_listede = 1 LIMIT 1`
+    );
+    if (kara?.reis_adi) {
+      await gazeteEkle(db, `Sokakların Tek Hakimi: ${kara.reis_adi} Hükmü Sürüyor!`);
+    }
   }
 
   try {
@@ -497,6 +497,25 @@ async function getGazetePanel(db, userId) {
   const efsaneler24 = sayginlikLiderleri.slice(0, 3);
   const isIlanlari = await isIlanlariGetir(db, userId);
 
+  let piyango = null;
+  try {
+    const { piyangoAktifMi, aktifCekilisOzet, cekilisDonemMetni } = require("./kumarhanePiyangoService");
+    if (piyangoAktifMi()) {
+      const ozet = await aktifCekilisOzet(db);
+      if (ozet && ozet.buyukOdul > 0) {
+        piyango = {
+          buyukOdul: ozet.buyukOdul,
+          devredenOdul: ozet.devreden,
+          donemOdul: ozet.donemOdul,
+          biletAdet: ozet.biletAdet,
+          cekilisMetin: cekilisDonemMetni(ozet.cekilis.donem),
+        };
+      }
+    }
+  } catch (err) {
+    console.error("[gazete] piyango özet:", err?.message || err);
+  }
+
   const oyuncuLinkleri = await oyuncuLinkleriTopla(db, [
     ...sonDakika,
     mansetTpl.baslik,
@@ -531,6 +550,7 @@ async function getGazetePanel(db, userId) {
     yeraltiManse,
     efsaneler24,
     isIlanlari,
+    piyango,
     oyuncuLinkleri,
     arsiv: haberler.map((h) => ({ id: h.id, mesaj: h.mesaj, created_at: h.created_at })),
     sonHaberId,

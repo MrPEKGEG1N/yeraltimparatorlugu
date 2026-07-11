@@ -353,7 +353,31 @@ function cekilisDonemMetni(donem) {
   });
 }
 
+function istanbulGunBaslangicTs() {
+  const { istanbulGunKey } = require("./turkiyeSaati");
+  const dayKey = istanbulGunKey();
+  return Math.floor(new Date(`${dayKey}T00:00:00+03:00`).getTime() / 1000);
+}
+
+function piyangoGazeteMesajiOlustur(ozet) {
+  const { cekilis, havuzToplam, buyukOdul, devreden, donemOdul, biletAdet } = ozet;
+  const cekilisMetin = cekilisDonemMetni(cekilis.donem);
+  const odulMetin = buyukOdul.toLocaleString("tr-TR");
+  const devredenMetin = devreden.toLocaleString("tr-TR");
+  const donemMetin = donemOdul.toLocaleString("tr-TR");
+  const havuzMetin = havuzToplam.toLocaleString("tr-TR");
+
+  if (devreden > 0) {
+    return `🎟️ Kumarhane Piyangosu: Büyük ödül ${odulMetin} çip! (Devreden ${devredenMetin} + bu dönem ${donemMetin} çip, ${biletAdet} bilet). Çekiliş ${cekilisMetin} — 6 sayının tamamını bilene.`;
+  }
+  return `🎟️ Kumarhane Piyangosu: Büyük ödül ${odulMetin} çip! (Havuz ${havuzMetin} çip, ${biletAdet} bilet). Çekiliş ${cekilisMetin} — 6 sayının tamamını bilene.`;
+}
+
 async function aktifCekilisOzet(db) {
+  await ensurePiyangoTables(db);
+  await vadesiGelenCekilisleriYap(db);
+  await piyangoJackpotOnar(db);
+
   let cekilis = await get(
     db,
     `SELECT * FROM kumarhane_piyango_cekilis WHERE durum = 'acik' ORDER BY id DESC LIMIT 1`
@@ -385,21 +409,34 @@ async function gunlukPiyangoGazeteHaber(db) {
   const ozet = await aktifCekilisOzet(db);
   if (!ozet) return;
 
-  const { cekilis, havuzToplam, buyukOdul, devreden, donemOdul, biletAdet } = ozet;
+  const { cekilis, buyukOdul } = ozet;
   if (buyukOdul <= 0) return;
-  if (cekilis.piyango_gazete_gun === gunKey) return;
 
   const { gazeteEkle } = require("./sehirGazeteService");
-  const cekilisMetin = cekilisDonemMetni(cekilis.donem);
-  const odulMetin = buyukOdul.toLocaleString("tr-TR");
-  const devredenMetin = devreden.toLocaleString("tr-TR");
-  const donemMetin = donemOdul.toLocaleString("tr-TR");
-  const havuzMetin = havuzToplam.toLocaleString("tr-TR");
+  const mesaj = piyangoGazeteMesajiOlustur(ozet);
+  const gunBaslangic = istanbulGunBaslangicTs();
 
-  const mesaj =
-    devreden > 0
-      ? `🎟️ Kumarhane Piyangosu: Büyük ödül ${odulMetin} çip! (Devreden ${devredenMetin} + bu dönem ${donemMetin} çip, ${biletAdet} bilet). Çekiliş ${cekilisMetin} — 6 sayının tamamını bilene.`
-      : `🎟️ Kumarhane Piyangosu: Büyük ödül ${odulMetin} çip! (Havuz ${havuzMetin} çip, ${biletAdet} bilet). Çekiliş ${cekilisMetin} — 6 sayının tamamını bilene.`;
+  const mevcut = await get(
+    db,
+    `SELECT id, mesaj FROM sehir_gazete
+     WHERE mesaj LIKE '%🎟️ Kumarhane Piyangosu%'
+       AND created_at >= ?
+     ORDER BY id DESC LIMIT 1`,
+    [gunBaslangic]
+  );
+
+  if (mevcut) {
+    if (mevcut.mesaj !== mesaj) {
+      await run(db, `UPDATE sehir_gazete SET mesaj = ? WHERE id = ?`, [mesaj, mevcut.id]);
+    }
+    if (cekilis.piyango_gazete_gun !== gunKey) {
+      await run(db, `UPDATE kumarhane_piyango_cekilis SET piyango_gazete_gun = ? WHERE id = ?`, [
+        gunKey,
+        cekilis.id,
+      ]);
+    }
+    return;
+  }
 
   await gazeteEkle(db, mesaj);
 
@@ -772,6 +809,7 @@ async function biletAl(db, userId, hamSayilar, opts = {}) {
       : `Bilet alındı: ${parsed.sayilar.join(", ")} — ${BILET_UCRET.toLocaleString("tr-TR")} çip.`;
 
   const elmasRow = await get(db, `SELECT elmas FROM players WHERE user_id = ?`, [userId]);
+  await gunlukPiyangoGazeteHaber(db);
   return {
     ok: true,
     mesaj,
@@ -806,10 +844,12 @@ module.exports = {
   jackpotBirikimAyarla,
   buyukOdulToplam,
   sonrakiCekilisZamani,
+  cekilisDonemMetni,
   cekilisPenceresiMi,
   donemBitisMs,
   sonSayilariEslesme,
   teselliHakHesapla,
+  aktifCekilisOzet,
   panelVerisiGetir,
   biletAl,
   periyodikKontrol,

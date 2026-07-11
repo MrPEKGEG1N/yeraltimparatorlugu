@@ -4591,6 +4591,18 @@ function gazeteHaberCevir(metin) {
   if ((m = s.match(/^(.+?) - (.+?) ye karşı BAŞARISIZ bir sabotaj gerçekleştirdi\.$/))) {
     return t('game.gazete.news.sabotajFail', { attacker: m[1], target: m[2] });
   }
+  if ((m = s.match(/^🎟️ Kumarhane Piyangosu: Büyük ödül ([\d.,]+) çip! \(Devreden ([\d.,]+) \+ bu dönem ([\d.,]+) çip, (\d+) bilet\)\. Çekiliş (.+?) — 6 sayının tamamını bilene\.$/))) {
+    return t('game.gazete.news.lotteryPreviewRollover', { prize: m[1], rollover: m[2], period: m[3], tickets: m[4], draw: m[5] });
+  }
+  if ((m = s.match(/^🎟️ Kumarhane Piyangosu: Büyük ödül ([\d.,]+) çip! \(Havuz ([\d.,]+) çip, (\d+) bilet\)\. Çekiliş (.+?) — 6 sayının tamamını bilene\.$/))) {
+    return t('game.gazete.news.lotteryPreview', { prize: m[1], pool: m[2], tickets: m[3], draw: m[4] });
+  }
+  if ((m = s.match(/^🎟️ Kumarhane Piyangosu çekildi \((.+?)\)\. Kazanan çıkmadı — büyük ödül ([\d.,]+) çip sonraki çekilişe devretti! \(Sonraki çekiliş: (.+?)\)$/))) {
+    return t('game.gazete.news.lotteryRollover', { numbers: m[1], prize: m[2], next: m[3] });
+  }
+  if ((m = s.match(/^🎟️ Kumarhane Piyangosu çekildi \((.+?)\)\. 6 sayının tamamını bilen (.+?) büyük ödülü kazandı — ([\d.,]+) çip! \(Toplam havuz: ([\d.,]+) çip(.*)\)$/))) {
+    return t('game.gazete.news.lotteryWinner', { numbers: m[1], winners: m[2], prize: m[3], pool: m[4], rolloverNote: m[5] || '' });
+  }
   return s;
 }
 
@@ -4844,6 +4856,28 @@ async function gazeteEkranCiz(ic) {
         + '</div></section>';
     }
 
+    var piyangoHtml = '';
+    if (data.piyango && data.piyango.buyukOdul > 0) {
+      var py = data.piyango;
+      piyangoHtml = '<section class="gazete-piyango">'
+        + '<div class="gazete-piyango-rozet" aria-hidden="true">🎟️</div>'
+        + '<div class="gazete-piyango-icerik">'
+        + '<span class="gazete-piyango-etiket">' + escHtml(t('game.gazete.lotteryBoxTitle')) + '</span>'
+        + '<h3 class="gazete-piyango-baslik">' + escHtml(t('game.gazete.lotteryBoxPrize')) + ': ' + fmt(py.buyukOdul) + ' çip</h3>'
+        + '<p class="gazete-piyango-detay">';
+      if ((py.devredenOdul || 0) > 0) {
+        piyangoHtml += escHtml(t('game.gazete.lotteryBoxRollover', { n: fmt(py.devredenOdul) }));
+        if ((py.donemOdul || 0) > 0) piyangoHtml += ' · +' + fmt(py.donemOdul) + ' çip';
+      } else if ((py.donemOdul || 0) > 0) {
+        piyangoHtml += escHtml(t('game.gazete.lotteryBoxPool', { n: fmt(py.donemOdul) }));
+      }
+      piyangoHtml += '</p>'
+        + '<p class="gazete-piyango-meta">' + escHtml(t('game.gazete.lotteryBoxDraw')) + ': ' + escHtml(py.cekilisMetin || '—')
+        + ' · ' + escHtml(t('game.gazete.lotteryBoxTickets', { n: fmt(py.biletAdet || 0) })) + '</p>'
+        + '<button type="button" class="gazete-piyango-btn" onclick="gazetePiyangoAc()">' + escHtml(t('game.kumarhane.lotteryBuy')) + '</button>'
+        + '</div></section>';
+    }
+
     if (aktifEkran !== 'gazete') return;
     ic.innerHTML = '<div class="gazete-wrap">'
       + '<div class="gazete-hero">'
@@ -4860,6 +4894,7 @@ async function gazeteEkranCiz(ic) {
       + '<span class="gazete-ticker-etiket">' + escHtml(t('game.gazete.breaking')) + '</span>'
       + '<div class="gazete-ticker-kaydir">' + ticker + '</div></div>'
       + sampiyonHtml
+      + piyangoHtml
       + '<div class="gazete-govde">'
       + '<article class="gazete-manset">'
       + '<div class="gazete-manset-sol">'

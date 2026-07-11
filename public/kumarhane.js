@@ -1241,6 +1241,10 @@ async function kumarhanePanelYukle(sessiz) {
     }
     kumarhaneOzetGuncelle();
     kumarhaneIcerikCiz();
+    if (kumarhaneGazetePiyangoBekliyor) {
+      kumarhaneGazetePiyangoBekliyor = false;
+      kumarhaneOyunAc('piyango');
+    }
   } catch (e) {
     if (oncekiAktif && oncekiAktif.gorunum) {
       if (!kumarhanePanelVeri) kumarhanePanelVeri = {};
@@ -1284,6 +1288,15 @@ function kumarhaneOyunAc(oyunId) {
   }
   kumarhaneSes('chip');
 }
+
+var kumarhaneGazetePiyangoBekliyor = false;
+
+function gazetePiyangoAc() {
+  kumarhaneGazetePiyangoBekliyor = true;
+  if (typeof ekranDegistir === 'function') ekranDegistir('kumarhane');
+  else if (typeof kumarhaneOyunAc === 'function') kumarhaneOyunAc('piyango');
+}
+window.gazetePiyangoAc = gazetePiyangoAc;
 
 function kumarhaneBahisOku(oyunId) {
   var el = document.getElementById('kmBahis_' + oyunId);
