@@ -213,6 +213,33 @@ function authUrlTemizle() {
   } catch (_) {}
 }
 
+function oyunuBaslatCagir() {
+  if (typeof oyunuBaslat === "function") {
+    oyunuBaslat();
+    return;
+  }
+  var deneme = 0;
+  var timer = setInterval(function () {
+    deneme += 1;
+    if (typeof oyunuBaslat === "function") {
+      clearInterval(timer);
+      oyunuBaslat();
+      return;
+    }
+    if (deneme >= 80) {
+      clearInterval(timer);
+      yukleniyorGizle();
+      document.getElementById("masterLayout").classList.add("gizli");
+      authEkraniniGoster();
+      authHataGoster(
+        typeof t === "function"
+          ? t("game.error.loadFailed")
+          : "Oyun modülü yüklenemedi. Sayfayı yenileyin (Ctrl+F5)."
+      );
+    }
+  }, 100);
+}
+
 function oyunuGoster(user) {
   aktifKullanici = user;
   window.aktifKullanici = user;
@@ -226,11 +253,7 @@ function oyunuGoster(user) {
   var etiket = document.getElementById("reisEtiket");
   if (etiket) etiket.textContent = "🕶️ " + (user.reisAdi || user.username);
   authTaslakTemizle();
-  if (typeof oyunuBaslat === "function") {
-    oyunuBaslat();
-  } else {
-    window.__bekleyenOyunUser = user;
-  }
+  oyunuBaslatCagir();
 }
 
 function authEkraniniGoster() {

@@ -1,15 +1,15 @@
 {
-  "id": "dcdc1",
-  "username": "dcdc1",
-  "reis_adi": "dcdc1",
+  "id": "testreg3tefv2",
+  "username": "testreg3tefv2",
+  "reis_adi": "TestReis",
   "lakap": "Mafya",
   "force_restore": true,
   "player": {
-    "kasa": 9500,
-    "guc": 525,
+    "kasa": 10000,
+    "guc": 500,
     "puan": 1500,
-    "icraat": 10973,
-    "sms_hakki": 250
+    "icraat": 25,
+    "sms_hakki": 50
   },
   "guvenli_yer": {
     "base_seviye": 1
@@ -89,7 +89,5 @@
       "adet": 0
     }
   ],
-  "son_ip": "::1",
-  "visitor_id": "957864a276d8be6d24bf0454f419c589",
-  "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36"
+  "son_ip": "127.0.0.1"
 }

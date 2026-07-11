@@ -216,4 +216,6 @@ module.exports = {
   maasAntrenmanPuaniEkle,
   maasAntrenmanKullan,
   yetenekOzeti,
+  yetenekSatirlariOku,
+  yetenekSatirlariYaz,
 };

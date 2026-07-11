@@ -1,4 +1,5 @@
 const fs = require("fs");
+const { getPersistentDataPath } = require("../db/persistPath");
 const path = require("path");
 const bcrypt = require("bcryptjs");
 const { run, get, all } = require("../db/database");
@@ -17,13 +18,13 @@ const { ensureSaygiTables, hukumdarligiBitir } = require("./saygiDuvariService")
 const IMAGE_SNAPSHOT_DIR = path.join(process.cwd(), "seed", "oyuncular");
 
 function getSnapshotDir() {
-  const vol = process.env.RAILWAY_VOLUME_MOUNT_PATH;
+  const vol = getPersistentDataPath();
   if (vol) return path.join(vol, "oyuncular");
   return IMAGE_SNAPSHOT_DIR;
 }
 
 function bootstrapVolumeSnapshots() {
-  const vol = process.env.RAILWAY_VOLUME_MOUNT_PATH;
+  const vol = getPersistentDataPath();
   if (!vol) return 0;
   const target = path.join(vol, "oyuncular");
   if (!fs.existsSync(target)) fs.mkdirSync(target, { recursive: true });

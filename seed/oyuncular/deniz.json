@@ -5,8 +5,8 @@
   "lakap": "Mafya",
   "force_restore": true,
   "player": {
-    "kasa": 6561,
-    "guc": 327,
+    "kasa": 10000,
+    "guc": 500,
     "puan": 1500,
     "icraat": 25,
     "sms_hakki": 50

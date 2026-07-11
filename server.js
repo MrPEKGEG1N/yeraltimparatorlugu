@@ -116,7 +116,11 @@ async function sendHealth(res) {
       status: "starting",
       name: "yeralti-imparatorlugu",
       version: require("./package.json").version,
-      commit: process.env.RAILWAY_GIT_COMMIT_SHA || process.env.GIT_COMMIT || null,
+      commit:
+        process.env.NORTHFLANK_GIT_COMMIT_SHA ||
+        process.env.RAILWAY_GIT_COMMIT_SHA ||
+        process.env.GIT_COMMIT ||
+        null,
     });
   }
 
@@ -159,7 +163,11 @@ async function sendHealth(res) {
       status: "ready",
       name: "yeralti-imparatorlugu",
       version: require("./package.json").version,
-      commit: process.env.RAILWAY_GIT_COMMIT_SHA || process.env.GIT_COMMIT || null,
+      commit:
+        process.env.NORTHFLANK_GIT_COMMIT_SHA ||
+        process.env.RAILWAY_GIT_COMMIT_SHA ||
+        process.env.GIT_COMMIT ||
+        null,
       auth: true,
       mafya: true,
       oyuncular: row?.n || 0,
@@ -170,9 +178,9 @@ async function sendHealth(res) {
       supabase: diag.supabase,
       seed: diag.seed,
       kaliciVeri: diag.volumeOk && diag.supabase?.configured
-        ? "railway-volume+supabase"
+        ? "volume+supabase"
         : diag.volumeOk
-          ? "railway-volume"
+          ? "volume"
           : diag.supabase?.configured
             ? "supabase-yedek"
             : diag.seed?.ok
@@ -182,13 +190,13 @@ async function sendHealth(res) {
       uyari: diag.corrupt
         ? "Veritabani bozuk! Sunucu yeniden baslatildiginda yedekten otomatik onarim denenir."
         : !diag.volumeMount && !diag.supabase?.configured && !diag.seed?.ok
-        ? "Kalici depolama yok! Railway Volume, Supabase veya seed/oyun.db gerekli."
+        ? "Kalici depolama yok! Volume (/data) + Supabase veya seed/oyun.db gerekli."
         : !diag.volumeMount && !diag.supabase?.configured && diag.seed?.ok
           ? "Volume yok; deployda seed/oyun.db + oyuncu snapshotlari geri yuklenir. Volume onerilir."
           : !diag.volumeMount && diag.supabase?.configured
-            ? "Railway Volume yok; Supabase yedegi aktif. Volume eklemek onerilir."
+            ? "Volume yok; Supabase yedegi aktif. /data volume eklemek onerilir."
             : !diag.volumeOk
-              ? "DB yolu volume mount ile uyusmuyor — DATABASE_PATH degiskenini kaldirin."
+              ? "DB yolu volume mount ile uyusmuyor — PERSISTENT_DATA_PATH=/data olmali."
               : null,
     });
   } catch (err) {

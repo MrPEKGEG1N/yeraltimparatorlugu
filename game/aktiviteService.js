@@ -14,6 +14,7 @@ const EKRAN_ETIKETLERI = {
   korumaEkibi: "Koruma Ekibi",
   silahlan: "Silahlanma",
   luksYasam: "Lüks Yaşam",
+  sporSalonu: "Spor Salonu",
   buyume: "İcraat İşleri",
   mekan: "Mekan Sahibi",
   mahalle: "Mahalle İşleri",

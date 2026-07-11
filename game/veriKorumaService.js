@@ -2,6 +2,7 @@
  * Veritabani butunlugu — yedek karsilastirma ve bozulunca geri yukleme.
  */
 const fs = require("fs");
+const { getPersistentDataPath } = require("../db/persistPath");
 const path = require("path");
 const { scoreDbFile, DB_PATH, isDbCorrupt, replaceDbFile } = require("../db/database");
 
@@ -12,8 +13,9 @@ function listLocalBackupFiles(targetPath) {
   const dir = path.dirname(path.resolve(targetPath));
   const out = new Set();
   const names = [targetPath + ".bak", path.join(dir, "oyun.db.bak")];
-  if (process.env.RAILWAY_VOLUME_MOUNT_PATH) {
-    names.push(path.join(process.env.RAILWAY_VOLUME_MOUNT_PATH, "oyun-seed.db"));
+  const mount = getPersistentDataPath();
+  if (mount) {
+    names.push(path.join(mount, "oyun-seed.db"));
   }
   names.push(
     path.join(process.cwd(), "seed", "oyun.db"),
@@ -149,7 +151,7 @@ async function recoverDbIfDegraded(targetPath = DB_PATH, opts = {}) {
 let _lastSnapshotExport = 0;
 
 function syncVolumeSeedDatabase(liveDbPath) {
-  const vol = process.env.RAILWAY_VOLUME_MOUNT_PATH;
+  const vol = getPersistentDataPath();
   if (!vol || !liveDbPath || !fs.existsSync(liveDbPath)) return false;
   try {
     const dest = path.join(vol, "oyun-seed.db");

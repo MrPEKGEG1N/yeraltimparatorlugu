@@ -52,7 +52,14 @@ const {
   yetenekleriGetir,
   meslekGetir,
 } = require("./meslekService");
-const { antrenmanYap, yetenekOzeti, maasAntrenmanPuaniGetir, maasAntrenmanKullan } = require("./yetenekService");
+const { antrenmanYap, yetenekOzeti, maasAntrenmanPuaniGetir, maasAntrenmanKullan, yetenekSatirlariOku, yetenekSatirlariYaz } = require("./yetenekService");
+const {
+  panelGetir: sporSalonuPanelGetir,
+  salonKayit: sporSalonKayit,
+  salonSec: sporSalonSec,
+  antrenmanBaslat: sporAntrenmanBaslat,
+  antrenmanTamamla: sporAntrenmanTamamla,
+} = require("./sporSalonuService");
 const {
   panelGetir: sirketPanelGetir,
   processSirketEkonomisi,
@@ -1477,6 +1484,53 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
       ok: true,
       player: await publicPlayerFull(db, userId, player),
       effect: { type: "yetenek_antrenman", ...sonuc },
+    };
+  }
+
+  if (action === "spor_antrenman") {
+    const salonId = key || extra.salonId;
+    const yetenekKey = extra.yetenek;
+    const sonuc = await sporAntrenmanBaslat(db, userId, player, salonId, yetenekKey);
+    if (!sonuc.ok) return sonuc;
+    player = await loadPlayer(db, userId);
+    return {
+      ok: true,
+      player: await publicPlayerFull(db, userId, player),
+      effect: { type: "spor_antrenman", ...sonuc },
+    };
+  }
+
+  if (action === "spor_antrenman_tamamla") {
+    const sonuc = await sporAntrenmanTamamla(db, userId, player);
+    if (!sonuc.ok) return sonuc;
+    player = await loadPlayer(db, userId);
+    return {
+      ok: true,
+      player: await publicPlayerFull(db, userId, player),
+      effect: { type: "spor_antrenman_tamamla", ...sonuc },
+    };
+  }
+
+  if (action === "spor_salon_kayit") {
+    const salonId = key || extra.salonId;
+    const sonuc = await sporSalonKayit(db, userId, player, salonId);
+    if (!sonuc.ok) return sonuc;
+    player = await loadPlayer(db, userId);
+    return {
+      ok: true,
+      player: await publicPlayerFull(db, userId, player),
+      effect: { type: "spor_salon_kayit", ...sonuc },
+    };
+  }
+
+  if (action === "spor_salon_sec") {
+    const salonId = key || extra.salonId;
+    const sonuc = await sporSalonSec(db, userId, salonId);
+    if (!sonuc.ok) return sonuc;
+    return {
+      ok: true,
+      player: await publicPlayerFull(db, userId, player),
+      effect: { type: "spor_salon_sec", ...sonuc },
     };
   }
 

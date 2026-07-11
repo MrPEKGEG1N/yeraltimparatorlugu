@@ -4,56 +4,18 @@
   "reis_adi": "dd1",
   "lakap": "Mafya",
   "force_restore": true,
-  "sirket_kapali": true,
   "player": {
-    "kasa": 5888117781,
+    "kasa": 14286224000,
     "guc": 600525150,
     "puan": 292810,
     "icraat": 3749,
-    "sms_hakki": 399,
-    "dostlar": "",
-    "dusmanlar": "",
-    "kara_listede": 1,
-    "sehir_efsane": 1,
-    "sehre_hukmet_sayisi": 26,
-    "liman_istanbul": 1,
-    "aktif_ekran": "liderlik",
-    "son_aksiyon": "ekran_goruntule",
-    "son_aksiyon_detay": "Liderlik Tablosu",
-    "elmas": 0
+    "sms_hakki": 399
   },
   "guvenli_yer": {
     "base_seviye": 15
   },
   "istihbarat": {
     "eleman_sayisi": 2
-  },
-  "yetenekler": {
-    "guc": 8,
-    "zeka": 8,
-    "dayaniklilik": 8,
-    "beceri": 8
-  },
-  "mafya": {
-    "lider": true,
-    "isim": "$dd1$",
-    "aciklama": "Gece kulübünden sokağa uzanan aile.",
-    "rutbe": "Mafya Lideri",
-    "created_at": 1782852510
-  },
-  "sehre_hukmet": {
-    "aktif": true,
-    "baslangic": 1782948751,
-    "sehre_hukmet_sayisi": 26,
-    "limanlar": [
-      "hatay",
-      "istanbul",
-      "izmir"
-    ],
-    "makamlar": [
-      "sadakat_yemini",
-      "sozunu_gecir"
-    ]
   },
   "mekanlar": [
     {

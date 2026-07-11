@@ -23,6 +23,7 @@ const { temizGrupAdi } = require("../game/grupAdi");
 const { oyuncuIsDurumuMetni } = require("../game/isDurumuService");
 const { gecerliProfilResmi } = require("../game/profilPortreler");
 const { panelGetir } = require("../game/gunlukGorevService");
+const { panelGetir: sporSalonuPanelGetir } = require("../game/sporSalonuService");
 const { panelGetir: guvenliYerPanelGetir } = require("../game/guvenliYerService");
 const {
   panelGetir: sefirlikPanelGetir,
@@ -419,6 +420,16 @@ function createGameRouter(db) {
     } catch (err) {
       console.error("[meslek/panel]", err?.message || err);
       res.status(500).json({ ok: false, error: "Meslek paneli yüklenemedi." });
+    }
+  });
+
+  router.get("/spor-salonu/panel", async (req, res) => {
+    try {
+      const panel = await sporSalonuPanelGetir(db, req.user.id);
+      res.json({ ok: true, panel });
+    } catch (err) {
+      console.error("[spor-salonu/panel]", err?.message || err);
+      res.status(500).json({ ok: false, error: "Spor salonu yüklenemedi." });
     }
   });
 

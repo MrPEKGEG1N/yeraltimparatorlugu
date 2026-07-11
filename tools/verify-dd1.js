@@ -87,7 +87,7 @@ async function verifyLocal() {
 }
 
 async function verifyLiveHealth() {
-  const base = process.env.LIVE_URL || "https://yeraltimparatorlugu-production.up.railway.app";
+  const base = process.env.LIVE_URL || process.env.PUBLIC_BASE_URL || "https://yeraltimparatorlugu-production.up.railway.app";
   const r = await httpJson(`${base}/api/health`);
   console.log("LIVE health:", r.status, r.body);
   return r.status === 200 && r.body?.ok;

@@ -5,13 +5,13 @@ const { ADMIN_USERNAME } = require("../config");
 const { temizGrupAdi } = require("../game/grupAdi");
 const { rastgeleProfilResmi, normalizeProfilResmi } = require("../game/profilPortreler");
 
+const { getPersistentDataPath } = require("./persistPath");
+
 const PRODUCTION_DB_DIRS = ["/data", "/app/db"];
 
 function resolveDbPath() {
-  // Railway volume mount her zaman oncelikli — dashboard'daki gercek kalici yol
-  if (process.env.RAILWAY_VOLUME_MOUNT_PATH) {
-    return path.join(process.env.RAILWAY_VOLUME_MOUNT_PATH, "oyun.db");
-  }
+  const mount = getPersistentDataPath();
+  if (mount) return path.join(mount, "oyun.db");
   if (process.env.DATABASE_PATH) return path.resolve(process.env.DATABASE_PATH);
   const local = path.join(__dirname, "oyun.db");
   if (process.env.NODE_ENV === "production") return path.join(PRODUCTION_DB_DIRS[0], "oyun.db");
@@ -23,7 +23,7 @@ const DB_PATH = resolveDbPath();
 function knownDbDirectories() {
   const dirs = new Set([path.dirname(DB_PATH), path.join(__dirname), path.join(process.cwd(), "db")]);
   for (const d of PRODUCTION_DB_DIRS) dirs.add(d);
-  if (process.env.RAILWAY_VOLUME_MOUNT_PATH) dirs.add(process.env.RAILWAY_VOLUME_MOUNT_PATH);
+  if (getPersistentDataPath()) dirs.add(getPersistentDataPath());
   if (process.env.DATABASE_PATH) dirs.add(path.dirname(path.resolve(process.env.DATABASE_PATH)));
   return [...dirs];
 }
@@ -43,7 +43,7 @@ function knownDbFileCandidates() {
 }
 
 function isVolumeMounted() {
-  const mount = process.env.RAILWAY_VOLUME_MOUNT_PATH;
+  const mount = getPersistentDataPath();
   if (!mount) return false;
   return path.resolve(path.dirname(DB_PATH)) === path.resolve(mount);
 }
@@ -224,8 +224,9 @@ async function restoreFromSeed(targetPath) {
   const currentUsers = await countSqliteUsers(targetPath);
   if (currentUsers > 0) return false;
   const seedPaths = [];
-  if (process.env.RAILWAY_VOLUME_MOUNT_PATH) {
-    seedPaths.push(path.join(process.env.RAILWAY_VOLUME_MOUNT_PATH, "oyun-seed.db"));
+  const mount = getPersistentDataPath();
+  if (mount) {
+    seedPaths.push(path.join(mount, "oyun-seed.db"));
   }
   seedPaths.push(
     path.join(process.cwd(), "seed", "oyun.db"),
@@ -359,18 +360,18 @@ async function backupDbFile(targetPath) {
 }
 
 function logDbEnvironment() {
-  const vol = process.env.RAILWAY_VOLUME_MOUNT_PATH || "(yok)";
+  const mount = getPersistentDataPath() || "(yok)";
   const envPath = process.env.DATABASE_PATH || "(yok)";
   console.log(`[db] Hedef: ${DB_PATH}`);
-  console.log(`[db] RAILWAY_VOLUME_MOUNT_PATH=${vol}, DATABASE_PATH=${envPath}`);
-  if (process.env.NODE_ENV === "production" && !process.env.RAILWAY_VOLUME_MOUNT_PATH) {
+  console.log(`[db] PERSISTENT_DATA_PATH=${mount}, DATABASE_PATH=${envPath}`);
+  if (process.env.NODE_ENV === "production" && !getPersistentDataPath()) {
     console.warn(
-      "[db] UYARI: Volume bagli degil! Railway panelinden servise Volume ekleyin (onerilen mount: /app/db)."
+      "[db] UYARI: Kalici volume bagli degil! Northflank/Railway'de /data volume mount edin ve PERSISTENT_DATA_PATH=/data ayarlayin."
     );
   }
-  if (process.env.RAILWAY_VOLUME_MOUNT_PATH && !isVolumeMounted()) {
+  if (getPersistentDataPath() && !isVolumeMounted()) {
     console.warn(
-      `[db] UYARI: DB yolu volume mount ile uyusmuyor! DB=${DB_PATH}, volume=${process.env.RAILWAY_VOLUME_MOUNT_PATH}`
+      `[db] UYARI: DB yolu volume mount ile uyusmuyor! DB=${DB_PATH}, volume=${getPersistentDataPath()}`
     );
   }
 }
@@ -410,7 +411,7 @@ async function getDbDiagnostics() {
   if (seed) seedUsers = await countSqliteUsers(seed);
   return {
     path: DB_PATH,
-    volumeMount: process.env.RAILWAY_VOLUME_MOUNT_PATH || null,
+    volumeMount: getPersistentDataPath(),
     volumeOk: isVolumeMounted(),
     users,
     corrupt,

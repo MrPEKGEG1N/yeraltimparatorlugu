@@ -1,4 +1,4 @@
 [variables]
 NODE_ENV = "production"
 ADMIN_USERNAME = "mrpekgeg1n"
-# DATABASE_PATH ayarlamayin — Railway Volume mount yolu (RAILWAY_VOLUME_MOUNT_PATH) otomatik kullanilir
+PERSISTENT_DATA_PATH = "/data"

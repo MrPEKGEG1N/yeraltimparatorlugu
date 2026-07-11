@@ -396,9 +396,34 @@ async function saygiDuvariYukle() {
   /* Üst barda saygı duvarı kaldırıldı; kayıtlar yalnızca Şehir Tarihi ekranında gösterilir. */
 }
 
+async function sunucuHazirBekle(maxMs) {
+  var bas = Date.now();
+  while (Date.now() - bas < maxMs) {
+    try {
+      var res = await fetch('/api/health', { credentials: 'include' });
+      if (res.ok) {
+        var data = await res.json().catch(function() { return {}; });
+        if (data.status === 'ready') return true;
+      }
+    } catch (_) {}
+    await new Promise(function(resolve) { setTimeout(resolve, 400); });
+  }
+  return false;
+}
+
+async function fetchZamanli(url, opts, timeoutMs) {
+  var ctrl = new AbortController();
+  var timer = setTimeout(function() { ctrl.abort(); }, timeoutMs || 15000);
+  try {
+    return await fetch(url, Object.assign({}, opts || {}, { signal: ctrl.signal }));
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function sunucudanYukle(secenekler) {
   secenekler = secenekler || {};
-  var res = await apiFetch('/api/player');
+  var res = await fetchZamanli('/api/player', apiOpts('GET'), secenekler.bootstrap ? 20000 : 15000);
   if (res.status === 401) {
     if (secenekler.poll) throw new Error('Oturum kapalı');
     if (secenekler.bootstrap) throw new Error('AUTH_BOOTSTRAP_FAIL');
@@ -2365,6 +2390,7 @@ function elitFiyatEkranTazele() {
   else if (aktifEkran === 'korumaEkibi') guclenAltEkranCiz('korumaEkibi', ic);
   else if (aktifEkran === 'silahlan') guclenAltEkranCiz('silahlan', ic);
   else if (aktifEkran === 'luksYasam') guclenAltEkranCiz('luksYasam', ic);
+  else if (aktifEkran === 'sporSalonu') sporSalonuEkranCiz(ic);
 }
 
 async function guclenAltEkranCiz(tip, ic) {
@@ -2388,6 +2414,295 @@ async function guclenAltEkranCiz(tip, ic) {
       + elitFiyatNotuHTML()
       + guclenKartlariCiz(['saat', 'motorsiklet', 'araba', 'yat', 'helikopter', 'jet'], luksGorseller, 'luks-resim', '#b8942a', t('game.hire.buyLuxury'), 'kirmizi-btn');
   }
+}
+
+function sporSalonuDots(n) {
+  var s = '';
+  for (var i = 0; i < n; i++) s += '●';
+  return s;
+}
+
+var SPOR_SALON_GORSEL_V = '2';
+var SPOR_SALON_GORSELLER = {
+  mahalle: '/images/spor-salonu/mahalle.png',
+  semt: '/images/spor-salonu/semt.png',
+  sehir: '/images/spor-salonu/sehir.png',
+  elit: '/images/spor-salonu/elit.png'
+};
+
+function sporSalonuGorselSrc(salonId) {
+  var base = SPOR_SALON_GORSELLER[salonId] || SPOR_SALON_GORSELLER.mahalle;
+  return base + '?v=' + SPOR_SALON_GORSEL_V;
+}
+
+function sporSalonuBannerHTML(s) {
+  return '<div class="spor-salon-banner spor-salon-banner--' + escHtml(s.id) + '">'
+    + '<img src="' + escHtml(sporSalonuGorselSrc(s.id)) + '" alt="' + escHtml(s.ad) + '" loading="lazy" decoding="async" onerror="imgFallback(this)">'
+    + '<div class="spor-salon-banner-ortu" aria-hidden="true"></div>'
+    + '<div class="spor-salon-banner-etiket">'
+    + '<span class="spor-tier-seviye">' + escHtml(t('game.spor.tier', { n: s.tier || s.dots || 1 })) + '</span>'
+    + '<h4 class="spor-salon-panel-baslik">' + escHtml(s.ad) + (s.aktif ? ' <span class="spor-etiket">' + escHtml(t('game.spor.active')) + '</span>' : '') + '</h4>'
+    + '</div></div>';
+}
+
+function sporSalonuYetenekEtiket(key) {
+  return t('meslek.yetenek.' + key);
+}
+
+function sporSalonuYetenekEmoji(key) {
+  var map = { guc: '💪', zeka: '🧠', dayaniklilik: '🛡️', beceri: '🎯' };
+  return map[key] || '📊';
+}
+
+function sporSalonuYetenekBandHTML(yetenekler, ozet) {
+  var statlar = (ozet && ozet.statlar) || [];
+  var satir = [
+    { key: 'guc', cls: 'guc' },
+    { key: 'zeka', cls: 'zeka' },
+    { key: 'dayaniklilik', cls: 'day' },
+    { key: 'beceri', cls: 'beceri' }
+  ];
+  var html = '<div class="meslek-yetenek-band">'
+    + '<div class="meslek-yetenek-band-ust">'
+    + '<span class="meslek-yetenek-band-baslik">' + escHtml(t('meslek.skills.title')) + '</span>';
+  if (ozet && ozet.kademe) {
+    html += '<span class="meslek-yetenek-kademe">' + escHtml((ozet.kademe.emoji || '') + ' ' + ozet.kademe.ad)
+      + t('meslek.skills.avg', { avg: ozet.ortalama || 0 }) + '</span>';
+  }
+  html += '</div><div class="meslek-yetenek-pills">';
+  for (var i = 0; i < satir.length; i++) {
+    var s = satir[i];
+    var meta = null;
+    for (var j = 0; j < statlar.length; j++) {
+      if (statlar[j].key === s.key) { meta = statlar[j]; break; }
+    }
+    var deger = meta ? meta.deger : (yetenekler[s.key] || 0);
+    var yuzde = meta && meta.yuzde != null ? meta.yuzde : 0;
+    html += '<div class="meslek-stat-pill meslek-stat-pill--' + s.cls + '">'
+      + '<span class="meslek-stat-etiket">' + (meta ? meta.emoji + ' ' : sporSalonuYetenekEmoji(s.key) + ' ')
+      + escHtml(sporSalonuYetenekEtiket(s.key)) + '</span>'
+      + '<span class="meslek-stat-deger">' + deger + '</span>';
+    if (meta && meta.kademe) {
+      html += '<span class="meslek-stat-kademe">' + escHtml(meta.kademe) + '</span>';
+    }
+    html += '<div class="meslek-stat-bar"><i style="width:' + yuzde + '%"></i></div></div>';
+  }
+  return html + '</div></div>';
+}
+
+function sporSalonuStatMeta(statlar, key) {
+  for (var i = 0; i < (statlar || []).length; i++) {
+    if (statlar[i].key === key) return statlar[i];
+  }
+  return null;
+}
+
+function sporAntrenmanSuresiFmt(toplamSn) {
+  var sn = Math.max(0, Math.floor(toplamSn || 0));
+  var dk = Math.floor(sn / 60);
+  var kalan = sn % 60;
+  return dk + ':' + (kalan < 10 ? '0' : '') + kalan;
+}
+
+var sporAntrenmanSayacTimer = null;
+
+function sporAntrenmanSayacDurdur() {
+  if (sporAntrenmanSayacTimer) {
+    clearInterval(sporAntrenmanSayacTimer);
+    sporAntrenmanSayacTimer = null;
+  }
+}
+
+function sporAktifAntrenmanHTML(aktif) {
+  if (!aktif) return '';
+  var html = '<div class="spor-aktif-antrenman" id="sporAktifAntrenmanKutu">';
+  if (aktif.tamamlanabilir) {
+    html += '<p class="spor-aktif-baslik">✅ ' + escHtml(t('game.spor.sessionReady')) + '</p>'
+      + '<p class="meslek-dim">' + escHtml(aktif.yetenekAd) + ' · ' + escHtml(aktif.salonAd) + ' · +' + (aktif.kazanc || 1) + '</p>'
+      + '<button type="button" class="meslek-btn meslek-btn--altin" onclick="sporSalonuAntrenmanTamamla()">'
+      + escHtml(t('game.spor.sessionCollect')) + '</button>';
+  } else {
+    html += '<p class="spor-aktif-baslik">🏋️ ' + escHtml(t('game.spor.sessionActive', { stat: aktif.yetenekAd, salon: aktif.salonAd })) + '</p>'
+      + '<p class="meslek-dim">' + escHtml(t('game.spor.sessionDuration')) + '</p>'
+      + '<div class="spor-aktif-sayac" id="sporAntrenmanKalan">' + sporAntrenmanSuresiFmt(aktif.kalanSaniye) + '</div>';
+  }
+  return html + '</div>';
+}
+
+function sporAntrenmanSayacBaslat(aktif) {
+  sporAntrenmanSayacDurdur();
+  if (!aktif || aktif.tamamlanabilir) return;
+  var bitisTs = aktif.bitisTs;
+  sporAntrenmanSayacTimer = setInterval(function() {
+    if (aktifEkran !== 'sporSalonu') {
+      sporAntrenmanSayacDurdur();
+      return;
+    }
+    var kalan = Math.max(0, bitisTs - Math.floor(Date.now() / 1000));
+    var el = document.getElementById('sporAntrenmanKalan');
+    if (el) el.textContent = sporAntrenmanSuresiFmt(kalan);
+    if (kalan <= 0) {
+      sporAntrenmanSayacDurdur();
+      sporSalonuEkranCiz(document.getElementById('anaIcerik'));
+    }
+  }, 1000);
+}
+
+function sporSalonAntrenmanGridHTML(s, statlar, aktifAntrenman) {
+  if (!s.acik || !s.kayitli || !s.statMaliyet) return '';
+  var kalan = s.gunlukKalan != null ? s.gunlukKalan : 0;
+  var limit = s.gunlukLimit || 5;
+  var gunlukDoldu = kalan <= 0;
+  var oturumVar = !!aktifAntrenman;
+  var oturumDevam = oturumVar && !aktifAntrenman.tamamlanabilir;
+  var pasif = gunlukDoldu || oturumDevam;
+  var keys = ['guc', 'zeka', 'dayaniklilik', 'beceri'];
+  var html = '<div class="meslek-antrenman">'
+    + '<div class="meslek-antrenman-ust">'
+    + '<h4>🏋️ ' + escHtml(s.ad) + (s.aktif ? ' <span class="spor-etiket">' + escHtml(t('game.spor.active')) + '</span>' : '') + '</h4>'
+    + '<span class="meslek-antrenman-hak">' + escHtml(t('game.spor.dailyLeft')) + ' <b>' + kalan + '/' + limit + '</b></span>'
+    + '</div>'
+    + '<p class="meslek-dim">' + escHtml(t('game.spor.salonDesc', { icraat: s.icraatMaliyet, train: s.toplamAntrenman || 0, dk: 30 })) + '</p>';
+  if (gunlukDoldu) {
+    html += '<p class="meslek-dim spor-gunluk-doldu">⏳ ' + escHtml(t('game.spor.dailyExhausted')) + '</p>';
+  } else if (oturumDevam) {
+    html += '<p class="meslek-dim spor-gunluk-doldu">⏳ ' + escHtml(t('game.spor.sessionWait')) + '</p>';
+  }
+  html += '<div class="meslek-antrenman-grid">';
+  for (var i = 0; i < keys.length; i++) {
+    var k = keys[i];
+    var meta = sporSalonuStatMeta(statlar, k);
+    var maliyet = s.statMaliyet[k] || 0;
+    var odak = (s.statOdak || []).indexOf(k) >= 0;
+    html += '<div class="meslek-antrenman-kart meslek-antrenman-kart--' + k
+      + (pasif ? ' meslek-antrenman-kart--pasif' : '')
+      + (odak ? ' spor-antrenman-kart--odak' : '') + '">'
+      + '<div class="meslek-antrenman-kart-ust">'
+      + '<span>' + escHtml((meta ? meta.emoji : sporSalonuYetenekEmoji(k)) + ' ' + sporSalonuYetenekEtiket(k))
+      + (odak ? ' ★' : '') + '</span>'
+      + '<span class="meslek-antrenman-deger">' + (meta ? meta.deger : 0)
+      + (meta && meta.sonrakiEsik ? ' → ' + meta.sonrakiEsik : '') + '</span></div>'
+      + '<p class="meslek-antrenman-aciklama">' + escHtml(meta && meta.aciklama ? meta.aciklama : '')
+      + (meta && meta.kademe ? ' · ' + meta.kademe : '') + '</p>'
+      + '<div class="meslek-stat-bar meslek-stat-bar--ince"><i style="width:' + (meta && meta.yuzde != null ? meta.yuzde : 0) + '%"></i></div>'
+      + '<button type="button" class="meslek-btn meslek-btn--alt meslek-antrenman-btn"'
+      + (pasif ? ' disabled' : '')
+      + ' onclick="sporSalonuAntrenman(\'' + s.id + '\', \'' + k + '\')">'
+      + escHtml(t('game.spor.trainStart', { cost: fmt(maliyet), dk: 30 }))
+      + ' · ⚡' + s.icraatMaliyet
+      + '</button></div>';
+  }
+  return html + '</div></div>';
+}
+
+function sporSalonuAciklamaHTML(s) {
+  var paragraflar = s.aciklamaDetay || [];
+  var html = '<div class="spor-salon-aciklama-blok">';
+  for (var i = 0; i < paragraflar.length; i++) {
+    html += '<p class="spor-salon-aciklama-paragraf">' + escHtml(paragraflar[i]) + '</p>';
+  }
+  var slogan = s.slogan || s.aciklama || '';
+  if (slogan) {
+    html += '<p class="spor-salon-slogan">“' + escHtml(slogan) + '”</p>';
+  }
+  return html + '</div>';
+}
+
+function sporSalonuKartHTML(s, statlar, aktifAntrenman) {
+  var cls = 'meslek-panel spor-salon-panel spor-salon-panel--' + s.id;
+  if (s.aktif) cls += ' spor-salon-panel--aktif';
+  if (!s.acik) cls += ' spor-salon-panel--kilitli';
+  var kayitTxt = s.kayitUcret > 0 ? fmt(s.kayitUcret) + ' TL' : t('game.spor.free');
+  var html = '<section class="' + cls + '">'
+    + sporSalonuBannerHTML(s)
+    + '<div class="spor-salon-panel-govde">'
+    + '<div class="spor-salon-panel-ust">'
+    + '<div class="spor-salon-panel-ust-sol">' + sporSalonuAciklamaHTML(s) + '</div>'
+    + '<span class="spor-tier-dots" aria-hidden="true">' + sporSalonuDots(s.dots) + '</span>'
+    + '</div>';
+  if (!s.acik) {
+    html += '<p class="meslek-dim spor-kilit-msg">🔒 ' + escHtml(t('game.spor.locked', { n: s.kilitKalan })) + '</p>';
+  } else if (!s.kayitli) {
+    html += '<p class="meslek-dim">' + escHtml(t('game.spor.membership')) + ': <b>' + kayitTxt + '</b></p>'
+      + '<button type="button" class="meslek-btn meslek-btn--altin" onclick="sporSalonuKayit(\'' + s.id + '\')">'
+      + escHtml(t('game.spor.register')) + '</button>';
+  } else {
+    html += sporSalonAntrenmanGridHTML(s, statlar, aktifAntrenman);
+  }
+  return html + '</div></section>';
+}
+
+function sporSalonuPanelHTML(panel) {
+  var ozet = panel.yetenekOzeti || {};
+  var statlar = ozet.statlar || [];
+  var aktif = panel.aktifAntrenman || null;
+  var html = '<div class="meslek-wrap spor-wrap">'
+    + '<div class="meslek-dashboard spor-dashboard">'
+    + '<header class="meslek-hero">'
+    + '<div class="meslek-hero-govde">'
+    + '<h3>🏋️ ' + escHtml(t('game.spor.title')) + '</h3>'
+    + '<p class="meslek-giris">' + escHtml(t('game.spor.intro')) + '</p>'
+    + '<p class="meslek-dim spor-ekonomi-notu">' + escHtml(t('game.spor.economyNote')) + '</p>'
+    + '<p class="meslek-dim"><b>⚡ ' + escHtml(t('game.spor.icraat')) + ':</b> ' + (panel.icraat != null ? panel.icraat : '—') + '</p>'
+    + '</div></header>'
+    + sporAktifAntrenmanHTML(aktif)
+    + sporSalonuYetenekBandHTML(panel.yetenekler || {}, ozet)
+    + '<div class="spor-salon-list">';
+  var list = panel.salonlar || [];
+  for (var i = 0; i < list.length; i++) html += sporSalonuKartHTML(list[i], statlar, aktif);
+  return html + '</div></div></div>';
+}
+
+async function sporSalonuEkranCiz(ic) {
+  sporAntrenmanSayacDurdur();
+  ic.innerHTML = '<p style="color:#888;">' + escHtml(t('game.loading')) + '</p>';
+  try {
+    var res = await apiFetch('/api/spor-salonu/panel');
+    if (res.status === 401) { cikisYap(); return; }
+    var data = await res.json().catch(function() { return {}; });
+    if (!res.ok || !data.ok) {
+      ic.innerHTML = '<p style="color:#c55;">' + escHtml(tr(data.error) || t('game.error.loadFailed')) + '</p>';
+      return;
+    }
+    if (aktifEkran !== 'sporSalonu') return;
+    var panel = data.panel || {};
+    ic.innerHTML = sporSalonuPanelHTML(panel);
+    sporAntrenmanSayacBaslat(panel.aktifAntrenman);
+  } catch (e) {
+    if (aktifEkran === 'sporSalonu') {
+      ic.innerHTML = '<p style="color:#c55;">' + escHtml(t('game.error.loadFailed')) + '</p>';
+    }
+  }
+}
+
+async function sporSalonuKayit(salonId) {
+  var ef = await sunucuAksiyon('spor_salon_kayit', salonId);
+  if (!ef) return;
+  toast(tr(ef.mesaj) || t('game.spor.register'), 'basari');
+  if (aktifEkran === 'sporSalonu') sporSalonuEkranCiz(document.getElementById('anaIcerik'));
+}
+
+async function sporSalonuAntrenman(salonId, yetenek) {
+  if (!yetenek || ['guc', 'zeka', 'dayaniklilik', 'beceri'].indexOf(yetenek) < 0) return;
+  var ef = await sunucuAksiyon('spor_antrenman', salonId, null, { yetenek: yetenek });
+  if (!ef) return;
+  toast(tr(ef.mesaj) || t('game.spor.sessionStarted'), 'basari');
+  if (aktifEkran === 'sporSalonu') sporSalonuEkranCiz(document.getElementById('anaIcerik'));
+}
+
+async function sporSalonuAntrenmanTamamla() {
+  var ef = await sunucuAksiyon('spor_antrenman_tamamla');
+  if (!ef) return;
+  toast(tr(ef.mesaj) || t('game.spor.sessionCollect'), 'basari');
+  if (ef.yetenekler) {
+    if (typeof meslekYetenekleriGuncelle === 'function') {
+      meslekYetenekleriGuncelle(ef.yetenekler, null, null, {});
+    }
+    if (typeof profilYetenekleriGuncelle === 'function') {
+      profilYetenekleriGuncelle(ef.yetenekler, null, null);
+    }
+  }
+  if (aktifEkran === 'sporSalonu') sporSalonuEkranCiz(document.getElementById('anaIcerik'));
 }
 
 function guclenKartHTML(key, img, imgCls, baslik, alinti, bazMaliyet, guc, gucRenk, btnLabel, btnCls) {
@@ -4875,6 +5190,7 @@ function sidebarMenuAktif(tip) {
     var altMap = {
       guclen: 'guclenMenuBtn',
       korumaEkibi: 'guclenMenuBtn', silahlan: 'guclenMenuBtn', luksYasam: 'guclenMenuBtn',
+      sporSalonu: 'sporSalonuMenuBtn',
       buyume: 'buyumeMenuBtn',
       mahalle: 'buyumeMenuBtn', semt: 'buyumeMenuBtn', sehir: 'buyumeMenuBtn',
       mekan: 'mekanMenuBtn',
@@ -5035,6 +5351,7 @@ function ekranDegistir(tip) {
   if (tip === 'korumaEkibi') { guclenAltEkranCiz('korumaEkibi', ic); return; }
   if (tip === 'silahlan') { guclenAltEkranCiz('silahlan', ic); return; }
   if (tip === 'luksYasam') { guclenAltEkranCiz('luksYasam', ic); return; }
+  if (tip === 'sporSalonu') { sporSalonuEkranCiz(ic); return; }
 
   if (tip === 'mahalle') {
     ic.innerHTML = '<h2>' + escHtml(t('game.buyume.mahalleTitle')) + '</h2><p>' + escHtml(t('game.buyume.mahalleQuote')) + '</p>'
@@ -7083,10 +7400,10 @@ async function oyunuBaslat() {
         t('game.error.serverOfflineSession')
         + '<br><br><button type="button" onclick="location.reload()" style="margin-top:12px;padding:10px 18px;cursor:pointer;background:#8b1e1e;color:#fff;border:none;border-radius:6px;font-weight:600">' + escHtml(t('auth.rules.close')) + '</button>';
     }
-  }, 15000);
+  }, 20000);
   try {
-    var health = await fetch('/api/health', { credentials: 'include' });
-    if (!health.ok) throw new Error(t('game.error.connectionFailed'));
+    var hazir = await sunucuHazirBekle(20000);
+    if (!hazir) throw new Error(t('game.error.connectionFailed'));
     await sunucudanYukle({ bootstrap: true });
     clearTimeout(yukTimeout);
     if (yuk) yuk.classList.add('gizli');
@@ -7137,3 +7454,5 @@ async function oyunuBaslat() {
 }
 
 window.ekranDegistir = ekranDegistir;
+window.oyunuBaslat = oyunuBaslat;
+if (typeof authBekleyenOyunuBaslat === 'function') authBekleyenOyunuBaslat();
