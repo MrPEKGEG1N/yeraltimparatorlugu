@@ -12,10 +12,14 @@ const { logStatHareket } = require("./statService");
 const { gorevOlayIsle } = require("./gunlukGorevService");
 
 const DIRECT_SUCCESS_CHANCE = 0.6;
-const EVENT_EXTRA_ICRAAT = 1;
-const TIMER_MS = 30000;
+const SOKAK_EXTRA_ICRAAT = 1;
+const FIRSAT_EXTRA_ICRAAT = 2;
+const SOKAK_TIMER_MS = 30000;
 const FAIL_PARA_ORANI = 0.4;
 const GRACE_MS = 2500;
+const FIRSAT_BONUS_MIN = 20;
+const FIRSAT_BONUS_MAX = 50;
+const FIRSAT_BEKLE_MS = 5 * 60 * 1000;
 
 function jsonParse(raw, fallback) {
   if (!raw) return fallback;
@@ -24,6 +28,14 @@ function jsonParse(raw, fallback) {
   } catch (_) {
     return fallback;
   }
+}
+
+function rastgeleFirsatBonusu() {
+  return FIRSAT_BONUS_MIN + Math.floor(Math.random() * (FIRSAT_BONUS_MAX - FIRSAT_BONUS_MIN + 1));
+}
+
+function olayTipiSec() {
+  return Math.random() < 0.5 ? "sokak_kavgasi" : "sansli_firsat";
 }
 
 async function ensureJobOlay(db) {
@@ -44,6 +56,15 @@ async function jobOlayYaz(db, userId, session) {
   await ensureJobOlay(db);
   const val = session ? JSON.stringify(session) : "";
   await run(db, `UPDATE players SET job_olay_json = ? WHERE user_id = ?`, [val, userId]);
+}
+
+async function jobOlayTemizle(db, userId) {
+  await jobOlayYaz(db, userId, null);
+}
+
+function olaySuresiDoldu(session) {
+  if (!session || !session.bitisMs) return false;
+  return Date.now() > session.bitisMs + GRACE_MS;
 }
 
 async function jobOdulleriUygula(db, userId, player, job, opts) {
@@ -72,6 +93,7 @@ async function jobOdulleriUygula(db, userId, player, job, opts) {
     gorevSonuc,
     paraKaybi: opts.paraKaybi || 0,
     bonusPuan: opts.bonusPuan || 0,
+    kazancBonusYuzde: opts.kazancBonusYuzde || 0,
     savunuldu: !!opts.savunuldu,
   };
 }
@@ -89,7 +111,44 @@ function jobEffectFromSonuc(job, sonuc, icraatToplam) {
     savunuldu: sonuc.savunuldu,
     paraKaybi: sonuc.paraKaybi,
     bonusPuan: sonuc.bonusPuan,
+    kazancBonusYuzde: sonuc.kazancBonusYuzde || 0,
   };
+}
+
+function jobOlayEffectFromSession(job, session) {
+  const base = {
+    type: "job_olay",
+    olayId: session.olayId,
+    olayTipi: session.olayTipi,
+    gorselKey: job.gorselKey,
+    isAdi: job.isAdi,
+    netKazanc: job.netKazanc,
+    icraatToplam: session.icraatToplam,
+    jobKey: session.jobKey,
+    bitisTs: session.bitisMs,
+  };
+  if (session.olayTipi === "sokak_kavgasi") {
+    return {
+      ...base,
+      sureSn: SOKAK_TIMER_MS / 1000,
+      ekstraIcraat: SOKAK_EXTRA_ICRAAT,
+    };
+  }
+  return {
+    ...base,
+    ekstraIcraat: FIRSAT_EXTRA_ICRAAT,
+    kazancBonusYuzde: session.bonusYuzde,
+  };
+}
+
+async function bekleyenOlayTemizle(db, userId) {
+  const bekleyen = await jobOlayOku(db, userId);
+  if (!bekleyen) return null;
+  if (olaySuresiDoldu(bekleyen)) {
+    await jobOlayTemizle(db, userId);
+    return null;
+  }
+  return bekleyen;
 }
 
 async function jobBaslat(db, userId, player, jobKey) {
@@ -102,22 +161,16 @@ async function jobBaslat(db, userId, player, jobKey) {
     };
   }
 
-  const bekleyen = await jobOlayOku(db, userId);
+  const bekleyen = await bekleyenOlayTemizle(db, userId);
   if (bekleyen) {
-    const simdi = Date.now();
-    if (simdi > bekleyen.bitisMs + GRACE_MS) {
-      await jobOlayTemizle(db, userId);
-    } else {
-      return { ok: false, error: "Önce bekleyen icraat olayını tamamlamalısın." };
-    }
+    return { ok: false, error: "Önce bekleyen icraat olayını tamamlamalısın." };
   }
 
   const icraatSonuc = await icraatHarca(db, userId, job.icraat);
   if (!icraatSonuc.ok) return icraatSonuc;
   player.icraat = icraatSonuc.icraat;
 
-  const direkt = Math.random() < DIRECT_SUCCESS_CHANCE;
-  if (direkt) {
+  if (Math.random() < DIRECT_SUCCESS_CHANCE) {
     const sonuc = await jobOdulleriUygula(db, userId, player, job, { jobKey });
     return {
       ok: true,
@@ -127,16 +180,27 @@ async function jobBaslat(db, userId, player, jobKey) {
     };
   }
 
-  const ekstraIcraat = await icraatHarca(db, userId, EVENT_EXTRA_ICRAAT);
+  const olayTipi = olayTipiSec();
+  const ekstraMaliyet = olayTipi === "sansli_firsat" ? FIRSAT_EXTRA_ICRAAT : SOKAK_EXTRA_ICRAAT;
+  const ekstraIcraat = await icraatHarca(db, userId, ekstraMaliyet);
   if (!ekstraIcraat.ok) {
-    const kayip = Math.floor(job.netKazanc * FAIL_PARA_ORANI);
-    const sonuc = await jobOdulleriUygula(db, userId, player, job, {
-      jobKey,
-      netKazanc: job.netKazanc - kayip,
-      puan: job.puan,
-      paraKaybi: kayip,
-      savunuldu: false,
-    });
+    if (olayTipi === "sokak_kavgasi") {
+      const kayip = Math.floor(job.netKazanc * FAIL_PARA_ORANI);
+      const sonuc = await jobOdulleriUygula(db, userId, player, job, {
+        jobKey,
+        netKazanc: job.netKazanc - kayip,
+        puan: job.puan,
+        paraKaybi: kayip,
+        savunuldu: false,
+      });
+      return {
+        ok: true,
+        effect: jobEffectFromSonuc(job, sonuc, job.icraat),
+        gorevSonuc: sonuc.gorevSonuc,
+        yeniDevletIliski: sonuc.yeniDevletIliski,
+      };
+    }
+    const sonuc = await jobOdulleriUygula(db, userId, player, job, { jobKey });
     return {
       ok: true,
       effect: jobEffectFromSonuc(job, sonuc, job.icraat),
@@ -151,36 +215,27 @@ async function jobBaslat(db, userId, player, jobKey) {
   const session = {
     olayId,
     jobKey,
-    olayTipi: "sokak_kavgasi",
+    olayTipi,
     basladiMs,
-    bitisMs: basladiMs + TIMER_MS,
     devletDusus: rastgeleAvukatDususu(5, 10),
-    icraatToplam: job.icraat + EVENT_EXTRA_ICRAAT,
+    icraatToplam: job.icraat + ekstraMaliyet,
   };
+
+  if (olayTipi === "sokak_kavgasi") {
+    session.bitisMs = basladiMs + SOKAK_TIMER_MS;
+  } else {
+    session.bonusYuzde = rastgeleFirsatBonusu();
+    session.bitisMs = basladiMs + FIRSAT_BEKLE_MS;
+  }
+
   await jobOlayYaz(db, userId, session);
 
   return {
     ok: true,
-    effect: {
-      type: "job_olay",
-      olayId,
-      olayTipi: session.olayTipi,
-      sureSn: TIMER_MS / 1000,
-      bitisTs: session.bitisMs,
-      gorselKey: job.gorselKey,
-      isAdi: job.isAdi,
-      netKazanc: job.netKazanc,
-      ekstraIcraat: EVENT_EXTRA_ICRAAT,
-      icraatToplam: session.icraatToplam,
-      jobKey,
-    },
+    effect: jobOlayEffectFromSession(job, session),
     gorevSonuc: null,
     yeniDevletIliski: null,
   };
-}
-
-async function jobOlayTemizle(db, userId) {
-  await jobOlayYaz(db, userId, null);
 }
 
 async function jobOlaySonuc(db, userId, player, { savunuldu, olayId }) {
@@ -196,17 +251,28 @@ async function jobOlaySonuc(db, userId, player, { savunuldu, olayId }) {
     return { ok: false, error: "İş bulunamadı." };
   }
 
-  const simdi = Date.now();
-  const zamaninda = !!savunuldu && simdi <= session.bitisMs + GRACE_MS;
   let netKazanc = job.netKazanc;
   let bonusPuan = 0;
   let paraKaybi = 0;
+  let kazancBonusYuzde = 0;
+  let basarili = false;
 
-  if (zamaninda) {
-    bonusPuan = Math.max(1, Math.ceil(job.puan * 0.5));
+  if (session.olayTipi === "sansli_firsat") {
+    if (!savunuldu) {
+      return { ok: false, error: "Şanslı fırsatı kabul etmelisin." };
+    }
+    kazancBonusYuzde = session.bonusYuzde || FIRSAT_BONUS_MIN;
+    netKazanc = Math.floor(job.netKazanc * (1 + kazancBonusYuzde / 100));
+    basarili = true;
   } else {
-    paraKaybi = Math.floor(job.netKazanc * FAIL_PARA_ORANI);
-    netKazanc = job.netKazanc - paraKaybi;
+    const simdi = Date.now();
+    basarili = !!savunuldu && simdi <= session.bitisMs + GRACE_MS;
+    if (basarili) {
+      bonusPuan = Math.max(1, Math.ceil(job.puan * 0.5));
+    } else {
+      paraKaybi = Math.floor(job.netKazanc * FAIL_PARA_ORANI);
+      netKazanc = job.netKazanc - paraKaybi;
+    }
   }
 
   await jobOlayTemizle(db, userId);
@@ -217,7 +283,8 @@ async function jobOlaySonuc(db, userId, player, { savunuldu, olayId }) {
     puan: job.puan,
     bonusPuan,
     paraKaybi,
-    savunuldu: zamaninda,
+    kazancBonusYuzde,
+    savunuldu: basarili,
     devletDusus: session.devletDusus,
   });
 
@@ -234,5 +301,5 @@ module.exports = {
   jobOlaySonuc,
   jobOlayOku,
   DIRECT_SUCCESS_CHANCE,
-  TIMER_MS,
+  SOKAK_TIMER_MS,
 };

@@ -1627,6 +1627,28 @@ html, body {
   cursor: not-allowed;
 }
 
+.job-olay-pencere--firsat {
+  border-color: #2ecc71;
+  box-shadow: 0 0 40px rgba(46, 204, 113, 0.28), 0 24px 70px rgba(0, 0, 0, 0.75);
+}
+
+.job-olay-pencere--firsat .job-olay-uyari {
+  color: #7bed9f;
+}
+
+.job-olay-pencere--firsat .job-olay-baslik {
+  color: #f1c40f;
+}
+
+.job-olay-sure-wrap--gizli {
+  display: none !important;
+}
+
+.job-olay-firsat-btn {
+  background: linear-gradient(180deg, #27ae60 0%, #1e8449 100%);
+  border-color: #f1c40f;
+}
+
 .ses-kontrol {
   position: fixed;
   bottom: 12px;

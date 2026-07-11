@@ -60,7 +60,42 @@ async function main() {
   if (player.kasa <= baslangicKasa) throw new Error("kasa artmadi");
 
   console.log("OK job olay savun testi gecti");
-  console.log(JSON.stringify({ kasa: player.kasa, puan: player.puan, effect: savun.effect }, null, 2));
+
+  // Şanslı fırsat — %20-50 bonus
+  const { JOBS } = require("../game/catalog");
+  const market = JOBS.market;
+  const firsatSession = {
+    olayId: "firsat456",
+    jobKey: "market",
+    olayTipi: "sansli_firsat",
+    basladiMs: Date.now(),
+    bitisMs: Date.now() + 300000,
+    devletDusus: 6,
+    icraatToplam: 3,
+    bonusYuzde: 35,
+  };
+  await run(db, `UPDATE players SET job_olay_json = ?, kasa = ? WHERE user_id = ?`, [
+    JSON.stringify(firsatSession),
+    player.kasa,
+    userId,
+  ]);
+  player = await loadPlayer(db, userId);
+  const kasaOnce = player.kasa;
+  const firsat = await jobOlaySonuc(db, userId, player, {
+    savunuldu: true,
+    olayId: "firsat456",
+  });
+  if (!firsat.ok) throw new Error(firsat.error);
+  const beklenen = Math.floor(market.netKazanc * 1.35);
+  if (firsat.effect.netKazanc !== beklenen) {
+    throw new Error(`firsat kazanc ${firsat.effect.netKazanc} beklenen ${beklenen}`);
+  }
+  if (firsat.effect.kazancBonusYuzde !== 35) throw new Error("bonus yuzde yanlis");
+  player = await loadPlayer(db, userId);
+  if (player.kasa !== kasaOnce + beklenen) throw new Error("firsat kasa yanlis");
+
+  console.log("OK sansli firsat testi gecti");
+  console.log(JSON.stringify({ kasa: player.kasa, puan: player.puan, effect: firsat.effect }, null, 2));
 }
 
 main().catch((e) => {
