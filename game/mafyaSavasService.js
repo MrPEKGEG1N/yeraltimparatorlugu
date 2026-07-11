@@ -7,6 +7,24 @@ const { gucKaybiOranliUygula, toplamGuc } = require("./gucService");
 
 const SAVAS_BEKLEME_SURESI = 8 * 60 * 60 * 1000; // 8 hours
 
+async function grupKatilimciToplamGuc(db, savasId, grupId) {
+  const katilim = await all(
+    db,
+    `SELECT user_id FROM mafya_savas_katilim WHERE savas_id = ? AND grup_id = ?`,
+    [savasId, grupId]
+  );
+  let toplam = 0;
+  for (const k of katilim) {
+    const p = await get(
+      db,
+      `SELECT guc, COALESCE(bonus_guc, 0) AS bonus_guc FROM players WHERE user_id = ?`,
+      [k.user_id]
+    );
+    toplam += toplamGuc(p);
+  }
+  return { toplam, katilim };
+}
+
 async function saatlikKazancHesapla(db, userId) {
   const limanlar = await getLimanDurumu(db);
   const sahipLimanlar = limanlar.filter((l) => l.sahipUserId === userId).length;
@@ -43,7 +61,9 @@ async function savasIlanEt(db, saldiranGrupId, hedefGrupId) {
   const hedef = await get(db, `SELECT isim FROM mafya_gruplari WHERE id = ?`, [hedefGrupId]);
   try {
     await mafyaSavasIlanHaber(db, saldiran?.isim || "?", hedef?.isim || "?");
-  } catch (_) {}
+  } catch (err) {
+    console.error("[mafya-savas] gazete ilan:", err?.message || err);
+  }
 
   const { grupUyelerineBildir } = require("./bildirimService");
   const saldiranAd = saldiran?.isim || "Grubun";
@@ -122,52 +142,21 @@ async function savasiCoz(db) {
   );
   
   for (const savas of bekleyenSavaslar) {
-    const saldiranKatilim = await all(
-      db,
-      `SELECT user_id FROM mafya_savas_katilim WHERE savas_id = ? AND grup_id = ?`,
-      [savas.id, savas.saldiran_grup_id]
-    );
-    
-    const hedefKatilim = await all(
-      db,
-      `SELECT user_id FROM mafya_savas_katilim WHERE savas_id = ? AND grup_id = ?`,
-      [savas.id, savas.hedef_grup_id]
-    );
-    
+    const saldiran = await grupKatilimciToplamGuc(db, savas.id, savas.saldiran_grup_id);
+    const hedef = await grupKatilimciToplamGuc(db, savas.id, savas.hedef_grup_id);
+    const saldiranKatilim = saldiran.katilim;
+    const hedefKatilim = hedef.katilim;
+
     let kazananGrupId;
     let kaybedenGrupId;
 
-    // Katılım fazla olan kazanır; eşitse toplam güç bakılır; yine eşitse savunan kazanır.
-    if (saldiranKatilim.length !== hedefKatilim.length) {
-      kazananGrupId =
-        saldiranKatilim.length > hedefKatilim.length ? savas.saldiran_grup_id : savas.hedef_grup_id;
-      kaybedenGrupId = kazananGrupId === savas.saldiran_grup_id ? savas.hedef_grup_id : savas.saldiran_grup_id;
+    // Kazanan: savaşa katılan üyelerin güç + bonus toplamı yüksek olan taraf; eşitlikte savunan kazanır.
+    if (saldiran.toplam > hedef.toplam) {
+      kazananGrupId = savas.saldiran_grup_id;
+      kaybedenGrupId = savas.hedef_grup_id;
     } else {
-      let saldiranToplam = 0;
-      let hedefToplam = 0;
-      for (const k of saldiranKatilim) {
-        const p = await get(
-          db,
-          `SELECT guc, COALESCE(bonus_guc, 0) AS bonus_guc FROM players WHERE user_id = ?`,
-          [k.user_id]
-        );
-        saldiranToplam += toplamGuc(p);
-      }
-      for (const k of hedefKatilim) {
-        const p = await get(
-          db,
-          `SELECT guc, COALESCE(bonus_guc, 0) AS bonus_guc FROM players WHERE user_id = ?`,
-          [k.user_id]
-        );
-        hedefToplam += toplamGuc(p);
-      }
-      if (saldiranToplam > hedefToplam) {
-        kazananGrupId = savas.saldiran_grup_id;
-        kaybedenGrupId = savas.hedef_grup_id;
-      } else {
-        kazananGrupId = savas.hedef_grup_id;
-        kaybedenGrupId = savas.saldiran_grup_id;
-      }
+      kazananGrupId = savas.hedef_grup_id;
+      kaybedenGrupId = savas.saldiran_grup_id;
     }
     
     // Apply penalties
@@ -245,10 +234,11 @@ async function savasiCoz(db) {
       await mafyaSavasSonucHaber(
         db,
         kazananGrup?.isim || "?",
-        kaybedenGrup?.isim || "?",
-        saldiranGrup?.isim || "?"
+        kaybedenGrup?.isim || "?"
       );
-    } catch (_) {}
+    } catch (err) {
+      console.error("[mafya-savas] gazete sonuç:", err?.message || err);
+    }
   }
 }
 
@@ -257,4 +247,6 @@ module.exports = {
   savasaKatil,
   savaslariListele,
   savasiCoz,
+  grupKatilimciToplamGuc,
+  SAVAS_BEKLEME_SURESI,
 };

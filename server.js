@@ -285,6 +285,7 @@ async function runDeferredStartup() {
     console.error("Günlük maaş telafi hatası:", err)
   );
   aySonuKontrol(db).catch((err) => console.error("Aylık mafya şampiyonu hatası:", err));
+  savasiCoz(db).catch((err) => console.error("Mafya savaşı telafi hatası:", err));
 
   const { maybeExportPlayerSnapshots } = require("./game/veriKorumaService");
   backupDbFile(DB_PATH)

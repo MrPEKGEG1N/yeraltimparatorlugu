@@ -156,23 +156,15 @@ async function makamHaberEkle(db, makam, kazananId, kaybedenId) {
 async function mafyaSavasIlanHaber(db, saldiranAd, hedefAd) {
   await gazeteEkle(
     db,
-    `[${saldiranAd}] Mafya Grubu, [${hedefAd}] Mafya Grubuna savaş açtı. Eski defterler açılıyor, kimin ayakta kalacağını zaman gösterecek.`
+    `⚔️ [${saldiranAd}] Mafya Grubu, [${hedefAd}] Mafya Grubuna savaş ilan etti. Savaş 8 saat sonra başlayacak.`
   );
 }
 
-async function mafyaSavasSonucHaber(db, kazananAd, kaybedenAd, saldiranAd) {
-  const kazananSaldiran = kazananAd === saldiranAd;
-  if (kazananSaldiran) {
-    await gazeteEkle(
-      db,
-      `[${kazananAd}], [${kaybedenAd}]'a sahayı dar etti. Rakibini dize getiren [${kazananAd}], sokaklardaki ağırlığını bir kez daha kanıtladı.`
-    );
-  } else {
-    await gazeteEkle(
-      db,
-      `[${saldiranAd}], gölgesi kendinden büyük işlere kalkışmanın bedelini ödedi. [${kazananAd}], rakibine geçit vermedi.`
-    );
-  }
+async function mafyaSavasSonucHaber(db, kazananAd, kaybedenAd) {
+  await gazeteEkle(
+    db,
+    `⚔️ Mafya Savaşı sonuçlandı: [${kazananAd}] Mafya Grubu kazandı, [${kaybedenAd}] Mafya Grubu yenildi.`
+  );
 }
 
 function haberMetniTemizle(mesaj) {
