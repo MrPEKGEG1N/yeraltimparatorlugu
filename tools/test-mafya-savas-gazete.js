@@ -71,6 +71,19 @@ async function setupBaseSchema(db) {
   );
   await run(
     db,
+    `CREATE TABLE IF NOT EXISTS oyuncu_mesajlari (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      to_user_id INTEGER NOT NULL,
+      from_user_id INTEGER,
+      tip TEXT NOT NULL DEFAULT 'ozel',
+      konu TEXT NOT NULL DEFAULT '',
+      icerik TEXT NOT NULL,
+      okundu INTEGER NOT NULL DEFAULT 0,
+      created_at INTEGER NOT NULL DEFAULT (strftime('%s','now'))
+    )`
+  );
+  await run(
+    db,
     `CREATE TABLE IF NOT EXISTS oyuncu_kiralama (
       user_id INTEGER NOT NULL,
       item_key TEXT NOT NULL,
@@ -132,9 +145,11 @@ async function main() {
   const db = await openTestDb(dbPath);
   await setupBaseSchema(db);
   const { ensureGazeteTable } = require("../game/sehirGazeteService");
+  const { ensureMessagingTables } = require("../game/messagingService");
   await ensureGazeteTable(db);
+  await ensureMessagingTables(db);
 
-  await run(db, `INSERT INTO mafya_gruplari (id, isim, lider_user_id) VALUES (1, 'Kurtlar', 1), (2, 'Yilanlar', 4)`);
+  await run(db, `INSERT INTO mafya_gruplari (id, isim, lider_user_id) VALUES (1, 'Kurtlar', 1), (2, 'Yilanlar', 4), (3, 'Kartallar', 7)`);
   for (const row of [
     [1, "a1", "A1"],
     [2, "a2", "A2"],
@@ -142,12 +157,16 @@ async function main() {
     [4, "b1", "B1"],
     [5, "b2", "B2"],
     [6, "b3", "B3"],
+    [7, "c1", "C1"],
+    [8, "c2", "C2"],
+    [9, "c3", "C3"],
   ]) {
     await run(db, `INSERT INTO users (id, username, password_hash, reis_adi) VALUES (?, ?, 'x', ?)`, row);
     await run(db, `INSERT INTO players (user_id, guc, bonus_guc, kasa) VALUES (?, 0, 0, 0)`, [row[0]]);
   }
   for (const uid of [1, 2, 3]) await run(db, `INSERT INTO mafya_uyeleri (grup_id, user_id) VALUES (1, ?)`, [uid]);
   for (const uid of [4, 5, 6]) await run(db, `INSERT INTO mafya_uyeleri (grup_id, user_id) VALUES (2, ?)`, [uid]);
+  for (const uid of [7, 8, 9]) await run(db, `INSERT INTO mafya_uyeleri (grup_id, user_id) VALUES (3, ?)`, [uid]);
 
   await run(db, `UPDATE players SET guc = 100, bonus_guc = 10, kasa = 50000 WHERE user_id = 1`);
   await run(db, `UPDATE players SET guc = 50, bonus_guc = 0, kasa = 50000 WHERE user_id = 2`);
@@ -233,10 +252,54 @@ async function main() {
 
   const sonucHaber = await get(
     db,
-    `SELECT mesaj FROM sehir_gazete WHERE mesaj LIKE '%Mafya Savaşı sonuçlandı%' ORDER BY id DESC LIMIT 1`
+    `SELECT mesaj FROM sehir_gazete WHERE mesaj LIKE '%karşı savaşı kazandı%' ORDER BY id DESC LIMIT 1`
   );
   if (!sonucHaber?.mesaj?.includes("Yilanlar") || !sonucHaber.mesaj.includes("Kurtlar")) {
     throw new Error("Sonuç gazetesi eksik: " + (sonucHaber?.mesaj || ""));
+  }
+  if (!sonucHaber.mesaj.includes("gözler üzerinde")) {
+    throw new Error("Gazete sonuç metni eksik");
+  }
+
+  const kazananMesaj = await get(
+    db,
+    `SELECT icerik FROM oyuncu_mesajlari WHERE to_user_id = 4 AND tip = 'mafya_savas' ORDER BY id DESC LIMIT 1`
+  );
+  if (!kazananMesaj?.icerik?.includes("kazandınız")) {
+    throw new Error("Kazanan mesaj kutusu raporu eksik");
+  }
+
+  const kaybedenMesaj = await get(
+    db,
+    `SELECT icerik FROM oyuncu_mesajlari WHERE to_user_id = 1 AND tip = 'mafya_savas' ORDER BY id DESC LIMIT 1`
+  );
+  if (!kaybedenMesaj?.icerik?.includes("kaybettiniz")) {
+    throw new Error("Kaybeden mesaj kutusu raporu eksik");
+  }
+
+  const saldiranTekrar = await savasIlanEt(db, 1, 3);
+  if (saldiranTekrar.ok) throw new Error("Saldıran grup 2 gün beklemeden savaş açmamalı");
+  if (!saldiranTekrar.error?.includes("yeni savaş başlatabilirsin")) {
+    throw new Error("Saldıran bekleme mesajı beklenen değil: " + saldiranTekrar.error);
+  }
+
+  const hedefKoruma = await savasIlanEt(db, 2, 1);
+  if (hedefKoruma.ok) throw new Error("Yenilen gruba savaş açılmamalı");
+  if (!hedefKoruma.error?.includes("savaştan yeni çıktı")) {
+    throw new Error("Yenilgi koruma mesajı beklenen değil: " + hedefKoruma.error);
+  }
+
+  const yenilenSavunanSaldir = await (async () => {
+    await run(
+      db,
+      `INSERT INTO mafya_savaslar (saldiran_grup_id, hedef_grup_id, baslangic_zamani, savas_zamani, durum, kazanan_grup_id)
+       VALUES (2, 3, ?, ?, 'tamamlandi', 2)`,
+      [Date.now() - 100_000, Date.now() - 1000]
+    );
+    return savasIlanEt(db, 3, 2);
+  })();
+  if (!yenilenSavunanSaldir.ok) {
+    throw new Error("Yenilen savunan grup savaş açabilmeli: " + yenilenSavunanSaldir.error);
   }
 
   console.log("OK mafya savaşı kuralları —", sonucHaber.mesaj.slice(0, 100) + "...");

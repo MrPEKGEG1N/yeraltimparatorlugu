@@ -3,8 +3,70 @@ const { mafyaSavasIlanHaber, mafyaSavasSonucHaber } = require("./sehirGazeteServ
 const { gucKaybiOranliUygula, toplamGuc } = require("./gucService");
 
 const SAVAS_BEKLEME_SURESI = 8 * 60 * 60 * 1000; // 8 hours
+const SAVAS_YENIDEN_ILAN_SURESI = 2 * 24 * 60 * 60 * 1000; // 2 days
 const GUC_KAYBI_ORANI = 0.1;
 const KAYIP_ODEME_BIRIM = 30_000;
+
+function kalanSureMetin(kalanMs) {
+  if (kalanMs <= 0) return "0 dakika";
+  const dkToplam = Math.ceil(kalanMs / (60 * 1000));
+  const gun = Math.floor(dkToplam / (24 * 60));
+  const saat = Math.floor((dkToplam % (24 * 60)) / 60);
+  const dk = dkToplam % 60;
+  const parcalar = [];
+  if (gun > 0) parcalar.push(`${gun} gün`);
+  if (saat > 0) parcalar.push(`${saat} saat`);
+  if (dk > 0 && gun === 0) parcalar.push(`${dk} dakika`);
+  if (!parcalar.length) parcalar.push("1 dakika");
+  return parcalar.join(" ");
+}
+
+async function sonSaldiranSavasBitisi(db, grupId) {
+  const row = await get(
+    db,
+    `SELECT savas_zamani FROM mafya_savaslar
+     WHERE durum = 'tamamlandi' AND saldiran_grup_id = ?
+     ORDER BY savas_zamani DESC LIMIT 1`,
+    [grupId]
+  );
+  return row?.savas_zamani || 0;
+}
+
+async function sonYenilgiBitisi(db, grupId) {
+  const row = await get(
+    db,
+    `SELECT savas_zamani FROM mafya_savaslar
+     WHERE durum = 'tamamlandi'
+       AND kazanan_grup_id IS NOT NULL
+       AND kazanan_grup_id != ?
+       AND (saldiran_grup_id = ? OR hedef_grup_id = ?)
+     ORDER BY savas_zamani DESC LIMIT 1`,
+    [grupId, grupId, grupId]
+  );
+  return row?.savas_zamani || 0;
+}
+
+async function saldiranSavasBeklemeKontrol(db, saldiranGrupId) {
+  const sonBitis = await sonSaldiranSavasBitisi(db, saldiranGrupId);
+  if (!sonBitis) return null;
+  const kalan = sonBitis + SAVAS_YENIDEN_ILAN_SURESI - Date.now();
+  if (kalan <= 0) return null;
+  return {
+    ok: false,
+    error: `Grubun yakın zamanda savaş açtı. ${kalanSureMetin(kalan)} süresinde yeni savaş başlatabilirsin.`,
+  };
+}
+
+async function hedefYenilgiKorumaKontrol(db, hedefGrupId) {
+  const sonBitis = await sonYenilgiBitisi(db, hedefGrupId);
+  if (!sonBitis) return null;
+  const kalan = sonBitis + SAVAS_YENIDEN_ILAN_SURESI - Date.now();
+  if (kalan <= 0) return null;
+  return {
+    ok: false,
+    error: `Bu Mafya Grubu savaştan yeni çıktı. ${kalanSureMetin(kalan)} süresinde savaş açılabilir.`,
+  };
+}
 
 async function katilimciEkle(db, savasId, userId, grupId) {
   if (!userId || !grupId) return;
@@ -55,6 +117,19 @@ async function grupKatilimciToplamGuc(db, savasId, grupId) {
 }
 
 async function savasIlanEt(db, saldiranGrupId, hedefGrupId) {
+  if (await grupAktifSavasVarMi(db, saldiranGrupId)) {
+    return { ok: false, error: "Grubunun aktif savaşı var; yeni savaş ilan edilemez." };
+  }
+  if (await grupAktifSavasVarMi(db, hedefGrupId)) {
+    return { ok: false, error: "Hedef grubun aktif savaşı var." };
+  }
+
+  const saldiranBekleme = await saldiranSavasBeklemeKontrol(db, saldiranGrupId);
+  if (saldiranBekleme) return saldiranBekleme;
+
+  const hedefKoruma = await hedefYenilgiKorumaKontrol(db, hedefGrupId);
+  if (hedefKoruma) return hedefKoruma;
+
   // Check if there's already a war between these groups
   const mevcutSavas = await get(
     db,
@@ -234,6 +309,18 @@ async function savasiCoz(db) {
     } catch (err) {
       console.error("[mafya-savas] gazete sonuç:", err?.message || err);
     }
+
+    try {
+      const { mafyaSavasSonucMesajlari } = require("./messagingService");
+      await mafyaSavasSonucMesajlari(db, {
+        kazananGrupId,
+        kaybedenGrupId,
+        kazananAd: kazananGrup?.isim || "?",
+        kaybedenAd: kaybedenGrup?.isim || "?",
+      });
+    } catch (err) {
+      console.error("[mafya-savas] sonuç mesajları:", err?.message || err);
+    }
   }
 }
 
@@ -244,7 +331,11 @@ module.exports = {
   savasiCoz,
   grupKatilimciToplamGuc,
   grupAktifSavasVarMi,
+  saldiranSavasBeklemeKontrol,
+  hedefYenilgiKorumaKontrol,
+  kalanSureMetin,
   SAVAS_BEKLEME_SURESI,
+  SAVAS_YENIDEN_ILAN_SURESI,
   GUC_KAYBI_ORANI,
   KAYIP_ODEME_BIRIM,
 };

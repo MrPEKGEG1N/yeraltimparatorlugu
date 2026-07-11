@@ -449,6 +449,39 @@ async function sabotajMesajiEkle(
   }
 }
 
+async function mafyaSavasSonucMesajlari(db, { kazananGrupId, kaybedenGrupId, kazananAd, kaybedenAd }) {
+  await ensureMessagingTables(db);
+  const kazananUyeler = await all(
+    db,
+    `SELECT user_id FROM mafya_uyeleri WHERE grup_id = ?`,
+    [kazananGrupId]
+  );
+  const kaybedenUyeler = await all(
+    db,
+    `SELECT user_id FROM mafya_uyeleri WHERE grup_id = ?`,
+    [kaybedenGrupId]
+  );
+  const kazananIcerik = `[${kaybedenAd}] Mafya Grubuna karşı savaşı kazandınız! Sokakları ve Mekanları onlara dar ederek kimin daha güçlü olduğunu gösterdiniz.`;
+  const kaybedenIcerik = `[${kazananAd}] Mafya Grubuna karşı savaşı kaybettiniz. Sokaklar ve Mekanlardaki adamlarımız talan edildi! Tedbirleri arttırmalı ve güçlenip intikam almalıyız!`;
+
+  for (const u of kazananUyeler) {
+    await run(
+      db,
+      `INSERT INTO oyuncu_mesajlari (to_user_id, from_user_id, tip, konu, icerik, okundu, created_at)
+       VALUES (?, NULL, 'mafya_savas', ?, ?, 0, strftime('%s','now'))`,
+      [u.user_id, "Mafya Savaşı — Zafer", kazananIcerik]
+    );
+  }
+  for (const u of kaybedenUyeler) {
+    await run(
+      db,
+      `INSERT INTO oyuncu_mesajlari (to_user_id, from_user_id, tip, konu, icerik, okundu, created_at)
+       VALUES (?, NULL, 'mafya_savas', ?, ?, 0, strftime('%s','now'))`,
+      [u.user_id, "Mafya Savaşı — Yenilgi", kaybedenIcerik]
+    );
+  }
+}
+
 module.exports = {
   SMS_GUNLUK,
   turkeyDayKey,
@@ -456,6 +489,7 @@ module.exports = {
   ensureMessagingTables,
   saldiriMesajiEkle,
   sabotajMesajiEkle,
+  mafyaSavasSonucMesajlari,
   ozelMesajGonder,
   tumMesajlariOkundu,
   mesajlariGetir,

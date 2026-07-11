@@ -163,7 +163,7 @@ async function mafyaSavasIlanHaber(db, saldiranAd, hedefAd) {
 async function mafyaSavasSonucHaber(db, kazananAd, kaybedenAd) {
   await gazeteEkle(
     db,
-    `⚔️ Mafya Savaşı sonuçlandı: [${kazananAd}] Mafya Grubu kazandı, [${kaybedenAd}] Mafya Grubu yenildi.`
+    `⚔️ [${kazananAd}] Mafya Grubu [${kaybedenAd}] Mafya Grubuna karşı savaşı kazandı. Sokakları ve mekanları onlara dar ederek kimin daha güçlü olduğunu gösterdi! [${kaybedenAd}] Mafya Grubu bundan sonra ne yapacak gözler üzerinde..`
   );
 }
 
