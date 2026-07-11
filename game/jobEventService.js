@@ -24,7 +24,7 @@ const FIRSAT_BEKLE_MS = 5 * 60 * 1000;
 const MUHBIR_RUSVET_ORANI = 0.5;
 const MUHBIR_GUC_KAYIP_ORANI = 0.01;
 const MUHBIR_ICRAAT_KAYIP = 1;
-const MUHBIR_BEKLE_MS = 5 * 60 * 1000;
+const MUHBIR_TIMER_MS = SOKAK_TIMER_MS;
 
 function jsonParse(raw, fallback) {
   if (!raw) return fallback;
@@ -151,6 +151,7 @@ function jobOlayEffectFromSession(job, session) {
   if (session.olayTipi === "muhbir") {
     return {
       ...base,
+      sureSn: MUHBIR_TIMER_MS / 1000,
       ekstraIcraat: MUHBIR_EXTRA_ICRAAT,
     };
   }
@@ -165,10 +166,42 @@ async function bekleyenOlayTemizle(db, userId) {
   const bekleyen = await jobOlayOku(db, userId);
   if (!bekleyen) return null;
   if (olaySuresiDoldu(bekleyen)) {
+    if (bekleyen.olayTipi === "muhbir") {
+      try {
+        const { hapseGir } = require("./hapishaneService");
+        await hapseGir(db, userId);
+      } catch (_) {}
+    }
     await jobOlayTemizle(db, userId);
     return null;
   }
   return bekleyen;
+}
+
+async function muhbirYakalandi(db, userId, player, job, session) {
+  const sonuc = await jobOdulleriUygula(db, userId, player, job, {
+    jobKey: session.jobKey,
+    netKazanc: 0,
+    puan: job.puan,
+    paraKaybi: job.netKazanc,
+    savunuldu: false,
+    devletDusus: session.devletDusus,
+    muhbirSecim: "yakalandi",
+  });
+  try {
+    const { hapseGir } = require("./hapishaneService");
+    await hapseGir(db, userId);
+  } catch (_) {}
+  return {
+    ok: true,
+    effect: {
+      ...jobEffectFromSonuc(job, sonuc, session.icraatToplam),
+      hapisGiris: true,
+      muhbirSecim: "yakalandi",
+    },
+    gorevSonuc: sonuc.gorevSonuc,
+    yeniDevletIliski: sonuc.yeniDevletIliski,
+  };
 }
 
 async function jobBaslat(db, userId, player, jobKey) {
@@ -249,7 +282,7 @@ async function jobBaslat(db, userId, player, jobKey) {
   if (olayTipi === "sokak_kavgasi") {
     session.bitisMs = basladiMs + SOKAK_TIMER_MS;
   } else if (olayTipi === "muhbir") {
-    session.bitisMs = basladiMs + MUHBIR_BEKLE_MS;
+    session.bitisMs = basladiMs + MUHBIR_TIMER_MS;
   } else {
     session.bonusYuzde = rastgeleFirsatBonusu();
     session.bitisMs = basladiMs + FIRSAT_BEKLE_MS;
@@ -295,8 +328,15 @@ async function jobOlaySonuc(db, userId, player, { savunuldu, olayId, secim }) {
     netKazanc = Math.floor(job.netKazanc * (1 + kazancBonusYuzde / 100));
     basarili = true;
   } else if (session.olayTipi === "muhbir") {
+    const simdi = Date.now();
     const tercih = secim === "kac" ? "kac" : secim === "rusvet" ? "rusvet" : "";
-    if (!tercih) return { ok: false, error: "Kaçmak için bir seçenek belirlemelisin." };
+    if (!tercih) {
+      if (simdi <= session.bitisMs + GRACE_MS) {
+        return { ok: false, error: "Kaçmak için 30 saniye içinde bir seçenek belirlemelisin." };
+      }
+      await jobOlayTemizle(db, userId);
+      return muhbirYakalandi(db, userId, player, job, session);
+    }
     muhbirSecim = tercih;
     basarili = true;
     if (tercih === "rusvet") {

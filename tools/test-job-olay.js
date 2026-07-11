@@ -7,7 +7,7 @@ const fs = require("fs");
 const { initDatabase } = require("../db/database");
 const { loadPlayer } = require("../game/playerService");
 const { jobOlaySonuc } = require("../game/jobEventService");
-const { run } = require("../db/database");
+const { run, get } = require("../db/database");
 
 const ROOT = path.join(__dirname, "..");
 const TEST_DB = path.join(ROOT, "tools", ".job-olay-test.db");
@@ -150,6 +150,32 @@ async function main() {
   const beklenenGucKaybi = Math.max(1, Math.floor(gucOnce * 0.01));
   if (player.guc !== gucOnce - beklenenGucKaybi) throw new Error("muhbir kac guc yanlis");
   if (player.icraat !== icraatOnce - 1) throw new Error("muhbir kac icraat yanlis");
+
+  const muhbirTimeoutSession = {
+    olayId: "muhbir991",
+    jobKey: "market",
+    olayTipi: "muhbir",
+    basladiMs: Date.now() - 60000,
+    bitisMs: Date.now() - 5000,
+    devletDusus: 6,
+    icraatToplam: 2,
+  };
+  await run(db, `UPDATE players SET job_olay_json = ?, hapis_bitis_at = 0 WHERE user_id = ?`, [
+    JSON.stringify(muhbirTimeoutSession),
+    userId,
+  ]);
+  player = await loadPlayer(db, userId);
+  const yakalandi = await jobOlaySonuc(db, userId, player, {
+    savunuldu: false,
+    olayId: "muhbir991",
+    secim: "",
+  });
+  if (!yakalandi.ok) throw new Error(yakalandi.error);
+  if (!yakalandi.effect.hapisGiris) throw new Error("muhbir timeout hapis yok");
+  const hapisRow = await get(db, `SELECT hapis_bitis_at FROM players WHERE user_id = ?`, [userId]);
+  if (!hapisRow?.hapis_bitis_at || hapisRow.hapis_bitis_at <= Math.floor(Date.now() / 1000)) {
+    throw new Error("muhbir timeout hapis bitis yanlis");
+  }
 
   console.log("OK muhbir testleri gecti");
   console.log(JSON.stringify({ kasa: player.kasa, puan: player.puan, effect: firsat.effect }, null, 2));

@@ -1303,7 +1303,7 @@ function jobOlayMetinleriGuncelle() {
 }
 
 function jobOlaySureGuncelle() {
-  if (!aktifJobOlay || jobOlayFirsatMi() || jobOlayMuhbirMi()) return;
+  if (!aktifJobOlay || jobOlayFirsatMi()) return;
   var kalanMs = aktifJobOlay.bitisTs - Date.now();
   var kalanSn = Math.max(0, Math.ceil(kalanMs / 1000));
   var dolgu = document.getElementById('jobOlaySureDolgu');
@@ -1315,7 +1315,10 @@ function jobOlaySureGuncelle() {
     if (kalanSn <= 5) metin.classList.add('job-olay-sure-metin--acil');
     else metin.classList.remove('job-olay-sure-metin--acil');
   }
-  if (kalanMs <= 0) jobOlaySonucGonder(false);
+  if (kalanMs <= 0) {
+    if (jobOlayMuhbirMi()) jobOlaySonucGonder(false, '');
+    else jobOlaySonucGonder(false);
+  }
 }
 
 function jobOlayModalAc(ef) {
@@ -1347,7 +1350,7 @@ function jobOlayModalAc(ef) {
     pencere.classList.toggle('job-olay-pencere--muhbir', muhbir);
   }
   var sureWrap = document.getElementById('jobOlaySureWrap');
-  if (sureWrap) sureWrap.classList.toggle('job-olay-sure-wrap--gizli', firsat || muhbir);
+  if (sureWrap) sureWrap.classList.toggle('job-olay-sure-wrap--gizli', firsat);
   var btn = document.getElementById('jobOlaySavunBtn');
   if (btn) {
     btn.disabled = false;
@@ -1361,14 +1364,12 @@ function jobOlayModalAc(ef) {
   document.getElementById('jobOlayModal').classList.add('acik');
   if (jobOlaySureTimer) clearInterval(jobOlaySureTimer);
   jobOlaySureTimer = null;
-  if (!firsat && !muhbir) {
+  if (!firsat) {
     jobOlaySureGuncelle();
     jobOlaySureTimer = setInterval(jobOlaySureGuncelle, 100);
     toast(t('game.job.event.extraAction'), 'uyari');
-  } else if (firsat) {
-    toast(t('game.job.event.extraAction2'), 'uyari');
   } else {
-    toast(t('game.job.event.extraAction'), 'uyari');
+    toast(t('game.job.event.extraAction2'), 'uyari');
   }
 }
 
@@ -1394,6 +1395,11 @@ async function jobOlaySonucGonder(savunuldu, secim) {
   jobOlayModalKapat();
   aktifJobOlay = null;
   if (!ef) return;
+  if (ef.hapisGiris || ef.muhbirSecim === 'yakalandi') {
+    toast(t('game.job.event.informantPrison'), 'hata');
+    if (ef.devletDusus) toast(t('game.toast.lawyerRelationDrop', { points: ef.devletDusus }), 'uyari');
+    return;
+  }
   if (ef.kazancBonusYuzde > 0) {
     toast(t('game.job.event.luckySuccess', { bonus: ef.kazancBonusYuzde }), 'basari');
   } else if (ef.muhbirSecim === 'rusvet' && ef.paraKaybi > 0) {
