@@ -2,7 +2,9 @@ node_modules/
 db/*.db
 .env
 *.log
-node_modules/
+
+# Northflank generated (may contain secrets)
+northflank/*.generated.json
 
 # Capacitor / Android
 android/.gradle/

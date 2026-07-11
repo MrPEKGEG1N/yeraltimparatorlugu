@@ -26,6 +26,8 @@
     "prepare:northflank": "node tools/prepare-northflank-deploy.js",
     "setup:northflank": "node tools/setup-northflank-service.js",
     "bootstrap:northflank": "powershell -ExecutionPolicy Bypass -File tools/bootstrap-northflank.ps1",
+    "provision:northflank": "node tools/provision-northflank.js",
+    "update:url": "node tools/update-public-url.js",
     "deploy": "powershell -ExecutionPolicy Bypass -File tools/deploy-northflank.ps1",
     "deploy:railway": "powershell -ExecutionPolicy Bypass -File tools/deploy-railway.ps1",
     "deploy:apk": "powershell -ExecutionPolicy Bypass -File tools/deploy-railway.ps1 && npm run android:apk",

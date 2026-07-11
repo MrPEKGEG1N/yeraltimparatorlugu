@@ -2,6 +2,15 @@
 
 Railway süresi dolduğunda bu rehberle oyunu Northflank’a taşıyın. Oyuncu verisi **volume (/data)** + **Supabase yedek** + **seed/oyun.db** ile korunur.
 
+## 0. Northflank hesap (bir kez)
+
+Northflank servis/volume oluşturmak için **varsayılan ödeme yöntemi** gerekir (ücretsiz kota olsa bile kart doğrulaması istenir):
+
+1. https://app.northflank.com/t/mrpekgeg1ns-team/billing → kart ekle
+2. Terminalde: `npm run provision:northflank`
+
+Bu komut proje `yeralti-imparatorlugu` içinde volume + combined service kurar.
+
 ## 1. Veriyi hazırla (yerelde) — TAMAMLANDI
 
 Son Supabase yedeği (2026-07-10) ile **7 oyuncu** `seed/oyun.db` ve `seed/oyuncular/*.json` içine yazıldı.

@@ -30,8 +30,28 @@
     return typeof t === "function" ? t("auth.rules.loading") : "Yükleniyor…";
   }
 
-  function yuklenemediMetni() {
-    return typeof t === "function" ? t("auth.rules.loadFailed") : "İçerik yüklenemedi.";
+  function hostAdresi() {
+    return window.location.host || "yeraltimparatorlugu.com";
+  }
+
+  function metinHostuDuzenle(text) {
+    var host = hostAdresi();
+    return String(text || "")
+      .replace(/yeraltimparatorlugu-production\.up\.railway\.app/g, host)
+      .replace(/destek@yeraltimparatorlugu-production\.up\.railway\.app/g, "destek@" + host);
+  }
+
+  function jsonHostuDuzenle(json) {
+    if (!json || typeof json !== "object") return json;
+    Object.keys(json).forEach(function (key) {
+      var sections = json[key];
+      if (!Array.isArray(sections)) return;
+      sections.forEach(function (section) {
+        if (!section || !Array.isArray(section.body)) return;
+        section.body = section.body.map(metinHostuDuzenle);
+      });
+    });
+    return json;
   }
 
   function maddeHtml(section) {
@@ -77,7 +97,7 @@
         return res.json();
       })
       .then(function (json) {
-        veri = json;
+        veri = jsonHostuDuzenle(json);
         return veri;
       })
       .catch(function () {
