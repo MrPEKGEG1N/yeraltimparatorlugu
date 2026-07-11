@@ -15,6 +15,7 @@ const DIRECT_SUCCESS_CHANCE = 0.6;
 const SOKAK_EXTRA_ICRAAT = 1;
 const FIRSAT_EXTRA_ICRAAT = 2;
 const MUHBIR_EXTRA_ICRAAT = 1;
+const TEKNIK_EXTRA_ICRAAT = 1;
 const SOKAK_TIMER_MS = 30000;
 const FAIL_PARA_ORANI = 0.4;
 const GRACE_MS = 2500;
@@ -25,6 +26,13 @@ const MUHBIR_RUSVET_ORANI = 0.5;
 const MUHBIR_GUC_KAYIP_ORANI = 0.01;
 const MUHBIR_ICRAAT_KAYIP = 1;
 const MUHBIR_TIMER_MS = SOKAK_TIMER_MS;
+const TEKNIK_YARIM_ORANI = 0.5;
+const TEKNIK_KIR_YAKALANMA = 0.5;
+const SECIMLI_OLAY_TIPLERI = new Set(["muhbir", "teknik_ariza"]);
+
+function secimliOlayMi(tip) {
+  return SECIMLI_OLAY_TIPLERI.has(tip);
+}
 
 function jsonParse(raw, fallback) {
   if (!raw) return fallback;
@@ -41,9 +49,10 @@ function rastgeleFirsatBonusu() {
 
 function olayTipiSec() {
   const r = Math.random();
-  if (r < 1 / 3) return "sokak_kavgasi";
-  if (r < 2 / 3) return "sansli_firsat";
-  return "muhbir";
+  if (r < 0.25) return "sokak_kavgasi";
+  if (r < 0.5) return "sansli_firsat";
+  if (r < 0.75) return "muhbir";
+  return "teknik_ariza";
 }
 
 async function ensureJobOlay(db) {
@@ -103,7 +112,8 @@ async function jobOdulleriUygula(db, userId, player, job, opts) {
     bonusPuan: opts.bonusPuan || 0,
     kazancBonusYuzde: opts.kazancBonusYuzde || 0,
     savunuldu: !!opts.savunuldu,
-    muhbirSecim: opts.muhbirSecim || "",
+    muhbirSecim: opts.muhbirSecim || opts.olaySecim || "",
+    olaySecim: opts.olaySecim || opts.muhbirSecim || "",
     gucKaybi: opts.gucKaybi || 0,
     icraatKaybi: opts.icraatKaybi || 0,
   };
@@ -123,7 +133,8 @@ function jobEffectFromSonuc(job, sonuc, icraatToplam) {
     paraKaybi: sonuc.paraKaybi,
     bonusPuan: sonuc.bonusPuan,
     kazancBonusYuzde: sonuc.kazancBonusYuzde || 0,
-    muhbirSecim: sonuc.muhbirSecim || "",
+    muhbirSecim: sonuc.muhbirSecim || sonuc.olaySecim || "",
+    olaySecim: sonuc.olaySecim || sonuc.muhbirSecim || "",
     gucKaybi: sonuc.gucKaybi || 0,
     icraatKaybi: sonuc.icraatKaybi || 0,
   };
@@ -148,11 +159,12 @@ function jobOlayEffectFromSession(job, session) {
       ekstraIcraat: SOKAK_EXTRA_ICRAAT,
     };
   }
-  if (session.olayTipi === "muhbir") {
+  if (session.olayTipi === "muhbir" || session.olayTipi === "teknik_ariza") {
     return {
       ...base,
-      sureSn: MUHBIR_TIMER_MS / 1000,
-      ekstraIcraat: MUHBIR_EXTRA_ICRAAT,
+      sureSn: SOKAK_TIMER_MS / 1000,
+      ekstraIcraat:
+        session.olayTipi === "teknik_ariza" ? TEKNIK_EXTRA_ICRAAT : MUHBIR_EXTRA_ICRAAT,
     };
   }
   return {
@@ -166,7 +178,7 @@ async function bekleyenOlayTemizle(db, userId) {
   const bekleyen = await jobOlayOku(db, userId);
   if (!bekleyen) return null;
   if (olaySuresiDoldu(bekleyen)) {
-    if (bekleyen.olayTipi === "muhbir") {
+    if (secimliOlayMi(bekleyen.olayTipi)) {
       try {
         const { hapseGir } = require("./hapishaneService");
         await hapseGir(db, userId);
@@ -178,7 +190,7 @@ async function bekleyenOlayTemizle(db, userId) {
   return bekleyen;
 }
 
-async function muhbirYakalandi(db, userId, player, job, session) {
+async function olayYakalandiHapis(db, userId, player, job, session, olaySecim) {
   const sonuc = await jobOdulleriUygula(db, userId, player, job, {
     jobKey: session.jobKey,
     netKazanc: 0,
@@ -186,7 +198,8 @@ async function muhbirYakalandi(db, userId, player, job, session) {
     paraKaybi: job.netKazanc,
     savunuldu: false,
     devletDusus: session.devletDusus,
-    muhbirSecim: "yakalandi",
+    olaySecim: olaySecim || "yakalandi",
+    muhbirSecim: olaySecim === "yakalandi" ? "yakalandi" : olaySecim,
   });
   try {
     const { hapseGir } = require("./hapishaneService");
@@ -196,12 +209,18 @@ async function muhbirYakalandi(db, userId, player, job, session) {
     ok: true,
     effect: {
       ...jobEffectFromSonuc(job, sonuc, session.icraatToplam),
+      olayTipi: session.olayTipi,
       hapisGiris: true,
-      muhbirSecim: "yakalandi",
+      olaySecim: olaySecim || "yakalandi",
+      muhbirSecim: olaySecim === "yakalandi" ? "yakalandi" : olaySecim,
     },
     gorevSonuc: sonuc.gorevSonuc,
     yeniDevletIliski: sonuc.yeniDevletIliski,
   };
+}
+
+async function muhbirYakalandi(db, userId, player, job, session) {
+  return olayYakalandiHapis(db, userId, player, job, session, "yakalandi");
 }
 
 async function jobBaslat(db, userId, player, jobKey) {
@@ -237,9 +256,11 @@ async function jobBaslat(db, userId, player, jobKey) {
   const ekstraMaliyet =
     olayTipi === "sansli_firsat"
       ? FIRSAT_EXTRA_ICRAAT
-      : olayTipi === "muhbir"
-        ? MUHBIR_EXTRA_ICRAAT
-        : SOKAK_EXTRA_ICRAAT;
+      : olayTipi === "teknik_ariza"
+        ? TEKNIK_EXTRA_ICRAAT
+        : olayTipi === "muhbir"
+          ? MUHBIR_EXTRA_ICRAAT
+          : SOKAK_EXTRA_ICRAAT;
   const ekstraIcraat = await icraatHarca(db, userId, ekstraMaliyet);
   if (!ekstraIcraat.ok) {
     if (olayTipi === "sokak_kavgasi") {
@@ -281,8 +302,8 @@ async function jobBaslat(db, userId, player, jobKey) {
 
   if (olayTipi === "sokak_kavgasi") {
     session.bitisMs = basladiMs + SOKAK_TIMER_MS;
-  } else if (olayTipi === "muhbir") {
-    session.bitisMs = basladiMs + MUHBIR_TIMER_MS;
+  } else if (secimliOlayMi(olayTipi)) {
+    session.bitisMs = basladiMs + SOKAK_TIMER_MS;
   } else {
     session.bonusYuzde = rastgeleFirsatBonusu();
     session.bitisMs = basladiMs + FIRSAT_BEKLE_MS;
@@ -317,6 +338,7 @@ async function jobOlaySonuc(db, userId, player, { savunuldu, olayId, secim }) {
   let kazancBonusYuzde = 0;
   let basarili = false;
   let muhbirSecim = "";
+  let olaySecim = "";
   let gucKaybi = 0;
   let icraatKaybi = 0;
 
@@ -338,6 +360,7 @@ async function jobOlaySonuc(db, userId, player, { savunuldu, olayId, secim }) {
       return muhbirYakalandi(db, userId, player, job, session);
     }
     muhbirSecim = tercih;
+    olaySecim = tercih;
     basarili = true;
     if (tercih === "rusvet") {
       paraKaybi = Math.floor(job.netKazanc * MUHBIR_RUSVET_ORANI);
@@ -346,6 +369,29 @@ async function jobOlaySonuc(db, userId, player, { savunuldu, olayId, secim }) {
       netKazanc = job.netKazanc;
       gucKaybi = Math.max(1, Math.floor((player.guc || 0) * MUHBIR_GUC_KAYIP_ORANI));
       icraatKaybi = MUHBIR_ICRAAT_KAYIP;
+    }
+  } else if (session.olayTipi === "teknik_ariza") {
+    const simdi = Date.now();
+    const tercih = secim === "kir" ? "kir" : secim === "tamir" ? "tamir" : "";
+    if (!tercih) {
+      if (simdi <= session.bitisMs + GRACE_MS) {
+        return { ok: false, error: "Kilitli kapı için 30 saniye içinde bir seçenek belirlemelisin." };
+      }
+      await jobOlayTemizle(db, userId);
+      return olayYakalandiHapis(db, userId, player, job, session, "yakalandi");
+    }
+    basarili = true;
+    if (tercih === "tamir") {
+      olaySecim = "tamir";
+      paraKaybi = Math.floor(job.netKazanc * TEKNIK_YARIM_ORANI);
+      netKazanc = job.netKazanc - paraKaybi;
+    } else {
+      if (Math.random() < TEKNIK_KIR_YAKALANMA) {
+        await jobOlayTemizle(db, userId);
+        return olayYakalandiHapis(db, userId, player, job, session, "kir_yakalandi");
+      }
+      olaySecim = "kir";
+      netKazanc = job.netKazanc;
     }
   } else {
     const simdi = Date.now();
@@ -370,6 +416,7 @@ async function jobOlaySonuc(db, userId, player, { savunuldu, olayId, secim }) {
     savunuldu: basarili,
     devletDusus: session.devletDusus,
     muhbirSecim,
+    olaySecim,
     gucKaybi,
     icraatKaybi,
   });
@@ -389,11 +436,17 @@ async function jobOlaySonuc(db, userId, player, { savunuldu, olayId, secim }) {
     sonuc.muhbirSecim = muhbirSecim;
   } else if (muhbirSecim === "rusvet") {
     sonuc.muhbirSecim = muhbirSecim;
+    sonuc.olaySecim = olaySecim || muhbirSecim;
+  } else if (olaySecim === "tamir" || olaySecim === "kir") {
+    sonuc.olaySecim = olaySecim;
   }
 
   return {
     ok: true,
-    effect: jobEffectFromSonuc(job, sonuc, session.icraatToplam),
+    effect: {
+      ...jobEffectFromSonuc(job, sonuc, session.icraatToplam),
+      olayTipi: session.olayTipi,
+    },
     gorevSonuc: sonuc.gorevSonuc,
     yeniDevletIliski: sonuc.yeniDevletIliski,
   };

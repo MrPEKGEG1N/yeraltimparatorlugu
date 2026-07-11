@@ -178,6 +178,93 @@ async function main() {
   }
 
   console.log("OK muhbir testleri gecti");
+
+  const teknikTamirSession = {
+    olayId: "teknik801",
+    jobKey: "market",
+    olayTipi: "teknik_ariza",
+    basladiMs: Date.now(),
+    bitisMs: Date.now() + 300000,
+    devletDusus: 6,
+    icraatToplam: 2,
+  };
+  await run(db, `UPDATE players SET job_olay_json = ?, kasa = ? WHERE user_id = ?`, [
+    JSON.stringify(teknikTamirSession),
+    player.kasa,
+    userId,
+  ]);
+  player = await loadPlayer(db, userId);
+  const kasaTeknikOnce = player.kasa;
+  const teknikTamir = await jobOlaySonuc(db, userId, player, {
+    savunuldu: false,
+    olayId: "teknik801",
+    secim: "tamir",
+  });
+  if (!teknikTamir.ok) throw new Error(teknikTamir.error);
+  const teknikYarim = Math.floor(market.netKazanc / 2);
+  if (teknikTamir.effect.paraKaybi !== teknikYarim) throw new Error("teknik tamir kayip yanlis");
+  if (teknikTamir.effect.olaySecim !== "tamir") throw new Error("teknik tamir secim yanlis");
+  player = await loadPlayer(db, userId);
+  if (player.kasa !== kasaTeknikOnce + market.netKazanc - teknikYarim) {
+    throw new Error("teknik tamir kasa yanlis");
+  }
+
+  const origRandom = Math.random;
+  Math.random = () => 0.9;
+  const teknikKirSession = {
+    olayId: "teknik802",
+    jobKey: "market",
+    olayTipi: "teknik_ariza",
+    basladiMs: Date.now(),
+    bitisMs: Date.now() + 300000,
+    devletDusus: 6,
+    icraatToplam: 2,
+  };
+  await run(db, `UPDATE players SET job_olay_json = ?, kasa = ? WHERE user_id = ?`, [
+    JSON.stringify(teknikKirSession),
+    player.kasa,
+    userId,
+  ]);
+  player = await loadPlayer(db, userId);
+  const kasaKirOnce = player.kasa;
+  const teknikKir = await jobOlaySonuc(db, userId, player, {
+    savunuldu: false,
+    olayId: "teknik802",
+    secim: "kir",
+  });
+  Math.random = origRandom;
+  if (!teknikKir.ok) throw new Error(teknikKir.error);
+  if (teknikKir.effect.olaySecim !== "kir") throw new Error("teknik kir secim yanlis");
+  if (teknikKir.effect.netKazanc !== market.netKazanc) throw new Error("teknik kir kazanc yanlis");
+  player = await loadPlayer(db, userId);
+  if (player.kasa !== kasaKirOnce + market.netKazanc) throw new Error("teknik kir kasa yanlis");
+
+  Math.random = () => 0.1;
+  const teknikYakalaSession = {
+    olayId: "teknik803",
+    jobKey: "market",
+    olayTipi: "teknik_ariza",
+    basladiMs: Date.now(),
+    bitisMs: Date.now() + 300000,
+    devletDusus: 6,
+    icraatToplam: 2,
+  };
+  await run(db, `UPDATE players SET job_olay_json = ?, hapis_bitis_at = 0 WHERE user_id = ?`, [
+    JSON.stringify(teknikYakalaSession),
+    userId,
+  ]);
+  player = await loadPlayer(db, userId);
+  const teknikYakala = await jobOlaySonuc(db, userId, player, {
+    savunuldu: false,
+    olayId: "teknik803",
+    secim: "kir",
+  });
+  Math.random = origRandom;
+  if (!teknikYakala.ok) throw new Error(teknikYakala.error);
+  if (!teknikYakala.effect.hapisGiris) throw new Error("teknik kir yakalanma hapis yok");
+  if (teknikYakala.effect.olaySecim !== "kir_yakalandi") throw new Error("teknik kir yakalanma secim yanlis");
+
+  console.log("OK teknik ariza testleri gecti");
   console.log(JSON.stringify({ kasa: player.kasa, puan: player.puan, effect: firsat.effect }, null, 2));
 }
 

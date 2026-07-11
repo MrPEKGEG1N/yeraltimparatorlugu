@@ -1662,6 +1662,19 @@ html, body {
   color: #f5d0ff;
 }
 
+.job-olay-pencere--teknik {
+  border-color: #d35400;
+  box-shadow: 0 0 40px rgba(211, 84, 0, 0.32), 0 24px 70px rgba(0, 0, 0, 0.75);
+}
+
+.job-olay-pencere--teknik .job-olay-uyari {
+  color: #ffb347;
+}
+
+.job-olay-pencere--teknik .job-olay-baslik {
+  color: #ffe0b2;
+}
+
 .job-olay-muhbir-btns {
   display: flex;
   flex-direction: column;
@@ -1684,6 +1697,16 @@ html, body {
 .job-olay-muhbir-btn--kac {
   background: linear-gradient(180deg, #922b21 0%, #641e16 100%);
   border-color: #ff8a80;
+}
+
+.job-olay-muhbir-btn--tamir {
+  background: linear-gradient(180deg, #5d6d7e 0%, #34495e 100%);
+  border-color: #aed6f1;
+}
+
+.job-olay-muhbir-btn--kir {
+  background: linear-gradient(180deg, #ca6f1e 0%, #873600 100%);
+  border-color: #ffb347;
 }
 
 .ses-kontrol {
