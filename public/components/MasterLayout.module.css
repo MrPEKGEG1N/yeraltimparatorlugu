@@ -1525,6 +1525,108 @@ html, body {
 }
 .kapat-btn:active { transform: translateY(0); }
 
+/* İcraat olay modalı — Sokak Kavgası */
+.job-olay-pencere {
+  max-width: 560px;
+  border-color: #c0392b;
+  box-shadow: 0 0 40px rgba(192, 57, 43, 0.35), 0 24px 70px rgba(0, 0, 0, 0.75);
+}
+
+.job-olay-hero {
+  aspect-ratio: 16 / 10;
+}
+
+.job-olay-hero-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(10,6,4,0.75) 100%);
+  pointer-events: none;
+}
+
+.job-olay-icerik { text-align: left; }
+
+.job-olay-uyari {
+  font-family: 'Oswald', sans-serif;
+  color: #ff6b6b;
+  font-size: 18px;
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+}
+
+.job-olay-baslik {
+  font-family: 'Oswald', sans-serif;
+  color: #ffd700;
+  font-size: 22px;
+  line-height: 1.25;
+  margin-bottom: 10px;
+  text-transform: none;
+}
+
+.job-olay-baslik::after { display: none; }
+
+.job-olay-aciklama {
+  color: #ddd;
+  font-size: 14px;
+  line-height: 1.55;
+  margin: 0 0 16px;
+}
+
+.job-olay-sure-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.job-olay-sure-bar {
+  flex: 1;
+  height: 10px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(197, 160, 89, 0.4);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.job-olay-sure-dolgu {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, #b8942a, #ffd700);
+  transition: width 0.15s linear;
+}
+
+.job-olay-sure-metin {
+  min-width: 36px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 20px;
+  color: #ffd700;
+  text-align: center;
+}
+
+.job-olay-sure-metin--acil {
+  color: #ff6b6b;
+  animation: jobOlayPulse 0.6s ease-in-out infinite alternate;
+}
+
+@keyframes jobOlayPulse {
+  from { opacity: 0.65; transform: scale(1); }
+  to { opacity: 1; transform: scale(1.08); }
+}
+
+.job-olay-savun-btn {
+  max-width: none;
+  width: 100%;
+  font-size: 18px;
+  letter-spacing: 0.06em;
+  background: linear-gradient(180deg, #c0392b 0%, #8b0000 100%);
+  border: 1px solid #ffd700;
+}
+
+.job-olay-savun-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .ses-kontrol {
   position: fixed;
   bottom: 12px;

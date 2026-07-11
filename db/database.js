@@ -658,6 +658,7 @@ async function initDatabase() {
     ["premium_paket", "TEXT NOT NULL DEFAULT ''"],
     ["last_icraat_paket_at", "INTEGER NOT NULL DEFAULT 0"],
     ["premium_paket_bitis", "INTEGER NOT NULL DEFAULT 0"],
+    ["job_olay_json", "TEXT NOT NULL DEFAULT ''"],
   ];
   for (const [col, def] of playerCols) {
     try {

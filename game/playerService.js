@@ -121,6 +121,7 @@ const {
 } = require("./bankaService");
 const { getKiralamaEnvanter, getKiralamaFiyatEnvanter, kiralamaSatinAl } = require("./kiralamaService");
 const { gorevKabul, gorevOdulAl, gorevElmasTamamla, gorevOlayIsle, gunlukGorevBildirimVarMi } = require("./gunlukGorevService");
+const { jobBaslat, jobOlaySonuc } = require("./jobEventService");
 const { okunmamisBildirimSayisi, ensureTercihler } = require("./bildirimService");
 
 async function aksiyonOyuncuYaniti(db, userId, _player, gorevSonuc = null) {
@@ -577,45 +578,26 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
   if (action === "job") {
     const hapis = await hapisKontrol(db, userId);
     if (!hapis.ok) return hapis;
-    const job = JOBS[key];
-    if (!job) return { ok: false, error: "Geçersiz iş." };
-    if (player.guc < job.minGuc && toplamGuc(player) < job.minGuc) {
-      return {
-        ok: false,
-        error: `Gücün yetersiz! En az ${job.minGuc.toLocaleString("tr-TR")} güce ihtiyacın var.`,
-      };
-    }
-    const icraatSonuc = await icraatHarca(db, userId, job.icraat);
-    if (!icraatSonuc.ok) return icraatSonuc;
-    player.icraat = icraatSonuc.icraat;
-    player.kasa += job.netKazanc;
-    player.puan += job.puan;
-    const devletDusus = rastgeleAvukatDususu(5, 10);
-    const mevcutDevlet = await getDevletIliskisi(db, userId);
-    const yeniDevletIliski = clampAvukatIliskisi(mevcutDevlet - devletDusus);
-    await run(
-      db,
-      `UPDATE players SET kasa = ?, puan = ?, devlet_iliskisi = ? WHERE user_id = ?`,
-      [player.kasa, player.puan, yeniDevletIliski, userId]
-    );
-    await logStatHareket(db, userId, "sayginlik", job.puan);
-    const gorevSonuc = await gorevOlayIsle(db, userId, "is_yap", { jobKey: key });
-    const full = await aksiyonOyuncuYaniti(db, userId, player, gorevSonuc);
-    full.devletIliskisi = yeniDevletIliski;
-    return {
-      ok: true,
-      player: full,
-      effect: {
-        type: "job",
-        isAdi: job.isAdi,
-        netKazanc: job.netKazanc,
-        icraat: job.icraat,
-        puan: job.puan,
-        gorselKey: job.gorselKey,
-        devletDusus,
-        yeniDevletIliski,
-      },
-    };
+    const sonuc = await jobBaslat(db, userId, player, key);
+    if (!sonuc.ok) return sonuc;
+    player = await loadPlayer(db, userId);
+    const full = await aksiyonOyuncuYaniti(db, userId, player, sonuc.gorevSonuc);
+    if (sonuc.yeniDevletIliski != null) full.devletIliskisi = sonuc.yeniDevletIliski;
+    return { ok: true, player: full, effect: sonuc.effect };
+  }
+
+  if (action === "job_olay_sonuc") {
+    const hapis = await hapisKontrol(db, userId);
+    if (!hapis.ok) return hapis;
+    const sonuc = await jobOlaySonuc(db, userId, player, {
+      savunuldu: extra.savunuldu === true,
+      olayId: extra.olayId || key,
+    });
+    if (!sonuc.ok) return sonuc;
+    player = await loadPlayer(db, userId);
+    const full = await aksiyonOyuncuYaniti(db, userId, player, sonuc.gorevSonuc);
+    if (sonuc.yeniDevletIliski != null) full.devletIliskisi = sonuc.yeniDevletIliski;
+    return { ok: true, player: full, effect: sonuc.effect };
   }
 
   if (action === "liman_cok") {

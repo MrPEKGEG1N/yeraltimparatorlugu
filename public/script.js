@@ -553,7 +553,7 @@ async function sunucuAksiyon(action, key, adet, extra) {
 // ========================
 // GÖRSELLER — yerel (/public/images)
 // ========================
-var GORSEL_VERSIYON = '125';
+var GORSEL_VERSIYON = '126';
 var profilLiderlikOyunculari = [];
 var profilAktifSekme = 'karakter';
 var oyuncuYetenekler = null;
@@ -706,7 +706,8 @@ var isGorselleri = {
 };
 
 var ozelGorseller = {
-  catisma: yerelGorselPng('ozel', 'kavga')
+  catisma: yerelGorselPng('ozel', 'sokak-kavgasi'),
+  sokakKavgasi: yerelGorselPng('ozel', 'sokak-kavgasi')
 };
 
 var mafyaIsGorseller = {
@@ -1220,6 +1221,125 @@ document.addEventListener('yi:langchange', function () {
 function pencereKapat() {
   document.getElementById('soygunModal').classList.remove('acik');
 }
+
+var aktifJobOlay = null;
+var jobOlaySureTimer = null;
+
+function jobOlayModalKapat() {
+  var modal = document.getElementById('jobOlayModal');
+  if (modal) modal.classList.remove('acik');
+  if (jobOlaySureTimer) {
+    clearInterval(jobOlaySureTimer);
+    jobOlaySureTimer = null;
+  }
+}
+
+function jobOlayMetinleriGuncelle() {
+  var uyari = document.querySelector('#jobOlayModal .job-olay-uyari');
+  if (uyari) uyari.textContent = t('game.job.event.ohNo');
+  var baslik = document.getElementById('jobOlayBaslik');
+  if (baslik) baslik.textContent = t('game.job.event.streetFightTitle');
+  var acik = document.getElementById('jobOlayAciklama');
+  if (acik) acik.textContent = t('game.job.event.streetFightDesc');
+  var btn = document.getElementById('jobOlaySavunBtn');
+  if (btn && !btn.disabled) btn.textContent = t('game.job.event.defendBtn');
+}
+
+function jobOlaySureGuncelle() {
+  if (!aktifJobOlay) return;
+  var kalanMs = aktifJobOlay.bitisTs - Date.now();
+  var kalanSn = Math.max(0, Math.ceil(kalanMs / 1000));
+  var dolgu = document.getElementById('jobOlaySureDolgu');
+  var metin = document.getElementById('jobOlaySureMetin');
+  var oran = Math.max(0, Math.min(1, kalanMs / (aktifJobOlay.sureSn * 1000)));
+  if (dolgu) dolgu.style.width = (oran * 100) + '%';
+  if (metin) {
+    metin.textContent = String(kalanSn);
+    if (kalanSn <= 5) metin.classList.add('job-olay-sure-metin--acil');
+    else metin.classList.remove('job-olay-sure-metin--acil');
+  }
+  if (kalanMs <= 0) jobOlaySonucGonder(false);
+}
+
+function jobOlayModalAc(ef) {
+  aktifJobOlay = {
+    olayId: ef.olayId,
+    bitisTs: ef.bitisTs,
+    sureSn: ef.sureSn || 30,
+    gorselKey: ef.gorselKey,
+    isAdi: ef.isAdi,
+    netKazanc: ef.netKazanc
+  };
+  sesCal('saldiri');
+  var resim = document.getElementById('jobOlayResim');
+  if (resim) {
+    resim.src = ozelGorseller.sokakKavgasi || ozelGorseller.catisma || FALLBACK;
+    resim.onerror = function() { imgFallback(resim); };
+  }
+  var btn = document.getElementById('jobOlaySavunBtn');
+  if (btn) {
+    btn.disabled = false;
+    btn.textContent = t('game.job.event.defendBtn');
+  }
+  jobOlayMetinleriGuncelle();
+  jobOlaySureGuncelle();
+  document.getElementById('jobOlayModal').classList.add('acik');
+  if (jobOlaySureTimer) clearInterval(jobOlaySureTimer);
+  jobOlaySureTimer = setInterval(jobOlaySureGuncelle, 100);
+  toast(t('game.job.event.extraAction'), 'uyari');
+}
+
+async function jobOlaySonucGonder(savunuldu) {
+  if (!aktifJobOlay || aktifJobOlay.bekliyor) return;
+  aktifJobOlay.bekliyor = true;
+  var olayId = aktifJobOlay.olayId;
+  var btn = document.getElementById('jobOlaySavunBtn');
+  if (btn) btn.disabled = true;
+  if (jobOlaySureTimer) {
+    clearInterval(jobOlaySureTimer);
+    jobOlaySureTimer = null;
+  }
+  var ef = await sunucuAksiyon('job_olay_sonuc', olayId, null, {
+    savunuldu: savunuldu,
+    olayId: olayId
+  });
+  jobOlayModalKapat();
+  aktifJobOlay = null;
+  if (!ef) return;
+  if (ef.savunuldu) {
+    toast(t('game.job.event.defendSuccess'), 'basari');
+  } else if (ef.paraKaybi > 0) {
+    toast(t('game.job.event.defendFail', { kayip: fmt(ef.paraKaybi) }), 'hata');
+  }
+  isTamamlaPencereAc(ef);
+}
+
+function jobOlaySavun() {
+  if (!aktifJobOlay || aktifJobOlay.bekliyor) return;
+  if (Date.now() > aktifJobOlay.bitisTs) return;
+  jobOlaySonucGonder(true);
+}
+
+function isTamamlaPencereAc(ef) {
+  pencereAc(
+    ef.gorselKey,
+    ef.isAdi,
+    ef.netKazanc,
+    ef.icraat,
+    isGorselleri[ef.gorselKey] || FALLBACK,
+    ef.devletDusus,
+    ef.yeniDevletIliski,
+    ef.puan
+  );
+  if (ef.devletDusus) {
+    toast(t('game.toast.lawyerRelationDrop', { points: ef.devletDusus }), 'uyari');
+  }
+}
+
+document.addEventListener('yi:langchange', function () {
+  var modal = document.getElementById('jobOlayModal');
+  if (modal && modal.classList.contains('acik') && aktifJobOlay) jobOlayMetinleriGuncelle();
+});
 
 var FALLBACK = isGorselleri.varsayilan;
 
@@ -5757,10 +5877,11 @@ async function adamKirala(key) {
 async function isYap(key) {
   var ef = await sunucuAksiyon('job', key);
   if (!ef) return;
-  pencereAc(ef.gorselKey, ef.isAdi, ef.netKazanc, ef.icraat, isGorselleri[ef.gorselKey] || FALLBACK, ef.devletDusus, ef.yeniDevletIliski, ef.puan);
-  if (ef.devletDusus) {
-    toast(t('game.toast.lawyerRelationDrop', { points: ef.devletDusus }), 'uyari');
+  if (ef.type === 'job_olay') {
+    jobOlayModalAc(ef);
+    return;
   }
+  isTamamlaPencereAc(ef);
 }
 
 async function limanCok(id) {

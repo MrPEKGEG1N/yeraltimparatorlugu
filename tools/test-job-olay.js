@@ -1,0 +1,69 @@
+#!/usr/bin/env node
+/**
+ * İcraat işi olay akışı — %60 direkt, %40 sokak kavgası + savun/timeout.
+ */
+const path = require("path");
+const fs = require("fs");
+const { initDatabase } = require("../db/database");
+const { loadPlayer } = require("../game/playerService");
+const { jobOlaySonuc } = require("../game/jobEventService");
+const { run } = require("../db/database");
+
+const ROOT = path.join(__dirname, "..");
+const TEST_DB = path.join(ROOT, "tools", ".job-olay-test.db");
+
+async function main() {
+  if (fs.existsSync(TEST_DB)) fs.unlinkSync(TEST_DB);
+  process.env.DATABASE_PATH = TEST_DB;
+  process.env.NODE_ENV = "test";
+
+  const db = await initDatabase();
+  const userId = 1;
+
+  await db.run(
+    `INSERT OR IGNORE INTO users (id, username, password_hash, reis_adi) VALUES (1, 'jobtest', 'x', 'JobTest')`
+  );
+  await db.run(
+    `INSERT OR IGNORE INTO players (user_id, kasa, puan, guc, icraat, devlet_iliskisi) VALUES (1, 10000, 100, 5000, 20, 80)`
+  );
+
+  let player = await loadPlayer(db, userId);
+  const baslangicKasa = player.kasa;
+
+  // Zorla olay yolu: birkaç deneme veya mock — burada direkt jobOlaySonuc testi için
+  // önce jobBaslat ile olay tetiklemek için random'u bypass edemiyoruz; manuel session yazalım
+  const { run: _r, get } = require("../db/database");
+  const session = {
+    olayId: "test123",
+    jobKey: "market",
+    olayTipi: "sokak_kavgasi",
+    basladiMs: Date.now(),
+    bitisMs: Date.now() + 30000,
+    devletDusus: 7,
+    icraatToplam: 2,
+  };
+  await run(db, `UPDATE players SET job_olay_json = ? WHERE user_id = ?`, [
+    JSON.stringify(session),
+    userId,
+  ]);
+
+  player = await loadPlayer(db, userId);
+  const savun = await jobOlaySonuc(db, userId, player, {
+    savunuldu: true,
+    olayId: "test123",
+  });
+  if (!savun.ok) throw new Error(savun.error);
+  if (!savun.effect.savunuldu) throw new Error("savunuldu bekleniyordu");
+  if (savun.effect.bonusPuan < 1) throw new Error("bonus puan yok");
+
+  player = await loadPlayer(db, userId);
+  if (player.kasa <= baslangicKasa) throw new Error("kasa artmadi");
+
+  console.log("OK job olay savun testi gecti");
+  console.log(JSON.stringify({ kasa: player.kasa, puan: player.puan, effect: savun.effect }, null, 2));
+}
+
+main().catch((e) => {
+  console.error("FAIL", e);
+  process.exit(1);
+});
