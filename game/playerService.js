@@ -129,6 +129,7 @@ const {
   gardiyanRusveti,
   elmaslaCik,
   oyuncuHapistenCikar,
+  oyuncuHapistenElmaslaCikar,
 } = require("./hapishaneService");
 const { okunmamisBildirimSayisi, ensureTercihler } = require("./bildirimService");
 
@@ -608,6 +609,22 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
         type: "hapishane_kurtar",
         mesaj: sonuc.mesaj,
         odenen: sonuc.odenen,
+        hedefAdi: sonuc.hedefAdi,
+      },
+    };
+  }
+
+  if (action === "hapishane_oyuncu_elmas_cikar") {
+    const sonuc = await oyuncuHapistenElmaslaCikar(db, userId, player, extra.hedef || key);
+    if (!sonuc.ok) return sonuc;
+    player = await loadPlayer(db, userId);
+    return {
+      ok: true,
+      player: await publicPlayerFull(db, userId, player),
+      effect: {
+        type: "hapishane_kurtar",
+        mesaj: sonuc.mesaj,
+        harcananElmas: sonuc.harcananElmas,
         hedefAdi: sonuc.hedefAdi,
       },
     };

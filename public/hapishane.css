@@ -7,19 +7,31 @@
 
 #masterLayout #anaIcerik .hp-cerceve {
   position: relative;
-  width: min(860px, 100%);
-  border: 2px solid rgba(120, 120, 130, 0.55);
-  border-radius: 6px;
-  background: linear-gradient(175deg, rgba(18, 18, 22, 0.98) 0%, rgba(6, 6, 8, 0.99) 100%);
+  width: min(880px, 100%);
+  border: 2px solid rgba(110, 118, 130, 0.55);
+  border-radius: 8px;
+  background: linear-gradient(175deg, rgba(16, 18, 24, 0.99) 0%, rgba(4, 5, 8, 0.99) 100%);
   box-shadow:
-    0 22px 60px rgba(0, 0, 0, 0.78),
-    inset 0 0 90px rgba(0, 0, 0, 0.4);
+    0 24px 64px rgba(0, 0, 0, 0.82),
+    inset 0 0 100px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(200, 210, 220, 0.06);
   overflow: hidden;
+  isolation: isolate;
+}
+
+#masterLayout #anaIcerik .hp-cerceve::before {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  border: 1px solid rgba(140, 150, 165, 0.18);
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 0;
 }
 
 #masterLayout #anaIcerik .hp-banner {
   position: relative;
-  height: clamp(140px, 24vw, 190px);
+  height: clamp(150px, 26vw, 210px);
   overflow: hidden;
 }
 
@@ -28,67 +40,125 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center 40%;
-  filter: saturate(0.55) contrast(1.1);
+  object-position: center 38%;
+  filter: saturate(0.5) contrast(1.12) brightness(0.88);
 }
 
 #masterLayout #anaIcerik .hp-banner-ortu {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(8,8,12,0.88) 100%);
+  background: linear-gradient(
+    180deg,
+    rgba(8, 10, 14, 0.1) 0%,
+    rgba(8, 10, 14, 0.5) 55%,
+    rgba(4, 5, 8, 0.98) 100%
+  );
 }
 
 #masterLayout #anaIcerik .hp-baslik-wrap {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 12px;
-  padding: 0 18px;
+  bottom: 0;
   z-index: 2;
+  padding: 16px 22px 18px;
+  text-align: center;
 }
 
 #masterLayout #anaIcerik .hp-baslik-wrap h2 {
-  margin: 0;
-  font-family: 'Oswald', sans-serif;
-  font-size: clamp(22px, 4vw, 30px);
-  color: #e8e8ec;
-  letter-spacing: 0.06em;
+  margin: 0 0 6px;
+  font-family: "Cinzel", Georgia, serif;
+  font-size: clamp(20px, 3.5vw, 28px);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #e4e8ee;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.9);
+}
+
+#masterLayout #anaIcerik .hp-motto {
+  margin: 0 0 10px;
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 12px;
+  font-style: italic;
+  line-height: 1.45;
+  color: rgba(180, 190, 205, 0.88);
 }
 
 #masterLayout #anaIcerik .hp-mahkum-sayac {
-  display: inline-block;
-  margin-top: 6px;
-  padding: 4px 10px;
-  border: 1px solid rgba(200, 200, 210, 0.35);
-  border-radius: 4px;
-  font-size: 13px;
-  color: #c8c8d0;
-  background: rgba(0,0,0,0.45);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border: 1px solid rgba(160, 170, 185, 0.4);
+  border-radius: 20px;
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: #c8d0dc;
+  background: rgba(0, 0, 0, 0.5);
 }
 
 #masterLayout #anaIcerik .hp-govde {
-  padding: 16px 18px 22px;
+  position: relative;
+  z-index: 1;
+  padding: 18px 20px 24px;
 }
 
 #masterLayout #anaIcerik .hp-uyari {
-  border: 1px solid rgba(192, 57, 43, 0.45);
-  background: rgba(192, 57, 43, 0.12);
-  color: #f0b0a8;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  border: 1px solid rgba(192, 57, 43, 0.42);
+  background: rgba(192, 57, 43, 0.1);
+  color: #f0b8b0;
   padding: 12px 14px;
-  border-radius: 4px;
+  border-radius: 6px;
+  font-family: "Roboto Condensed", sans-serif;
   font-size: 13px;
   line-height: 1.55;
   margin-bottom: 16px;
 }
 
+#masterLayout #anaIcerik .hp-uyari-ikon {
+  flex-shrink: 0;
+  font-size: 18px;
+  line-height: 1.2;
+}
+
 #masterLayout #anaIcerik .hp-durum {
-  border: 1px solid rgba(184, 148, 42, 0.4);
-  background: rgba(184, 148, 42, 0.08);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgba(184, 148, 42, 0.45);
+  background: linear-gradient(90deg, rgba(184, 148, 42, 0.12) 0%, rgba(0, 0, 0, 0.2) 100%);
   color: #f1d592;
-  padding: 12px 14px;
-  border-radius: 4px;
+  padding: 14px 16px;
+  border-radius: 6px;
   margin-bottom: 16px;
+  font-family: "Roboto Condensed", sans-serif;
   font-size: 14px;
+  font-weight: 600;
+}
+
+#masterLayout #anaIcerik .hp-durum-saat {
+  margin-left: auto;
+  font-family: "Oswald", sans-serif;
+  font-size: 22px;
+  letter-spacing: 0.08em;
+  color: #ffd86a;
+}
+
+#masterLayout #anaIcerik .hp-serbest {
+  text-align: center;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  border: 1px solid rgba(100, 130, 100, 0.35);
+  border-radius: 6px;
+  background: rgba(40, 70, 45, 0.15);
+  color: #a8c8b0;
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 13px;
 }
 
 #masterLayout #anaIcerik .hp-paneller {
@@ -103,103 +173,215 @@
 }
 
 #masterLayout #anaIcerik .hp-panel {
-  border: 1px solid rgba(120, 120, 130, 0.35);
-  border-radius: 5px;
-  padding: 14px;
-  background: rgba(0,0,0,0.25);
+  border: 1px solid rgba(120, 130, 145, 0.38);
+  border-radius: 6px;
+  padding: 16px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(0, 0, 0, 0.28) 100%);
 }
 
 #masterLayout #anaIcerik .hp-panel-baslik {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 10px;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(120, 130, 145, 0.22);
+}
+
+#masterLayout #anaIcerik .hp-panel-ikon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  font-size: 18px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(140, 150, 165, 0.3);
 }
 
 #masterLayout #anaIcerik .hp-panel-baslik h3 {
   margin: 0;
-  font-family: 'Oswald', sans-serif;
+  font-family: "Oswald", sans-serif;
   font-size: 17px;
-  color: #d8d8e0;
-  letter-spacing: 0.04em;
+  color: #dce2ea;
+  letter-spacing: 0.05em;
 }
 
 #masterLayout #anaIcerik .hp-panel p {
-  margin: 0 0 10px;
-  color: #b8b8c0;
+  margin: 0 0 12px;
+  color: #a8b0bc;
+  font-family: "Roboto Condensed", sans-serif;
   font-size: 13px;
-  line-height: 1.5;
+  line-height: 1.55;
+}
+
+#masterLayout #anaIcerik .hp-bedel-satir {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 215, 0, 0.18);
+}
+
+#masterLayout #anaIcerik .hp-bedel-etiket {
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 12px;
+  color: #9098a8;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 #masterLayout #anaIcerik .hp-bedel {
-  font-family: 'Oswald', sans-serif;
+  font-family: "Oswald", sans-serif;
   font-size: 20px;
   color: #ffd700;
-  margin-bottom: 10px;
+}
+
+#masterLayout #anaIcerik .hp-bedel--elmas {
+  color: #c9a0ff;
 }
 
 #masterLayout #anaIcerik .hp-alan {
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 #masterLayout #anaIcerik .hp-alan label {
   display: block;
-  font-size: 12px;
-  color: #999;
-  margin-bottom: 4px;
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #888;
+  margin-bottom: 6px;
 }
 
 #masterLayout #anaIcerik .hp-input {
   width: 100%;
   box-sizing: border-box;
-  padding: 10px 12px;
-  border: 1px solid rgba(140, 140, 150, 0.45);
-  border-radius: 4px;
-  background: rgba(0,0,0,0.45);
+  padding: 11px 13px;
+  border: 1px solid rgba(130, 140, 155, 0.45);
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.5);
   color: #eee;
+  font-family: "Roboto Condensed", sans-serif;
   font-size: 14px;
+  transition: border-color 0.15s;
+}
+
+#masterLayout #anaIcerik .hp-input:focus {
+  outline: none;
+  border-color: rgba(180, 190, 205, 0.65);
+}
+
+#masterLayout #anaIcerik .hp-btn-grup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 #masterLayout #anaIcerik .hp-btn {
   display: block;
   width: 100%;
-  margin-top: 8px;
   padding: 12px 14px;
-  border: 1px solid rgba(184, 148, 42, 0.55);
-  border-radius: 4px;
-  background: linear-gradient(180deg, #4a4a52 0%, #2a2a32 100%);
-  color: #f5f5f8;
-  font-family: 'Oswald', sans-serif;
-  font-size: 15px;
+  border: 1px solid rgba(150, 160, 175, 0.5);
+  border-radius: 5px;
+  background: linear-gradient(180deg, #3a3e48 0%, #22262e 100%);
+  color: #f0f2f6;
+  font-family: "Oswald", sans-serif;
+  font-size: 14px;
   letter-spacing: 0.05em;
   cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
 }
 
 #masterLayout #anaIcerik .hp-btn:hover {
-  border-color: #ffd700;
-  color: #ffd700;
+  border-color: #c8d0dc;
+  color: #fff;
 }
 
 #masterLayout #anaIcerik .hp-btn--elmas {
-  background: linear-gradient(180deg, #5b3a8c 0%, #3a2260 100%);
-  border-color: #b794f6;
+  background: linear-gradient(180deg, #4a3270 0%, #2a1a48 100%);
+  border-color: #9b7ed4;
+}
+
+#masterLayout #anaIcerik .hp-btn--elmas:hover {
+  border-color: #d4b8ff;
+  color: #e8d4ff;
 }
 
 #masterLayout #anaIcerik .hp-btn--kurtar {
-  background: linear-gradient(180deg, #2d5a3d 0%, #1a3a28 100%);
-  border-color: #6fcf97;
+  background: linear-gradient(180deg, #2a5a3a 0%, #163020 100%);
+  border-color: #5cb87a;
 }
 
-#masterLayout #anaIcerik .hp-hedef-bilgi {
-  margin-top: 8px;
-  padding: 8px 10px;
-  border-radius: 4px;
-  background: rgba(255, 215, 0, 0.08);
-  border: 1px solid rgba(255, 215, 0, 0.25);
-  color: #f1d592;
-  font-size: 13px;
+#masterLayout #anaIcerik .hp-btn--kurtar:hover {
+  border-color: #8ee0a8;
+  color: #d0ffe0;
 }
 
-#masterLayout #anaIcerik .hp-hedef-bilgi.gizli {
+#masterLayout #anaIcerik .hp-btn--sorgu {
+  margin-top: 4px;
+}
+
+#masterLayout #anaIcerik .hp-hedef-kart {
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(140, 150, 165, 0.3);
+}
+
+#masterLayout #anaIcerik .hp-hedef-kart.gizli {
   display: none;
+}
+
+#masterLayout #anaIcerik .hp-hedef-ad {
+  margin-bottom: 12px;
+  font-family: "Oswald", sans-serif;
+  font-size: 16px;
+  color: #dce2ea;
+  letter-spacing: 0.04em;
+}
+
+#masterLayout #anaIcerik .hp-hedef-ad span {
+  color: #ffd86a;
+}
+
+#masterLayout #anaIcerik .hp-hedef-secenekler {
+  display: grid;
+  gap: 10px;
+}
+
+@media (min-width: 520px) {
+  #masterLayout #anaIcerik .hp-hedef-secenekler {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+#masterLayout #anaIcerik .hp-secenek {
+  padding: 12px;
+  border-radius: 5px;
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  background: rgba(255, 215, 0, 0.04);
+}
+
+#masterLayout #anaIcerik .hp-secenek--elmas {
+  border-color: rgba(155, 126, 212, 0.35);
+  background: rgba(90, 60, 140, 0.1);
+}
+
+#masterLayout #anaIcerik .hp-secenek .hp-bedel {
+  display: block;
+  margin: 6px 0 10px;
+  font-size: 18px;
+}
+
+#masterLayout #anaIcerik .hp-secenek .hp-btn {
+  margin-top: 0;
 }

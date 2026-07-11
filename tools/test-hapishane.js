@@ -7,8 +7,10 @@ const {
   hapseGir,
   gardiyanRusveti,
   oyuncuHapistenCikar,
+  oyuncuHapistenElmaslaCikar,
   hapishanePanel,
   hapisKontrol,
+  ELMAS_CIKIS,
 } = require("../game/hapishaneService");
 const { oyuncuSaatlikKazanc } = require("../game/saatlikGelirService");
 
@@ -55,6 +57,12 @@ async function main() {
   const kurtar = await oyuncuHapistenCikar(db, U1, kurtarici, "Hap2");
   if (!kurtar.ok) throw new Error(kurtar.error);
   if (kurtar.odenen !== hedefBedel) throw new Error("kurtarma bedeli yanlis");
+
+  await hapseGir(db, U2);
+  kurtarici.elmas = 20;
+  const elmasKurtar = await oyuncuHapistenElmaslaCikar(db, U1, kurtarici, "Hap2");
+  if (!elmasKurtar.ok) throw new Error(elmasKurtar.error);
+  if (elmasKurtar.harcananElmas !== ELMAS_CIKIS) throw new Error("elmas kurtarma bedeli yanlis");
 
   const panel = await hapishanePanel(db, U1);
   if (panel.mahkumSayisi < 0) throw new Error("panel hatali");

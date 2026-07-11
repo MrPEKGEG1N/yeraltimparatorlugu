@@ -1,7 +1,7 @@
 const { run, get } = require("../db/database");
 
-const HAPSE_GIR_ESIK = 5;
-const AVUKAT_ILISKI_MAX = 600;
+const HAPSE_GIR_ESIK = 15;
+const AVUKAT_ILISKI_MAX = 2000;
 const RUSVET_ARTIS_MAX = 50;
 const RUSVET_MAX = 10_000_000_000;
 

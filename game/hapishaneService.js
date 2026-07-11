@@ -12,6 +12,7 @@ const HAPIS_IZINLI_AKSIYONLAR = new Set([
   "hapishane_rusvet_gardiyan",
   "hapishane_elmas_cik",
   "hapishane_oyuncu_cikar",
+  "hapishane_oyuncu_elmas_cikar",
   "hapishane_hedef_bilgi",
 ]);
 
@@ -175,6 +176,7 @@ async function hapishaneHedefBilgi(db, userId, hedefAd) {
       userId: hedef.user_id,
       oyuncuAdi: hedef.reis_adi || hedef.username,
       rusvetBedeli,
+      elmasBedel: ELMAS_CIKIS,
     },
   };
 }
@@ -258,6 +260,43 @@ async function oyuncuHapistenCikar(db, userId, player, hedefAd) {
   };
 }
 
+async function oyuncuHapistenElmaslaCikar(db, userId, player, hedefAd) {
+  const hapis = await hapisKontrol(db, userId);
+  if (!hapis.ok) return hapis;
+
+  const hedef = await kullaniciAdindanBul(db, hedefAd);
+  if (!hedef) return { ok: false, error: "Oyuncu bulunamadı." };
+  if (hedef.user_id === userId) {
+    return { ok: false, error: "Kendini bu bölümden çıkaramazsın." };
+  }
+  if (!(await hapisAktifMi(db, hedef.user_id))) {
+    return { ok: false, error: "Bu oyuncu hapiste değil." };
+  }
+
+  const elmas = player.elmas || 0;
+  if (elmas < ELMAS_CIKIS) {
+    return {
+      ok: false,
+      error: `Yeterli elmasın yok! ${ELMAS_CIKIS} elmas gerekir.`,
+    };
+  }
+
+  await run(db, `UPDATE players SET elmas = elmas - ? WHERE user_id = ? AND elmas >= ?`, [
+    ELMAS_CIKIS,
+    userId,
+    ELMAS_CIKIS,
+  ]);
+  await hapistenCikar(db, hedef.user_id);
+  player.elmas = elmas - ELMAS_CIKIS;
+
+  return {
+    ok: true,
+    harcananElmas: ELMAS_CIKIS,
+    hedefAdi: hedef.reis_adi || hedef.username,
+    mesaj: `${hedef.reis_adi || hedef.username} elmas karşılığında hapishaneden çıkarıldı.`,
+  };
+}
+
 module.exports = {
   HAPIS_SURE_SN,
   ELMAS_CIKIS,
@@ -276,4 +315,5 @@ module.exports = {
   gardiyanRusveti,
   elmaslaCik,
   oyuncuHapistenCikar,
+  oyuncuHapistenElmaslaCikar,
 };
