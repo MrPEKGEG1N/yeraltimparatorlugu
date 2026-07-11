@@ -225,6 +225,14 @@ html, body {
   margin-bottom: 4px;
 }
 
+.admin-sifre-sifir {
+  margin: 10px 0 14px;
+  padding: 12px;
+  border: 1px solid rgba(248, 113, 113, 0.35);
+  border-radius: 8px;
+  background: rgba(127, 29, 29, 0.12);
+}
+
 .admin-input {
   width: 100%;
   padding: 10px 14px;

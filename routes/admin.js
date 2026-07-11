@@ -12,6 +12,7 @@ const {
   banPlayer,
   unbanPlayer,
   kickPlayer,
+  resetPlayerPassword,
   updatePlayerStats,
   updatePlayerFull,
   updatePlayerMekanlar,
@@ -291,6 +292,22 @@ function createAdminRouter(db) {
     } catch (err) {
       console.error(err);
       res.status(500).json({ ok: false, error: "Oturum sonlandırma başarısız." });
+    }
+  });
+
+  router.post("/oyuncular/:id/password", async (req, res) => {
+    try {
+      const result = await resetPlayerPassword(
+        db,
+        req.user.id,
+        parseInt(req.params.id, 10),
+        req.body?.yeniSifre || req.body?.password || ""
+      );
+      if (!result.ok) return res.status(400).json(result);
+      res.json(result);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ ok: false, error: "Şifre sıfırlanamadı." });
     }
   });
 

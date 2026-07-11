@@ -1,4 +1,5 @@
 const { run, get, all } = require("../db/database");
+const bcrypt = require("bcryptjs");
 const { logSecurityEvent } = require("./securityService");
 const { listCanliAktivite, listOyuncuAktiviteLog, mapAktiviteAlanlari } = require("./aktiviteService");
 const { SECTOR_KEYS, MEKANLAR } = require("./sectorsCatalog");
@@ -16,6 +17,7 @@ const { clampAvukatIliskisi, AVUKAT_ILISKI_MAX } = require("./devletService");
 const { syncBonusGuc } = require("./bonusGucService");
 
 const SEKTOR_ETIKET = { yeralti: "Yeraltı", silah: "Silah", paket: "Paket" };
+const PASS_MIN = 6;
 
 function listMekanSablonu() {
   const liste = [];
@@ -700,6 +702,36 @@ async function kickPlayer(db, adminId, userId) {
   await invalidateSessions(db, userId);
   await logSecurityEvent(db, userId, "admin_kick", { adminId });
   return { ok: true, mesaj: "Aktif oturum sonlandırıldı." };
+}
+
+async function resetPlayerPassword(db, adminId, userId, yeniSifre) {
+  const pwd = String(yeniSifre || "");
+  if (pwd.length < PASS_MIN) {
+    return { ok: false, error: `Şifre en az ${PASS_MIN} karakter olmalı.` };
+  }
+
+  const target = await get(db, `SELECT id, username, is_admin FROM users WHERE id = ?`, [userId]);
+  if (!target) return { ok: false, error: "Oyuncu bulunamadı." };
+  if (target.is_admin && userId !== adminId) {
+    return { ok: false, error: "Başka yönetici hesabının şifresi değiştirilemez." };
+  }
+
+  const hash = await bcrypt.hash(pwd, 10);
+  await run(
+    db,
+    `UPDATE users SET password_hash = ?, failed_login_count = 0 WHERE id = ?`,
+    [hash, userId]
+  );
+  await invalidateSessions(db, userId);
+  await logSecurityEvent(db, userId, "admin_password_reset", {
+    adminId,
+    username: target.username,
+  });
+
+  return {
+    ok: true,
+    mesaj: `@${target.username} için şifre güncellendi. Aktif oturum sonlandırıldı.`,
+  };
 }
 
 async function updatePlayerMekanlar(db, adminId, userId, items) {
@@ -1447,6 +1479,7 @@ module.exports = {
   banPlayer,
   unbanPlayer,
   kickPlayer,
+  resetPlayerPassword,
   updatePlayerStats,
   updatePlayerFull,
   updatePlayerMekanlar,

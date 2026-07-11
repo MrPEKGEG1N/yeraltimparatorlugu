@@ -476,6 +476,12 @@
         inputText("kayitUlkesi", o.kayitUlkesi || "", "Kayıt ülkesi", { maxlength: 16 }) +
         inputText("oyunDili", o.oyunDili || "", "Oyun dili", { maxlength: 16 }) +
         "</div>" +
+        '<div class="admin-sifre-sifir">' +
+        '<label for="adminYeniSifre" style="display:block;font-size:11px;color:#9ca3af;margin-bottom:4px">Yeni şifre (en az 6 karakter)</label>' +
+        '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">' +
+        '<input type="password" id="adminYeniSifre" class="admin-input" minlength="6" autocomplete="new-password" placeholder="••••••" style="flex:1;min-width:180px">' +
+        '<button type="button" id="adminSifreSifirBtn" class="admin-btn admin-btn-kirmizi">Şifreyi Sıfırla</button>' +
+        "</div></div>" +
         inputCheck("isAdmin", o.isAdmin, "Yönetici hesabı") +
         sectionTitle("Temel istatistikler") +
         '<div class="detay-grid" style="grid-template-columns:repeat(4,1fr)">' +
@@ -571,6 +577,12 @@
         indirBtn.addEventListener("click", function () {
           var safeName = String(o.username || id).replace(/[^a-zA-Z0-9_-]/g, "_");
           indirDosya("/api/admin/oyuncular/" + id + "/export", "oyuncu-" + safeName + "-" + id + ".json");
+        });
+      }
+      var sifreBtn = document.getElementById("adminSifreSifirBtn");
+      if (sifreBtn) {
+        sifreBtn.addEventListener("click", function () {
+          adminSifreSifir(id, o.username || "");
         });
       }
       } catch (renderErr) {
@@ -729,6 +741,24 @@
         oyuncuAra();
       }
     }
+  }
+
+  function adminSifreSifir(id, username) {
+    var input = document.getElementById("adminYeniSifre");
+    var yeniSifre = input ? String(input.value || "") : "";
+    if (yeniSifre.length < 6) {
+      toast("Şifre en az 6 karakter olmalı.", true);
+      return;
+    }
+    var etiket = username ? "@" + username : "ID " + id;
+    if (!confirm(etiket + " için şifre sıfırlansın mı? Aktif oturum kapanır.")) return;
+    api("/api/admin/oyuncular/" + id + "/password", {
+      method: "POST",
+      body: { yeniSifre: yeniSifre },
+    }).then(function (r) {
+      toast(r.data.mesaj || r.data.error || "İşlem tamam", !r.ok);
+      if (r.ok && input) input.value = "";
+    });
   }
 
   function yukleMulti() {
