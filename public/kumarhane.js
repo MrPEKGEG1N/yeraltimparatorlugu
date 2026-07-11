@@ -927,6 +927,28 @@ function kumarhanePiyangoBiletKartHTML(b) {
   return html;
 }
 
+function kumarhanePiyangoJackpotDetayInner(p) {
+  var devreden = p.devredenOdul || 0;
+  var donem = p.donemOdul || 0;
+  if (devreden > 0) {
+    return '<span class="km-py-jackpot-devir">' + escHtml(t('game.kumarhane.lotteryRollover', { n: fmt(devreden) })) + '</span>'
+      + '<span class="km-py-jackpot-donem">+' + escHtml(t('game.kumarhane.lotteryPeriodAdd', { n: fmt(donem) })) + '</span>';
+  }
+  if (donem > 0) {
+    return '<span class="km-py-jackpot-not">' + escHtml(t('game.kumarhane.lotteryPrizeNote')) + '</span>';
+  }
+  return '';
+}
+
+function kumarhanePiyangoJackpotGuncelle() {
+  var p = kumarhanePanelVeri && kumarhanePanelVeri.piyango;
+  if (!p) return;
+  var tutarEl = document.getElementById('kmPiyangoJackpotTutar');
+  var detayEl = document.getElementById('kmPiyangoJackpotDetay');
+  if (tutarEl) tutarEl.innerHTML = fmt(p.buyukOdul || 0) + '<small>çip</small>';
+  if (detayEl) detayEl.innerHTML = kumarhanePiyangoJackpotDetayInner(p);
+}
+
 function kumarhanePiyangoHTML() {
   var p = (kumarhanePanelVeri && kumarhanePanelVeri.piyango) || {};
   var maxBilet = p.maxBilet || 5;
@@ -948,7 +970,8 @@ function kumarhanePiyangoHTML() {
     + '<div class="km-py-jackpot-satir">'
     + '<div class="km-py-jackpot">'
     + '<span class="km-py-jackpot-etiket">' + escHtml(t('game.kumarhane.lotteryPrize')) + '</span>'
-    + '<div class="km-py-jackpot-tutar">' + fmt(p.buyukOdul || 0) + '<small>çip</small></div>'
+    + '<div class="km-py-jackpot-tutar" id="kmPiyangoJackpotTutar">' + fmt(p.buyukOdul || 0) + '<small>çip</small></div>'
+    + '<div class="km-py-jackpot-detay" id="kmPiyangoJackpotDetay">' + kumarhanePiyangoJackpotDetayInner(p) + '</div>'
     + '</div>'
     + '<div class="km-py-sayac-kutu">'
     + '<span class="km-py-sayac-etiket">' + escHtml(t('game.kumarhane.lotteryDrawIn')) + '</span>'
@@ -1023,7 +1046,11 @@ function kumarhanePiyangoHTML() {
       });
       html += '</ul>';
     } else {
-      html += '<p class="km-py-bos-sonuc">' + escHtml(t('game.kumarhane.lotteryNoWinner')) + '</p>';
+      html += '<p class="km-py-bos-sonuc">' + escHtml(t('game.kumarhane.lotteryNoWinner'));
+      if ((p.sonCekilis.devredenOdul || 0) > 0) {
+        html += ' ' + escHtml(t('game.kumarhane.lotteryRolloverResult', { n: fmt(p.sonCekilis.devredenOdul) }));
+      }
+      html += '</p>';
     }
     html += '</div>';
   }

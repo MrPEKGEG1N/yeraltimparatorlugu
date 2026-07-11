@@ -22,6 +22,41 @@ function havuzOdulHesapla(biletAdet) {
   return { havuzToplam, buyukOdul };
 }
 
+async function jackpotBirikimGetir(db) {
+  await ensurePiyangoTables(db);
+  const row = await get(db, `SELECT jackpot_birikim FROM kumarhane_piyango_meta WHERE id = 1`);
+  return row?.jackpot_birikim || 0;
+}
+
+async function jackpotBirikimAyarla(db, miktar) {
+  await ensurePiyangoTables(db);
+  const val = Math.max(0, Math.floor(miktar || 0));
+  await run(
+    db,
+    `INSERT INTO kumarhane_piyango_meta (id, jackpot_birikim) VALUES (1, ?)
+     ON CONFLICT(id) DO UPDATE SET jackpot_birikim = ?`,
+    [val, val]
+  );
+  return val;
+}
+
+async function buyukOdulToplam(db, cekilisId) {
+  const ucretli = await get(
+    db,
+    `SELECT COUNT(*) AS n FROM kumarhane_piyango_bilet WHERE cekilis_id = ? AND ucretsiz = 0`,
+    [cekilisId]
+  );
+  const { havuzToplam, buyukOdul: donemOdul } = havuzOdulHesapla(ucretli?.n || 0);
+  const devreden = await jackpotBirikimGetir(db);
+  return {
+    devreden,
+    donemHavuz: havuzToplam,
+    donemOdul,
+    buyukOdul: devreden + donemOdul,
+    havuzToplam: devreden + havuzToplam,
+  };
+}
+
 function piyangoAktifMi() {
   return process.env.NODE_ENV !== "production" || process.env.KUMARHANE_PIYANGO === "1";
 }
@@ -186,6 +221,17 @@ async function ensurePiyangoTables(db) {
   try {
     await run(db, `ALTER TABLE kumarhane_piyango_bilet ADD COLUMN ucretsiz INTEGER NOT NULL DEFAULT 0`);
   } catch (_) {}
+  await run(
+    db,
+    `CREATE TABLE IF NOT EXISTS kumarhane_piyango_meta (
+      id INTEGER PRIMARY KEY CHECK (id = 1),
+      jackpot_birikim INTEGER NOT NULL DEFAULT 0
+    )`
+  );
+  await run(
+    db,
+    `INSERT OR IGNORE INTO kumarhane_piyango_meta (id, jackpot_birikim) VALUES (1, 0)`
+  );
 }
 
 async function hakGetir(db, userId) {
@@ -274,21 +320,15 @@ async function aktifCekilisOzet(db) {
   const bitis = parseDonemAnahtari(cekilis.donem);
   if (bitis != null && Date.now() >= bitis) return null;
 
-  const ucretli = await get(
-    db,
-    `SELECT COUNT(*) AS n FROM kumarhane_piyango_bilet WHERE cekilis_id = ? AND ucretsiz = 0`,
-    [cekilis.id]
-  );
   const toplam = await get(
     db,
     `SELECT COUNT(*) AS n FROM kumarhane_piyango_bilet WHERE cekilis_id = ?`,
     [cekilis.id]
   );
-  const { havuzToplam, buyukOdul } = havuzOdulHesapla(ucretli?.n || 0);
+  const odul = await buyukOdulToplam(db, cekilis.id);
   return {
     cekilis,
-    havuzToplam,
-    buyukOdul,
+    ...odul,
     biletAdet: toplam?.n || 0,
   };
 }
@@ -302,18 +342,23 @@ async function gunlukPiyangoGazeteHaber(db) {
   const ozet = await aktifCekilisOzet(db);
   if (!ozet) return;
 
-  const { cekilis, havuzToplam, buyukOdul, biletAdet } = ozet;
+  const { cekilis, havuzToplam, buyukOdul, devreden, donemOdul, biletAdet } = ozet;
+  if (buyukOdul <= 0) return;
   if (cekilis.piyango_gazete_gun === gunKey) return;
 
   const { gazeteEkle } = require("./sehirGazeteService");
   const cekilisMetin = cekilisDonemMetni(cekilis.donem);
-  const havuzMetin = havuzToplam.toLocaleString("tr-TR");
   const odulMetin = buyukOdul.toLocaleString("tr-TR");
+  const devredenMetin = devreden.toLocaleString("tr-TR");
+  const donemMetin = donemOdul.toLocaleString("tr-TR");
+  const havuzMetin = havuzToplam.toLocaleString("tr-TR");
 
-  await gazeteEkle(
-    db,
-    `🎟️ Kumarhane Piyangosu: Büyük ödül ${odulMetin} çip! (Havuz ${havuzMetin} çip, ${biletAdet} bilet). Çekiliş ${cekilisMetin} — 6 sayının tamamını bilene.`
-  );
+  const mesaj =
+    devreden > 0
+      ? `🎟️ Kumarhane Piyangosu: Büyük ödül ${odulMetin} çip! (Devreden ${devredenMetin} + bu dönem ${donemMetin} çip, ${biletAdet} bilet). Çekiliş ${cekilisMetin} — 6 sayının tamamını bilene.`
+      : `🎟️ Kumarhane Piyangosu: Büyük ödül ${odulMetin} çip! (Havuz ${havuzMetin} çip, ${biletAdet} bilet). Çekiliş ${cekilisMetin} — 6 sayının tamamını bilene.`;
+
+  await gazeteEkle(db, mesaj);
 
   await run(db, `UPDATE kumarhane_piyango_cekilis SET piyango_gazete_gun = ? WHERE id = ?`, [
     gunKey,
@@ -321,7 +366,20 @@ async function gunlukPiyangoGazeteHaber(db) {
   ]);
 }
 
-async function piyangoGazeteHaber(db, cekilisSayilari, kazananlar, kisiBasiOdul, havuzToplam) {
+async function piyangoGazeteDevretmeHaber(db, cekilisSayilari, devredenMiktar) {
+  if (devredenMiktar <= 0) return;
+  const { gazeteEkle } = require("./sehirGazeteService");
+  const sayiMetin = cekilisSayilari.join(", ");
+  const odulMetin = devredenMiktar.toLocaleString("tr-TR");
+  const sonraki = sonrakiCekilisZamani();
+  const sonrakiMetin = cekilisDonemMetni(sonraki.donem);
+  await gazeteEkle(
+    db,
+    `🎟️ Kumarhane Piyangosu çekildi (${sayiMetin}). Kazanan çıkmadı — büyük ödül ${odulMetin} çip sonraki çekilişe devretti! (Sonraki çekiliş: ${sonrakiMetin})`
+  );
+}
+
+async function piyangoGazeteHaber(db, cekilisSayilari, kazananlar, kisiBasiOdul, toplamJackpot, devredenDahil) {
   if (!kazananlar.length || kisiBasiOdul <= 0) return;
   const isimler = [];
   for (const k of kazananlar) {
@@ -332,14 +390,16 @@ async function piyangoGazeteHaber(db, cekilisSayilari, kazananlar, kisiBasiOdul,
   const { gazeteEkle } = require("./sehirGazeteService");
   const sayiMetin = cekilisSayilari.join(", ");
   const odulMetin = kisiBasiOdul.toLocaleString("tr-TR");
-  const havuzMetin = havuzToplam.toLocaleString("tr-TR");
+  const havuzMetin = toplamJackpot.toLocaleString("tr-TR");
+  const devredenNot =
+    devredenDahil > 0 ? ` (devreden ${devredenDahil.toLocaleString("tr-TR")} çip dahil)` : "";
   const kazananMetin =
     isimler.length === 1
       ? isimler[0]
       : `${isimler.slice(0, -1).join(", ")} ve ${isimler[isimler.length - 1]}`;
   await gazeteEkle(
     db,
-    `🎟️ Kumarhane Piyangosu çekildi (${sayiMetin}). 6 sayının tamamını bilen ${kazananMetin} büyük ödülü kazandı — ${odulMetin} çip! (Havuz: ${havuzMetin} çip)`
+    `🎟️ Kumarhane Piyangosu çekildi (${sayiMetin}). 6 sayının tamamını bilen ${kazananMetin} büyük ödülü kazandı — ${odulMetin} çip! (Toplam havuz: ${havuzMetin} çip${devredenNot})`
   );
 }
 
@@ -351,6 +411,7 @@ async function cekilisTamamla(db, cekilisRow) {
   );
 
   if (!biletler.length) {
+    const devreden = await jackpotBirikimGetir(db);
     await run(
       db,
       `UPDATE kumarhane_piyango_cekilis
@@ -365,7 +426,8 @@ async function cekilisTamamla(db, cekilisRow) {
       maxEslesme: 0,
       kazananSayisi: 0,
       havuzToplam: 0,
-      buyukOdul: 0,
+      buyukOdul: devreden,
+      devreden,
       kisiBasiOdul: 0,
     };
   }
@@ -385,16 +447,16 @@ async function cekilisTamamla(db, cekilisRow) {
   });
 
   const kazananlar = skorlar.filter((s) => s.eslesme === SECIM_SAYISI);
-  const ucretliBiletSayisi = biletler.filter((b) => !b.ucretsiz).length;
-  const { havuzToplam, buyukOdul } = havuzOdulHesapla(ucretliBiletSayisi);
+  const odul = await buyukOdulToplam(db, cekilisRow.id);
+  const { devreden, donemOdul, buyukOdul, havuzToplam } = odul;
   const kisiBasiOdul = kazananlar.length ? Math.floor(buyukOdul / kazananlar.length) : 0;
   const dagitilanOdul = kisiBasiOdul * kazananlar.length;
   const kazananIdSet = new Set(kazananlar.map((k) => k.id));
 
   for (const skor of skorlar) {
-    const odul = kazananIdSet.has(skor.id) ? kisiBasiOdul : 0;
+    const odulMiktar = kazananIdSet.has(skor.id) ? kisiBasiOdul : 0;
     let teselli = 0;
-    if (odul <= 0) {
+    if (odulMiktar <= 0) {
       teselli = teselliHakHesapla(skor.sayilar, cekilisSayilari);
       if (teselli > 0) await hakEkle(db, skor.user_id, teselli);
     }
@@ -402,19 +464,28 @@ async function cekilisTamamla(db, cekilisRow) {
     await run(
       db,
       `UPDATE kumarhane_piyango_bilet SET eslesme = ?, odul = ?, teselli_hak = ? WHERE id = ?`,
-      [skor.eslesme, odul, teselli, skor.id]
+      [skor.eslesme, odulMiktar, teselli, skor.id]
     );
 
-    if (odul > 0) {
-      await chipGuncelle(db, skor.user_id, odul);
-      await logEkle(db, skor.user_id, "piyango", 0, odul, {
+    if (odulMiktar > 0) {
+      await chipGuncelle(db, skor.user_id, odulMiktar);
+      await logEkle(db, skor.user_id, "piyango", 0, odulMiktar, {
         cekilisId: cekilisRow.id,
         eslesme: skor.eslesme,
         cekilisSayilari,
         havuzToplam,
         buyukOdul,
+        devreden,
       });
     }
+  }
+
+  if (kazananlar.length) {
+    await jackpotBirikimAyarla(db, 0);
+    await piyangoGazeteHaber(db, cekilisSayilari, kazananlar, kisiBasiOdul, buyukOdul, devreden);
+  } else {
+    await jackpotBirikimAyarla(db, buyukOdul);
+    await piyangoGazeteDevretmeHaber(db, cekilisSayilari, buyukOdul);
   }
 
   await run(
@@ -422,10 +493,14 @@ async function cekilisTamamla(db, cekilisRow) {
     `UPDATE kumarhane_piyango_cekilis
      SET sayilar = ?, durum = 'tamam', kazanan_sayisi = ?, havuz_toplam = ?, odul_toplam = ?, cekilis_at = strftime('%s','now')
      WHERE id = ?`,
-    [JSON.stringify(cekilisSayilari), kazananlar.length, havuzToplam, dagitilanOdul, cekilisRow.id]
+    [
+      JSON.stringify(cekilisSayilari),
+      kazananlar.length,
+      havuzToplam,
+      kazananlar.length ? dagitilanOdul : buyukOdul,
+      cekilisRow.id,
+    ]
   );
-
-  await piyangoGazeteHaber(db, cekilisSayilari, kazananlar, kisiBasiOdul, havuzToplam);
 
   return {
     cekilisId: cekilisRow.id,
@@ -435,6 +510,8 @@ async function cekilisTamamla(db, cekilisRow) {
     kazananSayisi: kazananlar.length,
     havuzToplam,
     buyukOdul,
+    devreden,
+    donemOdul,
     kisiBasiOdul,
   };
 }
@@ -465,11 +542,6 @@ async function panelVerisiGetir(db, userId) {
   const biletSayisi = await get(
     db,
     `SELECT COUNT(*) AS n FROM kumarhane_piyango_bilet WHERE cekilis_id = ?`,
-    [cekilis.id]
-  );
-  const ucretliBiletSayisi = await get(
-    db,
-    `SELECT COUNT(*) AS n FROM kumarhane_piyango_bilet WHERE cekilis_id = ? AND ucretsiz = 0`,
     [cekilis.id]
   );
   const benimBiletler = await all(
@@ -504,7 +576,7 @@ async function panelVerisiGetir(db, userId) {
 
   const benimBiletSayisi = benimBiletler.length;
   const biletAdet = biletSayisi?.n || 0;
-  const { havuzToplam, buyukOdul } = havuzOdulHesapla(ucretliBiletSayisi?.n || 0);
+  const odul = await buyukOdulToplam(db, cekilis.id);
   const biletHak = await hakGetir(db, userId);
 
   return {
@@ -515,9 +587,12 @@ async function panelVerisiGetir(db, userId) {
     biletUcret: BILET_UCRET,
     biletElmasMaliyet: BILET_ELMAS_MALIYET,
     biletHak,
-    havuzToplam,
-    buyukOdul,
-    odul: buyukOdul,
+    devredenOdul: odul.devreden,
+    donemOdul: odul.donemOdul,
+    donemHavuz: odul.donemHavuz,
+    havuzToplam: odul.havuzToplam,
+    buyukOdul: odul.buyukOdul,
+    odul: odul.buyukOdul,
     secimSayisi: SECIM_SAYISI,
     sayiMax: SAYI_MAX,
     kalanMs: donemBitisMs(),
@@ -546,6 +621,10 @@ async function panelVerisiGetir(db, userId) {
           kazananSayisi: sonCekilis.kazanan_sayisi,
           havuzToplam: sonCekilis.havuz_toplam || 0,
           odulToplam: sonCekilis.odul_toplam,
+          devredenOdul:
+            sonCekilis.kazanan_sayisi === 0 && sonCekilis.odul_toplam > 0
+              ? sonCekilis.odul_toplam
+              : 0,
           kazananlar: sonKazananlar.map((k) => ({
             reisAdi: k.reis_adi,
             eslesme: k.eslesme,
@@ -678,6 +757,9 @@ module.exports = {
   TESELLI_SON_3_HAK,
   TESELLI_SON_2_HAK,
   havuzOdulHesapla,
+  jackpotBirikimGetir,
+  jackpotBirikimAyarla,
+  buyukOdulToplam,
   sonrakiCekilisZamani,
   cekilisPenceresiMi,
   donemBitisMs,
