@@ -3894,8 +3894,13 @@ function profilEkranSablonu(opts) {
       + '<div class="profil-alt-butonlar">'
       + '<button type="button" class="profil-alt-btn kirmizi" onclick="profilZiyaretSaldir(\'' + hedefAdEsc + '\')">' + escHtml(t('game.profil.attack')) + '</button>'
       + '<button type="button" class="profil-alt-btn koyu" onclick="profilZiyaretIstihbarat(\'' + hedefAdEsc + '\')">' + escHtml(t('game.profil.sendIntel')) + '</button>'
-      + '<button type="button" class="profil-alt-btn mavi" onclick="profilZiyaretMesajAc()">' + escHtml(t('game.profil.sendMessage')) + '</button>'
-      + '</div>'
+      + '<button type="button" class="profil-alt-btn mavi" onclick="profilZiyaretMesajAc()">' + escHtml(t('game.profil.sendMessage')) + '</button>';
+    if (opts.mafyaDavetGoster) {
+      altBtn += '<button type="button" class="profil-alt-btn yesil" onclick="profilMafyaDavetGonder(' + opts.userId + ')">' + escHtml(t('game.profil.mafiaInvite')) + '</button>';
+    } else if (opts.mafyaDavetBekliyor) {
+      altBtn += '<button type="button" class="profil-alt-btn koyu" disabled>' + escHtml(t('game.profil.mafiaInvitePending')) + '</button>';
+    }
+    altBtn += '</div>'
       + '<div id="profilSaldirSonuc" class="profil-saldir-sonuc"></div>'
       + '<div id="profilZiyaretMesajAlani" class="gizli profil-ziyaret-mesaj">'
       + '<label for="profilZiyaretMesajMetin">' + escHtml(t('game.profil.yourMessage')) + '</label>'
@@ -6193,6 +6198,40 @@ async function mafyaSavasIlan() {
   mafyaMenuSec('gurubum');
 }
 
+async function mafyaSavasIlanGrup(grupId, grupIsim) {
+  var ad = grupIsim || t('game.mafya.groupFallback');
+  if (!confirm(t('game.confirm.declareWarOnGroup', { group: ad }))) return;
+  var ef = await sunucuAksiyon('mafya_savas_ilan', null, null, { hedefGrupId: grupId });
+  if (ef === null) return;
+  toast(tr(ef.mesaj) || t('game.toast.warDeclared'), 'basari');
+  mafyaMenuSec('gurubum');
+}
+
+async function profilMafyaDavetGonder(userId) {
+  var ef = await sunucuAksiyon('mafya_davet', null, null, { hedefUserId: userId });
+  if (ef === null) return;
+  toast(tr(ef.mesaj) || t('game.toast.mafiaInviteSent'), 'basari');
+  oyuncuProfilGoster(userId);
+}
+
+async function mafyaDavetKabul(davetId) {
+  var ef = await sunucuAksiyon('mafya_davet_kabul', String(davetId));
+  if (ef === null) return;
+  toast(tr(ef.mesaj) || t('game.toast.mafiaInviteAccepted'), 'basari');
+  if (aktifEkran === 'mesajKutusu') {
+    mesajKutusuCiz(document.getElementById('anaIcerik'));
+  }
+}
+
+async function mafyaDavetRed(davetId) {
+  var ef = await sunucuAksiyon('mafya_davet_red', String(davetId));
+  if (ef === null) return;
+  toast(tr(ef.mesaj) || t('game.toast.mafiaInviteRejected'), 'basari');
+  if (aktifEkran === 'mesajKutusu') {
+    mesajKutusuCiz(document.getElementById('anaIcerik'));
+  }
+}
+
 async function mafyaSavasaKatil(savasId) {
   var ef = await sunucuAksiyon('mafya_savas_katil', null, null, { savasId: savasId });
   if (ef === null) return;
@@ -6524,7 +6563,12 @@ async function mafyaGrupGoster(grupId) {
       + '<p class="mafya-stat"><b>' + escHtml(t('game.mafya.memberBonus')) + '</b> +' + fmt(g.evUyeGucBonusu || 0) + '</p>'
       + '<p class="mafya-stat"><b>' + escHtml(t('game.mafya.memberCount')) + '</b> ' + g.uyeSayisi + '</p>'
       + '<p class="mafya-stat"><b>' + escHtml(t('game.mafya.totalRespect')) + '</b> <span class="uye-puan">' + fmt(g.toplamSayginlik) + '</span></p>'
-      + '<div class="mafya-alt-aksiyon"><button type="button" class="btn-is" onclick="mafyaMenuSec(\'gurubum\')">' + escHtml(t('game.mafya.backBtn')) + '</button></div>'
+      + '<div class="mafya-alt-aksiyon">';
+    if (g.savasIlanEdilebilir) {
+      html += '<button type="button" class="btn-is kirmizi-btn" onclick="mafyaSavasIlanGrup(' + g.id + ', \'' + String(g.isim || '').replace(/'/g, "\\'") + '\')">' + escHtml(t('game.mafya.declareWarShort')) + '</button>';
+    }
+    html += '<button type="button" class="btn-is" onclick="mafyaMenuSec(\'gurubum\')">' + escHtml(t('game.mafya.backBtn')) + '</button>'
+      + '</div>'
       + '</div></div>';
     document.getElementById('anaIcerik').innerHTML = html;
     var acikEl = document.getElementById('mafyaGrupProfilAciklama');
@@ -7090,6 +7134,8 @@ async function oyuncuProfilGoster(userId) {
       sehirEfsane: p.sehirEfsane,
       sehreHukmeden: p.sehreHukmeden,
       karaListede: p.karaListede,
+      mafyaDavetGoster: p.mafyaDavetGoster,
+      mafyaDavetBekliyor: p.mafyaDavetBekliyor,
       isDurumu: p.isDurumu
     });
     await profilSiralamaAlanlariGuncelle(p);
@@ -7242,11 +7288,16 @@ function sbMesajAvatarFromMesaj(m) {
 function sbMesajEtiket(tip) {
   if (tip === 'saldiri') return '<span class="sb-mesaj-etiket sb-mesaj-etiket--alarm">' + escHtml(t('game.chat.labelAlarm')) + '</span>';
   if (tip === 'mafya_grup') return '<span class="sb-mesaj-etiket">' + escHtml(t('game.chat.labelGroup')) + '</span>';
+  if (tip === 'mafya_davet') return '<span class="sb-mesaj-etiket sb-mesaj-etiket--davet">' + escHtml(t('game.chat.labelInvite')) + '</span>';
   return '<span class="sb-mesaj-etiket">' + escHtml(t('game.chat.labelPrivate')) + '</span>';
 }
 
 function sbMesajKartHTML(m) {
-  var tipCls = m.tip === 'saldiri' ? ' sb-mesaj-kart--saldiri' : (m.tip === 'mafya_grup' ? ' sb-mesaj-kart--mafya' : '');
+  var tipCls = m.tip === 'saldiri'
+    ? ' sb-mesaj-kart--saldiri'
+    : (m.tip === 'mafya_grup'
+      ? ' sb-mesaj-kart--mafya'
+      : (m.tip === 'mafya_davet' ? ' sb-mesaj-kart--davet' : ''));
   var baslik = mesajGonderenBaslik(m);
   var html = '<article class="sb-mesaj-kart' + tipCls + '">'
     + '<div class="sb-mesaj-ust">'
@@ -7262,6 +7313,10 @@ function sbMesajKartHTML(m) {
   }
   if (m.tip === 'mafya_grup') {
     html += '<button type="button" class="sb-btn sb-btn--gri sb-btn-kucuk" onclick="mesajCevapla(' + m.id + ', \'Mafya Grubu\')">' + escHtml(t('game.chat.reply')) + '</button>';
+  }
+  if (m.tip === 'mafya_davet' && m.davetAktif && m.davetId) {
+    html += '<button type="button" class="sb-btn sb-btn--yesil sb-btn-kucuk" onclick="mafyaDavetKabul(' + m.davetId + ')">' + escHtml(t('game.chat.inviteAccept')) + '</button>';
+    html += '<button type="button" class="sb-btn sb-btn--kirmizi sb-btn-kucuk" onclick="mafyaDavetRed(' + m.davetId + ')">' + escHtml(t('game.chat.inviteReject')) + '</button>';
   }
   html += '<button type="button" class="sb-btn sb-btn--kirmizi sb-btn-kucuk" onclick="mesajSil(' + m.id + ')">' + escHtml(t('game.chat.delete')) + '</button>'
     + '</div></article>';

@@ -342,6 +342,15 @@
   background: linear-gradient(180deg, #c5a059, #8a6828);
 }
 
+#masterLayout #anaIcerik .sb-mesaj-kart--davet::before {
+  background: linear-gradient(180deg, #d4af37, #8a6a20);
+}
+
+#masterLayout #anaIcerik .sb-mesaj-etiket--davet {
+  color: #f0d878;
+  border-color: rgba(212, 175, 55, 0.45);
+}
+
 #masterLayout #anaIcerik .sb-mesaj-ust {
   display: flex;
   align-items: center;

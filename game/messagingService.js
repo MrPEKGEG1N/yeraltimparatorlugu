@@ -5,6 +5,20 @@ const SMS_GUNLUK = 50;
 async function ensureMessagingTables(db) {
   await run(
     db,
+    `CREATE TABLE IF NOT EXISTS mafya_davetleri (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      grup_id INTEGER NOT NULL,
+      davet_eden_user_id INTEGER NOT NULL,
+      davet_edilen_user_id INTEGER NOT NULL,
+      durum TEXT NOT NULL DEFAULT 'beklemede',
+      created_at INTEGER NOT NULL DEFAULT (strftime('%s','now')),
+      FOREIGN KEY (grup_id) REFERENCES mafya_gruplari(id) ON DELETE CASCADE,
+      FOREIGN KEY (davet_eden_user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (davet_edilen_user_id) REFERENCES users(id) ON DELETE CASCADE
+    )`
+  );
+  await run(
+    db,
     `CREATE TABLE IF NOT EXISTS mafya_grup_mesajlari (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       grup_id INTEGER NOT NULL,
@@ -19,6 +33,7 @@ async function ensureMessagingTables(db) {
   for (const [col, def] of [
     ["grup_id", "INTEGER"],
     ["grup_mesaj_id", "INTEGER"],
+    ["davet_id", "INTEGER"],
   ]) {
     try {
       await run(db, `ALTER TABLE oyuncu_mesajlari ADD COLUMN ${col} ${def}`);
@@ -156,7 +171,7 @@ async function mesajlariGetir(db, userId) {
   await ensureMessagingTables(db);
   const rows = await all(
     db,
-    `SELECT m.id, m.tip, m.konu, m.icerik, m.okundu, m.created_at, m.grup_id, m.grup_mesaj_id,
+    `SELECT m.id, m.tip, m.konu, m.icerik, m.okundu, m.created_at, m.grup_id, m.grup_mesaj_id, m.davet_id,
             m.from_user_id,
             fu.reis_adi AS gonderen_adi,
             fp.profil_resmi AS gonderen_profil_resmi
@@ -243,6 +258,17 @@ async function mesajlariGetir(db, userId) {
       gonderenEtiketi = "Mafya Grubu - " + (r.gonderen_adi || "Üye");
     } else if (r.tip === "saldiri") {
       gonderenEtiketi = "Sistem";
+    } else if (r.tip === "mafya_davet") {
+      gonderenEtiketi = "Mafya Daveti";
+    }
+    let davetAktif = false;
+    if (r.tip === "mafya_davet" && r.davet_id) {
+      const davet = await get(
+        db,
+        `SELECT durum FROM mafya_davetleri WHERE id = ? AND davet_edilen_user_id = ?`,
+        [r.davet_id, userId]
+      );
+      davetAktif = !!(davet && davet.durum === "beklemede");
     }
     liste.push({
       id: r.id,
@@ -252,6 +278,8 @@ async function mesajlariGetir(db, userId) {
       okundu: !!r.okundu,
       grupId: r.grup_id || null,
       grupMesajId: r.grup_mesaj_id || null,
+      davetId: r.davet_id || null,
+      davetAktif,
       gonderenAdi,
       gonderenUserId: profil.userId,
       profilResmi: profil.profilResmi,

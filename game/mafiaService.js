@@ -154,6 +154,179 @@ async function basvuruRed(db, liderId, basvuruId) {
   return { ok: true };
 }
 
+async function ensureDavetTablosu(db) {
+  await run(
+    db,
+    `CREATE TABLE IF NOT EXISTS mafya_davetleri (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      grup_id INTEGER NOT NULL,
+      davet_eden_user_id INTEGER NOT NULL,
+      davet_edilen_user_id INTEGER NOT NULL,
+      durum TEXT NOT NULL DEFAULT 'beklemede',
+      created_at INTEGER NOT NULL DEFAULT (strftime('%s','now')),
+      FOREIGN KEY (grup_id) REFERENCES mafya_gruplari(id) ON DELETE CASCADE,
+      FOREIGN KEY (davet_eden_user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (davet_edilen_user_id) REFERENCES users(id) ON DELETE CASCADE
+    )`
+  );
+  try {
+    await run(db, `ALTER TABLE oyuncu_mesajlari ADD COLUMN davet_id INTEGER`);
+  } catch (_) {}
+}
+
+async function davetEt(db, liderId, hedefUserId) {
+  await ensureDavetTablosu(db);
+  const hedefId = parseInt(hedefUserId, 10);
+  if (!hedefId) return { ok: false, error: "Geçersiz oyuncu." };
+  if (hedefId === liderId) return { ok: false, error: "Kendini davet edemezsin." };
+
+  const grup = await kullaniciGrubu(db, liderId);
+  if (!grup || grup.lider_user_id !== liderId) {
+    return { ok: false, error: "Sadece grup lideri davet gönderebilir." };
+  }
+
+  const hedefUyelik = await kullaniciGrubu(db, hedefId);
+  if (hedefUyelik) return { ok: false, error: "Bu oyuncu zaten bir mafya grubunda." };
+
+  const bekleyenBasvuru = await get(
+    db,
+    `SELECT id FROM mafya_basvurulari WHERE user_id = ? AND durum = 'beklemede'`,
+    [hedefId]
+  );
+  if (bekleyenBasvuru) return { ok: false, error: "Oyuncunun bekleyen bir başvurusu var." };
+
+  const bekleyenDavet = await get(
+    db,
+    `SELECT id FROM mafya_davetleri WHERE davet_edilen_user_id = ? AND durum = 'beklemede'`,
+    [hedefId]
+  );
+  if (bekleyenDavet) return { ok: false, error: "Bu oyuncuya zaten bekleyen bir davet var." };
+
+  const bekleyenBizden = await get(
+    db,
+    `SELECT id FROM mafya_davetleri WHERE grup_id = ? AND davet_edilen_user_id = ? AND durum = 'beklemede'`,
+    [grup.id, hedefId]
+  );
+  if (bekleyenBizden) return { ok: false, error: "Bu oyuncuya zaten davet gönderdin." };
+
+  const ins = await run(
+    db,
+    `INSERT INTO mafya_davetleri (grup_id, davet_eden_user_id, davet_edilen_user_id, durum)
+     VALUES (?, ?, ?, 'beklemede')`,
+    [grup.id, liderId, hedefId]
+  );
+  const davetId = ins.lastID;
+  const icerik = `${grup.isim} Mafya Grubu seni grubuna katılmaya davet etti.`;
+
+  await run(
+    db,
+    `INSERT INTO oyuncu_mesajlari (to_user_id, from_user_id, tip, konu, icerik, okundu, davet_id, created_at)
+     VALUES (?, ?, 'mafya_davet', ?, ?, 0, ?, strftime('%s','now'))`,
+    [hedefId, liderId, grup.isim, icerik, davetId]
+  );
+
+  try {
+    const { bildirimGonder } = require("./bildirimService");
+    await bildirimGonder(db, hedefId, "mafya_davet", {
+      baslik: "Mafya Daveti",
+      icerik: `${grup.isim} seni grubuna davet etti.`,
+      url: "/?ekran=mesajKutusu",
+    });
+  } catch (_) {}
+
+  const hedef = await get(db, `SELECT reis_adi FROM users WHERE id = ?`, [hedefId]);
+  return { ok: true, davetId, mesaj: `${hedef?.reis_adi || "Oyuncu"} davet edildi.` };
+}
+
+async function davetKabul(db, userId, davetId) {
+  await ensureDavetTablosu(db);
+  const id = parseInt(davetId, 10);
+  const d = await get(
+    db,
+    `SELECT d.*, g.isim AS grup_isim, g.lider_user_id
+     FROM mafya_davetleri d
+     JOIN mafya_gruplari g ON g.id = d.grup_id
+     WHERE d.id = ?`,
+    [id]
+  );
+  if (!d || d.davet_edilen_user_id !== userId) return { ok: false, error: "Davet bulunamadı." };
+  if (d.durum !== "beklemede") return { ok: false, error: "Bu davet artık geçerli değil." };
+
+  const uyelik = await kullaniciGrubu(db, userId);
+  if (uyelik) return { ok: false, error: "Zaten bir gruptasın." };
+
+  const ev = await ensureEvi(db, d.grup_id);
+  const cap = kapasite(ev.seviye);
+  const cnt = await get(db, `SELECT COUNT(*) AS n FROM mafya_uyeleri WHERE grup_id = ?`, [d.grup_id]);
+  if ((cnt?.n || 0) >= cap) {
+    return { ok: false, error: `Mafya Evi kapasitesi dolu (max ${cap}). Seviye yükseltin.` };
+  }
+
+  await run(db, `UPDATE mafya_davetleri SET durum = 'kabul' WHERE id = ?`, [id]);
+  await run(
+    db,
+    `UPDATE mafya_davetleri SET durum = 'red'
+     WHERE davet_edilen_user_id = ? AND durum = 'beklemede' AND id <> ?`,
+    [userId, id]
+  );
+  await run(
+    db,
+    `UPDATE mafya_basvurulari SET durum = 'red' WHERE user_id = ? AND durum = 'beklemede'`,
+    [userId]
+  );
+  await run(db, `INSERT INTO mafya_uyeleri (grup_id, user_id, rutbe) VALUES (?, ?, ?)`, [
+    d.grup_id,
+    userId,
+    "Mafya Üyesi",
+  ]);
+  await run(db, `UPDATE users SET grup = ? WHERE id = ?`, [d.grup_isim, userId]);
+  await syncBonusGuc(db, userId);
+
+  const katilan = await get(db, `SELECT reis_adi FROM users WHERE id = ?`, [userId]);
+  const bildirimIcerik = `${katilan?.reis_adi || "Oyuncu"} gruba katıldı!`;
+  const uyeler = await all(db, `SELECT user_id FROM mafya_uyeleri WHERE grup_id = ?`, [d.grup_id]);
+  const aliciIds = new Set(uyeler.map((u) => Number(u.user_id)));
+  if (d.lider_user_id != null) aliciIds.add(Number(d.lider_user_id));
+  for (const aliciId of aliciIds) {
+    if (aliciId === userId) continue;
+    await run(
+      db,
+      `INSERT INTO oyuncu_mesajlari (to_user_id, from_user_id, tip, konu, icerik, okundu, created_at)
+       VALUES (?, ?, 'ozel', ?, ?, 0, strftime('%s','now'))`,
+      [aliciId, userId, d.grup_isim, bildirimIcerik]
+    );
+  }
+
+  return { ok: true, grupIsim: d.grup_isim, mesaj: `${d.grup_isim} grubuna katıldın.` };
+}
+
+async function davetRed(db, userId, davetId) {
+  await ensureDavetTablosu(db);
+  const id = parseInt(davetId, 10);
+  const d = await get(
+    db,
+    `SELECT d.*, g.isim AS grup_isim, g.lider_user_id
+     FROM mafya_davetleri d
+     JOIN mafya_gruplari g ON g.id = d.grup_id
+     WHERE d.id = ?`,
+    [id]
+  );
+  if (!d || d.davet_edilen_user_id !== userId) return { ok: false, error: "Davet bulunamadı." };
+  if (d.durum !== "beklemede") return { ok: false, error: "Bu davet artık geçerli değil." };
+
+  await run(db, `UPDATE mafya_davetleri SET durum = 'red' WHERE id = ?`, [id]);
+  const reddeden = await get(db, `SELECT reis_adi FROM users WHERE id = ?`, [userId]);
+  const icerik = `Davet ettiğin ${reddeden?.reis_adi || "oyuncu"} davetini reddetti!`;
+  await run(
+    db,
+    `INSERT INTO oyuncu_mesajlari (to_user_id, from_user_id, tip, konu, icerik, okundu, created_at)
+     VALUES (?, ?, 'ozel', ?, ?, 0, strftime('%s','now'))`,
+    [d.lider_user_id, userId, d.grup_isim, icerik]
+  );
+
+  return { ok: true, mesaj: "Davet reddedildi." };
+}
+
 async function rutbeDegistir(db, liderId, hedefUserId, yeniRutbe) {
   const grup = await kullaniciGrubu(db, liderId);
   if (!grup || grup.lider_user_id !== liderId) return { ok: false, error: "Sadece lider rütbe verir." };
@@ -343,6 +516,8 @@ async function grupProfil(db, grupId, viewerUserId) {
   const sampiyonluklar = await getGrupSampiyonluklari(db, grupId);
 
   let benimGrubum = false;
+  let viewerBenLiderim = false;
+  let savasIlanEdilebilir = false;
   if (viewerUserId) {
     const uyem = await get(
       db,
@@ -350,6 +525,9 @@ async function grupProfil(db, grupId, viewerUserId) {
       [grupId, viewerUserId]
     );
     benimGrubum = !!uyem;
+    const viewerGrup = await kullaniciGrubu(db, viewerUserId);
+    viewerBenLiderim = !!(viewerGrup && viewerGrup.lider_user_id === viewerUserId);
+    savasIlanEdilebilir = viewerBenLiderim && !benimGrubum && viewerGrup && viewerGrup.id !== grupId;
   }
 
   return {
@@ -363,6 +541,8 @@ async function grupProfil(db, grupId, viewerUserId) {
     evUyeGucBonusu: ev.uyeGucBonusu,
     sampiyonluklar,
     benimGrubum,
+    viewerBenLiderim,
+    savasIlanEdilebilir,
   };
 }
 
@@ -375,6 +555,9 @@ module.exports = {
   basvur,
   basvuruKabul,
   basvuruRed,
+  davetEt,
+  davetKabul,
+  davetRed,
   rutbeDegistir,
   uyeCikar,
   liderlikDevret,

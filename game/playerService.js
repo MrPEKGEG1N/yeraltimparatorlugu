@@ -152,6 +152,9 @@ const {
   basvur,
   basvuruKabul,
   basvuruRed,
+  davetEt,
+  davetKabul,
+  davetRed,
   rutbeDegistir,
   uyeCikar,
   liderlikDevret,
@@ -1017,6 +1020,33 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
     return { ok: true, player: await publicPlayerFull(db, userId, player) };
   }
 
+  if (action === "mafya_davet") {
+    const hedefUserId = parseInt(extra.hedefUserId || key, 10);
+    const sonuc = await davetEt(db, userId, hedefUserId);
+    if (!sonuc.ok) return sonuc;
+    return { ok: true, effect: { type: "mafya_davet", mesaj: sonuc.mesaj } };
+  }
+
+  if (action === "mafya_davet_kabul") {
+    const davetId = parseInt(extra.davetId || key, 10);
+    const sonuc = await davetKabul(db, userId, davetId);
+    if (!sonuc.ok) return sonuc;
+    player = await loadPlayer(db, userId);
+    player.grup = sonuc.grupIsim;
+    return {
+      ok: true,
+      player: await publicPlayerFull(db, userId, player),
+      effect: { type: "mafya_davet_kabul", mesaj: sonuc.mesaj },
+    };
+  }
+
+  if (action === "mafya_davet_red") {
+    const davetId = parseInt(extra.davetId || key, 10);
+    const sonuc = await davetRed(db, userId, davetId);
+    if (!sonuc.ok) return sonuc;
+    return { ok: true, effect: { type: "mafya_davet_red", mesaj: sonuc.mesaj } };
+  }
+
   if (action === "mafya_rutbe") {
     const sonuc = await rutbeDegistir(db, userId, parseInt(extra.hedefUserId, 10), extra.rutbe);
     if (!sonuc.ok) return sonuc;
@@ -1231,9 +1261,23 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
       return { ok: false, error: "Sadece grup lideri savaş ilan edebilir." };
     }
 
-    // Lider, hedef gurup adını yazarak savaş ilan edebilsin
-    const hedefAd = String(extra.hedefGurupAdi || extra.hedefGrupAdi || extra.hedef || "").trim();
-    if (!hedefAd) return { ok: false, error: "Hedef mafya grubu adı gerekli." };
+    // Lider, hedef grup adı veya ID ile savaş ilan edebilir
+    let hedefGrup = null;
+    const hedefGrupId = parseInt(extra.hedefGrupId, 10);
+    if (hedefGrupId) {
+      hedefGrup = await get(db, `SELECT id, isim FROM mafya_gruplari WHERE id = ?`, [hedefGrupId]);
+      if (!hedefGrup) return { ok: false, error: "Hedef mafya grubu bulunamadı." };
+    } else {
+      const hedefAd = String(extra.hedefGurupAdi || extra.hedefGrupAdi || extra.hedef || "").trim();
+      if (!hedefAd) return { ok: false, error: "Hedef mafya grubu adı gerekli." };
+      hedefGrup = await get(
+        db,
+        `SELECT id, isim FROM mafya_gruplari WHERE LOWER(isim) = LOWER(?)`,
+        [hedefAd]
+      );
+      if (!hedefGrup) return { ok: false, error: "Bu isimde mafya grubu bulunamadı." };
+    }
+    if (hedefGrup.id === grup.id) return { ok: false, error: "Kendi grubuna savaş ilan edemezsin." };
 
     // Üye sayısı şartı: iki tarafta da en az 3 üye
     const benimUye = await get(
@@ -1244,14 +1288,6 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
     if ((benimUye?.n || 0) < 3) {
       return { ok: false, error: "Savaş ilan etmek için grubunda en az 3 üye olmalı." };
     }
-
-    const hedefGrup = await get(
-      db,
-      `SELECT id, isim FROM mafya_gruplari WHERE LOWER(isim) = LOWER(?)`,
-      [hedefAd]
-    );
-    if (!hedefGrup) return { ok: false, error: "Bu isimde mafya grubu bulunamadı." };
-    if (hedefGrup.id === grup.id) return { ok: false, error: "Kendi grubuna savaş ilan edemezsin." };
 
     const hedefUye = await get(
       db,

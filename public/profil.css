@@ -1884,6 +1884,17 @@
   color: #e8f4ff;
 }
 
+#masterLayout .profil-alt-btn.yesil {
+  background: linear-gradient(180deg, #2d6b3a 0%, #1a4024 100%);
+  border-color: #4a9a5a;
+  color: #e8ffe8;
+}
+
+#masterLayout .profil-alt-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 #masterLayout .profil-ziyaret-aksiyon {
   margin-top: 20px;
   padding-top: 16px;

@@ -786,6 +786,21 @@ async function initDatabase() {
 
   await run(
     db,
+    `CREATE TABLE IF NOT EXISTS mafya_davetleri (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      grup_id INTEGER NOT NULL,
+      davet_eden_user_id INTEGER NOT NULL,
+      davet_edilen_user_id INTEGER NOT NULL,
+      durum TEXT NOT NULL DEFAULT 'beklemede',
+      created_at INTEGER NOT NULL DEFAULT (strftime('%s','now')),
+      FOREIGN KEY (grup_id) REFERENCES mafya_gruplari(id) ON DELETE CASCADE,
+      FOREIGN KEY (davet_eden_user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (davet_edilen_user_id) REFERENCES users(id) ON DELETE CASCADE
+    )`
+  );
+
+  await run(
+    db,
     `CREATE TABLE IF NOT EXISTS profil_ziyaretleri (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       target_user_id INTEGER NOT NULL,
@@ -870,6 +885,7 @@ async function initDatabase() {
   const mesajCols = [
     ["grup_id", "INTEGER"],
     ["grup_mesaj_id", "INTEGER"],
+    ["davet_id", "INTEGER"],
   ];
   for (const [col, def] of mesajCols) {
     try {

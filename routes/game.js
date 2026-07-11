@@ -200,6 +200,22 @@ function createGameRouter(db) {
         aktifMeslek = full.aktifMeslek;
       }
 
+      let mafyaDavetGoster = false;
+      let mafyaDavetBekliyor = false;
+      if (!kendiProfili) {
+        const viewerGrup = await kullaniciGrubu(db, req.user.id);
+        const viewerBenLiderim = !!(viewerGrup && viewerGrup.lider_user_id === req.user.id);
+        if (viewerBenLiderim && !grupUyelik && targetId !== req.user.id) {
+          const bekleyenDavet = await get(
+            db,
+            `SELECT id FROM mafya_davetleri WHERE grup_id = ? AND davet_edilen_user_id = ? AND durum = 'beklemede'`,
+            [viewerGrup.id, targetId]
+          );
+          if (bekleyenDavet) mafyaDavetBekliyor = true;
+          else mafyaDavetGoster = true;
+        }
+      }
+
       res.json({
         ok: true,
         profil: {
@@ -231,6 +247,8 @@ function createGameRouter(db) {
           yetenekler,
           aktifMeslek,
           isDurumu,
+          mafyaDavetGoster,
+          mafyaDavetBekliyor,
         },
       });
     } catch (err) {
