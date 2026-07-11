@@ -6,6 +6,10 @@ db/*.db
 # Northflank generated (may contain secrets)
 northflank/*.generated.json
 
+# Koyeb CLI binary
+tools/bin/koyeb.exe
+tools/bin/koyeb.zip
+
 # Capacitor / Android
 android/.gradle/
 android/app/build/
