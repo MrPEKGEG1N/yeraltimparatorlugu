@@ -20,7 +20,7 @@ git push origin HEAD:deploy
 Write-Host ""
 Write-Host "Railway genelde 'main' dalini deploy eder." -ForegroundColor Yellow
 Write-Host "1-2 dakika bekleyin, sonra kontrol:" -ForegroundColor Yellow
-Write-Host "  https://yeraltimparatorlugu-production.up.railway.app/api/health"
+Write-Host "  https://yeralti-game.onrender.com/api/health"
 Write-Host ""
 Write-Host "APK uretmek icin: npm run android:apk"
 Write-Host ""

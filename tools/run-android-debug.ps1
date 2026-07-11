@@ -16,7 +16,7 @@ if (Test-Path $sdk) {
 }
 
 Write-Host "=== Capacitor sync ===" -ForegroundColor Cyan
-$env:CAPACITOR_SERVER_URL = "https://yeraltimparatorlugu-production.up.railway.app"
+$env:CAPACITOR_SERVER_URL = "https://yeralti-game.onrender.com"
 $old = $ErrorActionPreference
 $ErrorActionPreference = "Continue"
 npx cap sync android 2>&1 | Out-Null

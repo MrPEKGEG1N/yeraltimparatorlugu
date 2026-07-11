@@ -153,7 +153,7 @@ if (-not (Test-Path $gradlew)) {
 
 Write-Host "[...] Release AAB derleniyor (bu birkac dakika surebilir)"
 Push-Location (Join-Path $Root "android")
-$env:CAPACITOR_SERVER_URL = "https://yeraltimparatorlugu-production.up.railway.app"
+$env:CAPACITOR_SERVER_URL = "https://yeralti-game.onrender.com"
 $old = $ErrorActionPreference
 $ErrorActionPreference = "Continue"
 & .\gradlew.bat bundleRelease --no-daemon 2>&1 | Out-Null
@@ -192,7 +192,7 @@ Write-Host "AAB: $releaseAab ($sizeMb MB)"
 Write-Host "Play ikon (512): $icon512"
 Write-Host "Feature graphic: $playIconDir\feature-graphic-1024x500.png"
 Write-Host "Play Console: Production > Create new release > Upload"
-Write-Host "Gizlilik: https://yeraltimparatorlugu-production.up.railway.app/gizlilik"
+Write-Host "Gizlilik: https://yeralti-game.onrender.com/gizlilik"
 Write-Host "Magaza metinleri: tools/google-play-store-listing.txt"
 if (Test-Path $credsFile) {
     Write-Host "Imza sifreleri: $credsFile"

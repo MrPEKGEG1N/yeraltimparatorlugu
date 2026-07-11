@@ -18,7 +18,7 @@ Write-Host "3) DEPLOY" -ForegroundColor Yellow
 Write-Host "   npm run deploy"
 Write-Host ""
 Write-Host "4) KONTROL" -ForegroundColor Yellow
-Write-Host "   https://yeraltimparatorlugu-production.up.railway.app/api/health"
+Write-Host "   https://yeralti-game.onrender.com/api/health"
 Write-Host "   volumeOk: true  VEYA  supabase.configured: true"
 Write-Host "   kaliciVeri: railway-volume veya supabase-yedek"
 Write-Host ""

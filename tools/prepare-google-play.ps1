@@ -7,7 +7,7 @@
 param(
     [switch]$CreateKeystore,
     [switch]$BuildRelease,
-    [string]$ServerUrl = "https://yeraltimparatorlugu-production.up.railway.app"
+    [string]$ServerUrl = "https://yeralti-game.onrender.com"
 )
 
 $ErrorActionPreference = "Stop"
@@ -155,7 +155,7 @@ if ($BuildRelease) {
 Write-Host ""
 Write-Host "=== Google Play Console kontrol listesi ===" -ForegroundColor Cyan
 Write-Host "  - AAB yukle: android\app\build\outputs\bundle\release\app-release.aab"
-Write-Host "  - Gizlilik politikasi: https://yeraltimparatorlugu-production.up.railway.app/gizlilik"
+Write-Host "  - Gizlilik politikasi: https://yeralti-game.onrender.com/gizlilik"
 Write-Host "  - Paket adi: com.yeralti.imparatorlugu"
 Write-Host "  - Icerik derecelendirmesi anketi (siddet/tema icin)"
 Write-Host "  - Ekran goruntuleri (telefon + tablet)"

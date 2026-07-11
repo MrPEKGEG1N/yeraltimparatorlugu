@@ -28,7 +28,7 @@ if (Test-Path $sdk) {
 Fix-KeystoreProperties
 
 # Kucuk APK: sadece kabuk, oyun Railway'den yuklenir
-$env:CAPACITOR_SERVER_URL = "https://yeraltimparatorlugu-production.up.railway.app"
+$env:CAPACITOR_SERVER_URL = "https://yeralti-game.onrender.com"
 $env:CAPACITOR_MOBILE_SHELL = "1"
 
 $old = $ErrorActionPreference

@@ -25,7 +25,7 @@ Mekanlar aç, gelir elde et, rakiplerine saldır, mafya savaşlarına katıl ve 
 Oyunlar → Strateji
 
 ## Gizlilik politikası URL
-https://yeraltimparatorlugu-production.up.railway.app/gizlilik
+https://yeralti-game.onrender.com/gizlilik
 
 ## Paket adı
 com.yeralti.imparatorlugu

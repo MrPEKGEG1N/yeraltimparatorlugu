@@ -52,5 +52,5 @@ Invoke-Railway @("redeploy", "--from-source", "-y")
 
 Write-Host ""
 Write-Host "Tamam. Kontrol:" -ForegroundColor Cyan
-Write-Host "  https://yeraltimparatorlugu-production.up.railway.app/api/health"
+Write-Host "  https://yeralti-game.onrender.com/api/health"
 Write-Host "  volumeOk: true ve oyuncu sayisi korunmus olmali."
