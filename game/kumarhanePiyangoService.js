@@ -216,6 +216,9 @@ async function ensurePiyangoTables(db) {
     await run(db, `ALTER TABLE kumarhane_piyango_cekilis ADD COLUMN piyango_gazete_gun TEXT`);
   } catch (_) {}
   try {
+    await run(db, `ALTER TABLE kumarhane_piyango_cekilis ADD COLUMN piyango_gazete_odul INTEGER NOT NULL DEFAULT 0`);
+  } catch (_) {}
+  try {
     await run(db, `ALTER TABLE kumarhane_piyango_bilet ADD COLUMN teselli_hak INTEGER NOT NULL DEFAULT 0`);
   } catch (_) {}
   try {
@@ -353,28 +356,7 @@ function cekilisDonemMetni(donem) {
   });
 }
 
-function istanbulGunBaslangicTs() {
-  const { istanbulGunKey } = require("./turkiyeSaati");
-  const dayKey = istanbulGunKey();
-  return Math.floor(new Date(`${dayKey}T00:00:00+03:00`).getTime() / 1000);
-}
-
-function piyangoGazeteMesajiOlustur(ozet) {
-  const { cekilis, havuzToplam, buyukOdul, devreden, donemOdul, biletAdet } = ozet;
-  const cekilisMetin = cekilisDonemMetni(cekilis.donem);
-  const odulMetin = buyukOdul.toLocaleString("tr-TR");
-  const devredenMetin = devreden.toLocaleString("tr-TR");
-  const donemMetin = donemOdul.toLocaleString("tr-TR");
-  const havuzMetin = havuzToplam.toLocaleString("tr-TR");
-
-  if (devreden > 0) {
-    return `🎟️ Kumarhane Piyangosu: Büyük ödül ${odulMetin} çip! (Devreden ${devredenMetin} + bu dönem ${donemMetin} çip, ${biletAdet} bilet). Çekiliş ${cekilisMetin} — 6 sayının tamamını bilene.`;
-  }
-  return `🎟️ Kumarhane Piyangosu: Büyük ödül ${odulMetin} çip! (Havuz ${havuzMetin} çip, ${biletAdet} bilet). Çekiliş ${cekilisMetin} — 6 sayının tamamını bilene.`;
-}
-
 async function aktifCekilisOzet(db) {
-  await ensurePiyangoTables(db);
   await vadesiGelenCekilisleriYap(db);
   await piyangoJackpotOnar(db);
 
@@ -400,50 +382,60 @@ async function aktifCekilisOzet(db) {
   };
 }
 
+function piyangoGazeteMetniOlustur(ozet, opts = {}) {
+  const { cekilis, havuzToplam, buyukOdul, devreden, donemOdul, biletAdet } = ozet;
+  const cekilisMetin = cekilisDonemMetni(cekilis.donem);
+  const odulMetin = buyukOdul.toLocaleString("tr-TR");
+  const devredenMetin = devreden.toLocaleString("tr-TR");
+  const donemMetin = donemOdul.toLocaleString("tr-TR");
+  const havuzMetin = havuzToplam.toLocaleString("tr-TR");
+  const guncelleme = !!opts.guncelleme;
+
+  if (guncelleme) {
+    return devreden > 0
+      ? `🎟️ Kumarhane Piyangosu: Büyük ödül ${odulMetin} çipe yükseldi! (Devreden ${devredenMetin} + bu dönem ${donemMetin} çip, ${biletAdet} bilet). Çekiliş ${cekilisMetin}.`
+      : `🎟️ Kumarhane Piyangosu: Büyük ödül ${odulMetin} çipe yükseldi! (Havuz ${havuzMetin} çip, ${biletAdet} bilet). Çekiliş ${cekilisMetin}.`;
+  }
+
+  return devreden > 0
+    ? `🎟️ Kumarhane Piyangosu: Büyük ödül ${odulMetin} çip! (Devreden ${devredenMetin} + bu dönem ${donemMetin} çip, ${biletAdet} bilet). Çekiliş ${cekilisMetin} — 6 sayının tamamını bilene.`
+    : `🎟️ Kumarhane Piyangosu: Büyük ödül ${odulMetin} çip! (Havuz ${havuzMetin} çip, ${biletAdet} bilet). Çekiliş ${cekilisMetin} — 6 sayının tamamını bilene.`;
+}
+
 async function gunlukPiyangoGazeteHaber(db) {
-  if (!piyangoAktifMi()) return;
+  if (!piyangoAktifMi()) return false;
 
   await ensurePiyangoTables(db);
+  await vadesiGelenCekilisleriYap(db);
+  await piyangoJackpotOnar(db);
+
   const { istanbulGunKey } = require("./turkiyeSaati");
   const gunKey = istanbulGunKey();
   const ozet = await aktifCekilisOzet(db);
-  if (!ozet) return;
+  if (!ozet) return false;
 
   const { cekilis, buyukOdul } = ozet;
-  if (buyukOdul <= 0) return;
+  if (buyukOdul <= 0) return false;
+
+  const oncekiGun = cekilis.piyango_gazete_gun || null;
+  const oncekiOdul = cekilis.piyango_gazete_odul || 0;
+  const gunDegisti = oncekiGun !== gunKey;
+  const odulArtti = buyukOdul > oncekiOdul;
+  if (!gunDegisti && !odulArtti) return false;
 
   const { gazeteEkle } = require("./sehirGazeteService");
-  const mesaj = piyangoGazeteMesajiOlustur(ozet);
-  const gunBaslangic = istanbulGunBaslangicTs();
-
-  const mevcut = await get(
-    db,
-    `SELECT id, mesaj FROM sehir_gazete
-     WHERE mesaj LIKE '%🎟️ Kumarhane Piyangosu%'
-       AND created_at >= ?
-     ORDER BY id DESC LIMIT 1`,
-    [gunBaslangic]
-  );
-
-  if (mevcut) {
-    if (mevcut.mesaj !== mesaj) {
-      await run(db, `UPDATE sehir_gazete SET mesaj = ? WHERE id = ?`, [mesaj, mevcut.id]);
-    }
-    if (cekilis.piyango_gazete_gun !== gunKey) {
-      await run(db, `UPDATE kumarhane_piyango_cekilis SET piyango_gazete_gun = ? WHERE id = ?`, [
-        gunKey,
-        cekilis.id,
-      ]);
-    }
-    return;
-  }
+  const mesaj = piyangoGazeteMetniOlustur(ozet, {
+    guncelleme: odulArtti && oncekiOdul > 0,
+  });
 
   await gazeteEkle(db, mesaj);
 
-  await run(db, `UPDATE kumarhane_piyango_cekilis SET piyango_gazete_gun = ? WHERE id = ?`, [
-    gunKey,
-    cekilis.id,
-  ]);
+  await run(
+    db,
+    `UPDATE kumarhane_piyango_cekilis SET piyango_gazete_gun = ?, piyango_gazete_odul = ? WHERE id = ?`,
+    [gunKey, buyukOdul, cekilis.id]
+  );
+  return true;
 }
 
 async function piyangoGazeteDevretmeHaber(db, cekilisSayilari, devredenMiktar) {
@@ -802,6 +794,10 @@ async function biletAl(db, userId, hamSayilar, opts = {}) {
     }
   }
 
+  if (!ucretsiz) {
+    await gunlukPiyangoGazeteHaber(db);
+  }
+
   const mesaj = ucretsiz
     ? `Ücretsiz bilet kullanıldı: ${parsed.sayilar.join(", ")}.`
     : odeme === "elmas"
@@ -809,7 +805,6 @@ async function biletAl(db, userId, hamSayilar, opts = {}) {
       : `Bilet alındı: ${parsed.sayilar.join(", ")} — ${BILET_UCRET.toLocaleString("tr-TR")} çip.`;
 
   const elmasRow = await get(db, `SELECT elmas FROM players WHERE user_id = ?`, [userId]);
-  await gunlukPiyangoGazeteHaber(db);
   return {
     ok: true,
     mesaj,
@@ -822,9 +817,9 @@ async function biletAl(db, userId, hamSayilar, opts = {}) {
 async function periyodikKontrol(db) {
   if (!piyangoAktifMi()) return;
   await ensurePiyangoTables(db);
-  await gunlukPiyangoGazeteHaber(db);
   await vadesiGelenCekilisleriYap(db);
   await piyangoJackpotOnar(db);
+  await gunlukPiyangoGazeteHaber(db);
 }
 
 module.exports = {
@@ -854,6 +849,7 @@ module.exports = {
   biletAl,
   periyodikKontrol,
   gunlukPiyangoGazeteHaber,
+  piyangoGazeteMetniOlustur,
   vadesiGelenCekilisleriYap,
   cekilisTamamla,
   piyangoJackpotOnar,

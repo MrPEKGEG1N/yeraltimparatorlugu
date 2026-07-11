@@ -99,6 +99,14 @@ async function getSehirBanner(db) {
 
 async function gunlukHaberUret(db) {
   await ensureGazeteTable(db);
+
+  try {
+    const { gunlukPiyangoGazeteHaber } = require("./kumarhanePiyangoService");
+    await gunlukPiyangoGazeteHaber(db);
+  } catch (err) {
+    console.error("[gazete] piyango:", err?.message || err);
+  }
+
   const now = Math.floor(Date.now() / 1000);
   const son24 = now - 86400;
   const son = await get(
@@ -106,21 +114,14 @@ async function gunlukHaberUret(db) {
     `SELECT id FROM sehir_gazete WHERE mesaj LIKE '%Hükmü Sürüyor%' AND created_at > ? LIMIT 1`,
     [son24]
   );
-  if (!son) {
-    const kara = await get(
-      db,
-      `SELECT u.reis_adi FROM players p JOIN users u ON u.id = p.user_id WHERE p.kara_listede = 1 LIMIT 1`
-    );
-    if (kara?.reis_adi) {
-      await gazeteEkle(db, `Sokakların Tek Hakimi: ${kara.reis_adi} Hükmü Sürüyor!`);
-    }
-  }
+  if (son) return;
 
-  try {
-    const { gunlukPiyangoGazeteHaber } = require("./kumarhanePiyangoService");
-    await gunlukPiyangoGazeteHaber(db);
-  } catch (err) {
-    console.error("[gazete] piyango önizleme:", err?.message || err);
+  const kara = await get(
+    db,
+    `SELECT u.reis_adi FROM players p JOIN users u ON u.id = p.user_id WHERE p.kara_listede = 1 LIMIT 1`
+  );
+  if (kara?.reis_adi) {
+    await gazeteEkle(db, `Sokakların Tek Hakimi: ${kara.reis_adi} Hükmü Sürüyor!`);
   }
 }
 
