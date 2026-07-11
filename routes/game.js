@@ -374,7 +374,7 @@ function createGameRouter(db) {
       if (!grup) {
         return res.json({ ok: true, savaslar: [] });
       }
-      const savaslar = await savaslariListele(db, grup.id);
+      const savaslar = await savaslariListele(db, grup.id, req.user.id);
       res.json({ ok: true, savaslar });
     } catch (err) {
       console.error(err);

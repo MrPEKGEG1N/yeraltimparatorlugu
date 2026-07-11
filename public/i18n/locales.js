@@ -1038,6 +1038,7 @@
     row("game.mafya.joinDesc", ["Mevcut bir gruba başvur veya listeden seç.", "Apply to an existing group or pick from the list.", "Zastosuj do istniejącej grupy lub wybierz z listy.", , , , , , , , , , , , , , "Zastosuj do istniejącej grupy lub wybierz z listy."]),
     row("game.mafya.joinTitle", ["Mafya Grubuna Katıl", "Join Mafia Group", "Dołącz do grupy mafijnej", , , , , , , , , , , , , , "Dołącz do grupy mafijnej"]),
     row("game.mafya.joinWar", ["[ ⚔️ KATIL ]", "[ ⚔️ JOIN ]", , , , , , , , , , , , , , , "[ ⚔️ DOŁĄCZ ]"]),
+    row("game.mafya.warAlreadyJoined", ["Savaşa katıldın (savaş bitene kadar ayrılamazsın).", "You joined this war (cannot leave until it ends).", , , , , , , , , , , , , , , "Dołączyłeś do wojny (nie możesz opuścić do końca)."]),
     row("game.mafya.kick", ["Çıkar", "Remove", "Usunąć", , , , , , , , , , , , , , "Usunąć"]),
     row("game.mafya.leaderLabel", ["Lider:", "Leader:", "Lider:", , , , , , , , , , , , , , "Lider:"]),
     row("game.mafya.leaveBtn", ["[ 🚪 GRUPTAN ÇIK — 1.000.000 TL ]", "[ 🚪 LEAVE GROUP — 1,000,000 TL ]", , , , , , , , , , , , , , , "[ 🚪 OPUŚĆ GRUPĘ — 1 000 000 TL ]"]),

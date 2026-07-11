@@ -1,4 +1,4 @@
-/** Mafya savaşı — gazete haberleri ve güç toplamıyla kazanan */
+/** Mafya savaşı — gazete, lider otomatik katılım, %10 güç kaybı, 30k ödül payı */
 const path = require("path");
 const fs = require("fs");
 const sqlite3 = require("sqlite3").verbose();
@@ -149,16 +149,39 @@ async function main() {
   for (const uid of [1, 2, 3]) await run(db, `INSERT INTO mafya_uyeleri (grup_id, user_id) VALUES (1, ?)`, [uid]);
   for (const uid of [4, 5, 6]) await run(db, `INSERT INTO mafya_uyeleri (grup_id, user_id) VALUES (2, ?)`, [uid]);
 
-  await run(db, `UPDATE players SET guc = 100, bonus_guc = 10 WHERE user_id = 1`);
-  await run(db, `UPDATE players SET guc = 50, bonus_guc = 0 WHERE user_id = 2`);
-  await run(db, `UPDATE players SET guc = 200, bonus_guc = 50 WHERE user_id = 4`);
-  await run(db, `UPDATE players SET guc = 10, bonus_guc = 0 WHERE user_id = 5`);
-  await run(db, `UPDATE players SET guc = 10, bonus_guc = 0 WHERE user_id = 6`);
+  await run(db, `UPDATE players SET guc = 100, bonus_guc = 10, kasa = 50000 WHERE user_id = 1`);
+  await run(db, `UPDATE players SET guc = 50, bonus_guc = 0, kasa = 50000 WHERE user_id = 2`);
+  await run(db, `UPDATE players SET guc = 200, bonus_guc = 50, kasa = 0 WHERE user_id = 4`);
+  await run(db, `UPDATE players SET guc = 10, bonus_guc = 0, kasa = 0 WHERE user_id = 5`);
+  await run(db, `UPDATE players SET guc = 10, bonus_guc = 0, kasa = 0 WHERE user_id = 6`);
 
-  const { savasIlanEt, savasaKatil, savasiCoz, grupKatilimciToplamGuc } = require("../game/mafyaSavasService");
+  const {
+    savasIlanEt,
+    savasaKatil,
+    savasiCoz,
+    grupKatilimciToplamGuc,
+    grupAktifSavasVarMi,
+    GUC_KAYBI_ORANI,
+    KAYIP_ODEME_BIRIM,
+  } = require("../game/mafyaSavasService");
+  const { guruptanCik } = require("../game/mafiaService");
 
   const ilan = await savasIlanEt(db, 1, 2);
   if (!ilan.ok) throw new Error(ilan.error);
+
+  const savas = await get(db, `SELECT id, savas_zamani FROM mafya_savaslar ORDER BY id DESC LIMIT 1`);
+  const liderKatilim = await all(db, `SELECT user_id FROM mafya_savas_katilim WHERE savas_id = ?`, [savas.id]);
+  const liderIds = liderKatilim.map((r) => r.user_id).sort();
+  if (JSON.stringify(liderIds) !== JSON.stringify([1, 4])) {
+    throw new Error("Liderler otomatik katılmalı (1 ve 4): " + JSON.stringify(liderIds));
+  }
+
+  if (!(await grupAktifSavasVarMi(db, 1)) || !(await grupAktifSavasVarMi(db, 2))) {
+    throw new Error("Her iki grup da aktif savaşta görünmeli");
+  }
+
+  const cikis = await guruptanCik(db, 2, { kasa: 2_000_000 });
+  if (cikis.ok) throw new Error("Aktif savaşta gruptan çıkış engellenmeli");
 
   const ilanHaber = await get(
     db,
@@ -168,12 +191,12 @@ async function main() {
     throw new Error("İlan gazetesi eksik: " + (ilanHaber?.mesaj || ""));
   }
 
-  const savas = await get(db, `SELECT id, savas_zamani FROM mafya_savaslar ORDER BY id DESC LIMIT 1`);
-  await savasaKatil(db, savas.id, 1, 1);
   await savasaKatil(db, savas.id, 2, 1);
-  await savasaKatil(db, savas.id, 4, 2);
   await savasaKatil(db, savas.id, 5, 2);
   await savasaKatil(db, savas.id, 6, 2);
+
+  const tekrar = await savasaKatil(db, savas.id, 1, 1);
+  if (tekrar.ok) throw new Error("Katılan oyuncu tekrar katılamamalı");
 
   const saldiranGuc = await grupKatilimciToplamGuc(db, savas.id, 1);
   const hedefGuc = await grupKatilimciToplamGuc(db, savas.id, 2);
@@ -188,6 +211,26 @@ async function main() {
     throw new Error("Kazanan hedef grup olmalı (güç 270 > 160), alınan: " + JSON.stringify(sonuc));
   }
 
+  const p1 = await get(db, `SELECT guc, bonus_guc, kasa FROM players WHERE user_id = 1`);
+  const p2 = await get(db, `SELECT guc, bonus_guc, kasa FROM players WHERE user_id = 2`);
+  const p4 = await get(db, `SELECT guc, bonus_guc, kasa FROM players WHERE user_id = 4`);
+  const p5 = await get(db, `SELECT guc, bonus_guc, kasa FROM players WHERE user_id = 5`);
+  const p6 = await get(db, `SELECT guc, bonus_guc, kasa FROM players WHERE user_id = 6`);
+
+  const beklenenGuc1 = Math.max(0, Math.floor((100 + 10) * (1 - GUC_KAYBI_ORANI)) - 10);
+  if (p1.guc !== beklenenGuc1) throw new Error(`Oyuncu 1 güç ${p1.guc}, beklenen ${beklenenGuc1}`);
+  const beklenenGuc2 = Math.floor(50 * (1 - GUC_KAYBI_ORANI));
+  if (p2.guc !== beklenenGuc2) throw new Error(`Oyuncu 2 güç ${p2.guc}, beklenen ${beklenenGuc2}`);
+
+  if (p1.kasa !== 20000) throw new Error(`Kaybeden 1 kasa ${p1.kasa}, beklenen 20000`);
+  if (p2.kasa !== 20000) throw new Error(`Kaybeden 2 kasa ${p2.kasa}, beklenen 20000`);
+
+  const toplamOdul = 2 * KAYIP_ODEME_BIRIM;
+  const kazananToplam = p4.kasa + p5.kasa + p6.kasa;
+  if (kazananToplam !== toplamOdul) {
+    throw new Error(`Kazananlara dağıtılan ${kazananToplam}, beklenen ${toplamOdul}`);
+  }
+
   const sonucHaber = await get(
     db,
     `SELECT mesaj FROM sehir_gazete WHERE mesaj LIKE '%Mafya Savaşı sonuçlandı%' ORDER BY id DESC LIMIT 1`
@@ -196,7 +239,7 @@ async function main() {
     throw new Error("Sonuç gazetesi eksik: " + (sonucHaber?.mesaj || ""));
   }
 
-  console.log("OK mafya savaşı gazete —", sonucHaber.mesaj.slice(0, 100) + "...");
+  console.log("OK mafya savaşı kuralları —", sonucHaber.mesaj.slice(0, 100) + "...");
 }
 
 main().catch((e) => {

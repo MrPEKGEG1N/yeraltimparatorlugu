@@ -6153,7 +6153,11 @@ async function mafyaSavaslarCiz(box) {
         + '<p>' + escHtml(t('game.mafya.warParticipants')) + ' ' + s.saldiran_katilim + t('game.mafya.warTargetSide') + s.hedef_katilim + '</p>';
       if (s.durum === 'bekliyor') {
         html += '<p style="color:#888;">' + escHtml(t('game.mafya.warStartsIn')) + ' <b>' + kalanSaat + '</b>' + escHtml(t('game.mafya.warHours')) + '</p>';
-        html += '<button class="btn-is" onclick="mafyaSavasaKatil(' + s.id + ')">' + escHtml(t('game.mafya.joinWar')) + '</button>';
+        if (s.ben_katildim) {
+          html += '<p style="color:#888;">' + escHtml(t('game.mafya.warAlreadyJoined')) + '</p>';
+        } else {
+          html += '<button class="btn-is" onclick="mafyaSavasaKatil(' + s.id + ')">' + escHtml(t('game.mafya.joinWar')) + '</button>';
+        }
       }
       html += '</div>';
     });
@@ -6357,8 +6361,12 @@ function mafyaSavasBolumHTML(mafyaData, savasData) {
       + '<p>' + escHtml(t('game.mafya.warTarget')) + ' <b>' + escHtml(s.hedef_grup_adi || s.hedef_grup_id) + '</b></p>'
       + '<p>' + escHtml(t('game.mafya.warParticipants')) + ' <b>' + s.saldiran_katilim + '</b>' + escHtml(t('game.mafya.warTargetSide')) + '<b>' + s.hedef_katilim + '</b></p>';
     if (s.durum === 'bekliyor') {
-      html += '<p class="mafya-metin-dim">' + escHtml(t('game.mafya.warStartsIn')) + ' <b>' + kalanSaat + '</b>' + escHtml(t('game.mafya.warHours')) + '</p>'
-        + '<button class="btn-is" onclick="mafyaSavasaKatil(' + s.id + ')">' + escHtml(t('game.mafya.joinWar')) + '</button>';
+      html += '<p class="mafya-metin-dim">' + escHtml(t('game.mafya.warStartsIn')) + ' <b>' + kalanSaat + '</b>' + escHtml(t('game.mafya.warHours')) + '</p>';
+      if (s.ben_katildim) {
+        html += '<p class="mafya-metin-dim">' + escHtml(t('game.mafya.warAlreadyJoined')) + '</p>';
+      } else {
+        html += '<button class="btn-is" onclick="mafyaSavasaKatil(' + s.id + ')">' + escHtml(t('game.mafya.joinWar')) + '</button>';
+      }
     }
     html += '</div>';
   });

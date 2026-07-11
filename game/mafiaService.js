@@ -2,6 +2,7 @@ const { get, all, run } = require("../db/database");
 const { ensureEvi, kapasite } = require("./mafyaEviService");
 const { sanitizeProfilAciklama } = require("./profilAciklamaSanitize");
 const { syncBonusGuc } = require("./bonusGucService");
+const { grupAktifSavasVarMi } = require("./mafyaSavasService");
 
 const CIKIS_UCRET = 1_000_000;
 
@@ -176,6 +177,9 @@ async function uyeCikar(db, liderId, hedefUserId) {
   const grup = await kullaniciGrubu(db, liderId);
   if (!grup || grup.lider_user_id !== liderId) return { ok: false, error: "Yetkisiz." };
   if (hedefUserId === liderId) return { ok: false, error: "Kendini çıkaramazsın." };
+  if (await grupAktifSavasVarMi(db, grup.id)) {
+    return { ok: false, error: "Grubun aktif savaşı var; savaş bitene kadar üye çıkarılamaz." };
+  }
   await run(db, `DELETE FROM mafya_uyeleri WHERE grup_id = ? AND user_id = ?`, [
     grup.id,
     hedefUserId,
@@ -209,6 +213,9 @@ async function liderlikDevret(db, liderId, yeniLiderId) {
 async function gurupDagit(db, liderId) {
   const grup = await kullaniciGrubu(db, liderId);
   if (!grup || grup.lider_user_id !== liderId) return { ok: false, error: "Yetkisiz." };
+  if (await grupAktifSavasVarMi(db, grup.id)) {
+    return { ok: false, error: "Grubun aktif savaşı var; savaş bitene kadar grup dağıtılamaz." };
+  }
   const uyeler = await all(db, `SELECT user_id FROM mafya_uyeleri WHERE grup_id = ?`, [grup.id]);
   await run(db, `DELETE FROM mafya_basvurulari WHERE grup_id = ?`, [grup.id]);
   await run(db, `DELETE FROM mafya_uyeleri WHERE grup_id = ?`, [grup.id]);
@@ -225,6 +232,9 @@ async function guruptanCik(db, userId, player) {
   if (!uyelik) return { ok: false, error: "Grupta değilsin." };
   if (uyelik.lider_user_id === userId) {
     return { ok: false, error: "Lider önce liderliği devretmeli veya grubu dağıtmalı." };
+  }
+  if (await grupAktifSavasVarMi(db, uyelik.id)) {
+    return { ok: false, error: "Grubun aktif savaşı var; savaş bitene kadar ayrılamazsın." };
   }
   if (player.kasa < CIKIS_UCRET) {
     return { ok: false, error: `Çıkmak için ${CIKIS_UCRET.toLocaleString("tr-TR")} TL gerekir.` };

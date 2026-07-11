@@ -1,11 +1,40 @@
 const { run, get, all } = require("../db/database");
-const { sektorPanel } = require("./sectorService");
-const { getLimanDurumu } = require("./worldService");
-const { limanSaatlikToplam } = require("./worldConstants");
 const { mafyaSavasIlanHaber, mafyaSavasSonucHaber } = require("./sehirGazeteService");
 const { gucKaybiOranliUygula, toplamGuc } = require("./gucService");
 
 const SAVAS_BEKLEME_SURESI = 8 * 60 * 60 * 1000; // 8 hours
+const GUC_KAYBI_ORANI = 0.1;
+const KAYIP_ODEME_BIRIM = 30_000;
+
+async function katilimciEkle(db, savasId, userId, grupId) {
+  if (!userId || !grupId) return;
+  await run(
+    db,
+    `INSERT OR IGNORE INTO mafya_savas_katilim (savas_id, user_id, grup_id) VALUES (?, ?, ?)`,
+    [savasId, userId, grupId]
+  );
+}
+
+async function liderleriSavasaEkle(db, savasId, saldiranGrupId, hedefGrupId) {
+  const saldiran = await get(db, `SELECT lider_user_id FROM mafya_gruplari WHERE id = ?`, [saldiranGrupId]);
+  const hedef = await get(db, `SELECT lider_user_id FROM mafya_gruplari WHERE id = ?`, [hedefGrupId]);
+  if (saldiran?.lider_user_id) {
+    await katilimciEkle(db, savasId, saldiran.lider_user_id, saldiranGrupId);
+  }
+  if (hedef?.lider_user_id) {
+    await katilimciEkle(db, savasId, hedef.lider_user_id, hedefGrupId);
+  }
+}
+
+async function grupAktifSavasVarMi(db, grupId) {
+  const row = await get(
+    db,
+    `SELECT id FROM mafya_savaslar
+     WHERE durum = 'bekliyor' AND (saldiran_grup_id = ? OR hedef_grup_id = ?)`,
+    [grupId, grupId]
+  );
+  return !!row;
+}
 
 async function grupKatilimciToplamGuc(db, savasId, grupId) {
   const katilim = await all(
@@ -23,13 +52,6 @@ async function grupKatilimciToplamGuc(db, savasId, grupId) {
     toplam += toplamGuc(p);
   }
   return { toplam, katilim };
-}
-
-async function saatlikKazancHesapla(db, userId) {
-  const limanlar = await getLimanDurumu(db);
-  const sahipLimanlar = limanlar.filter((l) => l.sahipUserId === userId).length;
-  const { saatlikKazanc: sektorSaatlik } = await sektorPanel(db, userId);
-  return limanSaatlikToplam(sahipLimanlar) + (sektorSaatlik || 0);
 }
 
 async function savasIlanEt(db, saldiranGrupId, hedefGrupId) {
@@ -50,12 +72,13 @@ async function savasIlanEt(db, saldiranGrupId, hedefGrupId) {
   const baslangicZamani = Date.now();
   const savasZamani = baslangicZamani + SAVAS_BEKLEME_SURESI;
   
-  await run(
+  const ins = await run(
     db,
     `INSERT INTO mafya_savaslar (saldiran_grup_id, hedef_grup_id, baslangic_zamani, savas_zamani, durum)
      VALUES (?, ?, ?, ?, 'bekliyor')`,
     [saldiranGrupId, hedefGrupId, baslangicZamani, savasZamani]
   );
+  await liderleriSavasaEkle(db, ins.lastID, saldiranGrupId, hedefGrupId);
 
   const saldiran = await get(db, `SELECT isim FROM mafya_gruplari WHERE id = ?`, [saldiranGrupId]);
   const hedef = await get(db, `SELECT isim FROM mafya_gruplari WHERE id = ?`, [hedefGrupId]);
@@ -102,35 +125,37 @@ async function savasaKatil(db, savasId, userId, grupId) {
     return { ok: false, error: "Bu savaşa katılamazsın." };
   }
   
-  try {
-    await run(
-      db,
-      `INSERT INTO mafya_savas_katilim (savas_id, user_id, grup_id) VALUES (?, ?, ?)`,
-      [savasId, userId, grupId]
-    );
-    return { ok: true, mesaj: "Savaşa katıldın!" };
-  } catch (e) {
-    return { ok: false, error: "Zaten bu savaşa katıldın." };
+  const mevcut = await get(
+    db,
+    `SELECT 1 AS ok FROM mafya_savas_katilim WHERE savas_id = ? AND user_id = ?`,
+    [savasId, userId]
+  );
+  if (mevcut) {
+    return { ok: false, error: "Zaten bu savaşa katıldın; savaş bitene kadar ayrılamazsın." };
   }
+
+  await katilimciEkle(db, savasId, userId, grupId);
+  return { ok: true, mesaj: "Savaşa katıldın! Savaş bitene kadar ayrılamazsın." };
 }
 
-async function savaslariListele(db, grupId) {
+async function savaslariListele(db, grupId, userId = null) {
   const savaslar = await all(
     db,
     `SELECT s.*,
      sg.isim AS saldiran_grup_adi,
      hg.isim AS hedef_grup_adi,
      (SELECT COUNT(*) FROM mafya_savas_katilim WHERE savas_id = s.id AND grup_id = s.saldiran_grup_id) as saldiran_katilim,
-     (SELECT COUNT(*) FROM mafya_savas_katilim WHERE savas_id = s.id AND grup_id = s.hedef_grup_id) as hedef_katilim
+     (SELECT COUNT(*) FROM mafya_savas_katilim WHERE savas_id = s.id AND grup_id = s.hedef_grup_id) as hedef_katilim,
+     (SELECT 1 FROM mafya_savas_katilim WHERE savas_id = s.id AND user_id = ?) as ben_katildim
      FROM mafya_savaslar s
      JOIN mafya_gruplari sg ON sg.id = s.saldiran_grup_id
      JOIN mafya_gruplari hg ON hg.id = s.hedef_grup_id
      WHERE s.saldiran_grup_id = ? OR s.hedef_grup_id = ?
      ORDER BY s.baslangic_zamani DESC`,
-    [grupId, grupId]
+    [userId, grupId, grupId]
   );
-  
-  return savaslar;
+
+  return savaslar.map((s) => ({ ...s, ben_katildim: !!s.ben_katildim }));
 }
 
 async function savasiCoz(db) {
@@ -159,64 +184,44 @@ async function savasiCoz(db) {
       kaybedenGrupId = savas.saldiran_grup_id;
     }
     
-    // Apply penalties
-    // Winner: 10% power reduction, 3 hours of hourly income bonus
-    // Loser: 50% power reduction, lose all state relations
-    
-    for (const k of saldiranKatilim) {
-      const player = await get(
-        db,
-        `SELECT guc, COALESCE(bonus_guc, 0) AS bonus_guc, kasa FROM players WHERE user_id = ?`,
-        [k.user_id]
-      );
-      if (player) {
-        const kazandi = kazananGrupId === savas.saldiran_grup_id;
-        const gucSync = await gucKaybiOranliUygula(db, k.user_id, player, kazandi ? 0.1 : 0.5);
-        let yeniKasa = player.kasa;
-        let yeniDevlet = null;
-        if (kazandi) {
-          const saatlik = await saatlikKazancHesapla(db, k.user_id);
-          yeniKasa += Math.max(0, Math.floor(saatlik * 3));
-        } else {
-          yeniDevlet = 0;
-        }
-        if (yeniDevlet === null) {
-          await run(db, `UPDATE players SET guc = ?, kasa = ? WHERE user_id = ?`, [
-            gucSync.guc,
-            yeniKasa,
-            k.user_id,
-          ]);
-        } else {
-          await run(
-            db,
-            `UPDATE players SET guc = ?, kasa = ?, devlet_iliskisi = ? WHERE user_id = ?`,
-            [gucSync.guc, yeniKasa, yeniDevlet, k.user_id]
-          );
-        }
+    const kazananKatilim =
+      kazananGrupId === savas.saldiran_grup_id ? saldiranKatilim : hedefKatilim;
+    const kaybedenKatilim =
+      kaybedenGrupId === savas.saldiran_grup_id ? saldiranKatilim : hedefKatilim;
+
+    let toplananOdul = 0;
+    for (const k of kaybedenKatilim) {
+      const player = await get(db, `SELECT kasa FROM players WHERE user_id = ?`, [k.user_id]);
+      if (!player) continue;
+      const kes = Math.min(Math.max(0, player.kasa), KAYIP_ODEME_BIRIM);
+      toplananOdul += kes;
+      if (kes > 0) {
+        await run(db, `UPDATE players SET kasa = kasa - ? WHERE user_id = ?`, [kes, k.user_id]);
       }
     }
 
-    for (const k of hedefKatilim) {
+    const tumKatilim = [...saldiranKatilim, ...hedefKatilim];
+    for (const k of tumKatilim) {
       const player = await get(
         db,
-        `SELECT guc, COALESCE(bonus_guc, 0) AS bonus_guc, devlet_iliskisi FROM players WHERE user_id = ?`,
+        `SELECT guc, COALESCE(bonus_guc, 0) AS bonus_guc FROM players WHERE user_id = ?`,
         [k.user_id]
       );
-      if (player) {
-        const kazandi = kazananGrupId === savas.hedef_grup_id;
-        const gucSync = await gucKaybiOranliUygula(db, k.user_id, player, kazandi ? 0.1 : 0.5);
-        const yeniIliski = kazandi ? player.devlet_iliskisi : 0;
-        const kasaRow = await get(db, `SELECT kasa FROM players WHERE user_id = ?`, [k.user_id]);
-        let yeniKasa = kasaRow?.kasa || 0;
-        if (kazandi) {
-          const saatlik = await saatlikKazancHesapla(db, k.user_id);
-          yeniKasa += Math.max(0, Math.floor(saatlik * 3));
-        }
-        await run(
-          db,
-          `UPDATE players SET guc = ?, kasa = ?, devlet_iliskisi = ? WHERE user_id = ?`,
-          [gucSync.guc, yeniKasa, yeniIliski, k.user_id]
-        );
+      if (!player) continue;
+      const gucSync = await gucKaybiOranliUygula(db, k.user_id, player, GUC_KAYBI_ORANI);
+      await run(db, `UPDATE players SET guc = ? WHERE user_id = ?`, [gucSync.guc, k.user_id]);
+    }
+
+    if (kazananKatilim.length > 0 && toplananOdul > 0) {
+      const payBase = Math.floor(toplananOdul / kazananKatilim.length);
+      let remainder = toplananOdul - payBase * kazananKatilim.length;
+      for (let i = 0; i < kazananKatilim.length; i++) {
+        const pay = payBase + (i < remainder ? 1 : 0);
+        if (pay <= 0) continue;
+        await run(db, `UPDATE players SET kasa = kasa + ? WHERE user_id = ?`, [
+          pay,
+          kazananKatilim[i].user_id,
+        ]);
       }
     }
     
@@ -248,5 +253,8 @@ module.exports = {
   savaslariListele,
   savasiCoz,
   grupKatilimciToplamGuc,
+  grupAktifSavasVarMi,
   SAVAS_BEKLEME_SURESI,
+  GUC_KAYBI_ORANI,
+  KAYIP_ODEME_BIRIM,
 };
