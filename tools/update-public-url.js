@@ -25,6 +25,7 @@ const FILES = [
   "public/kurallar/kurallar.json",
   "android/app/src/main/assets/capacitor.config.json",
   "northflank/env.runtime.example",
+  "render/DEPLOY.md",
 ];
 
 function main() {

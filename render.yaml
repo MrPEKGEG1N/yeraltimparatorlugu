@@ -1,0 +1,26 @@
+# Render Blueprint — Yeralti Imparatorlugu (ucretsiz, kart gerekmez)
+# Kurulum: https://dashboard.render.com/blueprint/new?repo=https://github.com/MrPEKGEG1N/yeraltimparatorlugu
+services:
+  - type: web
+    name: yeralti-game
+    runtime: docker
+    plan: free
+    region: frankfurt
+    repo: https://github.com/MrPEKGEG1N/yeraltimparatorlugu
+    branch: main
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    autoDeployTrigger: commit
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "3000"
+      - key: ADMIN_USERNAME
+        value: mrpekgeg1n
+      - key: JWT_SECRET
+        value: yeralti-dev-gizli-anahtar-degistir
+      - key: SUPABASE_URL
+        value: https://pzkafimfxuspoeybrywx.supabase.co
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
