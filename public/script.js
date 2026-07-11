@@ -1149,20 +1149,32 @@ function toast(mesaj, tip) {
   }, 3200);
 }
 
-function pencereAc(isAdi, netKazanc, icraat, gorselUrl, devletDusus, yeniDevletIliski, sayginlik) {
-  sesCal('saldiri');
-  document.getElementById('modalResim').src = gorselUrl || isGorselleri.varsayilan;
+var icraatModalSon = null;
+
+function isAdiLocale(gorselKey, fallback) {
+  if (!gorselKey) return fallback || '';
+  var key = 'game.buyume.job.' + gorselKey + '.title';
+  var val = t(key);
+  return val !== key ? val : (fallback || '');
+}
+
+function icraatModalYenile() {
+  var s = icraatModalSon;
+  if (!s) return;
+  var jobAdi = isAdiLocale(s.gorselKey, s.isAdi);
   document.getElementById('modalTebrik').innerHTML =
-    t('game.jobComplete', { boss: aktifReisAdi, job: isAdi });
-  document.getElementById('modalPara').innerText = '+' + fmt(netKazanc) + ' TL';
-  document.getElementById('modalIcraat').innerText = icraat > 0 ? '-' + icraat + ' Hak' : '—';
+    t('game.jobComplete', { boss: aktifReisAdi, job: jobAdi });
+  document.getElementById('modalPara').innerText = '+' + fmt(s.netKazanc) + ' TL';
+  document.getElementById('modalIcraat').innerText = s.icraat > 0
+    ? t('game.job.modalActionCost', { n: s.icraat })
+    : '—';
   var sayginlikSatir = document.getElementById('modalSayginlikSatir');
   var sayginlikEl = document.getElementById('modalSayginlik');
   var sayginlikLabel = document.getElementById('modalSayginlikLabel');
   if (sayginlikSatir && sayginlikEl) {
-    if (sayginlik != null && sayginlik > 0) {
+    if (s.sayginlik != null && s.sayginlik > 0) {
       if (sayginlikLabel) sayginlikLabel.innerText = '🕶️ ' + t('game.job.modalRespect') + ':';
-      sayginlikEl.innerText = '+' + fmt(sayginlik);
+      sayginlikEl.innerText = '+' + fmt(s.sayginlik);
       sayginlikSatir.style.display = '';
     } else {
       sayginlikSatir.style.display = 'none';
@@ -1172,17 +1184,38 @@ function pencereAc(isAdi, netKazanc, icraat, gorselUrl, devletDusus, yeniDevletI
   var devSatir = document.getElementById('modalDevletSatir');
   var devEl = document.getElementById('modalDevlet');
   if (devSatir && devEl) {
-    if (devletDusus) {
+    if (s.devletDusus) {
       devSatir.style.display = '';
-      var yeni = yeniDevletIliski != null ? yeniDevletIliski : oyuncuDevlet;
-      devEl.innerText = '-' + devletDusus + ' (yeni: ' + fmt(yeni) + ')';
+      var yeni = s.yeniDevletIliski != null ? s.yeniDevletIliski : oyuncuDevlet;
+      devEl.innerText = t('game.job.modalLawyerDrop', { drop: s.devletDusus, n: fmt(yeni) });
     } else {
       devSatir.style.display = 'none';
       devEl.innerText = '';
     }
   }
+}
+
+function pencereAc(gorselKey, isAdi, netKazanc, icraat, gorselUrl, devletDusus, yeniDevletIliski, sayginlik) {
+  sesCal('saldiri');
+  icraatModalSon = {
+    gorselKey: gorselKey,
+    isAdi: isAdi,
+    netKazanc: netKazanc,
+    icraat: icraat,
+    gorselUrl: gorselUrl,
+    devletDusus: devletDusus,
+    yeniDevletIliski: yeniDevletIliski,
+    sayginlik: sayginlik
+  };
+  document.getElementById('modalResim').src = gorselUrl || isGorselleri.varsayilan;
+  icraatModalYenile();
   document.getElementById('soygunModal').classList.add('acik');
 }
+
+document.addEventListener('yi:langchange', function () {
+  var modal = document.getElementById('soygunModal');
+  if (modal && modal.classList.contains('acik') && icraatModalSon) icraatModalYenile();
+});
 
 function pencereKapat() {
   document.getElementById('soygunModal').classList.remove('acik');
@@ -5724,7 +5757,7 @@ async function adamKirala(key) {
 async function isYap(key) {
   var ef = await sunucuAksiyon('job', key);
   if (!ef) return;
-  pencereAc(ef.isAdi, ef.netKazanc, ef.icraat, isGorselleri[ef.gorselKey] || FALLBACK, ef.devletDusus, ef.yeniDevletIliski, ef.puan);
+  pencereAc(ef.gorselKey, ef.isAdi, ef.netKazanc, ef.icraat, isGorselleri[ef.gorselKey] || FALLBACK, ef.devletDusus, ef.yeniDevletIliski, ef.puan);
   if (ef.devletDusus) {
     toast(t('game.toast.lawyerRelationDrop', { points: ef.devletDusus }), 'uyari');
   }
