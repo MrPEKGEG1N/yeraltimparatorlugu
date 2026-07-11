@@ -234,6 +234,48 @@ async function ensurePiyangoTables(db) {
   );
 }
 
+async function piyangoJackpotOnar(db) {
+  const now = Date.now();
+  const aciklar = await all(
+    db,
+    `SELECT * FROM kumarhane_piyango_cekilis WHERE durum = 'acik' ORDER BY id ASC`
+  );
+  for (const c of aciklar) {
+    const bitis = parseDonemAnahtari(c.donem);
+    if (bitis != null && bitis <= now) {
+      await cekilisTamamla(db, c);
+    }
+  }
+
+  const mevcut = await jackpotBirikimGetir(db);
+  if (mevcut > 0) return mevcut;
+
+  const son = await get(
+    db,
+    `SELECT c.id, c.kazanan_sayisi, c.odul_toplam, c.havuz_toplam, c.sayilar
+     FROM kumarhane_piyango_cekilis c
+     WHERE c.durum = 'tamam' AND c.sayilar IS NOT NULL AND c.kazanan_sayisi = 0
+     ORDER BY c.cekilis_at DESC, c.id DESC
+     LIMIT 1`
+  );
+  if (!son) return 0;
+
+  let miktar = son.odul_toplam > 0 ? son.odul_toplam : 0;
+  if (miktar <= 0 && son.havuz_toplam > 0) {
+    miktar = Math.floor(son.havuz_toplam * HAVUZ_ODUL_ORANI);
+  }
+  if (miktar <= 0) {
+    const ucretli = await get(
+      db,
+      `SELECT COUNT(*) AS n FROM kumarhane_piyango_bilet WHERE cekilis_id = ? AND ucretsiz = 0`,
+      [son.id]
+    );
+    miktar = havuzOdulHesapla(ucretli?.n || 0).buyukOdul;
+  }
+  if (miktar > 0) return await jackpotBirikimAyarla(db, miktar);
+  return 0;
+}
+
 async function hakGetir(db, userId) {
   await ensurePiyangoTables(db);
   const row = await get(db, `SELECT hak FROM kumarhane_piyango_hak WHERE user_id = ?`, [userId]);
@@ -277,6 +319,7 @@ async function yeniCekilisDonemiAc(db) {
 
 async function aktifCekilisGetir(db) {
   await ensurePiyangoTables(db);
+  await vadesiGelenCekilisleriYap(db);
   const now = Date.now();
   const acik = await get(
     db,
@@ -536,6 +579,7 @@ async function panelVerisiGetir(db, userId) {
 
   await ensurePiyangoTables(db);
   await vadesiGelenCekilisleriYap(db);
+  await piyangoJackpotOnar(db);
 
   const cekilis = await aktifCekilisGetir(db);
   const sonraki = sonrakiCekilisZamani();
@@ -742,6 +786,7 @@ async function periyodikKontrol(db) {
   await ensurePiyangoTables(db);
   await gunlukPiyangoGazeteHaber(db);
   await vadesiGelenCekilisleriYap(db);
+  await piyangoJackpotOnar(db);
 }
 
 module.exports = {
@@ -771,4 +816,5 @@ module.exports = {
   gunlukPiyangoGazeteHaber,
   vadesiGelenCekilisleriYap,
   cekilisTamamla,
+  piyangoJackpotOnar,
 };

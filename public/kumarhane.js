@@ -927,6 +927,13 @@ function kumarhanePiyangoBiletKartHTML(b) {
   return html;
 }
 
+function kumarhanePiyangoBuyukOdul(p) {
+  if (!p) return 0;
+  var toplam = p.buyukOdul != null ? p.buyukOdul : p.odul;
+  if (toplam > 0) return toplam;
+  return (p.devredenOdul || 0) + (p.donemOdul || 0);
+}
+
 function kumarhanePiyangoJackpotDetayInner(p) {
   var devreden = p.devredenOdul || 0;
   var donem = p.donemOdul || 0;
@@ -945,7 +952,7 @@ function kumarhanePiyangoJackpotGuncelle() {
   if (!p) return;
   var tutarEl = document.getElementById('kmPiyangoJackpotTutar');
   var detayEl = document.getElementById('kmPiyangoJackpotDetay');
-  if (tutarEl) tutarEl.innerHTML = fmt(p.buyukOdul || 0) + '<small>çip</small>';
+  if (tutarEl) tutarEl.innerHTML = fmt(kumarhanePiyangoBuyukOdul(p)) + '<small>çip</small>';
   if (detayEl) detayEl.innerHTML = kumarhanePiyangoJackpotDetayInner(p);
 }
 
@@ -970,7 +977,7 @@ function kumarhanePiyangoHTML() {
     + '<div class="km-py-jackpot-satir">'
     + '<div class="km-py-jackpot">'
     + '<span class="km-py-jackpot-etiket">' + escHtml(t('game.kumarhane.lotteryPrize')) + '</span>'
-    + '<div class="km-py-jackpot-tutar" id="kmPiyangoJackpotTutar">' + fmt(p.buyukOdul || 0) + '<small>çip</small></div>'
+    + '<div class="km-py-jackpot-tutar" id="kmPiyangoJackpotTutar">' + fmt(kumarhanePiyangoBuyukOdul(p)) + '<small>çip</small></div>'
     + '<div class="km-py-jackpot-detay" id="kmPiyangoJackpotDetay">' + kumarhanePiyangoJackpotDetayInner(p) + '</div>'
     + '</div>'
     + '<div class="km-py-sayac-kutu">'
