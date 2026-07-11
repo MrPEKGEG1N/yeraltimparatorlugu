@@ -106,6 +106,7 @@ const {
   rastgeleAvukatDususu,
   clampAvukatIliskisi,
   rusvetVer,
+  rusvetElmasVer,
 } = require("./devletService");
 const {
   getIstihbarat,
@@ -991,6 +992,22 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
       ok: true,
       player: await publicPlayerFull(db, userId, player),
       effect: { type: "rusvet", mesaj: sonuc.mesaj || `Devlet ilişkin ${sonuc.devletIliskisi} oldu.`, odenen: sonuc.odenen },
+    };
+  }
+
+  if (action === "rusvet_elmas_ver") {
+    const sonuc = await rusvetElmasVer(db, userId, player);
+    if (!sonuc.ok) return sonuc;
+    player = await loadPlayer(db, userId);
+    return {
+      ok: true,
+      player: await publicPlayerFull(db, userId, player),
+      effect: {
+        type: "rusvet_elmas",
+        mesaj: sonuc.mesaj,
+        harcananElmas: sonuc.harcananElmas,
+        yeniDevletIliski: sonuc.devletIliskisi,
+      },
     };
   }
 

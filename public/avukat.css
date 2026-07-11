@@ -376,6 +376,59 @@
   filter: brightness(1.08);
 }
 
+#masterLayout #anaIcerik .av-btn--elmas {
+  background: linear-gradient(180deg, rgba(90, 55, 140, 0.95), rgba(50, 28, 85, 0.98));
+  border-color: rgba(180, 140, 255, 0.5);
+  color: #f0e6ff;
+}
+
+#masterLayout #anaIcerik .av-btn--elmas:hover:not(:disabled) {
+  border-color: #d4b8ff;
+}
+
+#masterLayout #anaIcerik .av-rusvet-ayrac {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 0 12px;
+  color: rgba(180, 170, 155, 0.75);
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+#masterLayout #anaIcerik .av-rusvet-ayrac::before,
+#masterLayout #anaIcerik .av-rusvet-ayrac::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(184, 148, 42, 0.25);
+}
+
+#masterLayout #anaIcerik .av-elmas-rusvet {
+  padding: 12px;
+  border-radius: 5px;
+  border: 1px solid rgba(155, 126, 212, 0.35);
+  background: rgba(70, 45, 110, 0.15);
+}
+
+#masterLayout #anaIcerik .av-elmas-rusvet-baslik {
+  margin: 0 0 6px;
+  font-family: "Oswald", sans-serif;
+  font-size: 15px;
+  letter-spacing: 0.06em;
+  color: #e8d4ff;
+}
+
+#masterLayout #anaIcerik .av-elmas-rusvet-aciklama {
+  margin: 0 0 10px;
+  font-family: "Roboto Condensed", sans-serif;
+  font-size: 12px;
+  line-height: 1.45;
+  color: rgba(200, 185, 220, 0.9);
+}
+
 @media (max-width: 768px) {
   #masterLayout #anaIcerik .av-govde {
     padding: 14px 12px 18px;

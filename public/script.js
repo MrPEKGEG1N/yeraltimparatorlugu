@@ -42,6 +42,9 @@ var hapishaneHedefBilgi = null;
 var hapishaneSureTimer = null;
 var AVUKAT_ILISKI_MAX = 2000;
 var RUSVET_ARTIS_MAX = 50;
+var ELMAS_RUSVET_MALIYET = 10;
+var HAPSE_GIR_ESIK = 15;
+var BARON_HAPIS_UYARI_ESIK = 30;
 var mekanTanimlari = {};
 var aktifEkran = '';
 var aktifLakap = 'Mafya';
@@ -227,7 +230,9 @@ function oyuncuUygula(p, secenekler) {
   if (p.dunya) dunyaState = p.dunya;
   mafyaBildirim = !!p.mafyaBildirim;
   okunmamisMesaj = !!p.okunmamisMesaj;
+  var oncekiDevlet = oyuncuDevlet;
   oyuncuDevlet = Math.min(AVUKAT_ILISKI_MAX, p.devletIliskisi != null ? p.devletIliskisi : 100);
+  baronHapisUyariKontrol(oncekiDevlet, oyuncuDevlet, !!secenekler.poll);
   oyuncuSms = p.smsHakki != null ? p.smsHakki : 50;
   oyuncuElmas = p.elmas != null ? p.elmas : 0;
   oyuncuPremiumPaket = p.premiumPaket || '';
@@ -935,7 +940,9 @@ function arayuzGuncelle() {
   var devEl = document.getElementById('devletIliskisi');
   if (devEl) {
     devEl.innerText = fmt(oyuncuDevlet);
-    devEl.style.color = oyuncuDevlet < 5 ? '#ff6666' : '#ffffff';
+    if (oyuncuDevlet < HAPSE_GIR_ESIK) devEl.style.color = '#ff6666';
+    else if (premiumPaketSahipMi('baron') && oyuncuDevlet <= BARON_HAPIS_UYARI_ESIK) devEl.style.color = '#ffaa44';
+    else devEl.style.color = '#ffffff';
   }
   var puanEl2 = document.getElementById('puan');
   if (puanEl2) puanEl2.style.color = '#ffffff';
@@ -3103,6 +3110,15 @@ function medyaZamanGoster(ts) {
   return new Date(ts * 1000).toLocaleDateString(typeof I18n !== 'undefined' && I18n.dateLocale ? I18n.dateLocale() : 'tr-TR', { day: 'numeric', month: 'short' });
 }
 
+function baronHapisUyariKontrol(onceki, yeni, poll) {
+  if (poll) return;
+  if (!premiumPaketSahipMi('baron')) return;
+  onceki = onceki != null ? onceki : yeni;
+  if (onceki > BARON_HAPIS_UYARI_ESIK && yeni <= BARON_HAPIS_UYARI_ESIK) {
+    toast(t('game.premium.baronPrisonWarn'), 'hata');
+  }
+}
+
 function avukatHTML() {
   var r = rusvetBilgi || { min: 10, max: 50, onerilen: 30 };
   var iliski = Math.min(AVUKAT_ILISKI_MAX, oyuncuDevlet != null ? oyuncuDevlet : 100);
@@ -3120,7 +3136,13 @@ function avukatHTML() {
       + '<p class="av-rusvet-aralik">' + escHtml(t('game.lawyer.range', { min: fmt(r.min), max: fmt(r.max), inc: RUSVET_ARTIS_MAX })) + '</p>'
       + '<div class="av-alan"><label for="rusvetMiktar">' + escHtml(t('game.lawyer.bribeLabel')) + '</label>'
       + '<input type="number" id="rusvetMiktar" class="av-input" value="' + onerilen + '" min="' + r.min + '" max="' + r.max + '"></div>'
-      + '<button type="button" class="av-btn" onclick="rusvetVer()">' + escHtml(t('game.lawyer.bribeBtn')) + '</button>';
+      + '<button type="button" class="av-btn" onclick="rusvetVer()">' + escHtml(t('game.lawyer.bribeBtn')) + '</button>'
+      + '<div class="av-rusvet-ayrac"><span>' + escHtml(t('game.lawyer.orDivider')) + '</span></div>'
+      + '<div class="av-elmas-rusvet">'
+      + '<p class="av-elmas-rusvet-baslik">' + escHtml(t('game.lawyer.diamondBribeTitle')) + '</p>'
+      + '<p class="av-elmas-rusvet-aciklama">' + escHtml(t('game.lawyer.diamondBribeDesc', { elmas: ELMAS_RUSVET_MALIYET, max: AVUKAT_ILISKI_MAX })) + '</p>'
+      + '<button type="button" class="av-btn av-btn--elmas" onclick="rusvetElmasVer()">' + escHtml(t('game.lawyer.diamondBribeBtn', { n: ELMAS_RUSVET_MALIYET })) + ' · ' + fmt(oyuncuElmas) + '</button>'
+      + '</div>';
   }
   rusvetPanel += '</div>';
 
@@ -4471,6 +4493,9 @@ function elmasMagazaPaketKart(p) {
   }
   if (p.id === 'baron') {
     ozellikler.push(t('game.premium.benefitPrestigeBaron', { rozet: p.prestijRozet, etiket: p.prestijEtiket }));
+    if (p.hapisUyariEsik) {
+      ozellikler.push(t('game.premium.benefitBaronPrisonAlert', { n: p.hapisUyariEsik }));
+    }
   } else {
     ozellikler.push(t('game.premium.benefitPrestige', { rozet: p.prestijRozet, etiket: p.prestijEtiket }));
   }
@@ -4539,7 +4564,7 @@ function elmasMagazaIcerikHtml() {
     : [
       { id: 'tetikci', baslik: 'Tetikçi Paketi', altBaslik: 'Gözü Kara Başlangıç', elmasMaliyet: 100, tlOrtalama: 75, icraatSaatlik: 35, smsGunluk: 75, bankaHakGunluk: 30, faizYuzde: 1.5, mekanGelirBonusYuzde: 0, prestijRozet: '🥉', prestijEtiket: 'Bronz Kurşun' },
       { id: 'racon', baslik: 'Racon Paketi', altBaslik: 'Sözü Geçenler İçin', elmasMaliyet: 250, tlOrtalama: 175, icraatSaatlik: 50, smsGunluk: 100, bankaHakGunluk: 50, faizYuzde: 2, mekanGelirBonusYuzde: 10, prestijRozet: '🥈', prestijEtiket: 'Gümüş Şarjör' },
-      { id: 'baron', baslik: 'Baron / Hükümdar Paketi', altBaslik: 'Yeraltının Tek Sahibi', elmasMaliyet: 600, tlOrtalama: 320, icraatSaatlik: 75, smsSinirsiz: true, bankaHakSinirsiz: true, faizYuzde: 2.5, mekanGelirBonusYuzde: 20, prestijRozet: '👑', prestijEtiket: 'Altın Taç' }
+      { id: 'baron', baslik: 'Baron / Hükümdar Paketi', altBaslik: 'Yeraltının Tek Sahibi', elmasMaliyet: 600, tlOrtalama: 320, icraatSaatlik: 75, smsSinirsiz: true, bankaHakSinirsiz: true, faizYuzde: 2.5, mekanGelirBonusYuzde: 20, hapisUyariEsik: 30, prestijRozet: '👑', prestijEtiket: 'Altın Taç' }
     ];
   var aktifPaket = (oyuncuPremiumMagaza || []).find(function (p) { return p.id === oyuncuPremiumPaket; });
   var aktifMetin = oyuncuPremiumPaket && oyuncuPremiumKalanSn > 0
@@ -7611,6 +7636,12 @@ async function rusvetVer() {
   if (!miktar || miktar < 1) { toast(t('game.toast.invalidBribe'), 'hata'); return; }
   var ef = await sunucuAksiyon('rusvet_ver', null, null, { miktar: miktar });
   if (ef) toast(tr(ef.mesaj) || t('game.toast.bribeGiven'), 'basari');
+  ekranDegistir('devletIliskisi');
+}
+
+async function rusvetElmasVer() {
+  var ef = await sunucuAksiyon('rusvet_elmas_ver');
+  if (ef) toast(tr(ef.mesaj) || t('game.lawyer.diamondBribeDone'), 'basari');
   ekranDegistir('devletIliskisi');
 }
 

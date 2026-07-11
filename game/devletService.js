@@ -4,6 +4,7 @@ const HAPSE_GIR_ESIK = 15;
 const AVUKAT_ILISKI_MAX = 2000;
 const RUSVET_ARTIS_MAX = 50;
 const RUSVET_MAX = 10_000_000_000;
+const ELMAS_RUSVET_MALIYET = 10;
 
 function clampAvukatIliskisi(deger) {
   const n = Number(deger);
@@ -88,11 +89,46 @@ async function rusvetVer(db, userId, player, miktar) {
   return { ok: true, devletIliskisi: yeni, odenen: tutar, artis, mesaj };
 }
 
+async function rusvetElmasVer(db, userId, player) {
+  const row = await get(db, `SELECT devlet_iliskisi FROM players WHERE user_id = ?`, [userId]);
+  const mevcutIliski = clampAvukatIliskisi(row?.devlet_iliskisi ?? 100);
+
+  if (mevcutIliski >= AVUKAT_ILISKI_MAX) {
+    return {
+      ok: false,
+      error: `Avukat ilişkin zaten maksimumda (${AVUKAT_ILISKI_MAX}).`,
+    };
+  }
+
+  const elmas = player.elmas || 0;
+  if (elmas < ELMAS_RUSVET_MALIYET) {
+    return {
+      ok: false,
+      error: `Yeterli elmasın yok! ${ELMAS_RUSVET_MALIYET} elmas gerekir.`,
+    };
+  }
+
+  player.elmas = elmas - ELMAS_RUSVET_MALIYET;
+  await run(db, `UPDATE players SET elmas = ?, devlet_iliskisi = ? WHERE user_id = ?`, [
+    player.elmas,
+    AVUKAT_ILISKI_MAX,
+    userId,
+  ]);
+
+  return {
+    ok: true,
+    devletIliskisi: AVUKAT_ILISKI_MAX,
+    harcananElmas: ELMAS_RUSVET_MALIYET,
+    mesaj: `${ELMAS_RUSVET_MALIYET} elmas karşılığında avukat ilişkin maksimuma çıkarıldı: ${AVUKAT_ILISKI_MAX}.`,
+  };
+}
+
 module.exports = {
   HAPSE_GIR_ESIK,
   AVUKAT_ILISKI_MAX,
   RUSVET_ARTIS_MAX,
   RUSVET_MAX,
+  ELMAS_RUSVET_MALIYET,
   clampAvukatIliskisi,
   rastgeleAvukatDususu,
   rusvetMiktari,
@@ -100,4 +136,5 @@ module.exports = {
   devletDusur,
   hapisKontrol,
   rusvetVer,
+  rusvetElmasVer,
 };

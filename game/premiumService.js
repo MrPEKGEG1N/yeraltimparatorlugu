@@ -98,6 +98,7 @@ const PREMIUM_PAKETLER = {
     bankaHakSinirsiz: true,
     faizOran: 0.025,
     mekanGelirBonus: 0.2,
+    hapisUyariEsik: 30,
     prestijRozet: "👑",
     prestijEtiket: "Altın Taç",
   },
@@ -298,6 +299,7 @@ function paketListesi() {
     bankaHakSinirsiz: !!p.bankaHakSinirsiz,
     faizYuzde: Math.round(p.faizOran * 1000) / 10,
     mekanGelirBonusYuzde: Math.round(p.mekanGelirBonus * 100),
+    hapisUyariEsik: p.hapisUyariEsik || null,
     prestijRozet: p.prestijRozet,
     prestijEtiket: p.prestijEtiket,
   }));
