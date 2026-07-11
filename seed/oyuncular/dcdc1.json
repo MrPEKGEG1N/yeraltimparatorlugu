@@ -5,11 +5,21 @@
   "lakap": "Mafya",
   "force_restore": true,
   "player": {
-    "kasa": 9500,
-    "guc": 525,
-    "puan": 1500,
+    "kasa": 1692448077,
+    "guc": 105200,
+    "puan": 182397,
     "icraat": 10973,
-    "sms_hakki": 250
+    "sms_hakki": 250,
+    "elmas": 0,
+    "kara_listede": 0,
+    "sehir_efsane": 0,
+    "sehre_hukmet_sayisi": 0,
+    "liman_istanbul": 0,
+    "dostlar": "",
+    "dusmanlar": "",
+    "aktif_ekran": "",
+    "son_aksiyon": "",
+    "son_aksiyon_detay": ""
   },
   "guvenli_yer": {
     "base_seviye": 1
@@ -91,5 +101,13 @@
   ],
   "son_ip": "::1",
   "visitor_id": "957864a276d8be6d24bf0454f419c589",
-  "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36"
+  "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
+  "sirket_kapali": true,
+  "sehre_hukmet_kapali": true,
+  "yetenekler": {
+    "guc": 9,
+    "zeka": 8,
+    "dayaniklilik": 8,
+    "beceri": 8
+  }
 }

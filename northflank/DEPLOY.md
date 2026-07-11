@@ -2,14 +2,15 @@
 
 Railway süresi dolduğunda bu rehberle oyunu Northflank’a taşıyın. Oyuncu verisi **volume (/data)** + **Supabase yedek** + **seed/oyun.db** ile korunur.
 
-## 1. Veriyi hazırla (yerelde)
+## 1. Veriyi hazırla (yerelde) — TAMAMLANDI
+
+Son Supabase yedeği (2026-07-10) ile **7 oyuncu** `seed/oyun.db` ve `seed/oyuncular/*.json` içine yazıldı.
+
+Yeniden hazırlamak için:
 
 ```powershell
-# Supabase anahtarlarınız varsa (önerilir — Railway’deki son yedek):
-$env:SUPABASE_URL="https://xxxx.supabase.co"
-$env:SUPABASE_SERVICE_ROLE_KEY="eyJ..."
-
-node tools/prepare-northflank-deploy.js
+# Railway CLI oturumu varsa Supabase otomatik okunur:
+npm run prepare:northflank
 ```
 
 Bu komut en iyi `oyun.db` dosyasını seçer, `seed/oyun.db` ve `seed/oyuncular/*.json` snapshot’larını günceller.

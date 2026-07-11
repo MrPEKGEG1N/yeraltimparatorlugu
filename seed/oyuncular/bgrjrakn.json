@@ -1,31 +1,21 @@
 {
-  "id": "mrpekgeg1n",
-  "username": "mrpekgeg1n",
-  "reis_adi": "mrpekgeg1n",
+  "id": "bgrjrakn",
+  "username": "bgrjrakn",
+  "reis_adi": "Bgrjr",
   "lakap": "Mafya",
   "force_restore": true,
   "player": {
-    "kasa": 1742802779,
-    "guc": 1000001350,
-    "puan": 7226,
-    "icraat": 13594,
-    "sms_hakki": 750,
-    "elmas": 0,
-    "kara_listede": 0,
-    "sehir_efsane": 0,
-    "sehre_hukmet_sayisi": 0,
-    "liman_istanbul": 0,
-    "dostlar": "",
-    "dusmanlar": "",
-    "aktif_ekran": "sporSalonu",
-    "son_aksiyon": "ekran_goruntule",
-    "son_aksiyon_detay": "Spor Salonu"
+    "kasa": 109911,
+    "guc": 24225,
+    "puan": 3103,
+    "icraat": 1004,
+    "sms_hakki": 150
   },
   "guvenli_yer": {
-    "base_seviye": 15
+    "base_seviye": 1
   },
   "istihbarat": {
-    "eleman_sayisi": 4
+    "eleman_sayisi": 0
   },
   "mekanlar": [
     {
@@ -96,30 +86,10 @@
     {
       "sektor": "paket",
       "mekan_key": "uluslararasi_teslimat",
-      "adet": 1
+      "adet": 0
     }
   ],
-  "son_ip": "127.0.0.1",
-  "visitor_id": "916c560b454c0fe79379be9c1d390606",
-  "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
-  "sirket_kapali": true,
-  "sehre_hukmet_kapali": true,
-  "mafya": {
-    "lider": true,
-    "isim": "$BaBaLaR$",
-    "aciklama": "aa",
-    "rutbe": "Mafya Lideri",
-    "created_at": 1782485384
-  },
-  "yetenekler": {
-    "guc": 13,
-    "zeka": 12,
-    "dayaniklilik": 12,
-    "beceri": 18
-  },
-  "meslek": {
-    "meslek_id": "fastfood_mutfak",
-    "ise_baslama": 1782941461,
-    "son_gelir_gunu": "2026-07-10"
-  }
+  "son_ip": "88.250.195.196",
+  "visitor_id": "83b7040f260867a63a11ec806fdcc10e",
+  "user_agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 26_5_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/150.0.7871.113 Mobile/15E148 Safari/604.1"
 }
