@@ -9,7 +9,15 @@ const { scoreDbFile, DB_PATH, isDbCorrupt, replaceDbFile } = require("../db/data
 const SCORE_DROP_RATIO = 0.88;
 const MIN_BETTER_SCORE = 5000;
 
-function listLocalBackupFiles(targetPath) {
+function allowDbFileRestore() {
+  return process.env.ALLOW_DB_FILE_RESTORE === "1";
+}
+
+function isProductionLive(users) {
+  return process.env.NODE_ENV === "production" && users > 0;
+}
+
+function listLocalBackupFiles(targetPath, currentUsers = 0) {
   const dir = path.dirname(path.resolve(targetPath));
   const out = new Set();
   const names = [targetPath + ".bak", path.join(dir, "oyun.db.bak")];
@@ -17,10 +25,14 @@ function listLocalBackupFiles(targetPath) {
   if (mount) {
     names.push(path.join(mount, "oyun-seed.db"));
   }
-  names.push(
-    path.join(process.cwd(), "seed", "oyun.db"),
-    path.join(__dirname, "..", "seed", "oyun.db")
-  );
+  const blockBundledSeed =
+    isProductionLive(currentUsers) && !allowDbFileRestore();
+  if (!blockBundledSeed) {
+    names.push(
+      path.join(process.cwd(), "seed", "oyun.db"),
+      path.join(__dirname, "..", "seed", "oyun.db")
+    );
+  }
   const backupDir = path.join(dir, "backups");
   if (fs.existsSync(backupDir)) {
     for (const f of fs.readdirSync(backupDir)) {
@@ -56,6 +68,7 @@ async function downloadSupabaseCandidate(targetPath) {
 async function pickBestCandidate(targetPath, extraPaths = []) {
   const seen = new Set();
   const candidates = [];
+  const currentStats = await scoreDbFile(targetPath);
   const add = async (p) => {
     const resolved = path.resolve(p);
     if (seen.has(resolved)) return;
@@ -66,16 +79,20 @@ async function pickBestCandidate(targetPath, extraPaths = []) {
   };
 
   await add(targetPath);
-  for (const p of listLocalBackupFiles(targetPath)) await add(p);
+  for (const p of listLocalBackupFiles(targetPath, currentStats.users)) await add(p);
   for (const p of extraPaths) if (p) await add(p);
 
   candidates.sort((a, b) => b.score - a.score);
   return candidates;
 }
 
-function shouldRecover(current, best) {
+function shouldRecover(current, best, opts = {}) {
   if (!best || best.users <= 0) return false;
   if (current.users <= 0) return true;
+  if (opts.corruptOnly) return false;
+  if (process.env.NODE_ENV === "production" && process.env.ALLOW_DEGRADED_RECOVERY !== "1") {
+    return false;
+  }
   if (best.users > current.users) return true;
   if (best.kasa > current.kasa + MIN_BETTER_SCORE && best.score > current.score) return true;
   if (best.score >= current.score + MIN_BETTER_SCORE && best.score > current.score / SCORE_DROP_RATIO) {
@@ -109,7 +126,8 @@ async function recoverDbIfDegraded(targetPath = DB_PATH, opts = {}) {
     };
   }
 
-  const mustRecover = currentCorrupt || shouldRecover(current, best);
+  const mustRecover =
+    currentCorrupt || shouldRecover(current, best, { corruptOnly: opts.corruptOnly });
   if (!mustRecover) {
     return {
       recovered: false,
@@ -165,6 +183,7 @@ function syncVolumeSeedDatabase(liveDbPath) {
 
 async function persistLiveGameState(db) {
   const { exportSnapshotsToSeed } = require("./oyuncuRestoreService");
+  const { exportWorldState } = require("./worldStateSnapshot");
   const { DB_PATH, isDbCorrupt } = require("../db/database");
   if (await isDbCorrupt(DB_PATH)) {
     console.warn("[persist] Bozuk DB — snapshot yazilmadi");
@@ -172,12 +191,18 @@ async function persistLiveGameState(db) {
   }
   const n = await exportSnapshotsToSeed(db, { merge: true });
   const seedOk = syncVolumeSeedDatabase(DB_PATH);
-  if (n > 0 || seedOk) {
+  let worldState = null;
+  try {
+    worldState = await exportWorldState(db);
+  } catch (err) {
+    console.warn("[persist] Dunya durumu yazilamadi:", err.message);
+  }
+  if (n > 0 || seedOk || worldState?.written) {
     console.log(
-      `[persist] Canli durum kaydedildi (${n} snapshot${seedOk ? ", volume seed DB" : ""})`
+      `[persist] Canli durum kaydedildi (${n} snapshot${seedOk ? ", volume seed DB" : ""}${worldState?.written ? ", world-state" : ""})`
     );
   }
-  return { snapshots: n, seedDb: seedOk };
+  return { snapshots: n, seedDb: seedOk, worldState };
 }
 
 async function maybeExportPlayerSnapshots(db, minIntervalMs = 5 * 60 * 1000) {
@@ -197,5 +222,7 @@ module.exports = {
   persistLiveGameState,
   syncVolumeSeedDatabase,
   pickBestCandidate,
+  allowDbFileRestore,
+  isProductionLive,
   shouldRecover,
 };

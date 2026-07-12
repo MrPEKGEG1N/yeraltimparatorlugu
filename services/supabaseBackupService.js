@@ -114,6 +114,26 @@ async function downloadRemoteSnapshot(destPath) {
   }
 }
 
+async function downloadWorldStateSnapshot(destPath) {
+  if (!isConfigured()) return false;
+  try {
+    const supabase = getClient();
+    await ensureBucket(supabase);
+    const { FILE_NAME } = require("../game/worldStateSnapshot");
+    const { data, error } = await supabase.storage.from(BUCKET).download(FILE_NAME);
+    if (error || !data) return false;
+    const buf = Buffer.from(await data.arrayBuffer());
+    if (buf.length < 8) return false;
+    const dir = path.dirname(destPath);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(destPath, buf);
+    return true;
+  } catch (err) {
+    _lastError = err.message;
+    return false;
+  }
+}
+
 /**
  * Volume bos veya oyuncu yoksa Supabase'den geri yukle.
  */
@@ -165,6 +185,7 @@ async function uploadDbBackup(dbPath) {
     await ensureBucket(supabase);
     const buf = fs.readFileSync(dbPath);
     const stamp = new Date().toISOString().slice(0, 10);
+    const hourStamp = new Date().toISOString().slice(0, 13).replace("T", "-");
 
     const { error: mainErr } = await supabase.storage.from(BUCKET).upload(REMOTE_FILE, buf, {
       upsert: true,
@@ -177,6 +198,27 @@ async function uploadDbBackup(dbPath) {
       upsert: true,
       contentType: "application/x-sqlite3",
     });
+
+    const hourlyName = `${REMOTE_STAMPED_PREFIX}${hourStamp}.db`;
+    await supabase.storage.from(BUCKET).upload(hourlyName, buf, {
+      upsert: true,
+      contentType: "application/x-sqlite3",
+    });
+
+    try {
+      const { snapshotPaths, FILE_NAME } = require("../game/worldStateSnapshot");
+      for (const wsPath of snapshotPaths()) {
+        if (!fs.existsSync(wsPath)) continue;
+        const wsBuf = fs.readFileSync(wsPath);
+        await supabase.storage.from(BUCKET).upload(FILE_NAME, wsBuf, {
+          upsert: true,
+          contentType: "application/json",
+        });
+        break;
+      }
+    } catch (wsErr) {
+      console.warn("[supabase] world-state yuklenemedi:", wsErr.message);
+    }
 
     _lastUploadAt = new Date().toISOString();
     _lastUploadOk = true;
@@ -207,6 +249,7 @@ module.exports = {
   isConfigured,
   restoreDbFromSupabase,
   downloadRemoteSnapshot,
+  downloadWorldStateSnapshot,
   uploadDbBackup,
   getStatus,
 };

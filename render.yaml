@@ -24,7 +24,5 @@ services:
         value: https://pzkafimfxuspoeybrywx.supabase.co
       - key: KUMARHANE_PIYANGO
         value: "1"
-      - key: RESTORE_SNAPSHOTS
-        value: "1"
       - key: SUPABASE_SERVICE_ROLE_KEY
         sync: false

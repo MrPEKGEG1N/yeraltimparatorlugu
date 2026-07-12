@@ -246,8 +246,22 @@ async function restoreFromSeed(targetPath) {
   return false;
 }
 
+function allowDbFileRestore() {
+  return process.env.ALLOW_DB_FILE_RESTORE === "1";
+}
+
+function isProductionLive(users) {
+  return process.env.NODE_ENV === "production" && users > 0;
+}
+
 async function restoreDbFromBestCandidate(targetPath) {
   ensureDbDirectory(targetPath);
+  const targetResolved = path.resolve(targetPath);
+  const currentPreview = await scoreDbFile(targetResolved);
+  if (isProductionLive(currentPreview.users) && !allowDbFileRestore()) {
+    console.log("[db] Canli production DB korunuyor — aday dosya geri yukleme atlandi");
+    return false;
+  }
   const seen = new Set();
   let bestPath = null;
   let bestScore = -1;
@@ -266,7 +280,6 @@ async function restoreDbFromBestCandidate(targetPath) {
     }
   }
 
-  const targetResolved = path.resolve(targetPath);
   const current = await scoreDbFile(targetResolved);
   if (bestPath && bestScore > 0 && (current.users <= 0 || bestScore > current.score)) {
     if (bestPath !== targetResolved) {
@@ -287,6 +300,9 @@ async function restoreDbFromBestCandidate(targetPath) {
 async function consolidateLegacyDbCopies(targetPath) {
   const targetResolved = path.resolve(targetPath);
   const targetStats = await scoreDbFile(targetResolved);
+  if (isProductionLive(targetStats.users) && !allowDbFileRestore()) {
+    return;
+  }
   for (const p of knownDbFileCandidates()) {
     const resolved = path.resolve(p);
     if (resolved === targetResolved) continue;
@@ -544,7 +560,11 @@ async function initDatabase() {
       if (corrupt) {
         console.warn("[db] Bozuk veritabani tespit edildi — yedekten geri yukleniyor...");
         const { recoverDbIfDegraded } = require("../game/veriKorumaService");
-        const rec = await withTimeout(recoverDbIfDegraded(DB_PATH), 30000, "veri-koruma");
+        const rec = await withTimeout(
+          recoverDbIfDegraded(DB_PATH, { corruptOnly: true }),
+          30000,
+          "veri-koruma"
+        );
         if (rec.recovered) {
           console.log(`[veri-koruma] Bozuk DB onarildi: ${rec.from}`);
         } else {
@@ -585,7 +605,11 @@ async function initDatabase() {
     await new Promise((resolve) => db.close(() => resolve()));
     try {
       const { recoverDbIfDegraded } = require("../game/veriKorumaService");
-      const rec = await withTimeout(recoverDbIfDegraded(DB_PATH), 30000, "veri-koruma");
+      const rec = await withTimeout(
+        recoverDbIfDegraded(DB_PATH, { corruptOnly: isProductionLive(liveUsers) }),
+        30000,
+        "veri-koruma"
+      );
       if (rec.recovered) {
         console.log(`[veri-koruma] DB dosyasi degistirildi: ${rec.from}`);
       }
@@ -1169,13 +1193,31 @@ async function initDatabase() {
     reconcileHukumBaslangicFromImageSeeds,
   } = require("../game/oyuncuRestoreService");
   bootstrapVolumeSnapshots();
-  if (fastStartup && process.env.RESTORE_SNAPSHOTS !== "1") {
+  const forceSnapshots =
+    process.env.FORCE_RESTORE_SNAPSHOTS === "1" &&
+    (liveUsers === 0 || allowDbFileRestore());
+  if (process.env.RESTORE_SNAPSHOTS === "1" && !forceSnapshots && isProductionLive(liveUsers)) {
+    console.warn(
+      "[restore] RESTORE_SNAPSHOTS artik canli DB'yi ezmez — FORCE_RESTORE_SNAPSHOTS + ALLOW_DB_FILE_RESTORE gerekir"
+    );
+  }
+  if (fastStartup && !forceSnapshots) {
     await enforceLiveSnapshotPolicies(db);
     await reconcileHukumBaslangicFromImageSeeds(db);
     console.log("[restore] Canli DB — bozulan snapshot verileri kontrol edildi");
   } else {
+    if (forceSnapshots && liveUsers > 0) {
+      console.warn("[restore] Zorunlu snapshot geri yukleme — ALLOW_DB_FILE_RESTORE acik");
+    }
     await restoreOyuncuSnapshots(db);
     await reconcileHukumBaslangicFromImageSeeds(db);
+  }
+
+  try {
+    const { importWorldState } = require("../game/worldStateSnapshot");
+    await importWorldState(db);
+  } catch (err) {
+    console.warn("[world-state] Geri yukleme atlandi:", err.message);
   }
 
   try {
