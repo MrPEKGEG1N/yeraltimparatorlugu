@@ -60,6 +60,8 @@ var icraatRegenPollTimer = null;
 var icraatSonRegenPoll = 0;
 var aktiviteBekleyenTimer = null;
 var aktiviteHeartbeatTimer = null;
+var sunucuPingTimer = null;
+var SUNUCU_PING_MS = 10 * 60 * 1000;
 var sehirBannerState = { tip: 'belirsiz', reisAdi: null };
 var yeniProfilZiyaret = 0;
 var dusmanBulunanHedef = null;
@@ -472,6 +474,16 @@ function aktiviteHeartbeatBaslat() {
     if (!sunucuBagli) return;
     aktiviteBildir(aktifEkran, 'heartbeat');
   }, 60000);
+}
+
+function sunucuPingGonder() {
+  fetch('/api/ping', { credentials: 'include', cache: 'no-store' }).catch(function() {});
+}
+
+function sunucuPingBaslat() {
+  if (sunucuPingTimer) return;
+  sunucuPingGonder();
+  sunucuPingTimer = setInterval(sunucuPingGonder, SUNUCU_PING_MS);
 }
 
 async function sunucuAksiyon(action, key, adet, extra) {
@@ -8097,3 +8109,8 @@ async function oyunuBaslat() {
 window.ekranDegistir = ekranDegistir;
 window.oyunuBaslat = oyunuBaslat;
 if (typeof authBekleyenOyunuBaslat === 'function') authBekleyenOyunuBaslat();
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', sunucuPingBaslat);
+} else {
+  sunucuPingBaslat();
+}

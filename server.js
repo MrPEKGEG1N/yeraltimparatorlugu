@@ -210,6 +210,10 @@ app.get("/api/health", (req, res) => {
   });
 });
 
+app.get("/api/ping", (req, res) => {
+  res.json({ ok: true, pong: true, ts: Date.now() });
+});
+
 function registerIntervals() {
   setInterval(() => {
     savasiCoz(db).catch((err) => console.error("Mafya savaşı çözüm hatası:", err));
