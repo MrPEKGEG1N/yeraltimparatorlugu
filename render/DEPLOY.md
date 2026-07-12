@@ -31,5 +31,7 @@ Volume yok (ucretsiz) → **Supabase yedek** + `seed/oyun.db` (7 oyuncu).
 ## Notlar
 
 - Ucretsiz instance 15 dk islem yoksa uyur; ilk istek ~30-60 sn acilir
+- **7/24 uyaniklik:** `.github/workflows/keep-alive.yml` her 5 dakikada `/api/ping` atar (GitHub Actions). Repo `main` branch'inde Actions acik olmali.
+- Manuel ping: `npm run keep-alive:ping` veya `KEEP_ALIVE_URL=https://... node tools/keep-alive-ping.js`
 - Frankfurt bolgesi (`render.yaml`)
 - Railway trial bitti; Render ucretsiz devam eder

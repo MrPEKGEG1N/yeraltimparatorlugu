@@ -30,6 +30,7 @@
     "setup:koyeb": "powershell -ExecutionPolicy Bypass -File tools/setup-koyeb.ps1",
     "provision:koyeb": "node tools/provision-koyeb.js",
     "provision:render": "node tools/provision-render.js",
+    "keep-alive:ping": "node tools/keep-alive-ping.js",
     "update:url": "node tools/update-public-url.js",
     "deploy": "node tools/provision-render.js",
     "deploy:railway": "powershell -ExecutionPolicy Bypass -File tools/deploy-railway.ps1",

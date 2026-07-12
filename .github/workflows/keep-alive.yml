@@ -1,0 +1,37 @@
+# Render ucretsiz planda ~15 dk islem yoksa uyur; dis ping ile 7/24 uyanik tutulur.
+name: Keep server alive
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: keep-alive
+  cancel-in-progress: false
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Ping production
+        env:
+          KEEP_ALIVE_URL: ${{ secrets.KEEP_ALIVE_URL }}
+        run: |
+          BASE="${KEEP_ALIVE_URL:-https://yeralti-game.onrender.com}"
+          echo "Pinging ${BASE}/api/ping"
+          for i in 1 2 3; do
+            if curl -fsS -m 90 "${BASE}/api/ping"; then
+              echo ""
+              echo "OK"
+              exit 0
+            fi
+            echo "Retry ${i}..."
+            sleep 20
+          done
+          echo "Ping failed after retries"
+          exit 1
