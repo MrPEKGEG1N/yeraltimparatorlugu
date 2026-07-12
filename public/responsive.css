@@ -41,9 +41,54 @@
   }
 
   #masterLayout {
+    font-size: 13px;
+    line-height: 1.3;
+    transform: scale(0.94);
+    transform-origin: top center;
+  }
+
+  #masterLayout *,
+  #masterLayout *::before,
+  #masterLayout *::after {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  #masterLayout .ml-main-content,
+  #masterLayout .g2-main,
+  #masterLayout .g2-frame--panel,
+  #masterLayout .g2-frame--panel .g2-body,
+  #masterLayout .ui-frame-inner {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  #masterLayout .g2-frame--panel .g2-body,
+  #masterLayout .ui-frame-inner {
+    padding: 4px 6px 6px;
+  }
+
+  #masterLayout #anaIcerik {
+    font-size: 13px;
+    line-height: 1.35;
+    padding: 2px 2px calc(var(--ml-bottom-nav-h) + env(safe-area-inset-bottom, 0px) + 8px);
+  }
+
+  #masterLayout .is-kart,
+  #masterLayout .profil-box,
+  #masterLayout .lb-capsule,
+  #masterLayout .banka-cerceve,
+  #masterLayout .sb-cerceve,
+  #masterLayout .profil-kart {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  #masterLayout {
     --ml-bottom-nav-h: 58px;
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     grid-template-rows: minmax(40px, auto) var(--ml-ribbon-h) minmax(0, 1fr) var(--ml-bottom-nav-h);
     grid-template-areas:
       "hdr"
@@ -180,9 +225,9 @@
     flex-wrap: nowrap;
     align-items: stretch;
     gap: 0;
-    padding: 4px 0;
-    padding-top: max(4px, env(safe-area-inset-top, 0px));
-    min-height: 42px;
+    padding: 2px 0;
+    padding-top: max(2px, env(safe-area-inset-top, 0px));
+    min-height: 38px;
     flex-shrink: 0;
     z-index: 12;
     overflow: visible;
@@ -226,7 +271,7 @@
     order: 0;
     flex: 1 1 auto;
     width: 100%;
-    max-width: 100%;
+    max-width: calc(100vw - 46px);
     min-width: 0;
     flex-wrap: nowrap;
     gap: 4px;
@@ -357,16 +402,16 @@
   }
 
   #masterLayout .ml-top-ribbon-center {
-    width: min(82vw, 360px);
-    gap: 6px;
+    width: min(88vw, 320px);
+    gap: 4px;
   }
 
   #masterLayout .ml-top-ribbon-txt {
-    max-width: min(72vw, 320px);
-    padding: 4px 14px 5px;
-    font-size: 10px;
+    max-width: min(78vw, 280px);
+    padding: 4px 10px 5px;
+    font-size: 9px;
     font-weight: 800;
-    letter-spacing: 2px;
+    letter-spacing: 1.2px;
   }
 
   /* —— Ana içerik (üstte, tam yükseklik) —— */
@@ -396,7 +441,7 @@
 
   #masterLayout .g2-frame--panel .g2-body,
   #masterLayout .ui-frame-inner {
-    padding: 6px 8px 8px;
+    padding: 3px 5px 5px;
     overflow: hidden;
     min-height: 0;
     flex: 1;
@@ -419,6 +464,7 @@
   #masterLayout #anaIcerik {
     width: 100%;
     max-width: 100%;
+    min-width: 0;
     overflow-x: hidden;
     word-wrap: break-word;
     overflow-wrap: anywhere;
@@ -471,6 +517,7 @@
     min-height: 0;
     max-height: none;
     height: calc(var(--ml-bottom-nav-h) + env(safe-area-inset-bottom, 0px));
+    max-height: calc(var(--ml-bottom-nav-h) + env(safe-area-inset-bottom, 0px));
     padding: 0;
     padding-bottom: env(safe-area-inset-bottom, 0px);
     margin: 0;
@@ -1086,6 +1133,9 @@
   }
 
   #masterLayout .ml-top-ribbon {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
     height: var(--ml-ribbon-h);
     min-height: var(--ml-ribbon-h);
   }

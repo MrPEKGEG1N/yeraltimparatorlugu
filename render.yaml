@@ -11,15 +11,21 @@ services:
     dockerfilePath: ./Dockerfile
     healthCheckPath: /api/health
     autoDeployTrigger: commit
+    disk:
+      name: yeralti-data
+      mountPath: /data
+      sizeGB: 1
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: "3000"
+      - key: PERSISTENT_DATA_PATH
+        value: /data
       - key: ADMIN_USERNAME
         value: mrpekgeg1n
       - key: JWT_SECRET
-        value: yeralti-dev-gizli-anahtar-degistir
+        sync: false
       - key: SUPABASE_URL
         value: https://pzkafimfxuspoeybrywx.supabase.co
       - key: KUMARHANE_PIYANGO
