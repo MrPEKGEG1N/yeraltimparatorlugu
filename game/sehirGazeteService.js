@@ -71,6 +71,14 @@ function kabusHaberMetni(isim) {
   };
 }
 
+function mafyaIsHaberMetni(grupAdi) {
+  const ad = String(grupAdi || "Bilinmeyen").trim();
+  return {
+    baslik: "KORKU İMPARATORLUĞU YÜKSELİYOR",
+    metin: `Polis güçleri, ${ad} Mafya Grubu'nu durdurmakta çaresiz! Soygunlarda bıraktığı izler, şehrin yeraltı dünyasında yeni bir hükümdarın doğduğuna işaret ediyor. Şehir halkı canı için çok endişeli!`,
+  };
+}
+
 async function gunSonuKabusuHaber(db) {
   await ensureSistemGunluk(db);
   const {
@@ -139,6 +147,70 @@ async function getGunlukKabusManset(db) {
   }
 }
 
+async function gunSonuMafyaIsHaber(db) {
+  await ensureSistemGunluk(db);
+  const {
+    istanbulGunKey,
+    gunKeyEkle,
+    istanbulGunBaslangicUnix,
+  } = require("./turkiyeSaati");
+  const { gunAraligiEnCokIsYapanGrup } = require("./mafyaIsService");
+
+  const bugun = istanbulGunKey();
+  const dun = gunKeyEkle(bugun, -1);
+  const anahtar = `gazete_mafya_is_${dun}`;
+
+  const mevcut = await get(db, `SELECT deger FROM sistem_gunluk WHERE anahtar = ?`, [anahtar]);
+  if (mevcut?.deger) return;
+
+  const baslangic = istanbulGunBaslangicUnix(dun);
+  const bitis = istanbulGunBaslangicUnix(bugun);
+  const lider = await gunAraligiEnCokIsYapanGrup(db, baslangic, bitis);
+
+  const kayit = {
+    gunKey: dun,
+    grupId: lider?.grupId || null,
+    isim: lider?.isim || null,
+    isSayisi: lider?.isSayisi || 0,
+  };
+
+  if (lider?.isim && lider.isSayisi > 0) {
+    const haber = mafyaIsHaberMetni(lider.isim);
+    kayit.baslik = haber.baslik;
+    kayit.metin = haber.metin;
+    await gazeteEkle(db, haber.baslik, bitis);
+  }
+
+  await run(
+    db,
+    `INSERT OR REPLACE INTO sistem_gunluk (anahtar, deger, guncelleme) VALUES (?, ?, strftime('%s','now'))`,
+    [anahtar, JSON.stringify(kayit)]
+  );
+}
+
+async function getGunlukMafyaIsManset(db) {
+  await ensureSistemGunluk(db);
+  const { istanbulGunKey, gunKeyEkle } = require("./turkiyeSaati");
+  const dun = gunKeyEkle(istanbulGunKey(), -1);
+  const anahtar = `gazete_mafya_is_${dun}`;
+  const row = await get(db, `SELECT deger FROM sistem_gunluk WHERE anahtar = ?`, [anahtar]);
+  if (!row?.deger) return null;
+  try {
+    const data = JSON.parse(row.deger);
+    if (!data?.isim || !data?.baslik || !data?.metin) return null;
+    return {
+      gunKey: data.gunKey || dun,
+      grupId: data.grupId,
+      isim: data.isim,
+      baslik: data.baslik,
+      metin: data.metin,
+      isSayisi: data.isSayisi || 0,
+    };
+  } catch {
+    return null;
+  }
+}
+
 async function gazeteEkle(db, mesaj, ts) {
   await ensureGazeteTable(db);
   const damga = zamanDamgasi(ts);
@@ -198,6 +270,12 @@ async function gunlukHaberUret(db) {
     await gunSonuKabusuHaber(db);
   } catch (err) {
     console.error("[gazete] gun sonu kabus:", err?.message || err);
+  }
+
+  try {
+    await gunSonuMafyaIsHaber(db);
+  } catch (err) {
+    console.error("[gazete] gun sonu mafya is:", err?.message || err);
   }
 
   const now = Math.floor(Date.now() / 1000);
@@ -586,6 +664,7 @@ async function getGazetePanel(db, userId) {
 
   const efsaneler24 = arananlar.slice(0, 3);
   const gunlukKabus = await getGunlukKabusManset(db);
+  const gunlukMafyaIs = await getGunlukMafyaIsManset(db);
   const isIlanlari = await isIlanlariGetir(db, userId);
 
   let piyango = null;
@@ -619,6 +698,8 @@ async function getGazetePanel(db, userId) {
     ...hakimiyetSatirlari.map((h) => h.metin),
     gunlukKabus?.baslik,
     gunlukKabus?.metin,
+    gunlukMafyaIs?.baslik,
+    gunlukMafyaIs?.metin,
   ]);
 
   return {
@@ -639,6 +720,7 @@ async function getGazetePanel(db, userId) {
     sayginlikLiderleri,
     arananlar,
     gunlukKabus,
+    gunlukMafyaIs,
     limanDurumu,
     hakimiyetSatirlari,
     sehirHakimiyeti,
@@ -660,8 +742,11 @@ module.exports = {
   getSehirBanner,
   gunlukHaberUret,
   gunSonuKabusuHaber,
+  gunSonuMafyaIsHaber,
   getGunlukKabusManset,
+  getGunlukMafyaIsManset,
   kabusHaberMetni,
+  mafyaIsHaberMetni,
   limanHaberEkle,
   makamHaberEkle,
   mafyaSavasIlanHaber,

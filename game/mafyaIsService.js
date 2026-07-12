@@ -60,6 +60,12 @@ function isBul(key) {
   return ISLER.find((x) => x.key === key) || null;
 }
 
+async function ensureMafyaIsColumns(db) {
+  try {
+    await run(db, `ALTER TABLE mafya_isleri ADD COLUMN tamamlanma_zamani INTEGER`);
+  } catch (_) {}
+}
+
 async function grupUyeSayisi(db, grupId) {
   const row = await get(db, `SELECT COUNT(*) AS n FROM mafya_uyeleri WHERE grup_id = ?`, [grupId]);
   return row ? row.n : 0;
@@ -244,7 +250,11 @@ async function isGerceklestir(db, grupId, isId) {
     await logStatHareket(db, k.userId, "sayginlik", isDef.sayginlikKisi);
   }
 
-  await run(db, `UPDATE mafya_isleri SET durum = 'tamamlandi' WHERE id = ?`, [isId]);
+  await run(
+    db,
+    `UPDATE mafya_isleri SET durum = 'tamamlandi', tamamlanma_zamani = ? WHERE id = ?`,
+    [Math.floor(Date.now() / 1000), isId]
+  );
 
   const { gorevOlayIsle } = require("./gunlukGorevService");
   const gorevTamamlananByUser = {};
@@ -267,10 +277,31 @@ async function isGerceklestir(db, grupId, isId) {
   };
 }
 
+async function gunAraligiEnCokIsYapanGrup(db, baslangic, bitis) {
+  await ensureMafyaIsColumns(db);
+  const row = await get(
+    db,
+    `SELECT mi.grup_id, g.isim, COUNT(*) AS is_sayisi
+     FROM mafya_isleri mi
+     JOIN mafya_gruplari g ON g.id = mi.grup_id
+     WHERE mi.durum = 'tamamlandi'
+       AND COALESCE(mi.tamamlanma_zamani, CAST(mi.baslangic_zamani / 1000 AS INTEGER)) >= ?
+       AND COALESCE(mi.tamamlanma_zamani, CAST(mi.baslangic_zamani / 1000 AS INTEGER)) < ?
+     GROUP BY mi.grup_id
+     HAVING is_sayisi > 0
+     ORDER BY is_sayisi DESC
+     LIMIT 1`,
+    [baslangic, bitis]
+  );
+  if (!row) return null;
+  return { grupId: row.grup_id, isim: row.isim, isSayisi: row.is_sayisi };
+}
+
 module.exports = {
   ISLER,
   isPanel,
   isKatil,
   isGerceklestir,
+  gunAraligiEnCokIsYapanGrup,
 };
 

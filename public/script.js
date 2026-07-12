@@ -5096,6 +5096,12 @@ function gazeteHaberCevir(metin) {
   if ((m = s.match(/^Dün gece ülke sınırlarında tek başına birden çok farklı mekanı ele geçiren (.+?), emniyet güçlerini alarma geçirdi\./))) {
     return t('game.gazete.news.kabusBody', { name: m[1] });
   }
+  if (s === "KORKU İMPARATORLUĞU YÜKSELİYOR") {
+    return t('game.gazete.news.mafiaJobHeadline');
+  }
+  if ((m = s.match(/^Polis güçleri, (.+?) Mafya Grubu'nu durdurmakta çaresiz!/))) {
+    return t('game.gazete.news.mafiaJobBody', { group: m[1] });
+  }
   if ((m = s.match(/^Sokakların Tek Hakimi: (.+?) Hükmü Sürüyor!$/))) {
     return t('game.gazete.news.rulerContinues', { name: m[1] });
   }
@@ -5185,6 +5191,7 @@ function gazeteOyuncuListesi(data) {
   (data.sayginlikLiderleri || []).forEach(function(r) { ekle(r.userId, r.isim); });
   (data.arananlar || []).forEach(function(r) { ekle(r.userId, r.isim); });
   if (data.gunlukKabus) ekle(data.gunlukKabus.userId, data.gunlukKabus.isim);
+  if (data.gunlukMafyaIs) gazeteMetindenIsimler(data.gunlukMafyaIs.isim, map);
   (data.efsaneler24 || []).forEach(function(r) { ekle(r.userId, r.isim); });
   (data.limanDurumu || []).forEach(function(l) { ekle(l.userId, l.sahipAdi); });
   (data.yeraltiManse || []).forEach(function(h) { ekle(h.userId, h.yazar); });
@@ -5215,6 +5222,13 @@ function gazeteLiderSatir(r, i) {
     + '<span class="gazete-avatar"><img class="gazete-avatar-img' + avatarCls + '" src="' + escHtml(avatarUrl) + '" alt="" loading="lazy" onerror="imgFallback(this)"></span>'
     + '<span class="gazete-isim">' + oyuncuLink(r.userId, r.isim) + '</span>'
     + '<span class="gazete-artis">' + artis + ' <span class="gazete-yukari">▲</span></span></div>';
+}
+
+function gazeteMafyaGrupMetin(grupId, isim) {
+  var raw = t('game.gazete.news.mafiaJobBody', { group: '%%GROUP%%' });
+  var parts = String(raw).split('%%GROUP%%');
+  if (parts.length < 2) return escHtml(raw.replace('%%GROUP%%', isim));
+  return escHtml(parts[0]) + mafyaGrupLink(grupId, isim) + escHtml(parts[1]);
 }
 
 function gazeteGereksinimMetin(gereksinim) {
@@ -5457,6 +5471,17 @@ async function gazeteEkranCiz(ic) {
         + '</div></article>';
     }
 
+    var mafyaIsHtml = '';
+    if (data.gunlukMafyaIs && data.gunlukMafyaIs.isim) {
+      var mafyaGun = data.gunlukMafyaIs;
+      mafyaIsHtml = '<article class="gazete-manset gazete-manset--mafya-is">'
+        + '<div class="gazete-manset-sol gazete-manset-sol--tam">'
+        + '<span class="gazete-etiket gazete-etiket--mafya-is">' + escHtml(t('game.gazete.pressHeadline')) + '</span>'
+        + '<h2 class="gazete-manset-baslik gazete-manset-baslik--mafya-is">' + escHtml(t('game.gazete.news.mafiaJobHeadline')) + '</h2>'
+        + '<p class="gazete-manset-metin">' + gazeteMafyaGrupMetin(mafyaGun.grupId, mafyaGun.isim) + '</p>'
+        + '</div></article>';
+    }
+
     if (aktifEkran !== 'gazete') return;
     ic.innerHTML = '<div class="gazete-wrap">'
       + '<div class="gazete-hero">'
@@ -5475,6 +5500,7 @@ async function gazeteEkranCiz(ic) {
       + sampiyonHtml
       + piyangoHtml
       + kabusHtml
+      + mafyaIsHtml
       + '<div class="gazete-govde">'
       + '<article class="gazete-manset">'
       + '<div class="gazete-manset-sol">'

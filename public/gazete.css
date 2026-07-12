@@ -167,6 +167,24 @@
   text-shadow: 0 0 18px rgba(255, 60, 60, 0.25);
 }
 
+#masterLayout .gazete-manset--mafya-is {
+  display: block;
+  border-right: none;
+  border-bottom: 2px solid #4a148c;
+  background: linear-gradient(135deg, rgba(74, 20, 140, 0.38), rgba(0, 0, 0, 0.78));
+}
+
+#masterLayout .gazete-etiket--mafya-is {
+  background: #6a1b9a;
+  box-shadow: 0 0 12px rgba(106, 27, 154, 0.45);
+}
+
+#masterLayout .gazete-manset-baslik--mafya-is {
+  color: #ce93d8;
+  text-shadow: 0 0 18px rgba(206, 147, 216, 0.25);
+  letter-spacing: 0.5px;
+}
+
 #masterLayout .gazete-etiket {
   display: inline-block;
   background: #8b0000;
