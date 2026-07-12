@@ -231,7 +231,7 @@ function registerIntervals() {
   temettuIsle(db).catch((err) => console.error("Borsa temettü telafi hatası:", err));
   setInterval(() => {
     fiyatGuncelle(db).catch((err) => console.error("Borsa fiyat hatası:", err));
-  }, 3 * 60 * 1000);
+  }, 10 * 60 * 1000);
   setInterval(() => {
     temettuIsle(db).catch((err) => console.error("Borsa temettü hatası:", err));
   }, 60 * 1000);

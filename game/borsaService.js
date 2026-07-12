@@ -3,6 +3,12 @@ const {
   BORSA_MIN_ISLEM,
   BORSA_ADET_UST_SINIR,
   BORSA_FIYAT_MIN,
+  BORSA_FIYAT_MIN_CARPAN,
+  BORSA_FIYAT_MAX_CARPAN,
+  BORSA_MEAN_REVERT_ORAN,
+  BORSA_RASTGELE_CARPAN,
+  BORSA_ISLEM_ETKI_MAX,
+  BORSA_ISLEM_HACIM_REF,
   BORSA_SIRKETLERI,
   borsaSirketBul,
 } = require("./borsaCatalog");
@@ -47,6 +53,50 @@ function haftaAnahtari() {
 function degisimYuzde(fiyat, onceki) {
   if (!onceki || onceki <= 0) return 0;
   return Math.round(((fiyat - onceki) / onceki) * 1000) / 10;
+}
+
+function borsaBazFiyat(sirketId, mevcutFiyat) {
+  const kat = borsaSirketBul(sirketId);
+  return kat?.bazFiyat || mevcutFiyat || BORSA_FIYAT_MIN;
+}
+
+function fiyatSinirla(sirketId, fiyat) {
+  const baz = borsaBazFiyat(sirketId, fiyat);
+  const min = Math.max(BORSA_FIYAT_MIN, Math.floor(baz * BORSA_FIYAT_MIN_CARPAN));
+  const max = Math.max(min + 1, Math.floor(baz * BORSA_FIYAT_MAX_CARPAN));
+  return Math.min(max, Math.max(min, Math.round(fiyat)));
+}
+
+async function fiyatKaydet(db, sirketId, yeniFiyat) {
+  const sinirli = fiyatSinirla(sirketId, yeniFiyat);
+  const now = Math.floor(Date.now() / 1000);
+  await run(
+    db,
+    `UPDATE borsa_sirketleri SET onceki_fiyat = fiyat, fiyat = ?, guncelleme = ? WHERE id = ?`,
+    [sinirli, now, sirketId]
+  );
+  return sinirli;
+}
+
+async function islemFiyatEtkisi(db, sirketId, tur, adet) {
+  const row = await get(db, `SELECT fiyat FROM borsa_sirketleri WHERE id = ?`, [sirketId]);
+  if (!row) return;
+  const fiyat = sayi(row.fiyat);
+  if (fiyat <= 0) return;
+  const hacim = Math.max(1, sayi(adet));
+  const oran = Math.min(BORSA_ISLEM_ETKI_MAX, (hacim / BORSA_ISLEM_HACIM_REF) * BORSA_ISLEM_ETKI_MAX);
+  const carp = tur === "al" ? 1 + oran : 1 - oran;
+  await fiyatKaydet(db, sirketId, fiyat * carp);
+}
+
+async function fiyatlariBazaYakinlastir(db) {
+  const tum = await all(db, `SELECT id, fiyat FROM borsa_sirketleri`);
+  for (const row of tum) {
+    const sinirli = fiyatSinirla(row.id, row.fiyat);
+    if (sinirli !== row.fiyat) {
+      await fiyatKaydet(db, row.id, sinirli);
+    }
+  }
 }
 
 async function ensureBorsaTables(db) {
@@ -118,6 +168,7 @@ async function ensureBorsaTables(db) {
       );
     }
   }
+  await fiyatlariBazaYakinlastir(db);
 }
 
 async function panelGetir(db, userId) {
@@ -230,6 +281,13 @@ function sayi(deger, varsayilan = 0) {
   return Number.isFinite(n) ? n : varsayilan;
 }
 
+async function oyuncuKasaYenile(db, userId, player) {
+  const row = await get(db, `SELECT kasa FROM players WHERE user_id = ?`, [userId]);
+  const kasa = sayi(row?.kasa, sayi(player?.kasa));
+  if (player) player.kasa = kasa;
+  return kasa;
+}
+
 function parseHedefFiyat(fiyat) {
   const hedef = Math.floor(sayi(fiyat, NaN));
   if (!Number.isFinite(hedef) || hedef < BORSA_FIYAT_MIN) {
@@ -264,7 +322,8 @@ async function hisseAl(db, userId, player, sirketId, adet) {
 
   const toplam = miktar * sirket.fiyat;
   const digerAlMaliyet = await bekleyenAlEmirMaliyeti(db, userId, null);
-  const kullanilabilirKasa = sayi(player.kasa) - digerAlMaliyet;
+  const guncelKasa = await oyuncuKasaYenile(db, userId, player);
+  const kullanilabilirKasa = guncelKasa - digerAlMaliyet;
   if (kullanilabilirKasa < toplam) {
     return {
       ok: false,
@@ -277,7 +336,15 @@ async function hisseAl(db, userId, player, sirketId, adet) {
     `UPDATE players SET kasa = kasa - ? WHERE user_id = ? AND kasa >= ?`,
     [toplam, userId, toplam]
   );
-  if (!deduct?.changes) return { ok: false, error: "Yeterli paran yok." };
+  if (!deduct?.changes) {
+    return {
+      ok: false,
+      error:
+        digerAlMaliyet > 0
+          ? "Yeterli paran yok (bekleyen alış emirleri nakit ayırdı)."
+          : "Yeterli paran yok.",
+    };
+  }
 
   const mevcut = await get(
     db,
@@ -304,6 +371,8 @@ async function hisseAl(db, userId, player, sirketId, adet) {
     `INSERT INTO borsa_islem_log (user_id, sirket_id, tur, adet, fiyat, toplam) VALUES (?, ?, 'al', ?, ?, ?)`,
     [userId, sirket.id, miktar, sirket.fiyat, toplam]
   );
+
+  await islemFiyatEtkisi(db, sirket.id, "al", miktar);
 
   player.kasa -= toplam;
 
@@ -370,6 +439,8 @@ async function hisseSat(db, userId, player, sirketId, adet) {
     `INSERT INTO borsa_islem_log (user_id, sirket_id, tur, adet, fiyat, toplam) VALUES (?, ?, 'sat', ?, ?, ?)`,
     [userId, sirket.id, miktar, sirket.fiyat, toplam]
   );
+
+  await islemFiyatEtkisi(db, sirket.id, "sat", miktar);
 
   player.kasa += toplam;
 
@@ -469,7 +540,8 @@ async function emirEkle(db, userId, player, sirketId, tur, adet, hedefFiyat) {
   if (turNorm === "al") {
     const maliyet = miktar * hedef;
     const digerMaliyet = await bekleyenAlEmirMaliyeti(db, userId, null);
-    if (sayi(player.kasa) < maliyet + digerMaliyet) {
+    const guncelKasa = await oyuncuKasaYenile(db, userId, player);
+    if (guncelKasa < maliyet + digerMaliyet) {
       return {
         ok: false,
         error: `Emir için yeterli paran yok. Hedef fiyat × adet: ${maliyet.toLocaleString("tr-TR")} TL (bekleyen alış emirleri dahil).`,
@@ -572,17 +644,19 @@ async function fiyatGuncelle(db) {
     db,
     `SELECT id, fiyat, volatilite FROM borsa_sirketleri`
   );
-  const now = Math.floor(Date.now() / 1000);
   for (const s of sirketler) {
     const kat = borsaSirketBul(s.id);
+    const baz = borsaBazFiyat(s.id, s.fiyat);
     const vol = kat?.volatilite || s.volatilite || 0.04;
-    const degisim = (Math.random() - 0.48) * 2 * vol;
-    const yeni = Math.max(BORSA_FIYAT_MIN, Math.round(s.fiyat * (1 + degisim)));
-    await run(
-      db,
-      `UPDATE borsa_sirketleri SET onceki_fiyat = fiyat, fiyat = ?, guncelleme = ? WHERE id = ?`,
-      [yeni, now, s.id]
-    );
+    const fiyat = sayi(s.fiyat) || baz;
+
+    const gapOran = baz > 0 ? (baz - fiyat) / baz : 0;
+    const meanRevert = gapOran * BORSA_MEAN_REVERT_ORAN;
+    const randomShock = (Math.random() - 0.5) * 2 * vol * BORSA_RASTGELE_CARPAN;
+    const degisim = meanRevert + randomShock;
+    const yeni = fiyat * (1 + degisim);
+
+    await fiyatKaydet(db, s.id, yeni);
   }
   await emirleriIsle(db);
 }

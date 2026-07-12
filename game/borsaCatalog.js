@@ -4,6 +4,17 @@ const BORSA_MIN_ISLEM = 1;
 /** İstismar önleme — pratikte kasa/portföy zaten sınırlar */
 const BORSA_ADET_UST_SINIR = 2_000_000_000;
 const BORSA_FIYAT_MIN = 10;
+/** Baz fiyata göre bant — aşırı şişme/düşüş engeli */
+const BORSA_FIYAT_MIN_CARPAN = 0.6;
+const BORSA_FIYAT_MAX_CARPAN = 2.0;
+/** Her fiyat tick'inde baz fiyata çekilme gücü */
+const BORSA_MEAN_REVERT_ORAN = 0.03;
+/** Rastgele dalgalanma (katalog volatilitesi ile çarpılır) */
+const BORSA_RASTGELE_CARPAN = 0.4;
+/** Tek işlemde en fazla fiyat etkisi */
+const BORSA_ISLEM_ETKI_MAX = 0.04;
+/** Bu adet referans hacimde tam etki ölçeği */
+const BORSA_ISLEM_HACIM_REF = 600;
 
 /** Haftalık temettü: portföy değerinin bu oranı bankaya yatar */
 const BORSA_SIRKETLERI = [
@@ -89,6 +100,12 @@ module.exports = {
   BORSA_MIN_ISLEM,
   BORSA_ADET_UST_SINIR,
   BORSA_FIYAT_MIN,
+  BORSA_FIYAT_MIN_CARPAN,
+  BORSA_FIYAT_MAX_CARPAN,
+  BORSA_MEAN_REVERT_ORAN,
+  BORSA_RASTGELE_CARPAN,
+  BORSA_ISLEM_ETKI_MAX,
+  BORSA_ISLEM_HACIM_REF,
   BORSA_SIRKETLERI,
   borsaSirketBul,
 };

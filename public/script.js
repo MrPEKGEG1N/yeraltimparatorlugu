@@ -487,7 +487,10 @@ function sunucuPingBaslat() {
 }
 
 async function sunucuAksiyon(action, key, adet, extra) {
-  if (aksiyonBekliyor) return null;
+  if (aksiyonBekliyor) {
+    toast('Önceki işlem bitiyor, lütfen bekle.', 'hata');
+    return null;
+  }
   aksiyonBekliyor = true;
   var oncekiKasa = oyuncuKasa;
   try {
