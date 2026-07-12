@@ -96,6 +96,26 @@ function meslekHeroHTML(baslik, aciklama, ekstra, geriOnclick) {
   );
 }
 
+function meslekMulakatGorselSrc(meslek) {
+  if (!meslek || !meslek.mulakatGorsel) return "";
+  var v = typeof GORSEL_VERSIYON !== "undefined" ? GORSEL_VERSIYON : "1";
+  return "/images/meslek/" + meslek.mulakatGorsel + ".png?v=" + v;
+}
+
+function meslekMulakatGorselHTML(meslek) {
+  var src = meslekMulakatGorselSrc(meslek);
+  if (!src) return "";
+  return (
+    '<figure class="meslek-mulakat-gorsel-wrap">' +
+    '<img class="meslek-mulakat-gorsel" src="' +
+    escHtml(src) +
+    '" alt="' +
+    escHtml(meslek.unvan || "") +
+    '" loading="lazy" />' +
+    "</figure>"
+  );
+}
+
 function meslekYetenekBandHTML(yetenekler, antrenman) {
   if (!yetenekler) return "";
   var statlar = antrenman && antrenman.statlar ? antrenman.statlar : null;
@@ -1206,6 +1226,7 @@ function meslekMulakatHTML(isyeri, meslek) {
       null,
       "meslekIsyeriAc('" + isyeri.id + "')"
     ) +
+    meslekMulakatGorselHTML(meslek) +
     '<div class="meslek-soru-liste">' +
     soruHtml +
     '</div><div class="meslek-mulakat-aksiyon">' +

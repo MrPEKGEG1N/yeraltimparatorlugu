@@ -141,6 +141,7 @@ function meslekOzet(meslek, yetenekler) {
   return {
     id: meslek.id,
     unvan: meslek.unvan,
+    mulakatGorsel: meslek.mulakatGorsel || "",
     gunlukGelir: meslek.gunlukGelir,
     yetenekKazanc: meslek.yetenekKazanc,
     gereksinim: meslek.gereksinim,
