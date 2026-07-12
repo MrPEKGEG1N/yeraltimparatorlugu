@@ -1,0 +1,11 @@
+﻿{
+  "name": "yeralti-db",
+  "mounts": [
+    {
+      "containerMountPath": "/data"
+    }
+  ],
+  "spec": {
+    "storageSize": 1024
+  }
+}
