@@ -217,7 +217,7 @@
     transition: left 0.22s ease, background 0.2s ease;
   }
 
-  #masterLayout.ml-header-tools-open #mlHeaderToolsTab {
+  #headerStatsBar.ml-header-tools-open #mlHeaderToolsTab {
     left: min(82vw, 280px);
     background: linear-gradient(180deg, #4a3520 0%, #1a1208 100%);
   }
@@ -246,8 +246,8 @@
   }
 
   /* Araç paneli varsayılan kapalı — flex satırından tamamen çıkar */
-  html.ml-mobile-ui #masterLayout .ml-header-right,
-  #masterLayout .ml-header-right {
+  html.ml-mobile-ui #headerStatsBar .ml-header-right,
+  #headerStatsBar .ml-header-right {
     display: none !important;
     position: fixed;
     top: 0;
@@ -277,18 +277,9 @@
     pointer-events: auto;
   }
 
-  html.ml-mobile-ui #masterLayout.ml-header-tools-open .ml-header-right,
-  #masterLayout.ml-header-tools-open .ml-header-right {
+  html.ml-mobile-ui #headerStatsBar.ml-header-tools-open .ml-header-right,
+  #headerStatsBar.ml-header-tools-open .ml-header-right {
     display: flex !important;
-  }
-
-  #masterLayout.ml-header-tools-open::after {
-    content: "";
-    position: fixed;
-    inset: 0;
-    z-index: 200;
-    background: rgba(0, 0, 0, 0.42);
-    pointer-events: auto;
   }
 
   #masterLayout .ml-header-right button {

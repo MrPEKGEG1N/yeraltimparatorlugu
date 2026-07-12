@@ -287,18 +287,17 @@
 
   function syncMobileUiClass() {
     document.documentElement.classList.toggle("ml-mobile-ui", isMobile());
-    var layout = document.getElementById("masterLayout");
-    if (layout && isMobile()) {
-      layout.classList.remove("ml-header-tools-open");
+    var header = document.getElementById("headerStatsBar");
+    if (header && isMobile()) {
+      header.classList.remove("ml-header-tools-open");
     }
   }
 
   function bindHeaderToolsDrawer() {
     var header = document.getElementById("headerStatsBar");
-    var layout = document.getElementById("masterLayout");
     var tab = document.getElementById("mlHeaderToolsTab");
     var drawer = header ? header.querySelector(".ml-header-right") : null;
-    if (!header || !layout || !tab || header.dataset.toolsDrawer) return;
+    if (!header || !tab || header.dataset.toolsDrawer) return;
     header.dataset.toolsDrawer = "1";
 
     var startX = 0;
@@ -306,11 +305,11 @@
     var tracking = false;
 
     function isOpen() {
-      return layout.classList.contains("ml-header-tools-open");
+      return header.classList.contains("ml-header-tools-open");
     }
 
     function setOpen(open) {
-      layout.classList.toggle("ml-header-tools-open", !!open);
+      header.classList.toggle("ml-header-tools-open", !!open);
       tab.setAttribute("aria-expanded", open ? "true" : "false");
       tab.textContent = open ? "✕" : "☰";
       tab.title = open
