@@ -23,9 +23,9 @@ jobs:
           KEEP_ALIVE_URL: ${{ secrets.KEEP_ALIVE_URL }}
         run: |
           BASE="${KEEP_ALIVE_URL:-https://yeralti-game.onrender.com}"
-          echo "Pinging ${BASE}/api/ping"
+          echo "Pinging ${BASE}"
           for i in 1 2 3; do
-            if curl -fsS -m 90 "${BASE}/api/ping"; then
+            if curl -fsS -m 90 "${BASE}/api/ping" || curl -fsS -m 90 "${BASE}/api/health"; then
               echo ""
               echo "OK"
               exit 0
