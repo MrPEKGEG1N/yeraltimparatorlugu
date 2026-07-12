@@ -8137,7 +8137,7 @@ async function oyunuBaslat() {
     statTooltipBagla();
     mobilNavBagla();
     if (typeof window.bildirimBaslat === "function") window.bildirimBaslat();
-    ekranDegistir('liderlik');
+    ekranDegistir('gazete');
     if (window.TutorialEngine) {
       if (window.__yeniKayitOlundu) {
         TutorialEngine.reset();
