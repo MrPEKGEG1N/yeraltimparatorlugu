@@ -1,25 +1,25 @@
 {
-  "id": "dogac123",
-  "username": "dogac123",
-  "reis_adi": "Doğaç",
-  "lakap": "Çakal",
+  "id": "elmasav",
+  "username": "elmasav",
+  "reis_adi": "ElmasAv",
+  "lakap": "Mafya",
   "force_restore": true,
   "player": {
-    "kasa": 10000,
-    "guc": 500,
-    "puan": 1500,
-    "icraat": 25,
+    "kasa": 50000,
+    "guc": 1000,
+    "puan": 5000,
+    "icraat": 10,
     "sms_hakki": 50,
-    "elmas": 0,
+    "elmas": 5,
     "kara_listede": 0,
     "sehir_efsane": 0,
     "sehre_hukmet_sayisi": 0,
     "liman_istanbul": 0,
     "dostlar": "",
     "dusmanlar": "",
-    "aktif_ekran": "liderlik",
-    "son_aksiyon": "ekran_goruntule",
-    "son_aksiyon_detay": "Liderlik Tablosu"
+    "aktif_ekran": "",
+    "son_aksiyon": "",
+    "son_aksiyon_detay": ""
   },
   "guvenli_yer": {
     "base_seviye": 1
@@ -99,9 +99,6 @@
       "adet": 0
     }
   ],
-  "son_ip": "151.135.230.236",
-  "visitor_id": "5ccb5ead94718a756e2bedede3bbf342",
-  "user_agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1",
   "sirket_kapali": true,
   "sehre_hukmet_kapali": true,
   "yetenekler": {

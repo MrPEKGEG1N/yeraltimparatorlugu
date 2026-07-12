@@ -9,7 +9,17 @@
     "guc": 500,
     "puan": 1500,
     "icraat": 25,
-    "sms_hakki": 50
+    "sms_hakki": 50,
+    "elmas": 0,
+    "kara_listede": 0,
+    "sehir_efsane": 0,
+    "sehre_hukmet_sayisi": 0,
+    "liman_istanbul": 0,
+    "dostlar": "",
+    "dusmanlar": "",
+    "aktif_ekran": "liderlik",
+    "son_aksiyon": "ekran_goruntule",
+    "son_aksiyon_detay": "Liderlik Tablosu"
   },
   "guvenli_yer": {
     "base_seviye": 12
@@ -90,5 +100,13 @@
     }
   ],
   "son_ip": "78.180.25.238",
-  "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+  "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+  "sirket_kapali": true,
+  "sehre_hukmet_kapali": true,
+  "yetenekler": {
+    "guc": 8,
+    "zeka": 8,
+    "dayaniklilik": 8,
+    "beceri": 8
+  }
 }

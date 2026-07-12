@@ -5,10 +5,10 @@
   "lakap": "Mafya",
   "force_restore": true,
   "player": {
-    "kasa": 1692448077,
+    "kasa": 1692458037,
     "guc": 105200,
-    "puan": 182397,
-    "icraat": 10973,
+    "puan": 182434,
+    "icraat": 16373,
     "sms_hakki": 250,
     "elmas": 0,
     "kara_listede": 0,
@@ -17,9 +17,9 @@
     "liman_istanbul": 0,
     "dostlar": "",
     "dusmanlar": "",
-    "aktif_ekran": "",
-    "son_aksiyon": "",
-    "son_aksiyon_detay": ""
+    "aktif_ekran": "sektor_yeralti",
+    "son_aksiyon": "ekran_goruntule",
+    "son_aksiyon_detay": "Yeraltı Sektörü"
   },
   "guvenli_yer": {
     "base_seviye": 1
@@ -106,8 +106,13 @@
   "sehre_hukmet_kapali": true,
   "yetenekler": {
     "guc": 9,
-    "zeka": 8,
-    "dayaniklilik": 8,
-    "beceri": 8
+    "zeka": 9,
+    "dayaniklilik": 9,
+    "beceri": 19
+  },
+  "meslek": {
+    "meslek_id": "fastfood_mutfak",
+    "ise_baslama": 1783017986,
+    "son_gelir_gunu": "2026-07-12"
   }
 }

@@ -9,7 +9,17 @@
     "guc": 500,
     "puan": 1500,
     "icraat": 25,
-    "sms_hakki": 50
+    "sms_hakki": 50,
+    "elmas": 0,
+    "kara_listede": 0,
+    "sehir_efsane": 0,
+    "sehre_hukmet_sayisi": 0,
+    "liman_istanbul": 0,
+    "dostlar": "",
+    "dusmanlar": "",
+    "aktif_ekran": "",
+    "son_aksiyon": "",
+    "son_aksiyon_detay": ""
   },
   "guvenli_yer": {
     "base_seviye": 1
@@ -89,5 +99,13 @@
       "adet": 0
     }
   ],
-  "son_ip": "127.0.0.1"
+  "son_ip": "127.0.0.1",
+  "sirket_kapali": true,
+  "sehre_hukmet_kapali": true,
+  "yetenekler": {
+    "guc": 8,
+    "zeka": 8,
+    "dayaniklilik": 8,
+    "beceri": 8
+  }
 }

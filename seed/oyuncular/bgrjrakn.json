@@ -5,11 +5,21 @@
   "lakap": "Mafya",
   "force_restore": true,
   "player": {
-    "kasa": 109911,
+    "kasa": 114111,
     "guc": 24225,
     "puan": 3103,
     "icraat": 1004,
-    "sms_hakki": 150
+    "sms_hakki": 150,
+    "elmas": 0,
+    "kara_listede": 0,
+    "sehir_efsane": 0,
+    "sehre_hukmet_sayisi": 0,
+    "liman_istanbul": 0,
+    "dostlar": "",
+    "dusmanlar": "",
+    "aktif_ekran": "liderlik",
+    "son_aksiyon": "ekran_goruntule",
+    "son_aksiyon_detay": "Liderlik Tablosu"
   },
   "guvenli_yer": {
     "base_seviye": 1
@@ -91,5 +101,18 @@
   ],
   "son_ip": "88.250.195.196",
   "visitor_id": "83b7040f260867a63a11ec806fdcc10e",
-  "user_agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 26_5_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/150.0.7871.113 Mobile/15E148 Safari/604.1"
+  "user_agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 26_5_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/150.0.7871.113 Mobile/15E148 Safari/604.1",
+  "sirket_kapali": true,
+  "sehre_hukmet_kapali": true,
+  "yetenekler": {
+    "guc": 9,
+    "zeka": 8,
+    "dayaniklilik": 8,
+    "beceri": 11
+  },
+  "meslek": {
+    "meslek_id": "cafe_stajyer",
+    "ise_baslama": 1783655503,
+    "son_gelir_gunu": "2026-07-12"
+  }
 }
