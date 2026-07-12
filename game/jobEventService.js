@@ -47,11 +47,14 @@ function rastgeleFirsatBonusu() {
   return FIRSAT_BONUS_MIN + Math.floor(Math.random() * (FIRSAT_BONUS_MAX - FIRSAT_BONUS_MIN + 1));
 }
 
+const FIRSAT_OLAY_ORANI = 0.125; // olay havuzunda %12.5 (onceki %25'in yarisi)
+const DIGER_OLAY_ORANI = (1 - FIRSAT_OLAY_ORANI) / 3;
+
 function olayTipiSec() {
   const r = Math.random();
-  if (r < 0.25) return "sokak_kavgasi";
-  if (r < 0.5) return "sansli_firsat";
-  if (r < 0.75) return "muhbir";
+  if (r < DIGER_OLAY_ORANI) return "sokak_kavgasi";
+  if (r < DIGER_OLAY_ORANI + FIRSAT_OLAY_ORANI) return "sansli_firsat";
+  if (r < DIGER_OLAY_ORANI * 2 + FIRSAT_OLAY_ORANI) return "muhbir";
   return "teknik_ariza";
 }
 
