@@ -265,6 +265,90 @@ async function main() {
   if (teknikYakala.effect.olaySecim !== "kir_yakalandi") throw new Error("teknik kir yakalanma secim yanlis");
 
   console.log("OK teknik ariza testleri gecti");
+
+  const polisKacSession = {
+    olayId: "polis901",
+    jobKey: "market",
+    olayTipi: "polis_baskini",
+    basladiMs: Date.now(),
+    bitisMs: Date.now() + 300000,
+    devletDusus: 6,
+    icraatToplam: 2,
+  };
+  await run(db, `UPDATE players SET job_olay_json = ?, kasa = ?, hapis_bitis_at = 0 WHERE user_id = ?`, [
+    JSON.stringify(polisKacSession),
+    player.kasa,
+    userId,
+  ]);
+  player = await loadPlayer(db, userId);
+  const kasaPolisOnce = player.kasa;
+  const polisKac = await jobOlaySonuc(db, userId, player, {
+    savunuldu: false,
+    olayId: "polis901",
+    secim: "kac",
+  });
+  if (!polisKac.ok) throw new Error(polisKac.error);
+  if (polisKac.effect.netKazanc !== 0) throw new Error("polis kac kazanc sifir olmali");
+  if (polisKac.effect.olaySecim !== "kac") throw new Error("polis kac secim yanlis");
+  player = await loadPlayer(db, userId);
+  if (player.kasa !== kasaPolisOnce) throw new Error("polis kac kasa degismemeli");
+
+  const origRandom2 = Math.random;
+  Math.random = () => 0.9;
+  const polisSoySession = {
+    olayId: "polis902",
+    jobKey: "market",
+    olayTipi: "polis_baskini",
+    basladiMs: Date.now(),
+    bitisMs: Date.now() + 300000,
+    devletDusus: 6,
+    icraatToplam: 2,
+  };
+  await run(db, `UPDATE players SET job_olay_json = ?, kasa = ? WHERE user_id = ?`, [
+    JSON.stringify(polisSoySession),
+    player.kasa,
+    userId,
+  ]);
+  player = await loadPlayer(db, userId);
+  const kasaSoyOnce = player.kasa;
+  const polisSoy = await jobOlaySonuc(db, userId, player, {
+    savunuldu: false,
+    olayId: "polis902",
+    secim: "soy_kac",
+  });
+  Math.random = origRandom2;
+  if (!polisSoy.ok) throw new Error(polisSoy.error);
+  if (polisSoy.effect.olaySecim !== "soy_kac") throw new Error("polis soy_kac secim yanlis");
+  if (polisSoy.effect.netKazanc !== market.netKazanc) throw new Error("polis soy_kac kazanc yanlis");
+  player = await loadPlayer(db, userId);
+  if (player.kasa !== kasaSoyOnce + market.netKazanc) throw new Error("polis soy_kac kasa yanlis");
+
+  Math.random = () => 0.1;
+  const polisYakalaSession = {
+    olayId: "polis903",
+    jobKey: "market",
+    olayTipi: "polis_baskini",
+    basladiMs: Date.now(),
+    bitisMs: Date.now() + 300000,
+    devletDusus: 6,
+    icraatToplam: 2,
+  };
+  await run(db, `UPDATE players SET job_olay_json = ?, hapis_bitis_at = 0 WHERE user_id = ?`, [
+    JSON.stringify(polisYakalaSession),
+    userId,
+  ]);
+  player = await loadPlayer(db, userId);
+  const polisYakala = await jobOlaySonuc(db, userId, player, {
+    savunuldu: false,
+    olayId: "polis903",
+    secim: "soy_kac",
+  });
+  Math.random = origRandom2;
+  if (!polisYakala.ok) throw new Error(polisYakala.error);
+  if (!polisYakala.effect.hapisGiris) throw new Error("polis soy_kac yakalanma hapis yok");
+  if (polisYakala.effect.olaySecim !== "soy_kac_yakalandi") throw new Error("polis yakalanma secim yanlis");
+
+  console.log("OK polis baskini testleri gecti");
   console.log(JSON.stringify({ kasa: player.kasa, puan: player.puan, effect: firsat.effect }, null, 2));
 }
 

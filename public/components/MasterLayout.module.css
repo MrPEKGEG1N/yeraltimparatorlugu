@@ -1675,6 +1675,29 @@ html, body {
   color: #ffe0b2;
 }
 
+.job-olay-pencere--polis {
+  border-color: #2980b9;
+  box-shadow: 0 0 40px rgba(41, 128, 185, 0.35), 0 24px 70px rgba(0, 0, 0, 0.75);
+}
+
+.job-olay-pencere--polis .job-olay-uyari {
+  color: #85c1e9;
+}
+
+.job-olay-pencere--polis .job-olay-baslik {
+  color: #d6eaf8;
+}
+
+.job-olay-muhbir-btn--soy {
+  background: linear-gradient(180deg, #1a5276 0%, #0e2f44 100%);
+  border-color: #5dade2;
+}
+
+.job-olay-muhbir-btn--kac-polis {
+  background: linear-gradient(180deg, #566573 0%, #2c3e50 100%);
+  border-color: #aeb6bf;
+}
+
 .job-olay-muhbir-btns {
   display: flex;
   flex-direction: column;

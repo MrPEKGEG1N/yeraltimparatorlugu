@@ -28,7 +28,9 @@ const MUHBIR_ICRAAT_KAYIP = 1;
 const MUHBIR_TIMER_MS = SOKAK_TIMER_MS;
 const TEKNIK_YARIM_ORANI = 0.5;
 const TEKNIK_KIR_YAKALANMA = 0.5;
-const SECIMLI_OLAY_TIPLERI = new Set(["muhbir", "teknik_ariza"]);
+const POLIS_EXTRA_ICRAAT = 1;
+const POLIS_SOY_KAC_YAKALANMA = 0.5;
+const SECIMLI_OLAY_TIPLERI = new Set(["muhbir", "teknik_ariza", "polis_baskini"]);
 
 function secimliOlayMi(tip) {
   return SECIMLI_OLAY_TIPLERI.has(tip);
@@ -48,14 +50,15 @@ function rastgeleFirsatBonusu() {
 }
 
 const FIRSAT_OLAY_ORANI = 0.125; // olay havuzunda %12.5 (onceki %25'in yarisi)
-const DIGER_OLAY_ORANI = (1 - FIRSAT_OLAY_ORANI) / 3;
+const DIGER_OLAY_ORANI = (1 - FIRSAT_OLAY_ORANI) / 4;
 
 function olayTipiSec() {
   const r = Math.random();
   if (r < DIGER_OLAY_ORANI) return "sokak_kavgasi";
   if (r < DIGER_OLAY_ORANI + FIRSAT_OLAY_ORANI) return "sansli_firsat";
   if (r < DIGER_OLAY_ORANI * 2 + FIRSAT_OLAY_ORANI) return "muhbir";
-  return "teknik_ariza";
+  if (r < DIGER_OLAY_ORANI * 3 + FIRSAT_OLAY_ORANI) return "teknik_ariza";
+  return "polis_baskini";
 }
 
 async function ensureJobOlay(db) {
@@ -162,12 +165,21 @@ function jobOlayEffectFromSession(job, session) {
       ekstraIcraat: SOKAK_EXTRA_ICRAAT,
     };
   }
-  if (session.olayTipi === "muhbir" || session.olayTipi === "teknik_ariza") {
+  if (
+    session.olayTipi === "muhbir" ||
+    session.olayTipi === "teknik_ariza" ||
+    session.olayTipi === "polis_baskini"
+  ) {
+    const ekstraIcraat =
+      session.olayTipi === "teknik_ariza"
+        ? TEKNIK_EXTRA_ICRAAT
+        : session.olayTipi === "polis_baskini"
+          ? POLIS_EXTRA_ICRAAT
+          : MUHBIR_EXTRA_ICRAAT;
     return {
       ...base,
       sureSn: SOKAK_TIMER_MS / 1000,
-      ekstraIcraat:
-        session.olayTipi === "teknik_ariza" ? TEKNIK_EXTRA_ICRAAT : MUHBIR_EXTRA_ICRAAT,
+      ekstraIcraat,
     };
   }
   return {
@@ -263,7 +275,9 @@ async function jobBaslat(db, userId, player, jobKey) {
         ? TEKNIK_EXTRA_ICRAAT
         : olayTipi === "muhbir"
           ? MUHBIR_EXTRA_ICRAAT
-          : SOKAK_EXTRA_ICRAAT;
+          : olayTipi === "polis_baskini"
+            ? POLIS_EXTRA_ICRAAT
+            : SOKAK_EXTRA_ICRAAT;
   const ekstraIcraat = await icraatHarca(db, userId, ekstraMaliyet);
   if (!ekstraIcraat.ok) {
     if (olayTipi === "sokak_kavgasi") {
@@ -396,6 +410,27 @@ async function jobOlaySonuc(db, userId, player, { savunuldu, olayId, secim }) {
       olaySecim = "kir";
       netKazanc = job.netKazanc;
     }
+  } else if (session.olayTipi === "polis_baskini") {
+    const simdi = Date.now();
+    const tercih = secim === "soy_kac" ? "soy_kac" : secim === "kac" ? "kac" : "";
+    if (!tercih) {
+      if (simdi <= session.bitisMs + GRACE_MS) {
+        return { ok: false, error: "Polis baskınında 30 saniye içinde bir seçenek belirlemelisin." };
+      }
+      await jobOlayTemizle(db, userId);
+      return olayYakalandiHapis(db, userId, player, job, session, "yakalandi");
+    }
+    basarili = true;
+    olaySecim = tercih;
+    if (tercih === "kac") {
+      netKazanc = 0;
+      paraKaybi = job.netKazanc;
+    } else if (Math.random() < POLIS_SOY_KAC_YAKALANMA) {
+      await jobOlayTemizle(db, userId);
+      return olayYakalandiHapis(db, userId, player, job, session, "soy_kac_yakalandi");
+    } else {
+      netKazanc = job.netKazanc;
+    }
   } else {
     const simdi = Date.now();
     basarili = !!savunuldu && simdi <= session.bitisMs + GRACE_MS;
@@ -440,7 +475,7 @@ async function jobOlaySonuc(db, userId, player, { savunuldu, olayId, secim }) {
   } else if (muhbirSecim === "rusvet") {
     sonuc.muhbirSecim = muhbirSecim;
     sonuc.olaySecim = olaySecim || muhbirSecim;
-  } else if (olaySecim === "tamir" || olaySecim === "kir") {
+  } else if (olaySecim === "tamir" || olaySecim === "kir" || olaySecim === "soy_kac" || olaySecim === "kac") {
     sonuc.olaySecim = olaySecim;
   }
 

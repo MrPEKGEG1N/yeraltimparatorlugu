@@ -55,7 +55,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,300;1,400&family=Oswald:wght@400;600;700&family=Roboto+Condensed:wght@300;400;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="components/MasterLayout.module.css?v=135">
+  <link rel="stylesheet" href="components/MasterLayout.module.css?v=136">
   <link rel="stylesheet" href="liderlik.css?v=109">
   <link rel="stylesheet" href="ekran-icerik.css?v=114">
   <link rel="stylesheet" href="gazete.css?v=115">
@@ -85,7 +85,7 @@
   <link rel="stylesheet" href="egitim.css?v=11">
   <link rel="stylesheet" href="kurallar.css?v=1">
   <link rel="stylesheet" href="gorus-oneri.css?v=1">
-  <link rel="stylesheet" href="responsive.css?v=117">
+  <link rel="stylesheet" href="responsive.css?v=118">
   <link rel="stylesheet" href="i18n/lang-picker.css?v=3">
   <link href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css" rel="stylesheet">
 </head>
@@ -161,6 +161,7 @@
 
 <div id="masterLayout" class="gizli">
   <header class="ml-header" id="headerStatsBar">
+    <button type="button" id="mlHeaderToolsTab" class="ml-header-tools-tab" aria-label="Menü" aria-expanded="false" title="Sağa kaydır" data-i18n-title="game.mobile.headerToolsHint" data-i18n-aria="game.mobile.headerToolsOpen">☰</button>
     <div class="stats-bar">
       <button type="button" class="ml-btn-liderlik" onclick="ekranDegistir('liderlik')" title="Liderlik Tablosu">
         <span class="ml-btn-liderlik-ikon" aria-hidden="true">🏆</span>
@@ -474,12 +475,12 @@
 </div>
 <button type="button" id="tutorialResumeBtn" class="eg-devam-btn gizli" data-i18n-title="tutorial.resumeTitle" title="Eğitime kaldığın yerden devam et">📖 Eğitime Devam</button>
 
-<script src="mobile-immersive.js?v=5"></script>
+<script src="mobile-immersive.js?v=6"></script>
 <script src="https://openfpcdn.io/fingerprintjs/v4/iife.min.js"></script>
 <script src="security.js?v=1"></script>
 <script src="kurallar.js?v=2"></script>
 <script src="i18n/languages.js?v=3"></script>
-<script src="i18n/locales.js?v=70"></script>
+<script src="i18n/locales.js?v=72"></script>
 <script src="i18n/catalog.js?v=6"></script>
 <script src="i18n/i18n.js?v=9"></script>
 <script src="auth.js?v=106"></script>
@@ -492,7 +493,7 @@
 <script src="borsa.js?v=7"></script>
 <script src="kumarhane.js?v=28"></script>
 <script src="meslek.js?v=28"></script>
-<script src="script.js?v=319"></script>
+<script src="script.js?v=320"></script>
 <script src="bildirim.js?v=4"></script>
 </body>
 </html>

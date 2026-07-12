@@ -284,6 +284,89 @@
     );
   }
 
+  function bindHeaderToolsDrawer() {
+    var header = document.getElementById("headerStatsBar");
+    var layout = document.getElementById("masterLayout");
+    var tab = document.getElementById("mlHeaderToolsTab");
+    var drawer = header ? header.querySelector(".ml-header-right") : null;
+    if (!header || !layout || !tab || header.dataset.toolsDrawer) return;
+    header.dataset.toolsDrawer = "1";
+
+    var startX = 0;
+    var startY = 0;
+    var tracking = false;
+
+    function isOpen() {
+      return layout.classList.contains("ml-header-tools-open");
+    }
+
+    function setOpen(open) {
+      layout.classList.toggle("ml-header-tools-open", !!open);
+      tab.setAttribute("aria-expanded", open ? "true" : "false");
+      tab.textContent = open ? "‹" : "☰";
+    }
+
+    function onTouchStart(e) {
+      if (!isMobile() || e.touches.length !== 1) return;
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      tracking = true;
+    }
+
+    function onTouchEnd(e) {
+      if (!tracking || !isMobile()) return;
+      tracking = false;
+      var touch = e.changedTouches[0];
+      var dx = touch.clientX - startX;
+      var dy = touch.clientY - startY;
+      if (Math.abs(dx) < 42 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
+
+      var onStats = e.target.closest && e.target.closest(".stats-bar");
+      var onTab = e.target.closest && e.target.closest(".ml-header-tools-tab");
+      var onDrawer = e.target.closest && e.target.closest(".ml-header-right");
+
+      if (dx > 0 && !isOpen()) {
+        if (onTab || startX < 36) {
+          setOpen(true);
+          return;
+        }
+        if (onStats) {
+          var bar = header.querySelector(".stats-bar");
+          if (bar && bar.scrollLeft <= 3) setOpen(true);
+        }
+        return;
+      }
+
+      if (dx < 0 && isOpen() && (onDrawer || onTab || onStats)) {
+        setOpen(false);
+      }
+    }
+
+    tab.addEventListener("click", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      setOpen(!isOpen());
+    });
+
+    header.addEventListener("touchstart", onTouchStart, { passive: true });
+    header.addEventListener("touchend", onTouchEnd, { passive: true });
+
+    if (drawer) {
+      drawer.addEventListener("click", function (e) {
+        if (e.target.closest("button") && !e.target.closest(".lang-picker-btn")) {
+          setOpen(false);
+        }
+      });
+    }
+
+    document.addEventListener("click", function (e) {
+      if (!isOpen() || !isMobile()) return;
+      if (e.target.closest("#headerStatsBar")) return;
+      if (e.target.closest(".lang-picker-menu")) return;
+      setOpen(false);
+    });
+  }
+
   function bindChromeButtons() {
     var geri = document.getElementById("mlMobileGeriBtn");
     var fs = document.getElementById("mlMobileFullscreenHdrBtn");
@@ -318,6 +401,7 @@
 
   function init() {
     bindChromeButtons();
+    bindHeaderToolsDrawer();
     restoreImmersivePreference();
     if (!isMobile()) return;
 
