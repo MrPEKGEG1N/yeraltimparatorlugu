@@ -31,16 +31,17 @@ async function aralikIstatistikleri(db, baslangic, bitis) {
     `SELECT user_id, tip, SUM(delta) AS toplam
      FROM stat_hareketleri
      WHERE created_at >= ? AND created_at < ?
-       AND ((tip = 'sayginlik' AND delta > 0) OR (tip = 'icraat' AND delta > 0))
+       AND ((tip = 'sayginlik' AND delta > 0) OR (tip = 'icraat' AND delta > 0) OR (tip = 'icraat_is' AND delta > 0))
      GROUP BY user_id, tip`,
     [baslangic, bitis]
   );
   const map = new Map();
   for (const row of rows) {
-    if (!map.has(row.user_id)) map.set(row.user_id, { sayginlik: 0, icraat: 0 });
+    if (!map.has(row.user_id)) map.set(row.user_id, { sayginlik: 0, icraat: 0, icraatIs: 0 });
     const entry = map.get(row.user_id);
     if (row.tip === "sayginlik") entry.sayginlik += row.toplam || 0;
     else if (row.tip === "icraat") entry.icraat += row.toplam || 0;
+    else if (row.tip === "icraat_is") entry.icraatIs += row.toplam || 0;
   }
   return map;
 }
@@ -82,13 +83,15 @@ async function arananLiderleriOlustur(db, baslangic, bitis, limit = 5) {
 
   const liste = users
     .map((u) => {
-      const stat = map.get(u.user_id) || { sayginlik: 0, icraat: 0 };
-      const puan = stat.sayginlik + stat.icraat;
+      const stat = map.get(u.user_id) || { sayginlik: 0, icraat: 0, icraatIs: 0 };
+      const icraatIs = stat.icraatIs || 0;
+      const puan = stat.sayginlik + (icraatIs > 0 ? icraatIs : stat.icraat);
       return {
         userId: u.user_id,
         isim: u.isim,
         sayginlik: stat.sayginlik,
         icraat: stat.icraat,
+        icraatIs,
         puan,
         fallback: false,
         profilResmi: u.profil_resmi || "",

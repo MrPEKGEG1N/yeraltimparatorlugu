@@ -799,6 +799,7 @@
     row("game.gazete.tookBack", [", bölgeyi ", ", took the zone from ", ", wziął strefę z", , , , , , , , , , , , , , ", wziął strefę z"]),
     row("game.gazete.tookBackSuffix", ["'den geri aldı.", ".", ".", , , , , , , , , , , , , , "."]),
     row("game.gazete.topRespect", ["EN ÇOK ARANANLAR", "MOST WANTED", "NAJBARDZIEJ POSZUKIWANI", , , , , , , , , , , , , , "NAJBARDZIEJ POSZUKIWANI"]),
+    row("game.gazete.icraatAction", ["icraat işi", "action", "akcja", , , , , , , , , , , , , , "akcja"]),
     row("game.gazete.dailyHeadline", ["GÜNÜN MANŞETİ", "DAILY HEADLINE", "NAGŁÓWEK DNIA", , , , , , , , , , , , , , "NAGŁÓWEK DNIA"]),
     row("game.gazete.pressHeadline", ["GAZETE MANŞETİ", "NEWSPAPER HEADLINE", "NAGŁÓWEK GAZETY", , , , , , , , , , , , , , "NAGŁÓWEK GAZETY"]),
     row("game.gazete.undergroundHeadlines", ["YERALTI MANŞETLERİ <small>(Özel İlanlar)</small>", "UNDERGROUND HEADLINES <small>(Private Ads)</small>", "NAGŁÓWKI PODZIEMNE <small>(Reklamy prywatne)</small>", , , , , , , , , , , , , , "NAGŁÓWKI PODZIEMNE <small>(Reklamy prywatne)</small>"]),

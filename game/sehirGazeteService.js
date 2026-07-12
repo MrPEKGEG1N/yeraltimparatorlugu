@@ -63,13 +63,13 @@ async function ensureSistemGunluk(db) {
   );
 }
 
-function kabusHaberMetni(isim, sayginlik, icraat) {
+function kabusHaberMetni(isim, sayginlik, icraatIs) {
   const ad = String(isim || "Bilinmeyen").trim();
-  const icraatN = Math.max(0, Math.floor(Number(icraat) || 0));
+  const isSayisi = Math.max(0, Math.floor(Number(icraatIs) || 0));
   const sayginlikN = Math.max(0, Math.floor(Number(sayginlik) || 0));
   return {
     baslik: `Şehrin Yeni Kabusu: ${ad}`,
-    metin: `Dün gece ülke sınırlarında tek başına ${icraatN} mekana saldırı düzenleyerek ${sayginlikN} saygınlıkla öne çıkan ${ad}, emniyet güçlerini alarma geçirdi. Görgü tanıkları, gangsterin sokakları kendi kuralına göre yeniden yazdığını söylüyor. Şehir halkı diken üstünde!`,
+    metin: `Dün gece ülke sınırlarında tek başına ${isSayisi} mekana saldırı düzenleyerek ${sayginlikN} saygınlıkla öne çıkan ${ad}, emniyet güçlerini alarma geçirdi. Görgü tanıkları, gangsterin sokakları kendi kuralına göre yeniden yazdığını söylüyor. Şehir halkı diken üstünde!`,
   };
 }
 
@@ -107,11 +107,12 @@ async function gunSonuKabusuHaber(db) {
     isim: lider?.isim || null,
     sayginlik: lider?.sayginlik || 0,
     icraat: lider?.icraat || 0,
+    icraatIs: lider?.icraatIs || 0,
     puan: lider?.puan || 0,
   };
 
   if (lider?.isim && lider.puan > 0) {
-    const haber = kabusHaberMetni(lider.isim, lider.sayginlik, lider.icraat);
+    const haber = kabusHaberMetni(lider.isim, lider.sayginlik, lider.icraatIs || lider.icraat);
     kayit.baslik = haber.baslik;
     kayit.metin = haber.metin;
     await gazeteEkle(db, haber.baslik, bitis);
@@ -133,15 +134,19 @@ async function getGunlukKabusManset(db) {
   if (!row?.deger) return null;
   try {
     const data = JSON.parse(row.deger);
-    if (!data?.isim || !data?.baslik || !data?.metin) return null;
+    if (!data?.isim) return null;
+    const icraatIs = data.icraatIs ?? data.icraat ?? 0;
+    const sayginlik = data.sayginlik || 0;
+    const haber = kabusHaberMetni(data.isim, sayginlik, icraatIs);
     return {
       gunKey: data.gunKey || dun,
       userId: data.userId,
       isim: data.isim,
-      baslik: data.baslik,
-      metin: data.metin,
-      sayginlik: data.sayginlik || 0,
+      baslik: haber.baslik,
+      metin: haber.metin,
+      sayginlik,
       icraat: data.icraat || 0,
+      icraatIs,
       puan: data.puan || 0,
     };
   } catch {
@@ -569,6 +574,7 @@ async function getGazetePanel(db, userId) {
     isim: r.isim,
     sayginlik: r.sayginlik || 0,
     icraat: r.icraat || 0,
+    icraatIs: r.icraatIs || 0,
     puan: r.puan || 0,
     miktar: r.puan || 0,
     fallback: !!r.fallback,

@@ -84,6 +84,7 @@ async function icraatHarca(db, userId, miktar) {
   try {
     const { logStatHareket } = require("./statService");
     await logStatHareket(db, userId, "icraat", miktarInt);
+    await logStatHareket(db, userId, "icraat_is", 1);
   } catch (_) {}
   return { ok: true, icraat: yeni };
 }

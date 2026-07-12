@@ -5215,7 +5215,7 @@ function gazeteLiderSatir(r, i) {
   } else {
     var parcalar = [];
     if ((r.sayginlik || 0) > 0) parcalar.push('+' + fmt(r.sayginlik) + t('game.gazete.respectGain'));
-    if ((r.icraat || 0) > 0) parcalar.push(fmt(r.icraat) + ' ' + t('header.icraat'));
+    if ((r.icraatIs || r.icraat || 0) > 0) parcalar.push(fmt(r.icraatIs || r.icraat) + ' ' + t('game.gazete.icraatAction'));
     artis = parcalar.length ? parcalar.join(' · ') : '—';
   }
   var avatarUrl = profilResmiUrl(r.userId, r.profilResmi);
@@ -5371,7 +5371,7 @@ async function gazeteEkranCiz(ic) {
       } else {
         var parcalar = [];
         if ((r.sayginlik || 0) > 0) parcalar.push('+' + fmt(r.sayginlik) + t('game.gazete.respectGain'));
-        if ((r.icraat || 0) > 0) parcalar.push(fmt(r.icraat) + ' ' + t('header.icraat'));
+        if ((r.icraatIs || r.icraat || 0) > 0) parcalar.push(fmt(r.icraatIs || r.icraat) + ' ' + t('game.gazete.icraatAction'));
         etiket = parcalar.length ? parcalar.join(' · ') : '+' + fmt(r.miktar || 0) + t('game.gazete.respectGain');
       }
       efsaneHtml += '<p class="gazete-efsane-satir"><b>' + (i + 1) + '.</b> '
@@ -5472,7 +5472,7 @@ async function gazeteEkranCiz(ic) {
         + '<h2 class="gazete-manset-baslik gazete-manset-baslik--kabus">' + metindeIsimLinkleri(t('game.gazete.news.kabusHeadline', { name: kabus.isim }), oyuncular) + '</h2>'
         + '<p class="gazete-manset-metin">' + metindeIsimLinkleri(t('game.gazete.news.kabusBody', {
           name: kabus.isim,
-          icraat: fmt(kabus.icraat || 0),
+          icraat: fmt(kabus.icraatIs || kabus.icraat || 0),
           sayginlik: fmt(kabus.sayginlik || 0)
         }), oyuncular) + '</p>'
         + '</div></article>';
