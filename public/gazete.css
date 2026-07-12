@@ -146,6 +146,27 @@
   min-width: 0;
 }
 
+#masterLayout .gazete-manset--kabus {
+  display: block;
+  border-right: none;
+  border-bottom: 2px solid #8b0000;
+  background: linear-gradient(135deg, rgba(90, 0, 0, 0.42), rgba(0, 0, 0, 0.78));
+}
+
+#masterLayout .gazete-manset-sol--tam {
+  max-width: 100%;
+}
+
+#masterLayout .gazete-etiket--kabus {
+  background: #b30000;
+  box-shadow: 0 0 12px rgba(179, 0, 0, 0.45);
+}
+
+#masterLayout .gazete-manset-baslik--kabus {
+  color: #ff5555;
+  text-shadow: 0 0 18px rgba(255, 60, 60, 0.25);
+}
+
 #masterLayout .gazete-etiket {
   display: inline-block;
   background: #8b0000;

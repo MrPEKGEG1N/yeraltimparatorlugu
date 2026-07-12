@@ -81,6 +81,11 @@ function parseIstanbulHourKey(key) {
   return new Date(`${m[1]}-${m[2]}-${m[3]}T${m[4]}:00:00+03:00`).getTime();
 }
 
+/** İstanbul takvim günü 00:00 — unix saniye */
+function istanbulGunBaslangicUnix(dayKey) {
+  return Math.floor(new Date(`${dayKey}T00:00:00+03:00`).getTime() / 1000);
+}
+
 /**
  * Son ödeme saatinden bu yana kaç tam saatlik gelir yatmalı.
  * İlk ödeme (lastHourKey yok) = 1 saat; aynı saat = 0.
@@ -108,4 +113,5 @@ module.exports = {
   maasSaatiGeldiMi,
   maasCronPenceresiMi,
   gunKeyEkle,
+  istanbulGunBaslangicUnix,
 };

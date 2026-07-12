@@ -81,6 +81,10 @@ async function icraatHarca(db, userId, miktar) {
 
   const yeni = synced.icraat - miktarInt;
   await run(db, `UPDATE players SET icraat = ? WHERE user_id = ?`, [yeni, userId]);
+  try {
+    const { logStatHareket } = require("./statService");
+    await logStatHareket(db, userId, "icraat", miktarInt);
+  } catch (_) {}
   return { ok: true, icraat: yeni };
 }
 

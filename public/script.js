@@ -5090,6 +5090,12 @@ function gazeteHaberCevir(metin) {
   var viaTr = tr(s);
   if (viaTr && viaTr !== s) return viaTr;
   var m;
+  if ((m = s.match(/^Şehrin Yeni Kabusu: (.+?)!$/))) {
+    return t('game.gazete.news.kabusHeadline', { name: m[1] });
+  }
+  if ((m = s.match(/^Dün gece ülke sınırlarında tek başına birden çok farklı mekanı ele geçiren (.+?), emniyet güçlerini alarma geçirdi\./))) {
+    return t('game.gazete.news.kabusBody', { name: m[1] });
+  }
   if ((m = s.match(/^Sokakların Tek Hakimi: (.+?) Hükmü Sürüyor!$/))) {
     return t('game.gazete.news.rulerContinues', { name: m[1] });
   }
@@ -5177,6 +5183,8 @@ function gazeteOyuncuListesi(data) {
     gazeteMetindenIsimler(data.manset.baslik2, map);
   }
   (data.sayginlikLiderleri || []).forEach(function(r) { ekle(r.userId, r.isim); });
+  (data.arananlar || []).forEach(function(r) { ekle(r.userId, r.isim); });
+  if (data.gunlukKabus) ekle(data.gunlukKabus.userId, data.gunlukKabus.isim);
   (data.efsaneler24 || []).forEach(function(r) { ekle(r.userId, r.isim); });
   (data.limanDurumu || []).forEach(function(l) { ekle(l.userId, l.sahipAdi); });
   (data.yeraltiManse || []).forEach(function(h) { ekle(h.userId, h.yazar); });
@@ -5191,9 +5199,15 @@ function gazeteOyuncuListesi(data) {
 
 function gazeteLiderSatir(r, i) {
   var crown = i === 0 ? '<span class="gazete-kral">👑</span>' : '';
-  var artis = r.fallback
-    ? fmt(r.miktar || 0) + t('game.gazete.respectUnit')
-    : '+ ' + fmt(r.miktar || 0);
+  var artis;
+  if (r.fallback) {
+    artis = fmt(r.sayginlik || r.miktar || 0) + t('game.gazete.respectUnit');
+  } else {
+    var parcalar = [];
+    if ((r.sayginlik || 0) > 0) parcalar.push('+' + fmt(r.sayginlik) + t('game.gazete.respectGain'));
+    if ((r.icraat || 0) > 0) parcalar.push(fmt(r.icraat) + ' ' + t('header.icraat'));
+    artis = parcalar.length ? parcalar.join(' · ') : '—';
+  }
   var avatarUrl = profilResmiUrl(r.userId, r.profilResmi);
   var avatarCls = profilResmiOzelMi(avatarUrl) ? ' gazete-avatar-img--ozel' : '';
   return '<div class="gazete-lider-satir' + (i === 0 ? ' gazete-lider-satir--bir' : '') + '">'
@@ -5327,16 +5341,22 @@ async function gazeteEkranCiz(ic) {
     var ticker = '<div class="gazete-ticker-ic">' + tickerInner + '<span class="gazete-ticker-dot"> • </span>' + tickerInner + '</div>';
 
     var liderHtml = '';
-    (data.sayginlikLiderleri || []).forEach(function(r, i) {
+    (data.arananlar || data.sayginlikLiderleri || []).forEach(function(r, i) {
       liderHtml += gazeteLiderSatir(r, i);
     });
     if (!liderHtml) liderHtml = '<p class="gazete-bos">' + escHtml(t('game.empty.noData')) + '</p>';
 
     var efsaneHtml = '';
     (data.efsaneler24 || []).forEach(function(r, i) {
-      var etiket = r.fallback
-        ? fmt(r.miktar || 0) + t('game.gazete.respectUnit')
-        : '+' + fmt(r.miktar || 0) + t('game.gazete.respectGain');
+      var etiket;
+      if (r.fallback) {
+        etiket = fmt(r.sayginlik || r.miktar || 0) + t('game.gazete.respectUnit');
+      } else {
+        var parcalar = [];
+        if ((r.sayginlik || 0) > 0) parcalar.push('+' + fmt(r.sayginlik) + t('game.gazete.respectGain'));
+        if ((r.icraat || 0) > 0) parcalar.push(fmt(r.icraat) + ' ' + t('header.icraat'));
+        etiket = parcalar.length ? parcalar.join(' · ') : '+' + fmt(r.miktar || 0) + t('game.gazete.respectGain');
+      }
       efsaneHtml += '<p class="gazete-efsane-satir"><b>' + (i + 1) + '.</b> '
         + oyuncuLink(r.userId, r.isim)
         + ' <span class="gazete-yesil">(' + etiket + ')</span></p>';
@@ -5426,6 +5446,17 @@ async function gazeteEkranCiz(ic) {
         + '</div></section>';
     }
 
+    var kabusHtml = '';
+    if (data.gunlukKabus && data.gunlukKabus.isim) {
+      var kabus = data.gunlukKabus;
+      kabusHtml = '<article class="gazete-manset gazete-manset--kabus">'
+        + '<div class="gazete-manset-sol gazete-manset-sol--tam">'
+        + '<span class="gazete-etiket gazete-etiket--kabus">' + escHtml(t('game.gazete.dailyHeadline')) + '</span>'
+        + '<h2 class="gazete-manset-baslik gazete-manset-baslik--kabus">' + metindeIsimLinkleri(t('game.gazete.news.kabusHeadline', { name: kabus.isim }), oyuncular) + '</h2>'
+        + '<p class="gazete-manset-metin">' + metindeIsimLinkleri(t('game.gazete.news.kabusBody', { name: kabus.isim }), oyuncular) + '</p>'
+        + '</div></article>';
+    }
+
     if (aktifEkran !== 'gazete') return;
     ic.innerHTML = '<div class="gazete-wrap">'
       + '<div class="gazete-hero">'
@@ -5443,6 +5474,7 @@ async function gazeteEkranCiz(ic) {
       + '<div class="gazete-ticker-kaydir">' + ticker + '</div></div>'
       + sampiyonHtml
       + piyangoHtml
+      + kabusHtml
       + '<div class="gazete-govde">'
       + '<article class="gazete-manset">'
       + '<div class="gazete-manset-sol">'
