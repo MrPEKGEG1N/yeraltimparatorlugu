@@ -63,11 +63,13 @@ async function ensureSistemGunluk(db) {
   );
 }
 
-function kabusHaberMetni(isim) {
+function kabusHaberMetni(isim, sayginlik, icraat) {
   const ad = String(isim || "Bilinmeyen").trim();
+  const icraatN = Math.max(0, Math.floor(Number(icraat) || 0));
+  const sayginlikN = Math.max(0, Math.floor(Number(sayginlik) || 0));
   return {
-    baslik: `Şehrin Yeni Kabusu: ${ad}!`,
-    metin: `Dün gece ülke sınırlarında tek başına birden çok farklı mekanı ele geçiren ${ad}, emniyet güçlerini alarma geçirdi. Görgü tanıkları, gangsterin sokakları kendi kuralına göre yeniden yazdığını söylüyor. Şehir halkı diken üstünde!`,
+    baslik: `Şehrin Yeni Kabusu: ${ad}`,
+    metin: `Dün gece ülke sınırlarında tek başına ${icraatN} mekana saldırı düzenleyerek ${sayginlikN} saygınlıkla öne çıkan ${ad}, emniyet güçlerini alarma geçirdi. Görgü tanıkları, gangsterin sokakları kendi kuralına göre yeniden yazdığını söylüyor. Şehir halkı diken üstünde!`,
   };
 }
 
@@ -109,7 +111,7 @@ async function gunSonuKabusuHaber(db) {
   };
 
   if (lider?.isim && lider.puan > 0) {
-    const haber = kabusHaberMetni(lider.isim);
+    const haber = kabusHaberMetni(lider.isim, lider.sayginlik, lider.icraat);
     kayit.baslik = haber.baslik;
     kayit.metin = haber.metin;
     await gazeteEkle(db, haber.baslik, bitis);

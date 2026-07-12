@@ -5090,11 +5090,14 @@ function gazeteHaberCevir(metin) {
   var viaTr = tr(s);
   if (viaTr && viaTr !== s) return viaTr;
   var m;
-  if ((m = s.match(/^Şehrin Yeni Kabusu: (.+?)!$/))) {
+  if ((m = s.match(/^Şehrin Yeni Kabusu: (.+?)!?$/))) {
     return t('game.gazete.news.kabusHeadline', { name: m[1] });
   }
+  if ((m = s.match(/^Dün gece ülke sınırlarında tek başına (\d+) mekana saldırı düzenleyerek (\d+) saygınlıkla öne çıkan (.+?), emniyet güçlerini alarma geçirdi\./))) {
+    return t('game.gazete.news.kabusBody', { name: m[3], icraat: m[1], sayginlik: m[2] });
+  }
   if ((m = s.match(/^Dün gece ülke sınırlarında tek başına birden çok farklı mekanı ele geçiren (.+?), emniyet güçlerini alarma geçirdi\./))) {
-    return t('game.gazete.news.kabusBody', { name: m[1] });
+    return t('game.gazete.news.kabusBodyLegacy', { name: m[1] });
   }
   if (s === "KORKU İMPARATORLUĞU YÜKSELİYOR") {
     return t('game.gazete.news.mafiaJobHeadline');
@@ -5467,7 +5470,11 @@ async function gazeteEkranCiz(ic) {
         + '<div class="gazete-manset-sol gazete-manset-sol--tam">'
         + '<span class="gazete-etiket gazete-etiket--kabus">' + escHtml(t('game.gazete.dailyHeadline')) + '</span>'
         + '<h2 class="gazete-manset-baslik gazete-manset-baslik--kabus">' + metindeIsimLinkleri(t('game.gazete.news.kabusHeadline', { name: kabus.isim }), oyuncular) + '</h2>'
-        + '<p class="gazete-manset-metin">' + metindeIsimLinkleri(t('game.gazete.news.kabusBody', { name: kabus.isim }), oyuncular) + '</p>'
+        + '<p class="gazete-manset-metin">' + metindeIsimLinkleri(t('game.gazete.news.kabusBody', {
+          name: kabus.isim,
+          icraat: fmt(kabus.icraat || 0),
+          sayginlik: fmt(kabus.sayginlik || 0)
+        }), oyuncular) + '</p>'
         + '</div></article>';
     }
 
