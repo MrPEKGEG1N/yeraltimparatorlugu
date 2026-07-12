@@ -259,6 +259,7 @@
 
   function refreshImmersive() {
     if (!isMobile()) return;
+    syncMobileUiClass();
     document.documentElement.classList.toggle(
       "mobile-immersive",
       layoutVisible() || immersiveForced
@@ -284,6 +285,14 @@
     );
   }
 
+  function syncMobileUiClass() {
+    document.documentElement.classList.toggle("ml-mobile-ui", isMobile());
+    var layout = document.getElementById("masterLayout");
+    if (layout && isMobile()) {
+      layout.classList.remove("ml-header-tools-open");
+    }
+  }
+
   function bindHeaderToolsDrawer() {
     var header = document.getElementById("headerStatsBar");
     var layout = document.getElementById("masterLayout");
@@ -303,8 +312,13 @@
     function setOpen(open) {
       layout.classList.toggle("ml-header-tools-open", !!open);
       tab.setAttribute("aria-expanded", open ? "true" : "false");
-      tab.textContent = open ? "‹" : "☰";
+      tab.textContent = open ? "✕" : "☰";
+      tab.title = open
+        ? mobileLabel("game.mobile.headerToolsClose", "Kapat")
+        : mobileLabel("game.mobile.headerToolsHint", "Menüyü aç");
     }
+
+    setOpen(false);
 
     function onTouchStart(e) {
       if (!isMobile() || e.touches.length !== 1) return;
@@ -361,7 +375,8 @@
 
     document.addEventListener("click", function (e) {
       if (!isOpen() || !isMobile()) return;
-      if (e.target.closest("#headerStatsBar")) return;
+      if (e.target.closest("#mlHeaderToolsTab")) return;
+      if (e.target.closest(".ml-header-right")) return;
       if (e.target.closest(".lang-picker-menu")) return;
       setOpen(false);
     });
@@ -401,6 +416,7 @@
 
   function init() {
     bindChromeButtons();
+    syncMobileUiClass();
     bindHeaderToolsDrawer();
     restoreImmersivePreference();
     if (!isMobile()) return;
@@ -446,6 +462,8 @@
 
   MOBILE_MQ.addEventListener("change", function () {
     touchBound = false;
+    var header = document.getElementById("headerStatsBar");
+    if (header) delete header.dataset.toolsDrawer;
     init();
   });
 })();
