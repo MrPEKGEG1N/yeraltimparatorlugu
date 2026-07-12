@@ -41,8 +41,10 @@ async function main() {
   if (panel.donemOdul !== beklenen.buyukOdul) {
     throw new Error(`Dönem ödülü uyuşmuyor: ${panel.donemOdul} !== ${beklenen.buyukOdul}`);
   }
-  if (panel.buyukOdul !== beklenen.buyukOdul) {
-    throw new Error(`Büyük ödül uyuşmuyor: ${panel.buyukOdul} !== ${beklenen.buyukOdul}`);
+  if (panel.buyukOdul !== panel.devredenOdul + beklenen.buyukOdul) {
+    throw new Error(
+      `Büyük ödül uyuşmuyor: ${panel.buyukOdul} !== ${panel.devredenOdul + beklenen.buyukOdul}`
+    );
   }
 
   const devredenMiktar = 450_000;
