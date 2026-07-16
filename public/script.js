@@ -619,7 +619,7 @@ async function sunucuAksiyon(action, key, adet, extra) {
 // ========================
 // GÖRSELLER — yerel (/public/images)
 // ========================
-var GORSEL_VERSIYON = '141';
+var GORSEL_VERSIYON = '143';
 var profilLiderlikOyunculari = [];
 var profilAktifSekme = 'karakter';
 var oyuncuYetenekler = null;
@@ -800,6 +800,106 @@ var mafyaEviGorseller = {
   seviye9: yerelGorselPng('mafya', 'ev9'),
   seviye10: yerelGorselPng('mafya', 'ev10')
 };
+
+var MAFYA_SANCAK_LISTESI = [
+  'sancak-01', 'sancak-02', 'sancak-03', 'sancak-04', 'sancak-05',
+  'sancak-06', 'sancak-07', 'sancak-08', 'sancak-09', 'sancak-10',
+  'sancak-11', 'sancak-12', 'sancak-13', 'sancak-14', 'sancak-15',
+  'sancak-16', 'sancak-17', 'sancak-18', 'sancak-19', 'sancak-20',
+  'sancak-21', 'sancak-22', 'sancak-23', 'sancak-24', 'sancak-25',
+  'sancak-26', 'sancak-27', 'sancak-28', 'sancak-29', 'sancak-30'
+];
+
+function mafyaSancakUrl(sancakId) {
+  var id = String(sancakId || 'varsayilan').trim();
+  if (/^ev([1-9]|10)$/.test(id) || id === 'savas-banner' || id === 'varsayilan') {
+    id = 'sancak-01';
+  }
+  if (!/^sancak-(0[1-9]|[12][0-9]|30)$/.test(id)) id = 'sancak-01';
+  return '/images/mafya/sancak/' + id + '.png?v=' + GORSEL_VERSIYON;
+}
+
+function mafyaSancakImgFallback(img) {
+  if (!img) return;
+  img.onerror = null;
+  img.removeAttribute('src');
+  img.classList.add('is-bos');
+}
+
+function mafyaGrupUstHTML(opts) {
+  opts = opts || {};
+  var sancakUrl = mafyaSancakUrl(opts.sancak);
+  var uyeSayisi = opts.uyeSayisi != null ? opts.uyeSayisi : 0;
+  var kapasite = opts.kapasite != null ? opts.kapasite : '—';
+  var uyeMetin = uyeSayisi + '/' + kapasite;
+  var servet = opts.birikmisPara != null ? fmt(opts.birikmisPara) + ' TL' : '—';
+  var sayginlik = opts.toplamSayginlik != null ? fmt(opts.toplamSayginlik) : '—';
+  var rutbe = opts.rutbe && String(opts.rutbe).trim() ? opts.rutbe : '—';
+  var isim = opts.isim || '—';
+
+  var html = '<div class="mafya-grup-profil-ust">'
+    + '<div class="mafya-grup-sol">'
+    + '<div class="mafya-sancak-kutu">'
+    + '<img id="mafyaGrupSancak" src="' + escHtml(sancakUrl) + '" alt="' + escHtml(t('game.mafya.groupImageAlt')) + '" onerror="mafyaSancakImgFallback(this)">'
+    + '</div>';
+  if (opts.sancakDegistirilebilir) {
+    html += '<button type="button" class="mafya-sancak-btn" onclick="mafyaSancakSecModal()">'
+      + escHtml(t('game.mafya.changeBanner')) + '</button>';
+  }
+  html += '</div>'
+    + '<div class="mafya-grup-sag">'
+    + '<dl class="mafya-grup-detay-liste">'
+    + '<div class="mafya-grup-detay-satir"><dt>' + escHtml(t('game.mafya.labelName')) + '</dt>'
+    + '<dd id="mafyaGrupIsimDetay">' + escHtml(isim) + '</dd></div>'
+    + '<div class="mafya-grup-detay-satir"><dt>' + escHtml(t('game.mafya.labelMembers')) + '</dt>'
+    + '<dd id="mafyaGrupUyeDetay">' + escHtml(uyeMetin) + '</dd></div>'
+    + '<div class="mafya-grup-detay-satir"><dt>' + escHtml(t('game.mafya.labelTotalRespect')) + '</dt>'
+    + '<dd id="mafyaGrupSayginlikDetay" class="uye-puan">' + escHtml(sayginlik) + '</dd></div>'
+    + '<div class="mafya-grup-detay-satir"><dt>' + escHtml(t('game.mafya.labelWealth')) + '</dt>'
+    + '<dd id="mafyaGrupServetDetay">' + escHtml(servet) + '</dd></div>'
+    + '<div class="mafya-grup-detay-satir"><dt>' + escHtml(t('game.mafya.labelRank')) + '</dt>'
+    + '<dd id="mafyaGrupRutbeDetay">' + escHtml(rutbe) + '</dd></div>'
+    + '</dl>'
+    + '</div></div>'
+    + mafyaSampiyonRozetleriHTML(opts.sampiyonluklar);
+  return html;
+}
+
+function mafyaSancakSecModalKapat() {
+  var m = document.getElementById('mafyaSancakModal');
+  if (m) m.remove();
+}
+
+function mafyaSancakSecModal() {
+  mafyaSancakSecModalKapat();
+  var wrap = document.querySelector('.mafya-gurubum-wrap');
+  var aktifId = wrap && wrap.getAttribute('data-sancak') ? wrap.getAttribute('data-sancak') : 'sancak-01';
+  if (aktifId === 'varsayilan' || /^ev([1-9]|10)$/.test(aktifId)) aktifId = 'sancak-01';
+  var html = '<div id="mafyaSancakModal" class="mafya-sancak-modal" onclick="if(event.target===this)mafyaSancakSecModalKapat()">'
+    + '<div class="mafya-sancak-panel" role="dialog" aria-modal="true">'
+    + '<div class="mafya-sancak-panel-ust">'
+    + '<h3>' + escHtml(t('game.mafya.changeBanner')) + '</h3>'
+    + '<button type="button" class="mafya-sancak-kapat" onclick="mafyaSancakSecModalKapat()">×</button>'
+    + '</div>'
+    + '<p class="mafya-sancak-aciklama">' + escHtml(t('game.mafya.changeBannerHint')) + '</p>'
+    + '<div class="mafya-sancak-grid">';
+  MAFYA_SANCAK_LISTESI.forEach(function(id) {
+    var aktif = id === aktifId ? ' is-aktif' : '';
+    html += '<button type="button" class="mafya-sancak-item' + aktif + '" onclick="mafyaSancakSec(\'' + id + '\')">'
+      + '<img src="' + escHtml(mafyaSancakUrl(id)) + '" alt="" onerror="mafyaSancakImgFallback(this)">'
+      + '</button>';
+  });
+  html += '</div></div></div>';
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+async function mafyaSancakSec(sancakId) {
+  mafyaSancakSecModalKapat();
+  var ef = await sunucuAksiyon('mafya_grup_sancak_degistir', null, null, { sancak: sancakId });
+  if (ef === null) return;
+  toast(t('game.toast.groupBannerSaved'), 'basari');
+  mafyaMenuSec('gurubum');
+}
 
 var sohbetGorseller = {
   mesajKutu: yerelGorselPng('sohbet', 'mesaj_kutusu'),
@@ -6410,10 +6510,27 @@ async function gazeteEkranCiz(ic) {
       var kabus = data.gunlukKabus;
       var kabusAvatarUrl = profilResmiUrl(kabus.userId, kabus.profilResmi);
       var kabusAvatarCls = profilResmiOzelMi(kabusAvatarUrl) ? ' gazete-manset-img--ozel' : '';
+      var kabusSefer = Math.max(1, Math.floor(Number(kabus.kabusSayisi) || 1));
+      var kabusRozetAd = profilBasariRozetAdi('nightmare');
+      var kabusTip = t('game.gazete.nightmareCountTip', { name: kabus.isim, n: fmt(kabusSefer) });
+      var kabusRozetHtml = '<span class="gazete-kabus-rozet"'
+        + ' data-basari-ad="' + escHtml(kabusRozetAd) + '"'
+        + ' data-count="' + kabusSefer + '"'
+        + ' data-goal="+1"'
+        + ' onmouseover="profilBasariTooltipGoster(this)" onmouseout="profilBasariTooltipGizle()"'
+        + ' title="' + escHtml(kabusTip) + '"'
+        + ' aria-label="' + escHtml(kabusTip) + '">'
+        + '<img src="images/profil/rozet/basari/nightmare.png" alt="" loading="lazy">'
+        + '</span>';
+      var kabusBaslikHtml = escHtml(t('game.gazete.news.kabusHeadlineLead'))
+        + ' '
+        + metindeIsimLinkleri(String(kabus.isim), oyuncular)
+        + ' '
+        + kabusRozetHtml;
       kabusHtml = '<article class="gazete-manset gazete-manset--kabus">'
         + '<div class="gazete-manset-sol">'
         + '<span class="gazete-etiket gazete-etiket--kabus">' + escHtml(t('game.gazete.dailyHeadline')) + '</span>'
-        + '<h2 class="gazete-manset-baslik gazete-manset-baslik--kabus">' + metindeIsimLinkleri(t('game.gazete.news.kabusHeadline', { name: kabus.isim }), oyuncular) + '</h2>'
+        + '<h2 class="gazete-manset-baslik gazete-manset-baslik--kabus">' + kabusBaslikHtml + '</h2>'
         + '<p class="gazete-manset-metin">' + metindeIsimLinkleri(t('game.gazete.news.kabusBody', {
           name: kabus.isim,
           icraat: fmt(kabus.icraatIs || kabus.icraat || 0),
@@ -7836,10 +7953,27 @@ async function mafyaGurubumCiz(box) {
       return;
     }
 
-    var html = '<div class="mafya-gurubum-wrap">'
+    var uyeSayisi = (data.uyeler || []).length;
+    var kapasite = (evData.ok && evData.ev && evData.ev.kapasite != null) ? evData.ev.kapasite : '—';
+    var toplamSayginlik = data.toplamSayginlik != null
+      ? data.toplamSayginlik
+      : (data.uyeler || []).reduce(function(s, u) { return s + (u.puan || 0); }, 0);
+    var birikmisPara = (evData.ok && evData.ev) ? (evData.ev.birikmisPara || 0) : 0;
+    var sancakId = data.uyelik.sancak || 'varsayilan';
+
+    var html = '<div class="mafya-gurubum-wrap" data-sancak="' + escHtml(sancakId) + '">'
       + '<div class="is-kart mafya-grup-ust">'
-      + '<button type="button" class="btn-is mavi-btn mafya-grup-isim-btn" onclick="mafyaGrupGoster(' + data.uyelik.id + ')">' + escHtml(data.uyelik.isim) + '</button>'
-      + mafyaSampiyonRozetleriHTML(data.sampiyonluklar)
+      + mafyaGrupUstHTML({
+        isim: data.uyelik.isim,
+        uyeSayisi: uyeSayisi,
+        kapasite: kapasite,
+        toplamSayginlik: toplamSayginlik,
+        birikmisPara: birikmisPara,
+        rutbe: data.uyelik.rutbe,
+        sancak: sancakId,
+        sancakDegistirilebilir: !!data.uyelik.benLiderim,
+        sampiyonluklar: data.sampiyonluklar
+      })
       + '<div class="mafya-grup-aciklama-alan">'
       + '<h4 class="mafya-grup-aciklama-baslik">' + escHtml(t('game.mafya.groupDescTitle')) + '</h4>'
       + '<div class="mafya-grup-aciklama-kutu">'
@@ -7860,7 +7994,7 @@ async function mafyaGurubumCiz(box) {
 
     html += mafyaSavasBolumHTML(data, savasData);
 
-    html += '<div class="tablo-container mafya-uyeler-tablo">'
+    html += '<div class="tablo-container mafya-uyeler-tablo is-kart">'
       + '<h3 class="bolum-baslik">' + escHtml(t('game.mafya.membersTitle')) + '</h3>'
       + '<div class="tablo-izgara tablo-baslik-satir"><span>' + escHtml(t('game.mafya.colName')) + '</span><span>' + escHtml(t('game.mafya.colRank')) + '</span><span>' + escHtml(t('game.mafya.colRespect')) + '</span><span>' + escHtml(t('game.mafya.colOffline')) + '</span><span></span><span></span></div>';
     var now = Math.floor(Date.now() / 1000);
@@ -7885,16 +8019,17 @@ async function mafyaGurubumCiz(box) {
     });
     html += '</div>';
     if (data.uyelik.benLiderim) {
-      html += '<div class="mafya-basvurular">';
       if (data.basvurular && data.basvurular.length) {
-        html += '<h3 class="bolum-baslik">' + escHtml(t('game.mafya.applications')) + '</h3>';
+        html += '<div class="mafya-basvurular is-kart">'
+          + '<h3 class="bolum-baslik">' + escHtml(t('game.mafya.applications')) + '</h3>';
         data.basvurular.forEach(function(b) {
-          html += '<p class="mafya-basvuru-satir">' + b.reis_adi
-            + ' <button type="button" class="btn-is" onclick="mafyaKabul(' + b.id + ')">' + escHtml(t('game.mafya.accept')) + '</button> '
+          html += '<p class="mafya-basvuru-satir"><span>' + escHtml(b.reis_adi) + '</span>'
+            + '<button type="button" class="btn-is" onclick="mafyaKabul(' + b.id + ')">' + escHtml(t('game.mafya.accept')) + '</button>'
             + '<button type="button" class="btn-is kirmizi-btn" onclick="mafyaRed(' + b.id + ')">' + escHtml(t('game.mafya.reject')) + '</button></p>';
         });
+        html += '</div>';
       }
-      html += '<div class="mafya-alt-aksiyon"><button type="button" class="btn-is kirmizi-btn" onclick="mafyaDagit()">' + escHtml(t('game.mafya.disbandBtn')) + '</button></div></div>';
+      html += '<div class="mafya-alt-aksiyon"><button type="button" class="btn-is kirmizi-btn" onclick="mafyaDagit()">' + escHtml(t('game.mafya.disbandBtn')) + '</button></div>';
     } else {
       html += '<div class="mafya-alt-aksiyon"><button type="button" class="btn-is kirmizi-btn" onclick="mafyaCik()">' + escHtml(t('game.mafya.leaveBtn')) + '</button></div>';
     }
@@ -7917,9 +8052,10 @@ async function mafyaGurubumCiz(box) {
 function mafyaEviBolumHTML(ev, grupAdi, benLiderim) {
   var s = ev.seviye || 1;
   var img = mafyaEviGorseller['seviye' + Math.min(10, s)] || FALLBACK;
-  var html = '<div class="is-kart mafya-bolum">'
+  var html = '<div class="is-kart mafya-bolum mafya-bolum--evi">'
     + '<h3 class="bolum-baslik">' + escHtml(t('game.mafya.houseLevel')) + '</h3>'
     + '<p class="mafya-metin-dim">' + escHtml(t('game.mafya.houseBonusNote')) + '</p>'
+    + '<div class="mafya-evi-grid">'
     + '<div class="mafya-evi-sahne"><img src="' + img + '" alt="' + escHtml(t('game.mafya.houseAlt')) + '" onerror="imgFallback(this)"></div>'
     + '<div class="mafya-evi-alt"><h3>' + escHtml(grupAdi) + ' — ' + escHtml(t('game.mafya.levelWord')) + s + '</h3>'
     + '<p class="mafya-stat">' + escHtml(t('game.mafya.capacity')) + ' <b>' + ev.kapasite + '</b>' + escHtml(t('game.mafya.membersWord')) + '</p>'
@@ -7927,9 +8063,10 @@ function mafyaEviBolumHTML(ev, grupAdi, benLiderim) {
     + '<p class="mafya-metin-dim">' + escHtml(t('game.mafya.nextBonus')) + ' <b>+' + fmt(ev.sonrakiUyeGucBonusu || 0) + '</b> (+' + fmt(ev.sonrakiBonusArtisi || 0) + escHtml(t('game.mafya.bonusIncrease')) + ')</p>'
     + '<p class="mafya-stat mafya-stat-altin">' + escHtml(t('game.mafya.accumulation')) + ' <b>' + fmt(ev.birikmisPara) + ' TL</b></p>'
     + '<p class="mafya-stat">' + escHtml(t('game.mafya.nextLevelShort')) + ' <b>' + fmt(ev.sonrakiMaliyet) + ' TL</b> <span class="mafya-metin-dim">' + escHtml(t('game.mafya.remaining')) + ' ' + fmt(ev.kalan) + ' TL)</span></p>'
-    + '</div>'
+    + '</div></div>'
     + '<div class="mafya-hibe-alan">'
     + '<h4 class="bolum-baslik">' + escHtml(t('game.mafya.donation')) + '</h4>'
+    + '<div class="mafya-hibe-form">'
     + '<input type="number" id="mafyaHibe" class="dusman-input" placeholder="' + escHtml(t('game.mafya.donatePlaceholder')) + '">'
     + '<div class="mafya-btn-satir">'
     + '<button class="btn-is" onclick="mafyaEviHibe()">' + escHtml(t('game.mafya.donateBtn')) + '</button>';
@@ -7937,22 +8074,23 @@ function mafyaEviBolumHTML(ev, grupAdi, benLiderim) {
     html += '<button class="btn-is kirmizi-btn" onclick="mafyaEviSeviye()">' + escHtml(t('game.mafya.levelUpBtn')) + '</button>';
   }
   html += '<button type="button" class="btn-is mavi-btn" onclick="mafyaHibeGecmisiGoster()">' + escHtml(t('game.mafya.viewDonations')) + '</button>'
-    + '</div>'
+    + '</div></div>'
     + '<div id="mafyaHibeGecmisi" class="gizli mafya-hibe-tablo" style="margin-top:12px;"></div>'
     + '</div></div>';
   return html;
 }
 
 function mafyaSavasBolumHTML(mafyaData, savasData) {
-  var html = '<div class="is-kart mafya-bolum">'
-    + '<div class="mafya-savas-hero"><img class="mafya-savas-banner" src="/images/mafya/savas-banner.png?v=' + GORSEL_VERSIYON + '" alt="' + escHtml(t('game.mafya.warDeclareBannerAlt')) + '"></div>'
-    + '<h3 class="bolum-baslik">' + escHtml(t('game.mafya.warDeclareTitle')) + '</h3>';
+  var html = '<div class="is-kart mafya-bolum mafya-bolum--savas">'
+    + '<h3 class="bolum-baslik">' + escHtml(t('game.mafya.warDeclareTitle')) + '</h3>'
+    + '<div class="mafya-savas-hero"><img class="mafya-savas-banner" src="/images/mafya/savas-banner.png?v=' + GORSEL_VERSIYON + '" alt="' + escHtml(t('game.mafya.warDeclareBannerAlt')) + '"></div>';
   if (mafyaData && mafyaData.uyelik && mafyaData.uyelik.benLiderim) {
     html += '<div class="mafya-savas-ilan-alan">'
       + '<p class="mafya-metin-dim">' + escHtml(t('game.mafya.warsDesc')) + '</p>'
+      + '<div class="mafya-hibe-form">'
       + '<input type="text" id="mafyaSavasHedef" class="dusman-input" placeholder="' + escHtml(t('game.mafya.warsTargetPlaceholder')) + '">'
       + '<div class="mafya-btn-satir"><button class="btn-is kirmizi-btn" onclick="mafyaSavasIlan()">' + escHtml(t('game.mafya.declareWar')) + '</button></div>'
-      + '</div>';
+      + '</div></div>';
   }
   if (!savasData.ok || !savasData.savaslar || !savasData.savaslar.length) {
     html += '<p class="mafya-metin-dim">' + escHtml(t('game.empty.noWar')) + '</p></div>';
@@ -8098,9 +8236,19 @@ async function mafyaGrupGoster(grupId) {
     var g = data.grup;
     var evSeviye = g.evSeviye || 1;
     var evImg = mafyaEviGorseller['seviye' + Math.min(10, evSeviye)] || FALLBACK;
-    var html = '<div class="mafya-gurubum-wrap"><div class="is-kart mafya-grup-ust" style="max-width:640px;margin:0 auto;">'
-      + '<h2 class="bolum-baslik" style="margin-bottom:12px;">' + escHtml(g.isim) + '</h2>'
-      + mafyaSampiyonRozetleriHTML(g.sampiyonluklar)
+    var sancakId = g.sancak || 'varsayilan';
+    var html = '<div class="mafya-gurubum-wrap" data-sancak="' + escHtml(sancakId) + '"><div class="is-kart mafya-grup-ust">'
+      + mafyaGrupUstHTML({
+        isim: g.isim,
+        uyeSayisi: g.uyeSayisi || 0,
+        kapasite: g.evKapasite != null ? g.evKapasite : '—',
+        toplamSayginlik: g.toplamSayginlik,
+        birikmisPara: g.birikmisPara != null ? g.birikmisPara : null,
+        rutbe: g.benimGrubum ? (g.viewerRutbe || '—') : '—',
+        sancak: sancakId,
+        sancakDegistirilebilir: false,
+        sampiyonluklar: g.sampiyonluklar
+      })
       + '<div class="mafya-grup-aciklama-alan">'
       + '<div class="profil-aciklama-baslik-satir">'
       + '<h4 class="mafya-grup-aciklama-baslik">' + escHtml(t('game.mafya.groupDescTitle')) + '</h4>'
@@ -8111,8 +8259,6 @@ async function mafyaGrupGoster(grupId) {
       + '<div class="mafya-evi-sahne mafya-grup-profil-ev"><img src="' + evImg + '" alt="' + escHtml(t('game.mafya.houseAlt')) + '" onerror="imgFallback(this)"></div>'
       + '<p class="mafya-stat"><b>' + escHtml(t('game.mafya.houseLevel')) + '</b> ' + escHtml(t('game.mafya.levelWord')) + evSeviye + ' (' + escHtml(t('game.mafya.capacity')) + ' ' + (g.evKapasite || '—') + ')</p>'
       + '<p class="mafya-stat"><b>' + escHtml(t('game.mafya.memberBonus')) + '</b> +' + fmt(g.evUyeGucBonusu || 0) + '</p>'
-      + '<p class="mafya-stat"><b>' + escHtml(t('game.mafya.memberCount')) + '</b> ' + g.uyeSayisi + '</p>'
-      + '<p class="mafya-stat"><b>' + escHtml(t('game.mafya.totalRespect')) + '</b> <span class="uye-puan">' + fmt(g.toplamSayginlik) + '</span></p>'
       + '<div class="mafya-alt-aksiyon">';
     if (g.savasIlanEdilebilir) {
       html += '<button type="button" class="btn-is kirmizi-btn" onclick="mafyaSavasIlanGrup(' + g.id + ', \'' + String(g.isim || '').replace(/'/g, "\\'") + '\')">' + escHtml(t('game.mafya.declareWarShort')) + '</button>';

@@ -6,6 +6,49 @@ const { grupAktifSavasVarMi } = require("./mafyaSavasService");
 
 const CIKIS_UCRET = 1_000_000;
 
+/** Seçilebilir mafya grubu sancak kimlikleri — görseller: public/images/mafya/sancak/ */
+const MAFYA_SANCAK_IDS = [
+  "varsayilan",
+  "sancak-01",
+  "sancak-02",
+  "sancak-03",
+  "sancak-04",
+  "sancak-05",
+  "sancak-06",
+  "sancak-07",
+  "sancak-08",
+  "sancak-09",
+  "sancak-10",
+  "sancak-11",
+  "sancak-12",
+  "sancak-13",
+  "sancak-14",
+  "sancak-15",
+  "sancak-16",
+  "sancak-17",
+  "sancak-18",
+  "sancak-19",
+  "sancak-20",
+  "sancak-21",
+  "sancak-22",
+  "sancak-23",
+  "sancak-24",
+  "sancak-25",
+  "sancak-26",
+  "sancak-27",
+  "sancak-28",
+  "sancak-29",
+  "sancak-30",
+];
+const MAFYA_SANCAK_SET = new Set(MAFYA_SANCAK_IDS);
+
+function normalizeSancak(raw) {
+  let id = String(raw || "").trim();
+  // Eski geçici ev/savaş görsellerini varsayılana çek
+  if (/^ev([1-9]|10)$/.test(id) || id === "savas-banner") id = "varsayilan";
+  return MAFYA_SANCAK_SET.has(id) ? id : "varsayilan";
+}
+
 async function kullaniciGrubu(db, userId) {
   return get(
     db,
@@ -461,6 +504,16 @@ async function grupIsimDegistir(db, liderId, yeniIsim) {
   return { ok: true, isim: temizIsim };
 }
 
+async function grupSancakDegistir(db, liderId, sancakId) {
+  const grup = await kullaniciGrubu(db, liderId);
+  if (!grup || grup.lider_user_id !== liderId) {
+    return { ok: false, error: "Sadece Mafya Grubu lideri sancağı değiştirebilir." };
+  }
+  const sancak = normalizeSancak(sancakId);
+  await run(db, `UPDATE mafya_gruplari SET sancak = ? WHERE id = ?`, [sancak, grup.id]);
+  return { ok: true, sancak };
+}
+
 async function mafyaPanel(db, userId) {
   const uyelik = await kullaniciGrubu(db, userId);
   const bekleyenSayisi = await bekleyenBasvuruSayisi(db, userId);
@@ -484,6 +537,7 @@ async function mafyaPanel(db, userId) {
   }
   const { getGrupSampiyonluklari } = require("./aylikMafyaSampiyonService");
   const sampiyonluklar = await getGrupSampiyonluklari(db, uyelik.id);
+  const toplamSayginlik = uyeler.reduce((s, u) => s + (u.puan || 0), 0);
   return {
     uyelik: {
       id: uyelik.id,
@@ -492,18 +546,20 @@ async function mafyaPanel(db, userId) {
       liderUserId: uyelik.lider_user_id,
       benLiderim: uyelik.lider_user_id === userId,
       rutbe: uyelik.rutbe,
+      sancak: normalizeSancak(uyelik.sancak),
     },
     uyeler,
     basvurular,
     bekleyenBasvuru: bekleyenSayisi,
     sampiyonluklar,
+    toplamSayginlik,
   };
 }
 
 async function grupProfil(db, grupId, viewerUserId) {
   const grup = await get(
     db,
-    `SELECT id, isim, aciklama FROM mafya_gruplari WHERE id = ?`,
+    `SELECT id, isim, aciklama, sancak FROM mafya_gruplari WHERE id = ?`,
     [grupId]
   );
   if (!grup) return null;
@@ -518,13 +574,15 @@ async function grupProfil(db, grupId, viewerUserId) {
   let benimGrubum = false;
   let viewerBenLiderim = false;
   let savasIlanEdilebilir = false;
+  let viewerRutbe = "";
   if (viewerUserId) {
     const uyem = await get(
       db,
-      `SELECT 1 FROM mafya_uyeleri WHERE grup_id = ? AND user_id = ?`,
+      `SELECT rutbe FROM mafya_uyeleri WHERE grup_id = ? AND user_id = ?`,
       [grupId, viewerUserId]
     );
     benimGrubum = !!uyem;
+    viewerRutbe = uyem ? String(uyem.rutbe || "") : "";
     const viewerGrup = await kullaniciGrubu(db, viewerUserId);
     viewerBenLiderim = !!(viewerGrup && viewerGrup.lider_user_id === viewerUserId);
     savasIlanEdilebilir = viewerBenLiderim && !benimGrubum && viewerGrup && viewerGrup.id !== grupId;
@@ -534,20 +592,25 @@ async function grupProfil(db, grupId, viewerUserId) {
     id: grup.id,
     isim: grup.isim,
     aciklama: grup.aciklama || "",
+    sancak: normalizeSancak(grup.sancak),
     uyeSayisi: uyeler.length,
     toplamSayginlik,
+    birikmisPara: ev.birikmisPara || 0,
     evSeviye: ev.seviye,
     evKapasite: ev.kapasite,
     evUyeGucBonusu: ev.uyeGucBonusu,
     sampiyonluklar,
     benimGrubum,
     viewerBenLiderim,
+    viewerRutbe,
     savasIlanEdilebilir,
   };
 }
 
 module.exports = {
   CIKIS_UCRET,
+  MAFYA_SANCAK_IDS,
+  normalizeSancak,
   mafyaPanel,
   kullaniciGrubu,
   grupOlustur,
@@ -567,4 +630,5 @@ module.exports = {
   grupProfil,
   grupIsimDegistir,
   grupAciklamaDegistir,
+  grupSancakDegistir,
 };

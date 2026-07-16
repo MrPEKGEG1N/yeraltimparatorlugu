@@ -536,6 +536,7 @@ module.exports = {
   oyuncuBasariPinOku,
   oyuncuBasariPinKaydet,
   basariRozetArtir,
+  kabusSayisi,
   normalizeCounts,
   normalizePins,
 };

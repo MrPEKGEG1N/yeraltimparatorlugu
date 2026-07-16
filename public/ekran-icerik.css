@@ -109,24 +109,42 @@
 }
 
 #masterLayout .mafya-evi-sahne {
-  max-width: 720px;
-  margin: 0 auto 14px;
-  border-radius: 6px;
+  max-width: none;
+  margin: 0;
+  border-radius: 8px;
   overflow: hidden;
-  border: 1px solid rgba(184, 148, 42, 0.4);
+  border: 1px solid rgba(197, 160, 89, 0.4);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+  background: #0a0806;
 }
 
 #masterLayout .mafya-evi-sahne img {
   display: block;
   width: 100%;
-  max-height: 280px;
+  max-height: 260px;
   object-fit: cover;
   object-position: center;
 }
 
 #masterLayout .mafya-evi-alt {
-  max-width: 720px;
-  margin: 0 auto;
+  max-width: none;
+  margin: 0;
+  text-align: center;
+}
+
+#masterLayout .mafya-evi-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 16px 20px;
+  align-items: start;
+  margin: 14px 0 4px;
+  text-align: center;
+}
+
+@media (max-width: 780px) {
+  #masterLayout .mafya-evi-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* —— Tablolar (kara liste, mafya üyeleri) —— */
@@ -162,7 +180,9 @@
 }
 
 #masterLayout .mafya-uyeler-tablo .tablo-izgara {
-  grid-template-columns: 1fr 120px 100px auto auto;
+  grid-template-columns: minmax(90px, 1.15fr) minmax(72px, 0.85fr) 88px 72px auto auto;
+  gap: 8px 10px;
+  align-items: center;
 }
 
 /* —— Düşmana çök —— */
@@ -423,22 +443,22 @@
   justify-content: center;
   align-items: center;
   width: 100%;
-  max-width: 760px;
-  margin: 0 auto 18px;
-  padding: 0 4px;
+  max-width: none;
+  margin: 0 0 14px;
+  padding: 0;
   overflow: hidden;
-  border-radius: 10px;
-  border: 1px solid rgba(184, 148, 42, 0.45);
-  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.55);
+  border-radius: 6px;
+  border: 1px solid rgba(197, 160, 89, 0.4);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
   background: #0a0806;
 }
 
 #masterLayout .mafya-savas-banner {
   display: block;
   width: 100%;
-  max-width: 760px;
+  max-width: none;
   height: auto;
-  max-height: 300px;
+  max-height: 220px;
   object-fit: cover;
   object-position: center center;
   vertical-align: middle;
@@ -446,7 +466,7 @@
 
 /* —— Mafya Grubu ekranları —— */
 #masterLayout .mafya-alt-icerik {
-  max-width: 820px;
+  max-width: 980px;
   margin: 0 auto;
   padding: 4px 8px 24px;
 }
@@ -454,12 +474,294 @@
 #masterLayout .mafya-gurubum-wrap,
 #masterLayout .mafya-isler-wrap {
   text-align: center;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 0 4px 28px;
+}
+
+#masterLayout .mafya-gurubum-wrap > .is-kart,
+#masterLayout .mafya-gurubum-wrap > .mafya-bolum,
+#masterLayout .mafya-gurubum-wrap > .mafya-uyeler-tablo {
+  margin-top: 14px;
 }
 
 #masterLayout .mafya-grup-ust {
-  text-align: center;
-  padding: 22px 18px 18px;
+  text-align: left;
+  padding: 20px 18px 18px;
+  margin-bottom: 0;
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 80% 60% at 12% 0%, rgba(140, 40, 20, 0.22) 0%, transparent 55%),
+    linear-gradient(165deg, rgba(22, 16, 12, 0.96) 0%, rgba(8, 6, 4, 0.94) 100%);
+  border: 1px solid rgba(197, 160, 89, 0.5);
+  box-shadow:
+    0 10px 32px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 220, 150, 0.08);
+}
+
+#masterLayout .mafya-grup-profil-ust {
+  display: grid;
+  grid-template-columns: 210px 1fr;
+  gap: 18px 26px;
+  align-items: start;
   margin-bottom: 4px;
+}
+
+#masterLayout .mafya-grup-sol {
+  text-align: center;
+}
+
+#masterLayout .mafya-sancak-kutu {
+  width: 100%;
+  max-width: 210px;
+  margin: 0 auto 12px;
+  aspect-ratio: 3 / 4;
+  border: 1px solid rgba(212, 175, 55, 0.55);
+  background:
+    linear-gradient(180deg, rgba(36, 26, 14, 0.9) 0%, rgba(8, 6, 4, 0.98) 100%);
+  overflow: hidden;
+  box-shadow:
+    0 0 0 1px rgba(60, 40, 16, 0.8),
+    0 10px 28px rgba(0, 0, 0, 0.55),
+    inset 0 0 28px rgba(0, 0, 0, 0.55);
+  box-sizing: border-box;
+  border-radius: 4px;
+}
+
+#masterLayout .mafya-sancak-kutu img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center center;
+  display: block;
+}
+
+#masterLayout .mafya-sancak-kutu img.is-bos,
+.mafya-sancak-item img.is-bos {
+  display: none;
+}
+
+#masterLayout .mafya-sancak-kutu:has(img.is-bos),
+.mafya-sancak-item:has(img.is-bos) {
+  background:
+    linear-gradient(135deg, rgba(40, 28, 16, 0.9) 0%, rgba(12, 8, 6, 0.95) 100%);
+}
+
+#masterLayout .mafya-sancak-btn {
+  display: block;
+  width: 100%;
+  max-width: 210px;
+  margin: 0 auto 4px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 12px;
+  letter-spacing: 1.2px;
+  padding: 11px 12px;
+  border: 1px solid #a82828;
+  background: linear-gradient(180deg, #a81818 0%, #5c0c0c 100%);
+  color: #fff8f0;
+  cursor: pointer;
+  text-transform: uppercase;
+  border-radius: 3px;
+  box-shadow: 0 4px 14px rgba(80, 0, 0, 0.35);
+}
+
+#masterLayout .mafya-sancak-btn:hover {
+  filter: brightness(1.1);
+  border-color: #d04040;
+}
+
+#masterLayout .mafya-grup-sag {
+  min-width: 0;
+  padding-top: 2px;
+}
+
+#masterLayout .mafya-grup-detay-liste {
+  margin: 0;
+  padding: 12px 16px;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: min(100%, 440px);
+  border: 1px solid rgba(197, 160, 89, 0.35);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.35);
+  box-shadow: inset 0 1px 0 rgba(255, 220, 150, 0.05);
+}
+
+#masterLayout .mafya-grup-detay-satir {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  font-size: 13px;
+  padding: 10px 2px;
+  border-bottom: 1px solid rgba(197, 160, 89, 0.14);
+  width: 100%;
+}
+
+#masterLayout .mafya-grup-detay-satir:last-child {
+  border-bottom: none;
+}
+
+#masterLayout .mafya-grup-detay-satir dt {
+  margin: 0;
+  color: #b8a890;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+#masterLayout .mafya-grup-detay-satir dd {
+  margin: 0;
+  color: #f4ead8;
+  font-weight: 700;
+  font-family: 'Oswald', sans-serif;
+  font-size: 14px;
+  letter-spacing: 0.03em;
+  text-align: right;
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+#masterLayout .mafya-grup-sol .mafya-sampiyon-rozetler {
+  margin-top: 8px;
+  max-width: 210px;
+}
+
+#masterLayout .mafya-grup-ust > .mafya-sampiyon-rozetler {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: stretch;
+  gap: 8px;
+  margin: 14px 0 0;
+  max-width: none;
+}
+
+#masterLayout .mafya-grup-ust > .mafya-sampiyon-rozetler .mafya-sampiyon-rozet {
+  flex: 1 1 180px;
+  max-width: 260px;
+  min-width: 0;
+  padding: 6px 10px 6px 6px;
+  gap: 8px;
+}
+
+#masterLayout .mafya-grup-ust > .mafya-sampiyon-rozetler .mafya-sampiyon-rozet-kupa {
+  width: 48px;
+  height: 48px;
+}
+
+#masterLayout .mafya-grup-ust > .mafya-sampiyon-rozetler .mafya-sampiyon-rozet-metin strong {
+  font-size: 9px;
+  letter-spacing: 0.04em;
+}
+
+#masterLayout .mafya-grup-ust > .mafya-sampiyon-rozetler .mafya-sampiyon-rozet-metin span {
+  font-size: 12px;
+}
+
+.mafya-sancak-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100050;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.78);
+}
+
+.mafya-sancak-panel {
+  width: min(620px, 100%);
+  max-height: min(82vh, 720px);
+  overflow: auto;
+  padding: 18px 20px 20px;
+  border: 1px solid rgba(197, 160, 89, 0.65);
+  background: linear-gradient(180deg, #1c1610 0%, #0c0907 100%);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7);
+  text-align: left;
+  border-radius: 6px;
+}
+
+.mafya-sancak-panel-ust {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.mafya-sancak-panel-ust h3 {
+  margin: 0;
+  flex: 1;
+  font-family: 'Oswald', sans-serif;
+  font-size: 16px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #e0c56a;
+}
+
+.mafya-sancak-kapat {
+  border: 1px solid rgba(138, 115, 72, 0.55);
+  background: #1a1410;
+  color: #e8ddc4;
+  width: 32px;
+  height: 32px;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 3px;
+}
+
+.mafya-sancak-aciklama {
+  margin: 0 0 14px;
+  font-size: 12px;
+  color: #c8bca8;
+  line-height: 1.4;
+}
+
+.mafya-sancak-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 12px;
+}
+
+.mafya-sancak-item {
+  padding: 5px;
+  border: 1px solid rgba(138, 115, 72, 0.5);
+  background: rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  aspect-ratio: 3 / 4;
+  border-radius: 4px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.mafya-sancak-item:hover,
+.mafya-sancak-item.is-aktif {
+  border-color: #d4af37;
+  box-shadow: 0 0 14px rgba(212, 175, 55, 0.28);
+}
+
+.mafya-sancak-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  background: #0a0806;
+}
+
+@media (max-width: 720px) {
+  #masterLayout .mafya-grup-profil-ust {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+
+  #masterLayout .mafya-grup-detay-liste {
+    width: 100%;
+    max-width: 400px;
+  }
 }
 
 #masterLayout .mafya-grup-isim-btn {
@@ -525,35 +827,36 @@
 }
 
 #masterLayout .mafya-grup-aciklama-alan {
-  margin: 16px auto 0;
-  max-width: 580px;
-  text-align: center;
+  margin: 16px 0 0;
+  max-width: none;
+  text-align: left;
 }
 
 #masterLayout .mafya-grup-aciklama-baslik {
   margin: 0 0 8px;
-  font-size: 13px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #b8942a;
+  color: #c9a84a;
 }
 
 #masterLayout .mafya-grup-aciklama-kutu {
-  background: rgba(0, 0, 0, 0.45);
-  border: 1px solid rgba(184, 148, 42, 0.45);
-  border-radius: 6px;
-  padding: 14px 16px;
-  min-height: 48px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(197, 160, 89, 0.28);
+  border-radius: 5px;
+  padding: 12px 14px;
+  min-height: 44px;
 }
 
 #masterLayout .mafya-grup-aciklama {
-  color: #f2ebe0;
-  font-size: 15px;
-  line-height: 1.65;
+  color: #e8dfd0;
+  font-size: 13px;
+  line-height: 1.6;
   margin: 0;
-  font-weight: 500;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  font-weight: 400;
+  text-shadow: none;
   white-space: pre-wrap;
   word-break: break-word;
 }
@@ -574,51 +877,68 @@
 
 #masterLayout .mafya-bolum {
   text-align: center;
-  padding: 20px 16px;
-  margin-top: 18px;
+  padding: 18px 18px 20px;
+  margin-top: 14px;
+  border: 1px solid rgba(197, 160, 89, 0.38);
+  background:
+    linear-gradient(165deg, rgba(20, 14, 10, 0.94) 0%, rgba(8, 6, 4, 0.92) 100%);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  border-radius: 6px;
+}
+
+#masterLayout .mafya-bolum--evi,
+#masterLayout .mafya-bolum--savas {
+  text-align: center;
 }
 
 #masterLayout .mafya-bolum .bolum-baslik,
 #masterLayout .mafya-isler-wrap > h2,
 #masterLayout .mafya-grup-liste > .bolum-baslik {
   text-align: center;
-  font-size: clamp(15px, 2vw, 18px);
-  color: #ffd76a;
-  margin: 0 0 12px;
-  letter-spacing: 0.06em;
-  text-shadow: 0 0 10px rgba(255, 215, 0, 0.28);
+  font-family: 'Oswald', sans-serif;
+  font-size: clamp(14px, 1.8vw, 17px);
+  color: #e8c96a;
+  margin: 0 0 14px;
+  padding-bottom: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(197, 160, 89, 0.28);
+  text-shadow: none;
 }
 
 #masterLayout .mafya-metin {
-  color: #ece6dc;
-  font-size: 14px;
-  line-height: 1.65;
-  margin: 8px auto;
+  color: #e4dcc8;
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 6px auto;
   max-width: 560px;
 }
 
 #masterLayout .mafya-metin-dim {
-  color: #c9bfb0;
-  font-size: 13px;
-  line-height: 1.55;
+  color: #a89a86;
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 #masterLayout .mafya-evi-alt h3 {
-  color: #ffd76a;
-  font-size: 17px;
+  font-family: 'Oswald', sans-serif;
+  color: #e8c96a;
+  font-size: 15px;
   margin: 0 0 10px;
-  text-shadow: 0 0 8px rgba(255, 215, 0, 0.22);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-shadow: none;
 }
 
 #masterLayout .mafya-stat {
-  color: #fff;
-  font-size: 15px;
-  line-height: 1.7;
-  margin: 5px 0;
+  color: #f0e8dc;
+  font-size: 13px;
+  line-height: 1.65;
+  margin: 4px 0;
 }
 
 #masterLayout .mafya-stat b {
-  color: #ffd76a;
+  color: #e8c96a;
   font-weight: 700;
 }
 
@@ -635,51 +955,76 @@
   margin-top: 14px;
 }
 
+#masterLayout .mafya-hibe-form {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  align-items: center;
+  margin-top: 10px;
+}
+
 #masterLayout .mafya-hibe-alan {
-  margin-top: 18px;
-  padding-top: 16px;
-  border-top: 1px solid rgba(184, 148, 42, 0.38);
+  margin-top: 16px;
+  padding: 14px 14px 12px;
+  border: 1px solid rgba(197, 160, 89, 0.22);
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.28);
+  text-align: center;
 }
 
 #masterLayout .mafya-hibe-alan .bolum-baslik {
-  font-size: 14px;
-  margin-bottom: 10px;
+  font-size: 13px;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  text-align: center;
 }
 
 #masterLayout .mafya-hibe-alan .dusman-input,
 #masterLayout .mafya-savas-ilan-alan .dusman-input {
   width: 100%;
-  max-width: 320px;
-  margin: 0 auto 12px;
+  max-width: 280px;
+  margin: 0 auto;
   display: block;
   text-align: center;
-  font-size: 15px;
+  font-size: 14px;
   padding: 10px 12px;
 }
 
+#masterLayout .mafya-hibe-form .dusman-input {
+  flex: 0 1 220px;
+  max-width: 240px;
+  margin: 0;
+}
+
 #masterLayout .mafya-savas-ilan-alan {
-  padding: 10px 0 16px;
+  padding: 0 0 8px;
+  text-align: center;
 }
 
 #masterLayout .mafya-savas-kart {
   text-align: center;
-  padding: 16px 14px;
-  margin: 0 auto 12px;
+  padding: 14px 14px;
+  margin: 0 auto 10px;
   max-width: 620px;
-  background: rgba(0, 0, 0, 0.38);
-  border: 1px solid rgba(184, 148, 42, 0.35);
-  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.32);
+  border: 1px solid rgba(197, 160, 89, 0.28);
+  border-radius: 5px;
+}
+
+#masterLayout .mafya-savas-kart:last-child {
+  margin-bottom: 0;
 }
 
 #masterLayout .mafya-savas-kart p {
-  color: #ece6dc;
-  font-size: 14px;
-  line-height: 1.65;
-  margin: 6px 0;
+  color: #e4dcc8;
+  font-size: 13px;
+  line-height: 1.55;
+  margin: 5px 0;
 }
 
 #masterLayout .mafya-savas-kart b {
-  color: #ffd76a;
+  color: #e8c96a;
 }
 
 #masterLayout .mafya-savas-kart .mafya-metin-dim b {
@@ -687,47 +1032,113 @@
 }
 
 #masterLayout .mafya-uyeler-tablo {
-  margin-top: 20px !important;
+  margin-top: 14px !important;
   text-align: left;
+  padding: 16px 16px 12px;
+  border: 1px solid rgba(197, 160, 89, 0.38);
+  background:
+    linear-gradient(165deg, rgba(20, 14, 10, 0.94) 0%, rgba(8, 6, 4, 0.92) 100%);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  border-radius: 6px;
+}
+
+#masterLayout .mafya-uyeler-tablo.tablo-container {
+  background:
+    linear-gradient(165deg, rgba(20, 14, 10, 0.94) 0%, rgba(8, 6, 4, 0.92) 100%);
+  border: 1px solid rgba(197, 160, 89, 0.38);
+  overflow-x: auto;
+  overflow-y: visible;
 }
 
 #masterLayout .mafya-uyeler-tablo > .bolum-baslik {
   text-align: center;
-  margin-bottom: 12px !important;
+  font-family: 'Oswald', sans-serif;
+  font-size: clamp(14px, 1.8vw, 17px);
+  color: #e8c96a;
+  margin: 0 0 12px !important;
+  padding-bottom: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(197, 160, 89, 0.28);
+}
+
+#masterLayout .mafya-uyeler-tablo .tablo-baslik-satir {
+  color: #c9a84a;
+  border-bottom-color: rgba(197, 160, 89, 0.45) !important;
 }
 
 #masterLayout .mafya-uyeler-tablo .uye-isim {
-  color: #f5f0e8;
+  color: #f2ebe0;
   font-weight: 600;
-  font-size: 14px;
-}
-
-#masterLayout .mafya-uyeler-tablo .uye-rutbe {
-  color: #e8d4a0;
   font-size: 13px;
 }
 
+#masterLayout .mafya-uyeler-tablo .uye-rutbe {
+  color: #d4c4a0;
+  font-size: 12px;
+}
+
 #masterLayout .mafya-uyeler-tablo .uye-puan {
-  color: #ffd76a;
+  color: #e8c96a;
   font-weight: 700;
-  font-size: 14px;
+  font-size: 13px;
+  font-family: 'Oswald', sans-serif;
+}
+
+#masterLayout .mafya-uyeler-tablo .btn-is {
+  padding: 5px 8px;
+  font-size: 11px;
+  letter-spacing: 0.04em;
 }
 
 #masterLayout .mafya-basvurular {
   text-align: center;
-  margin-top: 22px;
+  margin-top: 14px;
+  padding: 16px 16px 12px;
+  border: 1px solid rgba(197, 160, 89, 0.38);
+  background:
+    linear-gradient(165deg, rgba(20, 14, 10, 0.94) 0%, rgba(8, 6, 4, 0.92) 100%);
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+#masterLayout .mafya-basvurular > .bolum-baslik {
+  text-align: center;
+  font-family: 'Oswald', sans-serif;
+  font-size: 15px;
+  color: #e8c96a;
+  margin: 0 0 12px;
+  padding-bottom: 8px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-bottom: 1px solid rgba(197, 160, 89, 0.28);
 }
 
 #masterLayout .mafya-basvuru-satir {
-  color: #f0ebe3;
-  font-size: 15px;
-  font-weight: 600;
-  margin-bottom: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #e8dfd0;
+  font-size: 13px;
+  font-weight: 500;
+  margin: 0 auto 10px;
+  padding: 8px 10px;
+  max-width: 480px;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(197, 160, 89, 0.18);
+  border-radius: 4px;
 }
 
 #masterLayout .mafya-alt-aksiyon {
   text-align: center;
-  margin-top: 22px;
+  margin-top: 14px;
+}
+
+#masterLayout .mafya-grup-mesaj-alan {
+  margin-top: 16px;
+  text-align: center;
 }
 
 #masterLayout .mafya-form {
@@ -806,11 +1217,14 @@
 
 #masterLayout .mafya-hibe-tablo {
   text-align: center;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(197, 160, 89, 0.18);
 }
 
 #masterLayout .mafya-hibe-tablo .tablo-izgara span {
-  color: #ece6dc;
-  font-size: 13px;
+  color: #e4dcc8;
+  font-size: 12px;
 }
 
 #masterLayout .mafya-hibe-tablo .tablo-izgara span:last-child {
@@ -889,8 +1303,8 @@
   }
 
   #masterLayout .mafya-uyeler-tablo .tablo-izgara {
-    grid-template-columns: 1.2fr 1fr 0.8fr auto auto;
-    min-width: 520px;
+    grid-template-columns: 1.1fr 0.9fr 0.7fr 0.7fr auto auto;
+    min-width: 560px;
     font-size: 12px;
   }
 

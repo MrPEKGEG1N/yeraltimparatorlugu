@@ -1,37 +1,37 @@
 {
-  "id": "dd1",
-  "username": "dd1",
-  "reis_adi": "dd1",
+  "id": "vipt",
+  "username": "vipt",
+  "reis_adi": "VipT",
   "lakap": "Mafya",
   "force_restore": true,
   "player": {
-    "kasa": 22757852000,
-    "guc": 600525150,
-    "puan": 305150,
-    "icraat": 11019,
-    "sms_hakki": 649,
-    "elmas": 10,
-    "kara_listede": 1,
-    "sehir_efsane": 1,
-    "sehre_hukmet_sayisi": 26,
-    "liman_istanbul": 1,
+    "kasa": 100000,
+    "guc": 100,
+    "puan": 1000,
+    "icraat": 10,
+    "sms_hakki": 100,
+    "elmas": 4750,
+    "kara_listede": 0,
+    "sehir_efsane": 0,
+    "sehre_hukmet_sayisi": 0,
+    "liman_istanbul": 0,
     "dostlar": "",
     "dusmanlar": "",
-    "aktif_ekran": "liderlik",
-    "son_aksiyon": "ekran_goruntule",
-    "son_aksiyon_detay": "Liderlik Tablosu"
+    "aktif_ekran": "",
+    "son_aksiyon": "",
+    "son_aksiyon_detay": ""
   },
   "guvenli_yer": {
     "base_seviye": 1
   },
   "istihbarat": {
-    "eleman_sayisi": 2
+    "eleman_sayisi": 0
   },
   "mekanlar": [
     {
       "sektor": "yeralti",
       "mekan_key": "kahvehane",
-      "adet": 1
+      "adet": 0
     },
     {
       "sektor": "yeralti",
@@ -41,42 +41,42 @@
     {
       "sektor": "yeralti",
       "mekan_key": "disco",
-      "adet": 1
+      "adet": 0
     },
     {
       "sektor": "yeralti",
       "mekan_key": "lunapark",
-      "adet": 1
+      "adet": 0
     },
     {
       "sektor": "yeralti",
       "mekan_key": "kumarhane",
-      "adet": 8
+      "adet": 0
     },
     {
       "sektor": "silah",
       "mekan_key": "sokak_arasi",
-      "adet": 3
+      "adet": 0
     },
     {
       "sektor": "silah",
       "mekan_key": "sehirler_arasi",
-      "adet": 1
+      "adet": 0
     },
     {
       "sektor": "silah",
       "mekan_key": "kacakcilik",
-      "adet": 3
+      "adet": 0
     },
     {
       "sektor": "silah",
       "mekan_key": "uluslararasi",
-      "adet": 4
+      "adet": 0
     },
     {
       "sektor": "silah",
       "mekan_key": "atom",
-      "adet": 45
+      "adet": 0
     },
     {
       "sektor": "paket",
@@ -86,48 +86,25 @@
     {
       "sektor": "paket",
       "mekan_key": "sehirler_arasi_teslimat",
-      "adet": 1
+      "adet": 0
     },
     {
       "sektor": "paket",
       "mekan_key": "ulke_capinda",
-      "adet": 4
+      "adet": 0
     },
     {
       "sektor": "paket",
       "mekan_key": "uluslararasi_teslimat",
-      "adet": 16
+      "adet": 0
     }
   ],
-  "son_ip": "78.180.30.95",
-  "visitor_id": "957864a276d8be6d24bf0454f419c589",
-  "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36",
-  "sehre_hukmet": {
-    "aktif": true,
-    "baslangic": 1782948751,
-    "sehre_hukmet_sayisi": 26,
-    "limanlar": [
-      "hatay",
-      "istanbul",
-      "izmir"
-    ],
-    "makamlar": [
-      "sadakat_yemini",
-      "sozunu_gecir"
-    ]
-  },
-  "mafya": {
-    "lider": true,
-    "isim": "$dd1$",
-    "aciklama": "Gece kulübünden sokağa uzanan aile.",
-    "rutbe": "Mafya Lideri",
-    "created_at": 1782948273
-  },
+  "sirket_kapali": true,
+  "sehre_hukmet_kapali": true,
   "yetenekler": {
     "guc": 8,
     "zeka": 8,
     "dayaniklilik": 8,
     "beceri": 8
-  },
-  "sirket_kapali": true
+  }
 }

@@ -1043,6 +1043,10 @@ async function initDatabase() {
     await run(db, `ALTER TABLE mafya_savaslar ADD COLUMN kazanan_grup_id INTEGER`);
   } catch (_) {}
 
+  try {
+    await run(db, `ALTER TABLE mafya_gruplari ADD COLUMN sancak TEXT NOT NULL DEFAULT 'varsayilan'`);
+  } catch (_) {}
+
   await run(
     db,
     `CREATE TABLE IF NOT EXISTS stat_hareketleri (

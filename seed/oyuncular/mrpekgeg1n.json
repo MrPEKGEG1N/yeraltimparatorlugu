@@ -5,11 +5,11 @@
   "lakap": "Mafya",
   "force_restore": true,
   "player": {
-    "kasa": 2344977779,
+    "kasa": 2362964979,
     "guc": 1000001350,
     "puan": 10662,
-    "icraat": 17259,
-    "sms_hakki": 900,
+    "icraat": 17499,
+    "sms_hakki": 999999,
     "elmas": 550000,
     "kara_listede": 0,
     "sehir_efsane": 0,
@@ -17,9 +17,9 @@
     "liman_istanbul": 0,
     "dostlar": "",
     "dusmanlar": "dcdc1",
-    "aktif_ekran": "profilim",
+    "aktif_ekran": "mafya",
     "son_aksiyon": "ekran_goruntule",
-    "son_aksiyon_detay": "Profilim"
+    "son_aksiyon_detay": "Mafya Grubu"
   },
   "guvenli_yer": {
     "base_seviye": 1

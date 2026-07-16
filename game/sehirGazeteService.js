@@ -139,10 +139,21 @@ async function getGunlukKabusManset(db) {
     const sayginlik = data.sayginlik || 0;
     const haber = kabusHaberMetni(data.isim, sayginlik, icraatIs);
     let profilResmi = "";
+    let kabusSayisiN = 1;
     if (data.userId) {
       await ensureGazetePlayerColumns(db);
       const p = await get(db, `SELECT profil_resmi FROM players WHERE user_id = ?`, [data.userId]);
       profilResmi = p?.profil_resmi || "";
+      try {
+        const { kabusSayisi, normalizeCounts, ensureBasariColumns } = require("./basariRozetService");
+        await ensureBasariColumns(db);
+        const canli = await kabusSayisi(db, data.userId);
+        const rozetRow = await get(db, `SELECT basari_rozet_json FROM players WHERE user_id = ?`, [data.userId]);
+        const latched = normalizeCounts(rozetRow?.basari_rozet_json);
+        kabusSayisiN = Math.max(1, canli, Number(latched.nightmare) || 0);
+      } catch (_) {
+        kabusSayisiN = 1;
+      }
     }
     return {
       gunKey: data.gunKey || dun,
@@ -155,6 +166,7 @@ async function getGunlukKabusManset(db) {
       icraatIs,
       puan: data.puan || 0,
       profilResmi,
+      kabusSayisi: kabusSayisiN,
     };
   } catch {
     return null;

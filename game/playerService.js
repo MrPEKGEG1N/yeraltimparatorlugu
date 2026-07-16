@@ -174,6 +174,7 @@ const {
   bekleyenBasvuruSayisi,
   grupIsimDegistir,
   grupAciklamaDegistir,
+  grupSancakDegistir,
 } = require("./mafiaService");
 
 function rowToPlayer(row) {
@@ -1523,6 +1524,17 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
       ok: true,
       player: await publicPlayerFull(db, userId, player),
       effect: { type: "mafya_grup", mesaj: "Mafya Grubu açıklaması güncellendi." },
+    };
+  }
+
+  if (action === "mafya_grup_sancak_degistir") {
+    const sonuc = await grupSancakDegistir(db, userId, extra.sancak || extra.sancakId);
+    if (!sonuc.ok) return sonuc;
+    player = await loadPlayer(db, userId);
+    return {
+      ok: true,
+      player: await publicPlayerFull(db, userId, player),
+      effect: { type: "mafya_grup", mesaj: "Mafya Grubu sancağı güncellendi.", sancak: sonuc.sancak },
     };
   }
 
