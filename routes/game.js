@@ -223,6 +223,15 @@ function createGameRouter(db) {
         vipPortreSahip = durum.sahip || [];
       } catch (_) {}
 
+      let basariRozetleri = [];
+      try {
+        const { oyuncuBasariRozetleri } = require("../game/basariRozetService");
+        const basari = await oyuncuBasariRozetleri(db, targetId, {
+          syncLogin: kendiProfili,
+        });
+        basariRozetleri = basari.liste || [];
+      } catch (_) {}
+
       res.json({
         ok: true,
         profil: {
@@ -257,6 +266,7 @@ function createGameRouter(db) {
           mafyaDavetGoster,
           mafyaDavetBekliyor,
           vipPortreSahip,
+          basariRozetleri,
         },
       });
     } catch (err) {

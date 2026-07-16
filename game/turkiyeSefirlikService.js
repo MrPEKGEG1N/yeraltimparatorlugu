@@ -474,6 +474,10 @@ async function sehreSaldir(db, userId, player, sehirId) {
   );
 
   const detay = await sehirOzet(db, sehirId, userId);
+  try {
+    const { basariRozetArtir } = require("./basariRozetService");
+    await basariRozetArtir(db, userId, "enemy_crush", 100);
+  } catch (_) {}
   return { ok: true, kazandi: true, mesaj, sehir: detay };
 }
 

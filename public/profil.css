@@ -149,6 +149,168 @@
   object-position: center top;
 }
 
+#masterLayout .profil-koleksiyon-alt-sekmeler {
+  display: flex;
+  gap: 8px;
+  margin: 0 0 14px;
+  flex-wrap: wrap;
+}
+
+#masterLayout .profil-koleksiyon-alt-btn {
+  flex: 1 1 140px;
+  min-height: 36px;
+  padding: 8px 12px;
+  border: 1px solid rgba(184, 134, 11, 0.45);
+  background: rgba(0, 0, 0, 0.35);
+  color: #a89880;
+  font-family: 'Oswald', sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+#masterLayout .profil-koleksiyon-alt-btn:hover {
+  color: #e0c56a;
+  border-color: rgba(212, 175, 55, 0.7);
+}
+
+#masterLayout .profil-koleksiyon-alt-btn.aktif {
+  color: #f0d78c;
+  border-color: #b8860b;
+  background: linear-gradient(180deg, rgba(80, 58, 18, 0.55), rgba(20, 14, 8, 0.7));
+  box-shadow: inset 0 0 0 1px rgba(212, 175, 55, 0.2), 0 0 12px rgba(184, 134, 11, 0.18);
+}
+
+#masterLayout .profil-basari-wrap {
+  padding: 0;
+}
+
+#masterLayout .profil-basari-kategori {
+  margin: 0 0 18px;
+  padding: 12px;
+  border: 1px solid rgba(138, 115, 72, 0.45);
+  background: rgba(0, 0, 0, 0.28);
+}
+
+#masterLayout .profil-basari-kategori-ust {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 12px;
+  min-height: 28px;
+}
+
+#masterLayout .profil-basari-kategori-baslik {
+  margin: 0;
+  font-family: 'Oswald', sans-serif;
+  font-size: 13px;
+  letter-spacing: 1px;
+  color: #e0c56a;
+  text-transform: uppercase;
+  flex: 1;
+  min-width: 0;
+}
+
+#masterLayout .profil-basari-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 12px;
+  justify-items: center;
+}
+
+#masterLayout .achievement-card {
+  width: 100px;
+  min-height: 100px;
+  padding: 8px 6px 6px;
+  background-color: #1a1a1a;
+  border: 2px solid #b8860b;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, filter 0.3s ease, opacity 0.3s ease;
+  cursor: default;
+  color: #e0c56a;
+  position: relative;
+}
+
+#masterLayout .achievement-card:hover {
+  transform: scale(1.08);
+  box-shadow: 0 0 15px #b8860b;
+}
+
+#masterLayout .achievement-card img {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  display: block;
+}
+
+#masterLayout .achievement-card-ad {
+  display: block;
+  width: 100%;
+  font-size: 9px;
+  line-height: 1.2;
+  text-align: center;
+  letter-spacing: 0.2px;
+  color: #c8b48a;
+  max-height: 2.4em;
+  overflow: hidden;
+}
+
+.basari-rozet-tooltip {
+  position: absolute;
+  z-index: 99999;
+  display: none;
+  pointer-events: none;
+  background: #000;
+  color: #b8860b;
+  border: 1px solid #b8860b;
+  padding: 10px 12px;
+  font-size: 12px;
+  line-height: 1.45;
+  letter-spacing: 0.3px;
+  max-width: 220px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+}
+
+.basari-rozet-tooltip strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #f0d78c;
+  font-weight: 600;
+}
+
+#masterLayout .achievement-card.is-locked {
+  opacity: 0.42;
+  filter: grayscale(1) brightness(0.72);
+  border-color: rgba(120, 110, 90, 0.55);
+  box-shadow: none;
+}
+
+#masterLayout .achievement-card.is-locked:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+#masterLayout .achievement-card.is-locked .achievement-card-ad {
+  color: #7a7264;
+}
+
+#masterLayout .achievement-card.is-unlocked {
+  opacity: 1;
+  filter: none;
+}
+
+#masterLayout .profil-basari-ozet {
+  margin: 14px 0 0;
+  text-align: right;
+}
+
 #masterLayout .profil-kart {
   border: 2px solid #8a7348;
   background: linear-gradient(165deg, #1c1612 0%, #120e0c 42%, #0a0806 100%);

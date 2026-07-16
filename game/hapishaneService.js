@@ -85,6 +85,11 @@ async function hapseGir(db, userId) {
     userId,
   ]);
 
+  try {
+    const { basariRozetArtir } = require("./basariRozetService");
+    await basariRozetArtir(db, userId, "jailed", 1);
+  } catch (_) {}
+
   return { ok: true, kayip, bitisAt: bitis, sureSn: HAPIS_SURE_SN };
 }
 
@@ -202,6 +207,10 @@ async function gardiyanRusveti(db, userId, player) {
   ]);
   await hapistenCikar(db, userId);
   player.kasa -= bedel;
+  try {
+    const { basariRozetArtir } = require("./basariRozetService");
+    await basariRozetArtir(db, userId, "prison_bribe", 1);
+  } catch (_) {}
   return { ok: true, odenen: bedel, mesaj: "Gardiyanlara rüşvet verdin. Sokaklara döndün!" };
 }
 
@@ -255,6 +264,11 @@ async function oyuncuHapistenCikar(db, userId, player, hedefAd) {
   await hapistenCikar(db, hedef.user_id);
   player.kasa -= bedel;
 
+  try {
+    const { basariRozetArtir } = require("./basariRozetService");
+    await basariRozetArtir(db, userId, "prison_rescue", 1);
+  } catch (_) {}
+
   return {
     ok: true,
     odenen: bedel,
@@ -291,6 +305,11 @@ async function oyuncuHapistenElmaslaCikar(db, userId, player, hedefAd) {
   ]);
   await hapistenCikar(db, hedef.user_id);
   player.elmas = elmas - ELMAS_CIKIS;
+
+  try {
+    const { basariRozetArtir } = require("./basariRozetService");
+    await basariRozetArtir(db, userId, "prison_rescue", 1);
+  } catch (_) {}
 
   return {
     ok: true,

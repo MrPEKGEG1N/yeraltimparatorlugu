@@ -456,6 +456,12 @@ async function publicPlayerFull(db, userId, player, clientMeta = null) {
     const { getVipPortreDurum, vipPortreClientOzet } = require("./vipPortreService");
     vipPortreOzet = vipPortreClientOzet(await getVipPortreDurum(db, userId));
   } catch (_) {}
+  let basariRozetleri = [];
+  try {
+    const { oyuncuBasariRozetleri } = require("./basariRozetService");
+    const basari = await oyuncuBasariRozetleri(db, userId, { syncLogin: true });
+    basariRozetleri = basari.liste || [];
+  } catch (_) {}
   return {
     userId,
     kasa: player.kasa,
@@ -505,6 +511,7 @@ async function publicPlayerFull(db, userId, player, clientMeta = null) {
     vipPortreUyelikAcik: vipPortreOzet.vipPortreUyelikAcik,
     vipPortreUyelikKoleksiyonlari: vipPortreOzet.vipPortreUyelikKoleksiyonlari,
     vipPortrePremiumPaket: vipPortreOzet.vipPortrePremiumPaket,
+    basariRozetleri,
     devletIliskisi,
     smsHakki: premium.smsSinirsiz ? 999999 : smsHakki,
     smsSinirsiz: premium.smsSinirsiz,
@@ -1017,6 +1024,10 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
   if (action === "rusvet_elmas_ver") {
     const sonuc = await rusvetElmasVer(db, userId, player);
     if (!sonuc.ok) return sonuc;
+    try {
+      const { basariRozetArtir } = require("./basariRozetService");
+      await basariRozetArtir(db, userId, "lawyer_briber", 1);
+    } catch (_) {}
     player = await loadPlayer(db, userId);
     return {
       ok: true,
@@ -1200,6 +1211,10 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
       gorevSonuc = await gorevOlayIsle(db, userId, "istihbarat_basari", {
         hedefUserId: sonuc.hedefUserId,
       });
+      try {
+        const { basariRozetArtir } = require("./basariRozetService");
+        await basariRozetArtir(db, userId, "spy_intel", 10);
+      } catch (_) {}
     }
     player = await loadPlayer(db, userId);
     return {

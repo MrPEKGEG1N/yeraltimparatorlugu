@@ -26,6 +26,8 @@ var oyuncuPremiumPaketBitis = 0;
 var oyuncuPremiumKalanSn = 0;
 var oyuncuPremiumMagaza = [];
 var oyuncuVipPortreSahip = [];
+var oyuncuBasariRozetleri = [];
+var profilKoleksiyonAltSekme = 'resim';
 var oyuncuVipPortreHediye = {};
 var oyuncuVipPortreHediyeKoleksiyonlari = [];
 var oyuncuVipPortreUyelikAcik = false;
@@ -248,6 +250,7 @@ function oyuncuUygula(p, secenekler) {
   oyuncuPremiumKalanSn = p.premiumKalanSn != null ? p.premiumKalanSn : 0;
   oyuncuPremiumMagaza = p.premiumMagaza || [];
   oyuncuVipPortreSahip = Array.isArray(p.vipPortreSahip) ? p.vipPortreSahip.slice() : [];
+  if (Array.isArray(p.basariRozetleri)) oyuncuBasariRozetleri = p.basariRozetleri.slice();
   oyuncuVipPortreHediye = p.vipPortreHediye && typeof p.vipPortreHediye === 'object' ? p.vipPortreHediye : {};
   oyuncuVipPortreHediyeKoleksiyonlari = Array.isArray(p.vipPortreHediyeKoleksiyonlari)
     ? p.vipPortreHediyeKoleksiyonlari.slice()
@@ -266,8 +269,12 @@ function oyuncuUygula(p, secenekler) {
       oyuncuVipPortreUyelikKoleksiyonlari = ['operasyon'];
     }
   }
-  if (typeof profilKoleksiyonGuncelle === 'function' && document.getElementById('profilSekmeKoleksiyon')) {
-    profilKoleksiyonGuncelle(oyuncuVipPortreSahip);
+  if (
+    aktifEkran === 'profilim'
+    && typeof profilKoleksiyonGuncelle === 'function'
+    && document.getElementById('profilSekmeKoleksiyon')
+  ) {
+    profilKoleksiyonGuncelle(oyuncuVipPortreSahip, oyuncuBasariRozetleri);
   }
   oyuncuElmasPaketler = p.elmasPaketler || [];
   oyuncuElmasParaBirimi = p.elmasParaBirimi
@@ -4578,7 +4585,161 @@ function profilKoleksiyonBaslikMetin(koleksiyonKey) {
   return t('game.profil.diamondCollection');
 }
 
-function profilKoleksiyonPanelHTML(sahipListe) {
+function profilBasariRozetAdi(id) {
+  var key = 'game.profil.achievement.' + id;
+  var metin = t(key);
+  return metin && metin !== key ? metin : id;
+}
+
+function profilBasariTooltipGizle() {
+  var tip = document.getElementById('basariRozetTooltip');
+  if (tip) tip.style.display = 'none';
+  document.onmousemove = null;
+}
+
+function profilBasariAdetFormat(adet, format) {
+  var n = Math.max(0, Math.floor(Number(adet) || 0));
+  if (format === 'money') {
+    if (n >= 1000000) {
+      var m = n / 1000000;
+      var txt = (Math.round(m * 10) / 10).toString().replace('.', ',');
+      return txt + 'M';
+    }
+    return fmt(n) + ' TL';
+  }
+  return String(n);
+}
+
+function profilBasariTooltipGoster(el) {
+  if (!el) return;
+  var tip = document.getElementById('basariRozetTooltip');
+  if (!tip) {
+    tip = document.createElement('div');
+    tip.id = 'basariRozetTooltip';
+    tip.className = 'basari-rozet-tooltip';
+    document.body.appendChild(tip);
+  }
+  var ad = el.getAttribute('data-basari-ad') || '';
+  var count = el.getAttribute('data-count') || '0';
+  var goal = el.getAttribute('data-goal') || '+1';
+  var format = el.getAttribute('data-format') || '';
+  var countTxt = profilBasariAdetFormat(count, format);
+  tip.innerHTML = '<strong>' + escHtml(ad) + '</strong><br>'
+    + escHtml(t('game.profil.achievementCurrent')) + ': ' + escHtml(countTxt) + '<br>'
+    + escHtml(t('game.profil.achievementIncrease')) + ': ' + escHtml(String(goal));
+  tip.style.display = 'block';
+  document.onmousemove = function(e) {
+    var x = (e.pageX || 0) + 12;
+    var y = (e.pageY || 0) + 12;
+    var w = tip.offsetWidth || 140;
+    var h = tip.offsetHeight || 60;
+    if (x + w > window.innerWidth - 8) x = (e.pageX || 0) - w - 12;
+    if (y + h > window.innerHeight + (window.scrollY || 0) - 8) y = (e.pageY || 0) - h - 12;
+    tip.style.left = x + 'px';
+    tip.style.top = y + 'px';
+  };
+}
+
+function profilBasariKategoriBaslik(katId) {
+  if (katId === 'savas') return t('game.profil.achievementCatWar');
+  if (katId === 'ekonomi') return t('game.profil.achievementCatEconomy');
+  return t('game.profil.achievementCatSocial');
+}
+
+function profilBasariKoleksiyonHTML(liste) {
+  var varsayilan = [
+    { id: 'war_victor', icon: 'war_win.png', kategori: 'savas', goal: '+1' },
+    { id: 'war_defeat', icon: 'broken_shield.png', kategori: 'savas', goal: '+1' },
+    { id: 'mafia_job', icon: 'briefcase.png', kategori: 'savas', goal: '+10' },
+    { id: 'saboteur', icon: 'dynamite.png', kategori: 'savas', goal: '+1' },
+    { id: 'sabotaged', icon: 'broken_gear.png', kategori: 'savas', goal: '+1' },
+    { id: 'enemy_crush', icon: 'city_collapse.png', kategori: 'savas', goal: '+100' },
+    { id: 'spy_intel', icon: 'spy_glass.png', kategori: 'savas', goal: '+10' },
+    { id: 'lottery_winner', icon: 'lottery_6.png', kategori: 'ekonomi', goal: '+1' },
+    { id: 'company_founder', icon: 'skyscraper.png', kategori: 'ekonomi', goal: '+1' },
+    { id: 'npc_worker', icon: 'tools.png', kategori: 'ekonomi', goal: '+1' },
+    { id: 'stock_trader', icon: 'stock_chart.png', kategori: 'ekonomi', goal: '+10M', format: 'money' },
+    { id: 'casino_player', icon: 'casino_dice.png', kategori: 'ekonomi', goal: '+10M', format: 'money' },
+    { id: 'daily_quest', icon: 'daily_calendar.png', kategori: 'sosyal', goal: '+7' },
+    { id: 'yearly_player', icon: 'hourglass_snake.png', kategori: 'sosyal', goal: '+1' },
+    { id: 'mafia_chat', icon: 'chat_bubble.png', kategori: 'sosyal', goal: '+500' },
+    { id: 'press_baron', icon: 'newspaper_press.png', kategori: 'sosyal', goal: '+10' },
+    { id: 'blacklist_king', icon: 'blacklist.png', kategori: 'sosyal', goal: '+1' },
+    { id: 'lawyer_briber', icon: 'lawyer_gavel.png', kategori: 'sosyal', goal: '+1' },
+    { id: 'jailed', icon: 'prison_bars.png', kategori: 'sosyal', goal: '+1' },
+    { id: 'prison_bribe', icon: 'prison_door.png', kategori: 'sosyal', goal: '+1' },
+    { id: 'prison_rescue', icon: 'cash_handshake.png', kategori: 'sosyal', goal: '+1' },
+    { id: 'mafia_member', icon: 'handshake.png', kategori: 'sosyal', goal: '+1' },
+    { id: 'mafia_leader', icon: 'king_chess.png', kategori: 'sosyal', goal: '+1' },
+    { id: 'rule_city', icon: 'roman_eagle.png', kategori: 'sosyal', goal: '+1' },
+    { id: 'nightmare', icon: 'nightmare.png', kategori: 'sosyal', goal: '+1' }
+  ];
+  var items = Array.isArray(liste) && liste.length
+    ? liste
+    : varsayilan.map(function(r) {
+      return {
+        id: r.id,
+        iconUrl: 'images/profil/rozet/basari/' + r.icon,
+        unlocked: false,
+        count: 0,
+        goal: r.goal || '+1',
+        kategori: r.kategori,
+        format: r.format || ''
+      };
+    });
+
+  var katSira = ['sosyal', 'savas', 'ekonomi'];
+  var gruplar = { sosyal: [], savas: [], ekonomi: [] };
+  items.forEach(function(r) {
+    var k = r.kategori || 'sosyal';
+    if (!gruplar[k]) k = 'sosyal';
+    gruplar[k].push(r);
+  });
+
+  var acik = 0;
+  var html = '<div class="profil-basari-wrap">'
+    + '<p class="profil-koleksiyon-aciklama">' + escHtml(t('game.profil.achievementHint')) + '</p>';
+
+  katSira.forEach(function(katId) {
+    var arr = gruplar[katId] || [];
+    if (!arr.length) return;
+    var katAcik = 0;
+    arr.forEach(function(r) { if (r.unlocked) { katAcik += 1; acik += 1; } });
+    html += '<section class="profil-basari-kategori">'
+      + '<div class="profil-basari-kategori-ust">'
+      + '<h4 class="profil-basari-kategori-baslik">' + escHtml(profilBasariKategoriBaslik(katId)) + '</h4>'
+      + '<span class="profil-koleksiyon-ilerleme">' + katAcik + '/' + arr.length + '</span>'
+      + '</div>'
+      + '<div class="profil-basari-grid">';
+    arr.forEach(function(r) {
+      var unlocked = !!r.unlocked;
+      var ad = r.name || profilBasariRozetAdi(r.id);
+      var adet = Math.max(0, Math.floor(Number(r.count) || 0));
+      var goal = r.goal || '+1';
+      var format = r.format || '';
+      var url = r.iconUrl || ('images/profil/rozet/basari/' + (r.icon || (r.id + '.png')));
+      html += '<button type="button" class="achievement-card' + (unlocked ? ' is-unlocked' : ' is-locked') + '"'
+        + ' data-basari-id="' + escHtml(r.id || '') + '"'
+        + ' data-basari-ad="' + escHtml(ad) + '"'
+        + ' data-count="' + adet + '"'
+        + ' data-goal="' + escHtml(goal) + '"'
+        + ' data-format="' + escHtml(format) + '"'
+        + ' onmouseover="profilBasariTooltipGoster(this)"'
+        + ' onmouseout="profilBasariTooltipGizle()"'
+        + ' aria-label="' + escHtml(ad + (unlocked ? ' — ' + profilBasariAdetFormat(adet, format) : '')) + '">'
+        + '<img src="' + escHtml(url) + '" alt="" loading="lazy">'
+        + '<span class="achievement-card-ad">' + escHtml(ad) + '</span>'
+        + '</button>';
+    });
+    html += '</div></section>';
+  });
+
+  html += '<p class="profil-koleksiyon-ilerleme profil-basari-ozet">' + acik + '/' + items.length + '</p>'
+    + '</div>';
+  return html;
+}
+
+function profilResimKoleksiyonIcerikHTML(sahipListe) {
   var liste = Array.isArray(sahipListe) ? sahipListe.slice() : [];
   var temiz = [];
   var sahipSet = {};
@@ -4601,8 +4762,7 @@ function profilKoleksiyonPanelHTML(sahipListe) {
     gruplar[kol].push(key);
   });
   var sira = ['elmas', 'mafya', 'kral', 'ihtisam', 'karanlik', 'aslan', 'operasyon', 'vip'];
-  var html = '<div class="profil-koleksiyon-wrap">'
-    + '<p class="profil-koleksiyon-aciklama">' + escHtml(t('game.profil.collectionHint')) + '</p>';
+  var html = '<p class="profil-koleksiyon-aciklama">' + escHtml(t('game.profil.collectionHint')) + '</p>';
   sira.forEach(function(kol) {
     var keys = gruplar[kol];
     if (!keys || !keys.length) return;
@@ -4631,14 +4791,65 @@ function profilKoleksiyonPanelHTML(sahipListe) {
     });
     html += '</div></section>';
   });
-  html += '</div>';
   return html;
 }
 
-function profilKoleksiyonGuncelle(sahipListe) {
+function profilKoleksiyonAltSekmeDegistir(alt) {
+  profilKoleksiyonAltSekme = alt === 'basari' ? 'basari' : 'resim';
   var panel = document.getElementById('profilSekmeKoleksiyon');
   if (!panel) return;
-  panel.innerHTML = profilKoleksiyonPanelHTML(sahipListe);
+  panel.querySelectorAll('.profil-koleksiyon-alt-btn').forEach(function(btn) {
+    var a = btn.getAttribute('data-alt');
+    btn.classList.toggle('aktif', a === profilKoleksiyonAltSekme);
+  });
+  var resim = document.getElementById('profilKoleksiyonResim');
+  var basari = document.getElementById('profilKoleksiyonBasari');
+  if (resim) resim.classList.toggle('gizli', profilKoleksiyonAltSekme !== 'resim');
+  if (basari) basari.classList.toggle('gizli', profilKoleksiyonAltSekme !== 'basari');
+}
+
+function profilKoleksiyonPanelHTML(sahipListe, basariListe) {
+  var alt = profilKoleksiyonAltSekme === 'basari' ? 'basari' : 'resim';
+  return '<div class="profil-koleksiyon-wrap">'
+    + '<div class="profil-koleksiyon-alt-sekmeler" role="tablist">'
+    + '<button type="button" class="profil-koleksiyon-alt-btn' + (alt === 'resim' ? ' aktif' : '') + '" data-alt="resim" onclick="profilKoleksiyonAltSekmeDegistir(\'resim\')">'
+    + escHtml(t('game.profil.imageCollectionTab')) + '</button>'
+    + '<button type="button" class="profil-koleksiyon-alt-btn' + (alt === 'basari' ? ' aktif' : '') + '" data-alt="basari" onclick="profilKoleksiyonAltSekmeDegistir(\'basari\')">'
+    + escHtml(t('game.profil.achievementCollectionTab')) + '</button>'
+    + '</div>'
+    + '<div id="profilKoleksiyonResim" class="' + (alt === 'resim' ? '' : 'gizli') + '">'
+    + profilResimKoleksiyonIcerikHTML(sahipListe)
+    + '</div>'
+    + '<div id="profilKoleksiyonBasari" class="' + (alt === 'basari' ? '' : 'gizli') + '">'
+    + profilBasariKoleksiyonHTML(basariListe)
+    + '</div>'
+    + '</div>';
+}
+
+function profilKoleksiyonGuncelle(sahipListe, basariListe) {
+  // Başka oyuncunun profilindeyken kendi koleksiyon verisini DOM'a yazma
+  if (aktifEkran === 'profil_ziyaret') return;
+  var panel = document.getElementById('profilSekmeKoleksiyon');
+  if (!panel) return;
+  if (basariListe !== undefined) {
+    oyuncuBasariRozetleri = Array.isArray(basariListe) ? basariListe.slice() : [];
+  }
+  var oncekiAlt = profilKoleksiyonAltSekme;
+  panel.innerHTML = profilKoleksiyonPanelHTML(
+    sahipListe !== undefined ? sahipListe : oyuncuVipPortreSahip,
+    oyuncuBasariRozetleri
+  );
+  if (oncekiAlt === 'basari' || oncekiAlt === 'resim') {
+    profilKoleksiyonAltSekmeDegistir(oncekiAlt);
+  }
+  // Aktif sekme koleksiyon ise görünürlüğü koru
+  if (profilAktifSekme === 'koleksiyon') {
+    panel.classList.remove('gizli');
+    var karakter = document.getElementById('profilSekmeKarakter');
+    var yetenekler = document.getElementById('profilSekmeYetenekler');
+    if (karakter) karakter.classList.add('gizli');
+    if (yetenekler) yetenekler.classList.add('gizli');
+  }
 }
 
 function profilYetenekleriGuncelle(yetenekler, aktifMeslek, ozet) {
@@ -4817,7 +5028,7 @@ function profilEkranSablonu(opts) {
     : '';
 
   var koleksiyonSekmeHtml = '<div id="profilSekmeKoleksiyon" class="profil-kart gizli">'
-    + profilKoleksiyonPanelHTML(opts.vipPortreSahip)
+    + profilKoleksiyonPanelHTML(opts.vipPortreSahip, opts.basariRozetleri)
     + '</div>';
 
   return '<div class="profil-wrap" data-profil-user="' + escHtml(String(userId)) + '" data-profil-hedef-adi="' + escHtml(opts.oyuncuAdi || '') + '" data-profil-resmi="' + escHtml(opts.profilResmi || '') + '">'
@@ -6486,6 +6697,7 @@ function ekranDegistir(tip) {
       yetenekler: oyuncuYetenekler,
       aktifMeslek: oyuncuAktifMeslek,
       vipPortreSahip: oyuncuVipPortreSahip,
+      basariRozetleri: oyuncuBasariRozetleri,
       icraatKalan: profilSureFormat(profilIcraatKalanSn(
         oyuncuIcraat,
         oyuncuLastIcraatAt,
@@ -8017,7 +8229,15 @@ async function profilYukle() {
     profilYetenekleriGuncelle(p.yetenekler, p.aktifMeslek, p.yetenekOzeti);
     if (Array.isArray(p.vipPortreSahip)) {
       oyuncuVipPortreSahip = p.vipPortreSahip.slice();
-      profilKoleksiyonGuncelle(oyuncuVipPortreSahip);
+    }
+    if (Array.isArray(p.basariRozetleri)) {
+      oyuncuBasariRozetleri = p.basariRozetleri.slice();
+    }
+    if (
+      aktifEkran === 'profilim'
+      && (Array.isArray(p.vipPortreSahip) || Array.isArray(p.basariRozetleri))
+    ) {
+      profilKoleksiyonGuncelle(oyuncuVipPortreSahip, oyuncuBasariRozetleri);
     }
     arayuzGuncelle();
     profilIcraatTimerBaslat(
@@ -8322,7 +8542,8 @@ async function oyuncuProfilGoster(userId) {
       mafyaDavetGoster: p.mafyaDavetGoster,
       mafyaDavetBekliyor: p.mafyaDavetBekliyor,
       isDurumu: p.isDurumu,
-      vipPortreSahip: p.vipPortreSahip || []
+      vipPortreSahip: p.vipPortreSahip || [],
+      basariRozetleri: p.basariRozetleri || []
     });
     profilAktifSekme = 'karakter';
     await profilSiralamaAlanlariGuncelle(p);

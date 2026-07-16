@@ -223,6 +223,10 @@ async function limanCok(db, attackerId, attacker, limanId, securityMeta = {}) {
   try {
     await limanHaberEkle(db, limanId, attackerId, eskiSahip || null);
   } catch (_) {}
+  try {
+    const { basariRozetArtir } = require("./basariRozetService");
+    await basariRozetArtir(db, attackerId, "enemy_crush", 100);
+  } catch (_) {}
   return {
     ok: true,
     mesaj: liman.owner_user_id
@@ -290,6 +294,10 @@ async function babaCok(db, attackerId, attacker, makam, securityMeta = {}) {
   } catch (_) {}
   try {
     await makamHaberEkle(db, makam, attackerId, eskiSahip || null);
+  } catch (_) {}
+  try {
+    const { basariRozetArtir } = require("./basariRozetService");
+    await basariRozetArtir(db, attackerId, "enemy_crush", 100);
   } catch (_) {}
   return {
     ok: true,
