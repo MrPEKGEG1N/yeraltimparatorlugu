@@ -224,12 +224,14 @@ function createGameRouter(db) {
       } catch (_) {}
 
       let basariRozetleri = [];
+      let basariRozetPinleri = [];
       try {
         const { oyuncuBasariRozetleri } = require("../game/basariRozetService");
         const basari = await oyuncuBasariRozetleri(db, targetId, {
           syncLogin: kendiProfili,
         });
         basariRozetleri = basari.liste || [];
+        basariRozetPinleri = basari.pinler || [];
       } catch (_) {}
 
       res.json({
@@ -267,11 +269,32 @@ function createGameRouter(db) {
           mafyaDavetBekliyor,
           vipPortreSahip,
           basariRozetleri,
+          basariRozetPinleri,
         },
       });
     } catch (err) {
       console.error(err);
       res.status(500).json({ ok: false, error: "Profil yüklenemedi." });
+    }
+  });
+
+  router.post("/profile/basari-pin", async (req, res) => {
+    try {
+      const pinIds = Array.isArray(req.body?.pinIds) ? req.body.pinIds : [];
+      const { oyuncuBasariPinKaydet } = require("../game/basariRozetService");
+      const sonuc = await oyuncuBasariPinKaydet(db, req.user.id, pinIds);
+      if (!sonuc.ok) {
+        return res.status(400).json({ ok: false, error: sonuc.error || "Rozetler kaydedilemedi." });
+      }
+      res.json({
+        ok: true,
+        pinIds: sonuc.pinIds || [],
+        basariRozetPinleri: sonuc.pinler || [],
+        basariRozetleri: sonuc.liste || [],
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ ok: false, error: "Rozet yuvaları kaydedilemedi." });
     }
   });
 

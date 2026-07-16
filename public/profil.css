@@ -581,8 +581,185 @@
 
 #masterLayout .profil-avatar-kutu--premium ~ .profil-resim-btn,
 #masterLayout .profil-avatar-kutu--premium ~ .profil-elmas-btn,
-#masterLayout .profil-avatar-kutu--premium ~ .profil-premium-kalan {
+#masterLayout .profil-avatar-kutu--premium ~ .profil-premium-kalan,
+#masterLayout .profil-avatar-kutu--premium ~ .profil-rozet-yuvalar {
   max-width: 280px;
+}
+
+/* Öne çıkan başarı rozet yuvaları (profil resmi altı) */
+#masterLayout .profil-rozet-yuvalar {
+  width: 100%;
+  max-width: 200px;
+  margin: 0 auto 12px;
+  text-align: center;
+}
+
+#masterLayout .profil-rozet-yuva-baslik {
+  margin: 0 0 6px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #c8b48a;
+}
+
+#masterLayout .profil-rozet-yuva-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+#masterLayout .profil-rozet-yuva {
+  aspect-ratio: 1;
+  padding: 4px;
+  border: 1px solid rgba(138, 115, 72, 0.55);
+  background:
+    linear-gradient(180deg, rgba(28, 22, 16, 0.95) 0%, rgba(10, 8, 6, 0.98) 100%);
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.55);
+  cursor: default;
+  color: #8a7348;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+}
+
+#masterLayout .profil-rozet-yuvalar.is-editable .profil-rozet-yuva {
+  cursor: pointer;
+}
+
+#masterLayout .profil-rozet-yuvalar.is-editable .profil-rozet-yuva:hover {
+  border-color: #d4af37;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.45), 0 0 8px rgba(212, 175, 55, 0.25);
+}
+
+#masterLayout .profil-rozet-yuva.is-filled img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+#masterLayout .profil-rozet-yuva.is-empty:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+#masterLayout .profil-rozet-yuva-arti {
+  font-family: 'Oswald', sans-serif;
+  font-size: 18px;
+  line-height: 1;
+  color: #8a7348;
+}
+
+#masterLayout .profil-rozet-yuva-bos {
+  display: block;
+  width: 40%;
+  height: 1px;
+  background: rgba(138, 115, 72, 0.45);
+}
+
+#masterLayout .profil-rozet-yuva-ipucu {
+  margin: 6px 0 0;
+  font-size: 9px;
+  line-height: 1.35;
+  color: #8a7a62;
+}
+
+.profil-basari-pin-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100050;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.72);
+}
+
+.profil-basari-pin-panel {
+  width: min(520px, 100%);
+  max-height: min(80vh, 640px);
+  overflow: auto;
+  padding: 16px 18px 18px;
+  border: 1px solid rgba(138, 115, 72, 0.65);
+  background:
+    linear-gradient(180deg, #1c1610 0%, #0e0a08 100%);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.65);
+}
+
+.profil-basari-pin-panel-ust {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.profil-basari-pin-panel-ust h3 {
+  margin: 0;
+  flex: 1;
+  font-family: 'Oswald', sans-serif;
+  font-size: 16px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #e0c56a;
+}
+
+.profil-basari-pin-kapat {
+  border: 1px solid rgba(138, 115, 72, 0.55);
+  background: #1a1410;
+  color: #e8ddc4;
+  width: 32px;
+  height: 32px;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.profil-basari-pin-aciklama,
+.profil-basari-pin-bos {
+  margin: 0 0 12px;
+  font-size: 12px;
+  color: #c8bca8;
+  line-height: 1.4;
+}
+
+.profil-basari-pin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 10px;
+}
+
+.profil-basari-pin-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 6px;
+  border: 1px solid rgba(138, 115, 72, 0.5);
+  background: rgba(0, 0, 0, 0.35);
+  color: #c8b48a;
+  cursor: pointer;
+}
+
+.profil-basari-pin-item:hover {
+  border-color: #d4af37;
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.2);
+}
+
+.profil-basari-pin-item img {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  display: block;
+}
+
+.profil-basari-pin-item span {
+  font-size: 9px;
+  line-height: 1.25;
+  text-align: center;
+  max-height: 2.5em;
+  overflow: hidden;
 }
 
 #masterLayout .profil-resim-btn {

@@ -73,6 +73,7 @@ async function ensureBasariColumns(db) {
   for (const [col, def] of [
     ["basari_rozet_json", "TEXT NOT NULL DEFAULT '{}'"],
     ["basari_login_meta", "TEXT NOT NULL DEFAULT '{}'"],
+    ["basari_rozet_pin_json", "TEXT NOT NULL DEFAULT '[]'"],
   ]) {
     try {
       await run(db, `ALTER TABLE players ADD COLUMN ${col} ${def}`);
@@ -406,11 +407,92 @@ function listeOlustur(counts) {
   });
 }
 
+function normalizePins(raw) {
+  const parsed = parseJson(raw, []);
+  const arr = Array.isArray(parsed) ? parsed : [];
+  const out = [];
+  const seen = new Set();
+  for (const item of arr) {
+    let id = String(item || "").trim();
+    id = BASARI_ID_MIGRATE[id] || id;
+    if (!BASARI_ID_SET.has(id) || seen.has(id)) continue;
+    seen.add(id);
+    out.push(id);
+    if (out.length >= 3) break;
+  }
+  return out;
+}
+
+function pinDetayListe(pinIds, liste) {
+  const byId = {};
+  (liste || []).forEach((r) => {
+    if (r && r.id) byId[r.id] = r;
+  });
+  return (pinIds || []).map((id) => {
+    const r = byId[id] || BASARI_BY_ID[id];
+    if (!r) return null;
+    return {
+      id: r.id,
+      name: r.name,
+      icon: r.icon,
+      iconUrl: r.iconUrl || iconUrl(r.icon),
+      count: r.count != null ? r.count : 0,
+      goal: r.goal || "+1",
+      format: r.format || "",
+      unlocked: r.unlocked !== false,
+    };
+  }).filter(Boolean);
+}
+
+async function oyuncuBasariPinOku(db, userId) {
+  await ensureBasariColumns(db);
+  const row = await get(
+    db,
+    `SELECT basari_rozet_pin_json FROM players WHERE user_id = ?`,
+    [userId]
+  );
+  return normalizePins(row?.basari_rozet_pin_json);
+}
+
+/**
+ * En fazla 3 rozet iğneler. Sadece açılmış (unlocked) rozetler kabul edilir.
+ */
+async function oyuncuBasariPinKaydet(db, userId, pinIds) {
+  await ensureBasariColumns(db);
+  const basari = await oyuncuBasariRozetleri(db, userId, { syncLogin: false });
+  const unlocked = new Set(basari.unlockedIds || []);
+  const istenen = Array.isArray(pinIds) ? pinIds : [];
+  const temiz = [];
+  const seen = new Set();
+  for (const raw of istenen) {
+    let id = String(raw || "").trim();
+    id = BASARI_ID_MIGRATE[id] || id;
+    if (!BASARI_ID_SET.has(id) || seen.has(id)) continue;
+    if (!unlocked.has(id)) {
+      return { ok: false, error: "Sadece kazandığın rozetleri öne çıkarabilirsin." };
+    }
+    seen.add(id);
+    temiz.push(id);
+    if (temiz.length >= 3) break;
+  }
+  await run(
+    db,
+    `UPDATE players SET basari_rozet_pin_json = ? WHERE user_id = ?`,
+    [JSON.stringify(temiz), userId]
+  );
+  return {
+    ok: true,
+    pinIds: temiz,
+    pinler: pinDetayListe(temiz, basari.liste),
+    liste: basari.liste,
+  };
+}
+
 async function oyuncuBasariRozetleri(db, userId, opts = {}) {
   await ensureBasariColumns(db);
   const row = await get(
     db,
-    `SELECT basari_rozet_json FROM players WHERE user_id = ?`,
+    `SELECT basari_rozet_json, basari_rozet_pin_json FROM players WHERE user_id = ?`,
     [userId]
   );
   const onceki = normalizeCounts(row?.basari_rozet_json);
@@ -429,7 +511,19 @@ async function oyuncuBasariRozetleri(db, userId, opts = {}) {
 
   const liste = listeOlustur(counts);
   const unlockedIds = liste.filter((x) => x.unlocked).map((x) => x.id);
-  return { liste, unlockedIds, counts, kategoriler: BASARI_KATEGORILER };
+  const unlockedSet = new Set(unlockedIds);
+  // Kilitli hale düşen pinleri temizle
+  let pinIds = normalizePins(row?.basari_rozet_pin_json).filter((id) => unlockedSet.has(id));
+  const oncekiPin = normalizePins(row?.basari_rozet_pin_json);
+  if (pinIds.length !== oncekiPin.length || pinIds.some((id, i) => id !== oncekiPin[i])) {
+    await run(
+      db,
+      `UPDATE players SET basari_rozet_pin_json = ? WHERE user_id = ?`,
+      [JSON.stringify(pinIds), userId]
+    );
+  }
+  const pinler = pinDetayListe(pinIds, liste);
+  return { liste, unlockedIds, counts, kategoriler: BASARI_KATEGORILER, pinIds, pinler };
 }
 
 module.exports = {
@@ -439,6 +533,9 @@ module.exports = {
   ON_MILYON,
   ensureBasariColumns,
   oyuncuBasariRozetleri,
+  oyuncuBasariPinOku,
+  oyuncuBasariPinKaydet,
   basariRozetArtir,
   normalizeCounts,
+  normalizePins,
 };

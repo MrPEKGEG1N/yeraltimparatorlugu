@@ -457,10 +457,12 @@ async function publicPlayerFull(db, userId, player, clientMeta = null) {
     vipPortreOzet = vipPortreClientOzet(await getVipPortreDurum(db, userId));
   } catch (_) {}
   let basariRozetleri = [];
+  let basariRozetPinleri = [];
   try {
     const { oyuncuBasariRozetleri } = require("./basariRozetService");
     const basari = await oyuncuBasariRozetleri(db, userId, { syncLogin: true });
     basariRozetleri = basari.liste || [];
+    basariRozetPinleri = basari.pinler || [];
   } catch (_) {}
   return {
     userId,
@@ -512,6 +514,7 @@ async function publicPlayerFull(db, userId, player, clientMeta = null) {
     vipPortreUyelikKoleksiyonlari: vipPortreOzet.vipPortreUyelikKoleksiyonlari,
     vipPortrePremiumPaket: vipPortreOzet.vipPortrePremiumPaket,
     basariRozetleri,
+    basariRozetPinleri,
     devletIliskisi,
     smsHakki: premium.smsSinirsiz ? 999999 : smsHakki,
     smsSinirsiz: premium.smsSinirsiz,

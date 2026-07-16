@@ -27,7 +27,9 @@ var oyuncuPremiumKalanSn = 0;
 var oyuncuPremiumMagaza = [];
 var oyuncuVipPortreSahip = [];
 var oyuncuBasariRozetleri = [];
+var oyuncuBasariRozetPinleri = [];
 var profilKoleksiyonAltSekme = 'resim';
+var profilBasariPinSlot = -1;
 var oyuncuVipPortreHediye = {};
 var oyuncuVipPortreHediyeKoleksiyonlari = [];
 var oyuncuVipPortreUyelikAcik = false;
@@ -251,6 +253,7 @@ function oyuncuUygula(p, secenekler) {
   oyuncuPremiumMagaza = p.premiumMagaza || [];
   oyuncuVipPortreSahip = Array.isArray(p.vipPortreSahip) ? p.vipPortreSahip.slice() : [];
   if (Array.isArray(p.basariRozetleri)) oyuncuBasariRozetleri = p.basariRozetleri.slice();
+  if (Array.isArray(p.basariRozetPinleri)) oyuncuBasariRozetPinleri = p.basariRozetPinleri.slice();
   oyuncuVipPortreHediye = p.vipPortreHediye && typeof p.vipPortreHediye === 'object' ? p.vipPortreHediye : {};
   oyuncuVipPortreHediyeKoleksiyonlari = Array.isArray(p.vipPortreHediyeKoleksiyonlari)
     ? p.vipPortreHediyeKoleksiyonlari.slice()
@@ -4646,6 +4649,160 @@ function profilBasariKategoriBaslik(katId) {
   return t('game.profil.achievementCatSocial');
 }
 
+function profilBasariPinIds() {
+  return (oyuncuBasariRozetPinleri || []).map(function(r) { return r && r.id; }).filter(Boolean);
+}
+
+function profilRozetYuvaHTML(pinler, duzenlenebilir) {
+  var pins = Array.isArray(pinler) ? pinler.slice(0, 3) : [];
+  var html = '<div class="profil-rozet-yuvalar' + (duzenlenebilir ? ' is-editable' : '') + '" id="profilRozetYuvalar">'
+    + '<p class="profil-rozet-yuva-baslik">' + escHtml(t('game.profil.featuredBadges')) + '</p>'
+    + '<div class="profil-rozet-yuva-grid">';
+  for (var i = 0; i < 3; i++) {
+    var r = pins[i];
+    if (r && r.id) {
+      var ad = profilBasariRozetAdi(r.id) || r.name || r.id;
+      var url = r.iconUrl || ('images/profil/rozet/basari/' + (r.icon || (r.id + '.png')));
+      html += '<button type="button" class="profil-rozet-yuva is-filled"'
+        + ' data-slot="' + i + '"'
+        + ' data-basari-id="' + escHtml(r.id) + '"'
+        + ' data-basari-ad="' + escHtml(ad) + '"'
+        + ' data-count="' + (r.count || 0) + '"'
+        + ' data-goal="' + escHtml(r.goal || '+1') + '"'
+        + ' data-format="' + escHtml(r.format || '') + '"'
+        + ' onmouseover="profilBasariTooltipGoster(this)" onmouseout="profilBasariTooltipGizle()"'
+        + (duzenlenebilir
+          ? ' onclick="profilBasariPinSlotTikla(' + i + ')" title="' + escHtml(t('game.profil.featuredBadgeChange')) + '"'
+          : ' title="' + escHtml(ad) + '"')
+        + ' aria-label="' + escHtml(ad) + '">'
+        + '<img src="' + escHtml(url) + '" alt="" loading="lazy">'
+        + '</button>';
+    } else {
+      html += '<button type="button" class="profil-rozet-yuva is-empty"'
+        + ' data-slot="' + i + '"'
+        + (duzenlenebilir
+          ? ' onclick="profilBasariPinSlotTikla(' + i + ')" title="' + escHtml(t('game.profil.featuredBadgePick')) + '"'
+          : ' disabled title="' + escHtml(t('game.profil.featuredBadgeEmpty')) + '"')
+        + ' aria-label="' + escHtml(t('game.profil.featuredBadgeEmpty')) + '">'
+        + (duzenlenebilir
+          ? '<span class="profil-rozet-yuva-arti">+</span>'
+          : '<span class="profil-rozet-yuva-bos"></span>')
+        + '</button>';
+    }
+  }
+  html += '</div>';
+  if (duzenlenebilir) {
+    html += '<p class="profil-rozet-yuva-ipucu">' + escHtml(t('game.profil.featuredBadgeHint')) + '</p>';
+  }
+  html += '</div>';
+  return html;
+}
+
+function profilBasariPinGuncelle(pinler) {
+  oyuncuBasariRozetPinleri = Array.isArray(pinler) ? pinler.slice(0, 3) : [];
+  var box = document.getElementById('profilRozetYuvalar');
+  if (!box) return;
+  var editable = box.classList.contains('is-editable');
+  var wrap = document.createElement('div');
+  wrap.innerHTML = profilRozetYuvaHTML(oyuncuBasariRozetPinleri, editable);
+  var next = wrap.firstChild;
+  if (next && box.parentNode) box.parentNode.replaceChild(next, box);
+}
+
+function profilBasariPinModalKapat() {
+  var m = document.getElementById('profilBasariPinModal');
+  if (m) m.remove();
+  profilBasariPinSlot = -1;
+}
+
+async function profilBasariPinKaydet(pinIds) {
+  try {
+    var res = await apiFetch('/api/profile/basari-pin', {
+      method: 'POST',
+      body: { pinIds: pinIds || [] }
+    });
+    var data = await res.json().catch(function() { return {}; });
+    if (!res.ok || !data.ok) {
+      toast(tr(data.error) || t('game.error.saveFailed'), 'hata');
+      return false;
+    }
+    if (Array.isArray(data.basariRozetleri)) oyuncuBasariRozetleri = data.basariRozetleri.slice();
+    if (Array.isArray(data.basariRozetPinleri)) {
+      profilBasariPinGuncelle(data.basariRozetPinleri);
+    }
+    return true;
+  } catch (_) {
+    toast(t('game.error.saveFailed'), 'hata');
+    return false;
+  }
+}
+
+function profilBasariPinSlotTikla(slot) {
+  if (aktifEkran === 'profil_ziyaret') return;
+  var pins = profilBasariPinIds();
+  var mevcut = pins[slot];
+  if (mevcut) {
+    // Dolu yuva: kaldır
+    var yeni = pins.filter(function(_, i) { return i !== slot; });
+    profilBasariPinKaydet(yeni).then(function(ok) {
+      if (ok) toast(t('game.profil.featuredBadgeRemoved'), 'basari');
+    });
+    return;
+  }
+  profilBasariPinSeciciAc(slot);
+}
+
+function profilBasariPinSeciciAc(slot) {
+  profilBasariPinModalKapat();
+  profilBasariPinSlot = slot;
+  var pinned = {};
+  profilBasariPinIds().forEach(function(id) { pinned[id] = true; });
+  var aciklar = (oyuncuBasariRozetleri || []).filter(function(r) {
+    return r && r.unlocked && r.id && !pinned[r.id];
+  });
+  var html = '<div id="profilBasariPinModal" class="profil-basari-pin-modal" onclick="if(event.target===this)profilBasariPinModalKapat()">'
+    + '<div class="profil-basari-pin-panel" role="dialog" aria-modal="true">'
+    + '<div class="profil-basari-pin-panel-ust">'
+    + '<h3>' + escHtml(t('game.profil.featuredBadgePick')) + '</h3>'
+    + '<button type="button" class="profil-basari-pin-kapat" onclick="profilBasariPinModalKapat()">×</button>'
+    + '</div>'
+    + '<p class="profil-basari-pin-aciklama">' + escHtml(t('game.profil.featuredBadgePickHint')) + '</p>';
+  if (!aciklar.length) {
+    html += '<p class="profil-basari-pin-bos">' + escHtml(t('game.profil.featuredBadgeNone')) + '</p>';
+  } else {
+    html += '<div class="profil-basari-pin-grid">';
+    aciklar.forEach(function(r) {
+      var ad = profilBasariRozetAdi(r.id) || r.name || r.id;
+      var url = r.iconUrl || ('images/profil/rozet/basari/' + (r.icon || (r.id + '.png')));
+      html += '<button type="button" class="profil-basari-pin-item"'
+        + ' onclick="profilBasariPinSec(\'' + String(r.id).replace(/\\/g, '\\\\').replace(/'/g, "\\'") + '\')"'
+        + ' title="' + escHtml(ad) + '">'
+        + '<img src="' + escHtml(url) + '" alt="">'
+        + '<span>' + escHtml(ad) + '</span>'
+        + '</button>';
+    });
+    html += '</div>';
+  }
+  html += '</div></div>';
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+async function profilBasariPinSec(rozetId) {
+  var slot = profilBasariPinSlot;
+  if (slot < 0 || slot > 2) return;
+  var pins = profilBasariPinIds().slice();
+  while (pins.length < 3) pins.push(null);
+  // Aynı rozet başka yuvadaysa taşı
+  for (var i = 0; i < pins.length; i++) {
+    if (pins[i] === rozetId) pins[i] = null;
+  }
+  pins[slot] = rozetId;
+  var temiz = pins.filter(Boolean).slice(0, 3);
+  profilBasariPinModalKapat();
+  var ok = await profilBasariPinKaydet(temiz);
+  if (ok) toast(t('game.profil.featuredBadgeSaved'), 'basari');
+}
+
 function profilBasariKoleksiyonHTML(liste) {
   var varsayilan = [
     { id: 'war_victor', icon: 'war_win.png', kategori: 'savas', goal: '+1' },
@@ -5038,6 +5195,7 @@ function profilEkranSablonu(opts) {
     + '<div class="profil-sol">'
     + '<h2 class="' + isimCls + '" id="profilIsimBaslik">' + isimIcerik + '</h2>'
     + '<div class="' + kutuCls + '"><img id="profilAvatar" class="' + avatarCls.trim() + '" src="' + escHtml(avatarUrl) + '" alt="' + escHtml(ad) + '">' + vipEtiket + '</div>'
+    + profilRozetYuvaHTML(opts.basariRozetPinleri || [], !!opts.duzenlenebilir)
     + resimBtn
     + elmasBtn
     + '</div>'
@@ -6698,6 +6856,7 @@ function ekranDegistir(tip) {
       aktifMeslek: oyuncuAktifMeslek,
       vipPortreSahip: oyuncuVipPortreSahip,
       basariRozetleri: oyuncuBasariRozetleri,
+      basariRozetPinleri: oyuncuBasariRozetPinleri,
       icraatKalan: profilSureFormat(profilIcraatKalanSn(
         oyuncuIcraat,
         oyuncuLastIcraatAt,
@@ -8233,11 +8392,16 @@ async function profilYukle() {
     if (Array.isArray(p.basariRozetleri)) {
       oyuncuBasariRozetleri = p.basariRozetleri.slice();
     }
-    if (
-      aktifEkran === 'profilim'
-      && (Array.isArray(p.vipPortreSahip) || Array.isArray(p.basariRozetleri))
-    ) {
-      profilKoleksiyonGuncelle(oyuncuVipPortreSahip, oyuncuBasariRozetleri);
+    if (Array.isArray(p.basariRozetPinleri)) {
+      oyuncuBasariRozetPinleri = p.basariRozetPinleri.slice();
+    }
+    if (aktifEkran === 'profilim') {
+      if (Array.isArray(p.basariRozetPinleri)) {
+        profilBasariPinGuncelle(oyuncuBasariRozetPinleri);
+      }
+      if (Array.isArray(p.vipPortreSahip) || Array.isArray(p.basariRozetleri)) {
+        profilKoleksiyonGuncelle(oyuncuVipPortreSahip, oyuncuBasariRozetleri);
+      }
     }
     arayuzGuncelle();
     profilIcraatTimerBaslat(
@@ -8543,7 +8707,8 @@ async function oyuncuProfilGoster(userId) {
       mafyaDavetBekliyor: p.mafyaDavetBekliyor,
       isDurumu: p.isDurumu,
       vipPortreSahip: p.vipPortreSahip || [],
-      basariRozetleri: p.basariRozetleri || []
+      basariRozetleri: p.basariRozetleri || [],
+      basariRozetPinleri: p.basariRozetPinleri || []
     });
     profilAktifSekme = 'karakter';
     await profilSiralamaAlanlariGuncelle(p);
