@@ -491,6 +491,7 @@
         inputStat("icraat", o.icraat, "İcraat") +
         inputStat("sms_hakki", o.smsHakki, "SMS") +
         inputStat("elmas", o.elmas || 0, "Elmas") +
+        inputText("premiumPaket", o.premiumPaket || "", "Premium paket", { placeholder: "tetikci / racon / baron" }) +
         inputStat("bonusGuc", o.bonusGuc || ekonomi.bonusGuc || 0, "Bonus güç") +
         inputStat("devletIliskisi", o.devletIliskisi != null ? o.devletIliskisi : (ekonomi.devletIliskisi || 0), "Avukat ilişkisi") +
         inputStat("sehreHukmetSayisi", o.sehreHukmetSayisi || 0, "Şehre hükmet") +
@@ -563,7 +564,7 @@
           e.preventDefault();
           var body = oyuncuFormVerisiTopla(el);
           if (!body) return;
-          api("/api/admin/oyuncular/" + id, { method: "PATCH", body: body }).then(function (r) {
+          api("/api/admin/oyuncular/" + id, { method: "PATCH", body: body, timeoutMs: 45000 }).then(function (r) {
             toast(r.data.mesaj || r.data.error || "Tamam", !r.ok);
             if (r.ok) {
               oyuncuDetayYukle(id, true);
@@ -684,6 +685,7 @@
         icraat: val("icraat"),
         smsHakki: val("sms_hakki"),
         elmas: val("elmas"),
+        premiumPaket: val("premiumPaket"),
         bonusGuc: val("bonusGuc"),
         devletIliskisi: val("devletIliskisi"),
         sehreHukmetSayisi: val("sehreHukmetSayisi"),

@@ -10,7 +10,7 @@
     "puan": 1500,
     "icraat": 25,
     "sms_hakki": 50,
-    "elmas": 0,
+    "elmas": 20,
     "kara_listede": 0,
     "sehir_efsane": 0,
     "sehre_hukmet_sayisi": 0,
@@ -22,7 +22,7 @@
     "son_aksiyon_detay": "Liderlik Tablosu"
   },
   "guvenli_yer": {
-    "base_seviye": 12
+    "base_seviye": 1
   },
   "istihbarat": {
     "eleman_sayisi": 0

@@ -49,6 +49,13 @@ async function main() {
   if (!rusvet.ok) throw new Error(rusvet.error);
   if (rusvet.odenen !== bedel) throw new Error("rusvet bedeli yanlis");
 
+  // İlişki eşik altındayken çıkış sonrası tekrar hapse düşülmemeli
+  await run(db, `UPDATE players SET devlet_iliskisi = 13, hapis_bitis_at = 0 WHERE user_id = ?`, [U1]);
+  const dusukIliski = await hapisKontrol(db, U1);
+  if (!dusukIliski.ok) throw new Error("dusuk iliski ile serbest oyuncu tekrar hapse girdi");
+  const panelSerbest = await hapishanePanel(db, U1);
+  if (panelSerbest.hapisAktif) throw new Error("dusuk iliski panelde hapis aktif oldu");
+
   await hapseGir(db, U2);
   let p2 = await loadPlayer(db, U2);
   const kurtarici = await loadPlayer(db, U1);

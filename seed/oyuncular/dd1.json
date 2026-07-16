@@ -5,12 +5,12 @@
   "lakap": "Mafya",
   "force_restore": true,
   "player": {
-    "kasa": 20822974000,
+    "kasa": 22548676000,
     "guc": 600525150,
     "puan": 305150,
     "icraat": 11019,
     "sms_hakki": 649,
-    "elmas": 0,
+    "elmas": 10,
     "kara_listede": 1,
     "sehir_efsane": 1,
     "sehre_hukmet_sayisi": 26,
@@ -22,7 +22,7 @@
     "son_aksiyon_detay": "Liderlik Tablosu"
   },
   "guvenli_yer": {
-    "base_seviye": 15
+    "base_seviye": 1
   },
   "istihbarat": {
     "eleman_sayisi": 2

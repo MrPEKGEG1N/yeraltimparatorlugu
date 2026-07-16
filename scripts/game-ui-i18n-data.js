@@ -611,6 +611,7 @@ module.exports = {
   "game.profil.selectPhoto": ["Profil Resmi Seç", "Select Profile Photo"],
   "game.profil.selectPortrait": ["Portreni seç:", "Choose your portrait:"],
   "game.profil.female": ["Kadın", "Female"],
+  "game.profil.premium": ["Premium", "Premium"],
   "game.profil.male": ["Erkek", "Male"],
   "game.profil.skillsNote": ["Yetenekler sınırsız gelişir: iş maaşı, antrenman ve şirket eğitimi. Çubuk mevcut kademe ilerlemesini gösterir.", "Skills grow without limit via job pay, training and company education. Bar shows current tier progress."],
   "game.profil.nextTier": ["Sonraki kademe:", "Next tier:"],

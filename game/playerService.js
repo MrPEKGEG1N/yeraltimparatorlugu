@@ -444,6 +444,18 @@ async function publicPlayerFull(db, userId, player, clientMeta = null) {
     elmasLocale.oyunDili,
     { ulkeIp: elmasLocale.ulkeIp }
   );
+  let vipPortreOzet = {
+    vipPortreSahip: [],
+    vipPortreHediye: {},
+    vipPortreHediyeKoleksiyonlari: [],
+    vipPortreUyelikAcik: false,
+    vipPortreUyelikKoleksiyonlari: [],
+    vipPortrePremiumPaket: "",
+  };
+  try {
+    const { getVipPortreDurum, vipPortreClientOzet } = require("./vipPortreService");
+    vipPortreOzet = vipPortreClientOzet(await getVipPortreDurum(db, userId));
+  } catch (_) {}
   return {
     userId,
     kasa: player.kasa,
@@ -487,6 +499,12 @@ async function publicPlayerFull(db, userId, player, clientMeta = null) {
     dostlar: player.dostlar || "",
     dusmanlar: player.dusmanlar || "",
     profilResmi: player.profilResmi || "",
+    vipPortreSahip: vipPortreOzet.vipPortreSahip,
+    vipPortreHediye: vipPortreOzet.vipPortreHediye,
+    vipPortreHediyeKoleksiyonlari: vipPortreOzet.vipPortreHediyeKoleksiyonlari,
+    vipPortreUyelikAcik: vipPortreOzet.vipPortreUyelikAcik,
+    vipPortreUyelikKoleksiyonlari: vipPortreOzet.vipPortreUyelikKoleksiyonlari,
+    vipPortrePremiumPaket: vipPortreOzet.vipPortrePremiumPaket,
     devletIliskisi,
     smsHakki: premium.smsSinirsiz ? 999999 : smsHakki,
     smsSinirsiz: premium.smsSinirsiz,

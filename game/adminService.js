@@ -970,7 +970,10 @@ async function updatePlayerStats(db, adminId, userId, patch) {
   return updatePlayerFull(db, adminId, userId, { oyuncu: patch });
 }
 
-function parseNonNegInt(val, label, max = 2_000_000_000) {
+// SQLite INTEGER is 64-bit; 2e9 rejected real kasalar (22B+) and aborted full-form saves (elmas included).
+const ADMIN_NUM_MAX = Number.MAX_SAFE_INTEGER;
+
+function parseNonNegInt(val, label, max = ADMIN_NUM_MAX) {
   if (val === undefined || val === null || val === "") return null;
   const n = parseInt(val, 10);
   if (Number.isNaN(n) || n < 0 || n > max) {
@@ -1138,6 +1141,7 @@ async function updatePlayerFull(db, adminId, userId, body) {
       const o = patch.oyuncu;
       const pFields = [];
       const pParams = [];
+      // premium_paket is a string id (tetikci/racon/baron) — handled below, not as int
       const numMap = [
         ["kasa", o.kasa],
         ["guc", o.guc],
@@ -1145,7 +1149,6 @@ async function updatePlayerFull(db, adminId, userId, body) {
         ["icraat", o.icraat],
         ["sms_hakki", o.smsHakki],
         ["elmas", o.elmas],
-        ["premium_paket", o.premiumPaket],
         ["bonus_guc", o.bonusGuc],
         ["devlet_iliskisi", o.devletIliskisi],
         ["sehre_hukmet_sayisi", o.sehreHukmetSayisi],
@@ -1153,7 +1156,7 @@ async function updatePlayerFull(db, adminId, userId, body) {
       ];
       for (const [col, val] of numMap) {
         if (val === undefined || val === null || val === "") continue;
-        const max = col === "devlet_iliskisi" ? AVUKAT_ILISKI_MAX : 2_000_000_000;
+        const max = col === "devlet_iliskisi" ? AVUKAT_ILISKI_MAX : ADMIN_NUM_MAX;
         const n = parseNonNegInt(val, col, max);
         if (n != null) {
           const finalVal = col === "devlet_iliskisi" ? clampAvukatIliskisi(n) : n;
@@ -1181,9 +1184,11 @@ async function updatePlayerFull(db, adminId, userId, body) {
           pParams.push("");
         } else {
           const portre = gecerliProfilResmi(raw);
-          if (!portre) return { ok: false, error: "Geçersiz profil resmi anahtarı." };
-          pFields.push("profil_resmi = ?");
-          pParams.push(portre);
+          // Geçersiz anahtar tüm kaydı (elmas vb.) iptal etmesin; portreyi atla
+          if (portre) {
+            pFields.push("profil_resmi = ?");
+            pParams.push(portre);
+          }
         }
       }
       if (o.dostlar !== undefined) {
@@ -1238,7 +1243,8 @@ async function updatePlayerFull(db, adminId, userId, body) {
       guncellenen.push("istihbarat");
     }
 
-    if (patch.mekanlar) {
+    // Form always sends mekanlar[]; empty array is truthy and used to abort after elmas was written.
+    if (Array.isArray(patch.mekanlar) && patch.mekanlar.length) {
       const mekanSonuc = await updatePlayerMekanlar(db, adminId, userId, patch.mekanlar);
       if (!mekanSonuc.ok) return mekanSonuc;
       guncellenen.push("mekanlar");
@@ -1258,6 +1264,16 @@ async function updatePlayerFull(db, adminId, userId, body) {
     adminId,
     bolumler: guncellenen,
   });
+
+  // Seed snapshot'ı yanıtı bloklamasın (Render timeout / yavaş export)
+  Promise.resolve()
+    .then(() => {
+      const { updatePlayerSeedSnapshot } = require("./oyuncuRestoreService");
+      return updatePlayerSeedSnapshot(db, userId);
+    })
+    .catch((err) => {
+      console.warn("[persist] Admin oyuncu snapshot atlandi:", err.message);
+    });
 
   return {
     ok: true,

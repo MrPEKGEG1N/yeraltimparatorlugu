@@ -354,6 +354,12 @@ async function expirePremiumIfNeeded(db, userId) {
     await run(db, `UPDATE players SET premium_paket = '', premium_paket_bitis = 0 WHERE user_id = ?`, [
       userId,
     ]);
+    try {
+      const { vipPortreUyelikBitinceTemizle } = require("./vipPortreService");
+      await vipPortreUyelikBitinceTemizle(db, userId);
+    } catch (err) {
+      console.error("[premium] vip portre temizlik:", err?.message || err);
+    }
   }
 }
 
@@ -533,10 +539,8 @@ async function premiumSatinAl(db, userId, paketId) {
 
   const simdi = Math.floor(Date.now() / 1000);
   const mevcutBitis = Number(row?.premium_paket_bitis || 0);
-  const yeniBitis =
-    mevcut === paket.id && mevcutBitis > simdi
-      ? mevcutBitis + PAKET_SURE_SN
-      : simdi + PAKET_SURE_SN;
+  const uzatma = mevcut === paket.id && mevcutBitis > simdi;
+  const yeniBitis = uzatma ? mevcutBitis + PAKET_SURE_SN : simdi + PAKET_SURE_SN;
 
   const res = await run(
     db,
@@ -546,6 +550,12 @@ async function premiumSatinAl(db, userId, paketId) {
   if (!res?.changes) return { ok: false, error: "Satın alma başarısız." };
 
   await applyPremiumPaketAvantajlari(db, userId, paket);
+  try {
+    const { vipPortreHediyeHakkiAc } = require("./vipPortreService");
+    await vipPortreHediyeHakkiAc(db, userId, paket.id);
+  } catch (err) {
+    console.error("[premium] vip portre hediye:", err?.message || err);
+  }
 
   return {
     ok: true,

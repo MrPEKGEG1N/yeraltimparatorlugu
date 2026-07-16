@@ -25,6 +25,11 @@ var oyuncuPremiumPaket = '';
 var oyuncuPremiumPaketBitis = 0;
 var oyuncuPremiumKalanSn = 0;
 var oyuncuPremiumMagaza = [];
+var oyuncuVipPortreSahip = [];
+var oyuncuVipPortreHediye = {};
+var oyuncuVipPortreHediyeKoleksiyonlari = [];
+var oyuncuVipPortreUyelikAcik = false;
+var oyuncuVipPortreUyelikKoleksiyonlari = [];
 var oyuncuElmasPaketler = [];
 var oyuncuElmasParaBirimi = 'TRY';
 var oyuncuIcraatPaket = null;
@@ -242,6 +247,28 @@ function oyuncuUygula(p, secenekler) {
   oyuncuPremiumPaketBitis = p.premiumPaketBitis != null ? p.premiumPaketBitis : 0;
   oyuncuPremiumKalanSn = p.premiumKalanSn != null ? p.premiumKalanSn : 0;
   oyuncuPremiumMagaza = p.premiumMagaza || [];
+  oyuncuVipPortreSahip = Array.isArray(p.vipPortreSahip) ? p.vipPortreSahip.slice() : [];
+  oyuncuVipPortreHediye = p.vipPortreHediye && typeof p.vipPortreHediye === 'object' ? p.vipPortreHediye : {};
+  oyuncuVipPortreHediyeKoleksiyonlari = Array.isArray(p.vipPortreHediyeKoleksiyonlari)
+    ? p.vipPortreHediyeKoleksiyonlari.slice()
+    : [];
+  oyuncuVipPortreUyelikAcik = !!p.vipPortreUyelikAcik;
+  oyuncuVipPortreUyelikKoleksiyonlari = Array.isArray(p.vipPortreUyelikKoleksiyonlari)
+    ? p.vipPortreUyelikKoleksiyonlari.slice()
+    : [];
+  if (!oyuncuVipPortreUyelikKoleksiyonlari.length && oyuncuVipPortreUyelikAcik) {
+    // Eski API uyumu: paket bilgisinden koleksiyonları türet
+    if (premiumPaketSahipMi('baron')) {
+      oyuncuVipPortreUyelikKoleksiyonlari = ['elmas', 'mafya', 'kral', 'ihtisam', 'karanlik', 'aslan', 'operasyon', 'vip'];
+    } else if (premiumPaketSahipMi('racon')) {
+      oyuncuVipPortreUyelikKoleksiyonlari = ['operasyon', 'mafya'];
+    } else if (premiumPaketSahipMi('tetikci')) {
+      oyuncuVipPortreUyelikKoleksiyonlari = ['operasyon'];
+    }
+  }
+  if (typeof profilKoleksiyonGuncelle === 'function' && document.getElementById('profilSekmeKoleksiyon')) {
+    profilKoleksiyonGuncelle(oyuncuVipPortreSahip);
+  }
   oyuncuElmasPaketler = p.elmasPaketler || [];
   oyuncuElmasParaBirimi = p.elmasParaBirimi
     || (p.elmasPaketler && p.elmasPaketler[0] && p.elmasPaketler[0].paraBirimi)
@@ -582,7 +609,7 @@ async function sunucuAksiyon(action, key, adet, extra) {
 // ========================
 // GÖRSELLER — yerel (/public/images)
 // ========================
-var GORSEL_VERSIYON = '126';
+var GORSEL_VERSIYON = '141';
 var profilLiderlikOyunculari = [];
 var profilAktifSekme = 'karakter';
 var oyuncuYetenekler = null;
@@ -789,6 +816,77 @@ var ERKEK_PORTRE_ANAHTARLARI = [
   'erkek-13', 'erkek-14', 'erkek-15', 'erkek-16', 'erkek-17', 'erkek-18',
   'erkek-19', 'erkek-20', 'erkek-21', 'erkek-22'
 ];
+var VIP_ERKEK_ELMAS_PORTRE_ANAHTARLARI = [
+  'vip-erkek-01', 'vip-erkek-02', 'vip-erkek-03', 'vip-erkek-04',
+  'vip-erkek-05', 'vip-erkek-06', 'vip-erkek-07', 'vip-erkek-08',
+  'vip-erkek-09', 'vip-erkek-10', 'vip-erkek-11', 'vip-erkek-12'
+];
+var VIP_ERKEK_MAFYA_PORTRE_ANAHTARLARI = [
+  'vip-erkek-mafya-01', 'vip-erkek-mafya-02', 'vip-erkek-mafya-03'
+];
+var VIP_ERKEK_KRAL_PORTRE_ANAHTARLARI = [
+  'vip-erkek-kral-01', 'vip-erkek-kral-02', 'vip-erkek-kral-03', 'vip-erkek-kral-04'
+];
+var VIP_ERKEK_IHTISAM_PORTRE_ANAHTARLARI = [
+  'vip-erkek-ihtisam-01', 'vip-erkek-ihtisam-02'
+];
+var VIP_ERKEK_KARANLIK_PORTRE_ANAHTARLARI = [
+  'vip-erkek-karanlik-01', 'vip-erkek-karanlik-02'
+];
+var VIP_ERKEK_ASLAN_PORTRE_ANAHTARLARI = [
+  'vip-erkek-aslan-01', 'vip-erkek-aslan-02'
+];
+var VIP_ERKEK_OPERASYON_PORTRE_ANAHTARLARI = [
+  'vip-erkek-operasyon-01', 'vip-erkek-operasyon-02', 'vip-erkek-operasyon-03'
+];
+var VIP_ERKEK_VIP_PORTRE_ANAHTARLARI = [
+  'vip-erkek-vip-01', 'vip-erkek-vip-02', 'vip-erkek-vip-03',
+  'vip-erkek-vip-04', 'vip-erkek-vip-05', 'vip-erkek-vip-06',
+  'vip-erkek-vip-07', 'vip-erkek-vip-08', 'vip-erkek-vip-09'
+];
+var VIP_KADIN_ELMAS_PORTRE_ANAHTARLARI = [
+  'vip-kadin-01', 'vip-kadin-02', 'vip-kadin-03', 'vip-kadin-04',
+  'vip-kadin-05', 'vip-kadin-06', 'vip-kadin-07', 'vip-kadin-08',
+  'vip-kadin-09', 'vip-kadin-10', 'vip-kadin-11', 'vip-kadin-12'
+];
+var VIP_KADIN_MAFYA_PORTRE_ANAHTARLARI = [
+  'vip-kadin-mafya-01', 'vip-kadin-mafya-02', 'vip-kadin-mafya-03'
+];
+var VIP_KADIN_KRAL_PORTRE_ANAHTARLARI = [
+  'vip-kadin-kral-01', 'vip-kadin-kral-02'
+];
+var VIP_KADIN_IHTISAM_PORTRE_ANAHTARLARI = [
+  'vip-kadin-ihtisam-01', 'vip-kadin-ihtisam-02'
+];
+var VIP_KADIN_KARANLIK_PORTRE_ANAHTARLARI = [
+  'vip-kadin-karanlik-01', 'vip-kadin-karanlik-02'
+];
+var VIP_KADIN_ASLAN_PORTRE_ANAHTARLARI = [
+  'vip-kadin-aslan-01', 'vip-kadin-aslan-02'
+];
+var VIP_KADIN_OPERASYON_PORTRE_ANAHTARLARI = [
+  'vip-kadin-operasyon-01', 'vip-kadin-operasyon-02'
+];
+var VIP_KADIN_VIP_PORTRE_ANAHTARLARI = [
+  'vip-kadin-vip-01', 'vip-kadin-vip-02', 'vip-kadin-vip-03', 'vip-kadin-vip-04', 'vip-kadin-vip-05',
+  'vip-kadin-vip-06', 'vip-kadin-vip-07', 'vip-kadin-vip-08', 'vip-kadin-vip-09', 'vip-kadin-vip-10'
+];
+var VIP_ERKEK_PORTRE_ANAHTARLARI = VIP_ERKEK_ELMAS_PORTRE_ANAHTARLARI
+  .concat(VIP_ERKEK_MAFYA_PORTRE_ANAHTARLARI)
+  .concat(VIP_ERKEK_KRAL_PORTRE_ANAHTARLARI)
+  .concat(VIP_ERKEK_IHTISAM_PORTRE_ANAHTARLARI)
+  .concat(VIP_ERKEK_KARANLIK_PORTRE_ANAHTARLARI)
+  .concat(VIP_ERKEK_ASLAN_PORTRE_ANAHTARLARI)
+  .concat(VIP_ERKEK_OPERASYON_PORTRE_ANAHTARLARI)
+  .concat(VIP_ERKEK_VIP_PORTRE_ANAHTARLARI);
+var VIP_KADIN_PORTRE_ANAHTARLARI = VIP_KADIN_ELMAS_PORTRE_ANAHTARLARI
+  .concat(VIP_KADIN_MAFYA_PORTRE_ANAHTARLARI)
+  .concat(VIP_KADIN_KRAL_PORTRE_ANAHTARLARI)
+  .concat(VIP_KADIN_IHTISAM_PORTRE_ANAHTARLARI)
+  .concat(VIP_KADIN_KARANLIK_PORTRE_ANAHTARLARI)
+  .concat(VIP_KADIN_ASLAN_PORTRE_ANAHTARLARI)
+  .concat(VIP_KADIN_OPERASYON_PORTRE_ANAHTARLARI)
+  .concat(VIP_KADIN_VIP_PORTRE_ANAHTARLARI);
 
 var devletGorseller = {
   yetkili: yerelGorsel('devlet', 'yetkili')
@@ -3599,19 +3697,126 @@ function profilPortreKeyNormalize(key) {
   var k = String(key || '').trim();
   var eski = k.match(/^portre-(\d{2})$/);
   if (eski) return 'kadin-' + eski[1];
+  var prem = k.match(/^premium-(\d{2})$/);
+  if (prem) return 'vip-erkek-' + prem[1];
   return k;
+}
+
+function profilPortreVipListesindeMi(key) {
+  key = profilPortreKeyNormalize(key || '');
+  return VIP_ERKEK_PORTRE_ANAHTARLARI.indexOf(key) >= 0
+    || VIP_KADIN_PORTRE_ANAHTARLARI.indexOf(key) >= 0;
+}
+
+function profilPortreVipKoleksiyonu(key) {
+  key = profilPortreKeyNormalize(key || '');
+  if (!profilPortreVipListesindeMi(key)) return '';
+  if (/^vip-(erkek|kadin)-vip-\d{2}$/.test(key)) return 'vip';
+  if (key.indexOf('-operasyon-') >= 0) return 'operasyon';
+  if (key.indexOf('-aslan-') >= 0) return 'aslan';
+  if (key.indexOf('-karanlik-') >= 0) return 'karanlik';
+  if (key.indexOf('-ihtisam-') >= 0) return 'ihtisam';
+  if (key.indexOf('-kral-') >= 0) return 'kral';
+  if (key.indexOf('-mafya-') >= 0) return 'mafya';
+  return 'elmas';
+}
+
+function profilPortreVipKoleksiyonBaslik(key) {
+  var k = profilPortreVipKoleksiyonu(key);
+  if (k === 'vip') return t('game.profil.vipCollection');
+  if (k === 'operasyon') return t('game.profil.specialOpsCollection');
+  if (k === 'aslan') return t('game.profil.easternLionsCollection');
+  if (k === 'karanlik') return t('game.profil.darknessCollection');
+  if (k === 'ihtisam') return t('game.profil.wealthSplendorCollection');
+  if (k === 'kral') return t('game.profil.crimeKingsCollection');
+  if (k === 'mafya') return t('game.profil.mafiaCollection');
+  return t('game.profil.diamondCollection');
+}
+
+function profilPortreVipEtiketCls(key) {
+  var k = profilPortreVipKoleksiyonu(key);
+  if (k === 'vip') return ' profil-elmas-koleksiyon-etiket--vip';
+  if (k === 'operasyon') return ' profil-elmas-koleksiyon-etiket--operasyon';
+  if (k === 'aslan') return ' profil-elmas-koleksiyon-etiket--aslan';
+  if (k === 'karanlik') return ' profil-elmas-koleksiyon-etiket--karanlik';
+  if (k === 'ihtisam') return ' profil-elmas-koleksiyon-etiket--ihtisam';
+  if (k === 'kral') return ' profil-elmas-koleksiyon-etiket--kral';
+  if (k === 'mafya') return ' profil-elmas-koleksiyon-etiket--mafya';
+  return '';
+}
+
+function profilPortreVipKutuCls(key) {
+  var k = profilPortreVipKoleksiyonu(key);
+  if (k === 'vip') return ' profil-avatar-kutu--vip';
+  if (k === 'operasyon') return ' profil-avatar-kutu--operasyon';
+  if (k === 'aslan') return ' profil-avatar-kutu--aslan';
+  if (k === 'karanlik') return ' profil-avatar-kutu--karanlik';
+  if (k === 'ihtisam') return ' profil-avatar-kutu--ihtisam';
+  if (k === 'kral') return ' profil-avatar-kutu--kral';
+  if (k === 'mafya') return ' profil-avatar-kutu--mafya';
+  return '';
 }
 
 function profilPortreUrlFromKey(key) {
   key = profilPortreKeyNormalize(key);
   if (!key) return profilGorseller.varsayilanPortre;
+  if ((key.indexOf('vip-erkek-') === 0 || key.indexOf('vip-kadin-') === 0 || key.indexOf('premium-') === 0)
+    && !profilPortreVipListesindeMi(key)) {
+    return profilGorseller.varsayilanPortre;
+  }
   return yerelGorselPng('profil/portre', key);
 }
 
 function profilPortreSekmesi(key) {
   key = profilPortreKeyNormalize(key);
+  if (key.indexOf('vip-erkek-') === 0) return 'vip-erkek';
+  if (key.indexOf('vip-kadin-') === 0) return 'vip-kadin';
   if (key.indexOf('erkek-') === 0) return 'erkek';
   return 'kadin';
+}
+
+function profilPortrePremiumMi(key) {
+  return profilPortreVipListesindeMi(key);
+}
+
+/** VIP portrede kutuyu görsel oranına göre ayarla — çerçeve net görünsün */
+function profilAvatarKutuGuncelle(key) {
+  var kutu = document.querySelector('#masterLayout .profil-avatar-kutu')
+    || document.querySelector('.profil-avatar-kutu');
+  if (!kutu) return;
+  var premium = profilPortrePremiumMi(key);
+  var koleksiyon = profilPortreVipKoleksiyonu(key);
+  kutu.classList.toggle('profil-avatar-kutu--premium', premium);
+  kutu.classList.toggle('profil-avatar-kutu--mafya', koleksiyon === 'mafya');
+  kutu.classList.toggle('profil-avatar-kutu--kral', koleksiyon === 'kral');
+  kutu.classList.toggle('profil-avatar-kutu--ihtisam', koleksiyon === 'ihtisam');
+  kutu.classList.toggle('profil-avatar-kutu--karanlik', koleksiyon === 'karanlik');
+  kutu.classList.toggle('profil-avatar-kutu--aslan', koleksiyon === 'aslan');
+  kutu.classList.toggle('profil-avatar-kutu--operasyon', koleksiyon === 'operasyon');
+  kutu.classList.toggle('profil-avatar-kutu--vip', koleksiyon === 'vip');
+  var img = kutu.querySelector('img');
+  if (img) {
+    img.classList.toggle('profil-avatar-img--premium', premium);
+  }
+  var etiket = kutu.querySelector('.profil-elmas-koleksiyon-etiket');
+  if (premium) {
+    if (!etiket) {
+      etiket = document.createElement('span');
+      etiket.className = 'profil-elmas-koleksiyon-etiket';
+      kutu.appendChild(etiket);
+    }
+    etiket.textContent = profilPortreVipKoleksiyonBaslik(key);
+    etiket.classList.toggle('profil-elmas-koleksiyon-etiket--mafya', koleksiyon === 'mafya');
+    etiket.classList.toggle('profil-elmas-koleksiyon-etiket--kral', koleksiyon === 'kral');
+    etiket.classList.toggle('profil-elmas-koleksiyon-etiket--ihtisam', koleksiyon === 'ihtisam');
+    etiket.classList.toggle('profil-elmas-koleksiyon-etiket--karanlik', koleksiyon === 'karanlik');
+    etiket.classList.toggle('profil-elmas-koleksiyon-etiket--aslan', koleksiyon === 'aslan');
+    etiket.classList.toggle('profil-elmas-koleksiyon-etiket--operasyon', koleksiyon === 'operasyon');
+    etiket.classList.toggle('profil-elmas-koleksiyon-etiket--vip', koleksiyon === 'vip');
+    etiket.classList.remove('gizli');
+  } else if (etiket) {
+    etiket.classList.add('gizli');
+  }
 }
 
 function profilResmiUrl(userId, profilResmiKey) {
@@ -4298,6 +4503,7 @@ function profilYetenekleriPanelHTML(yetenekler, aktifMeslek, ozet) {
 
 function profilSekmeDegistir(sekme) {
   if (sekme === 'yetenekler') profilAktifSekme = 'yetenekler';
+  else if (sekme === 'koleksiyon') profilAktifSekme = 'koleksiyon';
   else profilAktifSekme = 'karakter';
   var wrap = document.querySelector('.profil-wrap');
   if (!wrap) return;
@@ -4307,8 +4513,132 @@ function profilSekmeDegistir(sekme) {
   });
   var karakter = document.getElementById('profilSekmeKarakter');
   var yetenekler = document.getElementById('profilSekmeYetenekler');
+  var koleksiyon = document.getElementById('profilSekmeKoleksiyon');
   if (karakter) karakter.classList.toggle('gizli', profilAktifSekme !== 'karakter');
   if (yetenekler) yetenekler.classList.toggle('gizli', profilAktifSekme !== 'yetenekler');
+  if (koleksiyon) koleksiyon.classList.toggle('gizli', profilAktifSekme !== 'koleksiyon');
+}
+
+function profilKoleksiyonAnahtarlari(koleksiyonKey) {
+  if (koleksiyonKey === 'operasyon') {
+    return VIP_ERKEK_OPERASYON_PORTRE_ANAHTARLARI.concat(VIP_KADIN_OPERASYON_PORTRE_ANAHTARLARI);
+  }
+  if (koleksiyonKey === 'aslan') {
+    return VIP_ERKEK_ASLAN_PORTRE_ANAHTARLARI.concat(VIP_KADIN_ASLAN_PORTRE_ANAHTARLARI);
+  }
+  if (koleksiyonKey === 'karanlik') {
+    return VIP_ERKEK_KARANLIK_PORTRE_ANAHTARLARI.concat(VIP_KADIN_KARANLIK_PORTRE_ANAHTARLARI);
+  }
+  if (koleksiyonKey === 'ihtisam') {
+    return VIP_ERKEK_IHTISAM_PORTRE_ANAHTARLARI.concat(VIP_KADIN_IHTISAM_PORTRE_ANAHTARLARI);
+  }
+  if (koleksiyonKey === 'kral') {
+    return VIP_ERKEK_KRAL_PORTRE_ANAHTARLARI.concat(VIP_KADIN_KRAL_PORTRE_ANAHTARLARI);
+  }
+  if (koleksiyonKey === 'mafya') {
+    return VIP_ERKEK_MAFYA_PORTRE_ANAHTARLARI.concat(VIP_KADIN_MAFYA_PORTRE_ANAHTARLARI);
+  }
+  if (koleksiyonKey === 'vip') {
+    return VIP_ERKEK_VIP_PORTRE_ANAHTARLARI.concat(VIP_KADIN_VIP_PORTRE_ANAHTARLARI);
+  }
+  return VIP_ERKEK_ELMAS_PORTRE_ANAHTARLARI.concat(VIP_KADIN_ELMAS_PORTRE_ANAHTARLARI);
+}
+
+function profilKoleksiyonRozetUrl(koleksiyonKey) {
+  var map = {
+    elmas: 'images/profil/rozet/elmas.png',
+    mafya: 'images/profil/rozet/mafya.png',
+    kral: 'images/profil/rozet/kral.png',
+    ihtisam: 'images/profil/rozet/ihtisam.png',
+    karanlik: 'images/profil/rozet/karanlik.png?v=2',
+    aslan: 'images/profil/rozet/aslan.png',
+    operasyon: 'images/profil/rozet/operasyon.png',
+    vip: 'images/profil/rozet/vip.png'
+  };
+  return map[koleksiyonKey] || map.elmas;
+}
+
+function profilKoleksiyonTamamMi(koleksiyonKey, sahipSet) {
+  var hepsi = profilKoleksiyonAnahtarlari(koleksiyonKey);
+  if (!hepsi.length) return false;
+  for (var i = 0; i < hepsi.length; i++) {
+    if (!sahipSet[hepsi[i]]) return false;
+  }
+  return true;
+}
+
+function profilKoleksiyonBaslikMetin(koleksiyonKey) {
+  if (koleksiyonKey === 'operasyon') return t('game.profil.specialOpsCollection');
+  if (koleksiyonKey === 'aslan') return t('game.profil.easternLionsCollection');
+  if (koleksiyonKey === 'karanlik') return t('game.profil.darknessCollection');
+  if (koleksiyonKey === 'ihtisam') return t('game.profil.wealthSplendorCollection');
+  if (koleksiyonKey === 'kral') return t('game.profil.crimeKingsCollection');
+  if (koleksiyonKey === 'mafya') return t('game.profil.mafiaCollection');
+  if (koleksiyonKey === 'vip') return t('game.profil.vipCollection');
+  return t('game.profil.diamondCollection');
+}
+
+function profilKoleksiyonPanelHTML(sahipListe) {
+  var liste = Array.isArray(sahipListe) ? sahipListe.slice() : [];
+  var temiz = [];
+  var sahipSet = {};
+  liste.forEach(function(key) {
+    var k = profilPortreKeyNormalize(key || '');
+    if (k && profilPortreVipListesindeMi(k) && temiz.indexOf(k) < 0) {
+      temiz.push(k);
+      sahipSet[k] = true;
+    }
+  });
+  if (!temiz.length) {
+    return '<div class="profil-koleksiyon-bos">'
+      + '<p>' + escHtml(t('game.profil.collectionEmpty')) + '</p>'
+      + '</div>';
+  }
+  var gruplar = {};
+  temiz.forEach(function(key) {
+    var kol = profilPortreVipKoleksiyonu(key) || 'elmas';
+    if (!gruplar[kol]) gruplar[kol] = [];
+    gruplar[kol].push(key);
+  });
+  var sira = ['elmas', 'mafya', 'kral', 'ihtisam', 'karanlik', 'aslan', 'operasyon', 'vip'];
+  var html = '<div class="profil-koleksiyon-wrap">'
+    + '<p class="profil-koleksiyon-aciklama">' + escHtml(t('game.profil.collectionHint')) + '</p>';
+  sira.forEach(function(kol) {
+    var keys = gruplar[kol];
+    if (!keys || !keys.length) return;
+    var toplam = profilKoleksiyonAnahtarlari(kol).length;
+    var sahipAdet = keys.length;
+    var tamam = profilKoleksiyonTamamMi(kol, sahipSet);
+    var baslik = profilKoleksiyonBaslikMetin(kol);
+    var rozetHtml = tamam
+      ? '<span class="profil-koleksiyon-rozet" title="' + escHtml(t('game.profil.collectionCompleteBadge')) + '">'
+        + '<img src="' + escHtml(profilKoleksiyonRozetUrl(kol)) + '" alt="" loading="lazy">'
+        + '</span>'
+      : '';
+    html += '<section class="profil-koleksiyon-grup profil-koleksiyon-grup--' + kol
+      + (tamam ? ' profil-koleksiyon-grup--tamam' : '') + '">'
+      + '<div class="profil-koleksiyon-grup-ust">'
+      + '<h4 class="profil-koleksiyon-grup-baslik">' + escHtml(baslik) + '</h4>'
+      + rozetHtml
+      + '<span class="profil-koleksiyon-ilerleme">' + sahipAdet + '/' + toplam + '</span>'
+      + '</div>'
+      + '<div class="profil-koleksiyon-grid">';
+    keys.forEach(function(key) {
+      var url = profilPortreUrlFromKey(key);
+      html += '<div class="profil-koleksiyon-item" title="' + escHtml(baslik) + '">'
+        + '<img src="' + escHtml(url) + '" alt="" loading="lazy" onerror="imgFallback(this)">'
+        + '</div>';
+    });
+    html += '</div></section>';
+  });
+  html += '</div>';
+  return html;
+}
+
+function profilKoleksiyonGuncelle(sahipListe) {
+  var panel = document.getElementById('profilSekmeKoleksiyon');
+  if (!panel) return;
+  panel.innerHTML = profilKoleksiyonPanelHTML(sahipListe);
 }
 
 function profilYetenekleriGuncelle(yetenekler, aktifMeslek, ozet) {
@@ -4336,6 +4666,13 @@ function profilEkranSablonu(opts) {
   var userId = opts.userId || window.__benimUserId || 'me';
   var avatarUrl = profilResmiUrl(userId, opts.profilResmi);
   var avatarCls = profilResmiOzelMi(avatarUrl) ? ' profil-avatar-ozel' : '';
+  var vipEtiket = profilPortrePremiumMi(opts.profilResmi)
+    ? '<span class="profil-elmas-koleksiyon-etiket' + profilPortreVipEtiketCls(opts.profilResmi) + '">' + escHtml(profilPortreVipKoleksiyonBaslik(opts.profilResmi)) + '</span>'
+    : '';
+  var kutuCls = 'profil-avatar-kutu'
+    + (profilPortrePremiumMi(opts.profilResmi) ? ' profil-avatar-kutu--premium' : '')
+    + profilPortreVipKutuCls(opts.profilResmi);
+  if (profilPortrePremiumMi(opts.profilResmi)) avatarCls += ' profil-avatar-img--premium';
 
   var metaHtml = '<span id="profilKayitTarihiWrap">' + escHtml(t('game.profil.registered')) + ' <span id="profilKayitTarihi">' + escHtml(opts.kayitTarihi || '—') + '</span></span>'
     + '<span id="profilKayitUlkeWrap">' + escHtml(t('game.profil.regCountry')) + ' <span id="profilKayitUlke">' + profilLocaleMetinHtml(opts.kayitUlkesi) + '</span></span>'
@@ -4467,18 +4804,21 @@ function profilEkranSablonu(opts) {
       + '</div></div>';
   }
 
-  var sekmelerHtml = '<div class="profil-sekmeler">';
+  var sekmelerHtml = '<div class="profil-sekmeler">'
+    + '<button type="button" class="profil-sekme aktif" data-sekme="karakter" onclick="profilSekmeDegistir(\'karakter\')">' + escHtml(t('game.profil.characterTab')) + '</button>';
   if (opts.duzenlenebilir) {
-    sekmelerHtml += '<button type="button" class="profil-sekme aktif" data-sekme="karakter" onclick="profilSekmeDegistir(\'karakter\')">' + escHtml(t('game.profil.characterTab')) + '</button>'
-      + '<button type="button" class="profil-sekme" data-sekme="yetenekler" onclick="profilSekmeDegistir(\'yetenekler\')">' + escHtml(t('game.profil.skillsTab')) + '</button>';
-  } else {
-    sekmelerHtml += '<span class="profil-sekme aktif">' + escHtml(t('game.profil.characterTab')) + '</span>';
+    sekmelerHtml += '<button type="button" class="profil-sekme" data-sekme="yetenekler" onclick="profilSekmeDegistir(\'yetenekler\')">' + escHtml(t('game.profil.skillsTab')) + '</button>';
   }
-  sekmelerHtml += '</div>';
+  sekmelerHtml += '<button type="button" class="profil-sekme" data-sekme="koleksiyon" onclick="profilSekmeDegistir(\'koleksiyon\')">' + escHtml(t('game.profil.collectionTab')) + '</button>'
+    + '</div>';
 
   var yeteneklerSekmeHtml = opts.duzenlenebilir
     ? '<div id="profilSekmeYetenekler" class="profil-kart gizli">' + profilYetenekleriPanelHTML(opts.yetenekler, opts.aktifMeslek) + '</div>'
     : '';
+
+  var koleksiyonSekmeHtml = '<div id="profilSekmeKoleksiyon" class="profil-kart gizli">'
+    + profilKoleksiyonPanelHTML(opts.vipPortreSahip)
+    + '</div>';
 
   return '<div class="profil-wrap" data-profil-user="' + escHtml(String(userId)) + '" data-profil-hedef-adi="' + escHtml(opts.oyuncuAdi || '') + '" data-profil-resmi="' + escHtml(opts.profilResmi || '') + '">'
     + sekmelerHtml
@@ -4486,7 +4826,7 @@ function profilEkranSablonu(opts) {
     + '<div class="profil-ust">'
     + '<div class="profil-sol">'
     + '<h2 class="' + isimCls + '" id="profilIsimBaslik">' + isimIcerik + '</h2>'
-    + '<div class="profil-avatar-kutu"><img id="profilAvatar" class="' + avatarCls.trim() + '" src="' + escHtml(avatarUrl) + '" alt="' + escHtml(ad) + '"></div>'
+    + '<div class="' + kutuCls + '"><img id="profilAvatar" class="' + avatarCls.trim() + '" src="' + escHtml(avatarUrl) + '" alt="' + escHtml(ad) + '">' + vipEtiket + '</div>'
     + resimBtn
     + elmasBtn
     + '</div>'
@@ -4500,6 +4840,7 @@ function profilEkranSablonu(opts) {
     + altBtn
     + '</div>'
     + yeteneklerSekmeHtml
+    + koleksiyonSekmeHtml
     + '</div>';
 }
 
@@ -4656,8 +4997,17 @@ function elmasMagazaPaketKart(p) {
     if (p.hapisUyariEsik) {
       ozellikler.push(t('game.premium.benefitBaronPrisonAlert', { n: p.hapisUyariEsik }));
     }
+    ozellikler.push(t('game.premium.benefitVipBaronUsage'));
+    ozellikler.push(t('game.premium.benefitVipBaronGift'));
   } else {
     ozellikler.push(t('game.premium.benefitPrestige', { rozet: p.prestijRozet, etiket: p.prestijEtiket }));
+    if (p.id === 'tetikci') {
+      ozellikler.push(t('game.premium.benefitVipTetikciUsage'));
+      ozellikler.push(t('game.premium.benefitVipTetikciGift'));
+    } else if (p.id === 'racon') {
+      ozellikler.push(t('game.premium.benefitVipRaconUsage'));
+      ozellikler.push(t('game.premium.benefitVipRaconGift'));
+    }
   }
   var ozHtml = ozellikler.map(function (line) {
     return '<li>' + escHtml(line) + '</li>';
@@ -4854,18 +5204,141 @@ function profilResimSecenekleri(anahtarlar) {
   });
 }
 
+function profilResimVipKoleksiyonHtml(opts) {
+  opts = opts || {};
+  var gridId = opts.gridId || '';
+  var baslik = opts.baslik || t('game.profil.diamondCollection');
+  var ikon = opts.ikon || '💎';
+  var ekstraCls = opts.ekstraCls || '';
+  return '<div class="profil-elmas-koleksiyon' + (ekstraCls ? ' ' + ekstraCls : '') + '">'
+    + '<div class="profil-elmas-koleksiyon-cerceve" aria-hidden="true">'
+    + '<span class="profil-elmas-koleksiyon-kose kose-tl"></span>'
+    + '<span class="profil-elmas-koleksiyon-kose kose-tr"></span>'
+    + '<span class="profil-elmas-koleksiyon-kose kose-bl"></span>'
+    + '<span class="profil-elmas-koleksiyon-kose kose-br"></span>'
+    + '</div>'
+    + '<div class="profil-elmas-koleksiyon-baslik">'
+    + '<span class="profil-elmas-koleksiyon-ikon" aria-hidden="true">' + ikon + '</span>'
+    + '<span class="profil-elmas-koleksiyon-baslik-metin">' + escHtml(baslik) + '</span>'
+    + '<span class="profil-elmas-koleksiyon-ikon" aria-hidden="true">' + ikon + '</span>'
+    + '</div>'
+    + '<div id="' + gridId + '" class="profil-resim-grid profil-resim-grid--vip"></div>'
+    + '</div>';
+}
+
+function profilResimVipPanelHtml(panelId, elmasGridId, mafyaGridId, kralGridId, ihtisamGridId, karanlikGridId, aslanGridId, operasyonGridId, vipGridId, gizli) {
+  return '<div id="' + panelId + '" class="profil-vip-panel' + (gizli ? ' gizli' : '') + '">'
+    + profilResimVipKoleksiyonHtml({
+      gridId: elmasGridId,
+      baslik: t('game.profil.diamondCollection'),
+      ikon: '💎'
+    })
+    + profilResimVipKoleksiyonHtml({
+      gridId: mafyaGridId,
+      baslik: t('game.profil.mafiaCollection'),
+      ikon: '🔫',
+      ekstraCls: 'profil-mafya-koleksiyon'
+    })
+    + profilResimVipKoleksiyonHtml({
+      gridId: kralGridId,
+      baslik: t('game.profil.crimeKingsCollection'),
+      ikon: '👑',
+      ekstraCls: 'profil-kral-koleksiyon'
+    })
+    + profilResimVipKoleksiyonHtml({
+      gridId: ihtisamGridId,
+      baslik: t('game.profil.wealthSplendorCollection'),
+      ikon: '✨',
+      ekstraCls: 'profil-ihtisam-koleksiyon'
+    })
+    + profilResimVipKoleksiyonHtml({
+      gridId: karanlikGridId,
+      baslik: t('game.profil.darknessCollection'),
+      ikon: '🌑',
+      ekstraCls: 'profil-karanlik-koleksiyon'
+    })
+    + profilResimVipKoleksiyonHtml({
+      gridId: aslanGridId,
+      baslik: t('game.profil.easternLionsCollection'),
+      ikon: '🦁',
+      ekstraCls: 'profil-aslan-koleksiyon'
+    })
+    + profilResimVipKoleksiyonHtml({
+      gridId: operasyonGridId,
+      baslik: t('game.profil.specialOpsCollection'),
+      ikon: '⭐',
+      ekstraCls: 'profil-operasyon-koleksiyon'
+    })
+    + (vipGridId ? profilResimVipKoleksiyonHtml({
+      gridId: vipGridId,
+      baslik: t('game.profil.vipCollection'),
+      ikon: '🎩',
+      ekstraCls: 'profil-vip-koleksiyon'
+    }) : '')
+    + '</div>';
+}
+
+function vipPortreSahipMi(key) {
+  var k = profilPortreKeyNormalize(key || '');
+  return oyuncuVipPortreSahip.indexOf(k) >= 0;
+}
+
+function vipPortreHediyeSecilebilirMi(key) {
+  var kol = profilPortreVipKoleksiyonu(key);
+  return !!kol && oyuncuVipPortreHediyeKoleksiyonlari.indexOf(kol) >= 0;
+}
+
+function vipPortreUyelikAcikMi() {
+  return !!oyuncuVipPortreUyelikAcik || (oyuncuVipPortreUyelikKoleksiyonlari || []).length > 0;
+}
+
+function vipPortreUyelikKoleksiyonAcikMi(key) {
+  var kol = profilPortreVipKoleksiyonu(key);
+  return !!kol && (oyuncuVipPortreUyelikKoleksiyonlari || []).indexOf(kol) >= 0;
+}
+
+function vipPortreKilitliMi(key) {
+  if (!profilPortreVipListesindeMi(key)) return false;
+  if (vipPortreSahipMi(key)) return false;
+  if (vipPortreUyelikKoleksiyonAcikMi(key)) return false;
+  return true;
+}
+
 function profilResimGridHtml(anahtarlar, aktifKey) {
   var normAktif = profilPortreKeyNormalize(aktifKey);
-  return profilResimSecenekleri(anahtarlar).map(function(s) {
+  var liste = profilResimSecenekleri(anahtarlar || []);
+  if (!liste.length) {
+    return '<p class="profil-resim-bos">' + escHtml(t('game.profil.vipPhotosSoon')) + '</p>';
+  }
+  return liste.map(function(s) {
     var secili = normAktif === s.key;
-    return '<button type="button" class="profil-resim-secenek' + (secili ? ' secili' : '') + '" data-url="' + escHtml(s.url) + '" data-key="' + escHtml(s.key) + '" onclick="profilResmiUygula(this)">'
+    var vip = profilPortreVipListesindeMi(s.key);
+    var kilitli = vip && vipPortreKilitliMi(s.key);
+    var kalici = vip && vipPortreSahipMi(s.key);
+    var hediye = vip && !kalici && vipPortreHediyeSecilebilirMi(s.key);
+    var cls = 'profil-resim-secenek'
+      + (secili ? ' secili' : '')
+      + (kilitli ? ' profil-resim-secenek--kilitli' : '')
+      + (kalici ? ' profil-resim-secenek--kalici' : '')
+      + (hediye ? ' profil-resim-secenek--hediye' : '');
+    var badge = '';
+    if (kalici) badge = '<span class="profil-resim-badge profil-resim-badge--kalici">' + escHtml(t('game.profil.vipPermanentBadge')) + '</span>';
+    else if (hediye) badge = '<span class="profil-resim-badge profil-resim-badge--hediye">' + escHtml(t('game.profil.vipGiftBadge')) + '</span>';
+    else if (kilitli) badge = '<span class="profil-resim-badge profil-resim-badge--kilit" aria-hidden="true">🔒</span>';
+    return '<button type="button" class="' + cls + '" data-url="' + escHtml(s.url) + '" data-key="' + escHtml(s.key) + '"'
+      + (kilitli ? ' aria-disabled="true"' : '')
+      + ' onclick="profilResmiUygula(this)">'
       + '<img src="' + escHtml(s.url) + '" alt="Portre">'
+      + badge
       + '</button>';
   }).join('');
 }
 
 function profilResimSekmeDegistir(sekme) {
-  profilResimAktifSekme = sekme === 'erkek' ? 'erkek' : 'kadin';
+  if (sekme === 'erkek') profilResimAktifSekme = 'erkek';
+  else if (sekme === 'vip-erkek') profilResimAktifSekme = 'vip-erkek';
+  else if (sekme === 'vip-kadin') profilResimAktifSekme = 'vip-kadin';
+  else profilResimAktifSekme = 'kadin';
   var modal = document.getElementById('profilResimModal');
   if (!modal) return;
   modal.querySelectorAll('.profil-resim-sekme').forEach(function(btn) {
@@ -4873,12 +5346,20 @@ function profilResimSekmeDegistir(sekme) {
   });
   var kadinGrid = document.getElementById('profilResimGridKadin');
   var erkekGrid = document.getElementById('profilResimGridErkek');
+  var vipErkekPanel = document.getElementById('profilResimVipErkekPanel');
+  var vipKadinPanel = document.getElementById('profilResimVipKadinPanel');
   if (kadinGrid) kadinGrid.classList.toggle('gizli', profilResimAktifSekme !== 'kadin');
   if (erkekGrid) erkekGrid.classList.toggle('gizli', profilResimAktifSekme !== 'erkek');
+  if (vipErkekPanel) vipErkekPanel.classList.toggle('gizli', profilResimAktifSekme !== 'vip-erkek');
+  if (vipKadinPanel) vipKadinPanel.classList.toggle('gizli', profilResimAktifSekme !== 'vip-kadin');
 }
 
 function profilResmiSecModal() {
   var modal = document.getElementById('profilResimModal');
+  if (modal && (!document.getElementById('profilResimGridVipErkekOperasyon') || !document.getElementById('profilResimGridVipErkekVip') || !document.getElementById('profilResimGridVipKadinVip'))) {
+    modal.remove();
+    modal = null;
+  }
   if (!modal) {
     modal = document.createElement('div');
     modal.id = 'profilResimModal';
@@ -4889,9 +5370,13 @@ function profilResmiSecModal() {
       + '<div class="profil-resim-sekmeler">'
       + '<button type="button" class="profil-resim-sekme aktif" data-sekme="kadin" onclick="profilResimSekmeDegistir(\'kadin\')">' + escHtml(t('game.profil.female')) + '</button>'
       + '<button type="button" class="profil-resim-sekme" data-sekme="erkek" onclick="profilResimSekmeDegistir(\'erkek\')">' + escHtml(t('game.profil.male')) + '</button>'
+      + '<button type="button" class="profil-resim-sekme profil-resim-sekme--vip" data-sekme="vip-erkek" onclick="profilResimSekmeDegistir(\'vip-erkek\')">' + escHtml(t('game.profil.vipMale')) + '</button>'
+      + '<button type="button" class="profil-resim-sekme profil-resim-sekme--vip" data-sekme="vip-kadin" onclick="profilResimSekmeDegistir(\'vip-kadin\')">' + escHtml(t('game.profil.vipFemale')) + '</button>'
       + '</div>'
       + '<div id="profilResimGridKadin" class="profil-resim-grid"></div>'
       + '<div id="profilResimGridErkek" class="profil-resim-grid gizli"></div>'
+      + profilResimVipPanelHtml('profilResimVipErkekPanel', 'profilResimGridVipErkekElmas', 'profilResimGridVipErkekMafya', 'profilResimGridVipErkekKral', 'profilResimGridVipErkekIhtisam', 'profilResimGridVipErkekKaranlik', 'profilResimGridVipErkekAslan', 'profilResimGridVipErkekOperasyon', 'profilResimGridVipErkekVip', true)
+      + profilResimVipPanelHtml('profilResimVipKadinPanel', 'profilResimGridVipKadinElmas', 'profilResimGridVipKadinMafya', 'profilResimGridVipKadinKral', 'profilResimGridVipKadinIhtisam', 'profilResimGridVipKadinKaranlik', 'profilResimGridVipKadinAslan', 'profilResimGridVipKadinOperasyon', 'profilResimGridVipKadinVip', true)
       + '<button type="button" class="profil-resim-modal-kapat" onclick="profilResmiModalKapat()">' + escHtml(t('game.welcome.close')) + '</button>'
       + '</div>';
     document.body.appendChild(modal);
@@ -4905,8 +5390,40 @@ function profilResmiSecModal() {
   var aktifKey = optsProfilResmiKey(userId);
   var kadinGrid = document.getElementById('profilResimGridKadin');
   var erkekGrid = document.getElementById('profilResimGridErkek');
+  var vipErkekElmas = document.getElementById('profilResimGridVipErkekElmas');
+  var vipErkekMafya = document.getElementById('profilResimGridVipErkekMafya');
+  var vipErkekKral = document.getElementById('profilResimGridVipErkekKral');
+  var vipErkekIhtisam = document.getElementById('profilResimGridVipErkekIhtisam');
+  var vipErkekKaranlik = document.getElementById('profilResimGridVipErkekKaranlik');
+  var vipErkekAslan = document.getElementById('profilResimGridVipErkekAslan');
+  var vipErkekOperasyon = document.getElementById('profilResimGridVipErkekOperasyon');
+  var vipErkekVip = document.getElementById('profilResimGridVipErkekVip');
+  var vipKadinElmas = document.getElementById('profilResimGridVipKadinElmas');
+  var vipKadinMafya = document.getElementById('profilResimGridVipKadinMafya');
+  var vipKadinKral = document.getElementById('profilResimGridVipKadinKral');
+  var vipKadinIhtisam = document.getElementById('profilResimGridVipKadinIhtisam');
+  var vipKadinKaranlik = document.getElementById('profilResimGridVipKadinKaranlik');
+  var vipKadinAslan = document.getElementById('profilResimGridVipKadinAslan');
+  var vipKadinOperasyon = document.getElementById('profilResimGridVipKadinOperasyon');
+  var vipKadinVip = document.getElementById('profilResimGridVipKadinVip');
   if (kadinGrid) kadinGrid.innerHTML = profilResimGridHtml(KADIN_PORTRE_ANAHTARLARI, aktifKey);
   if (erkekGrid) erkekGrid.innerHTML = profilResimGridHtml(ERKEK_PORTRE_ANAHTARLARI, aktifKey);
+  if (vipErkekElmas) vipErkekElmas.innerHTML = profilResimGridHtml(VIP_ERKEK_ELMAS_PORTRE_ANAHTARLARI, aktifKey);
+  if (vipErkekMafya) vipErkekMafya.innerHTML = profilResimGridHtml(VIP_ERKEK_MAFYA_PORTRE_ANAHTARLARI, aktifKey);
+  if (vipErkekKral) vipErkekKral.innerHTML = profilResimGridHtml(VIP_ERKEK_KRAL_PORTRE_ANAHTARLARI, aktifKey);
+  if (vipErkekIhtisam) vipErkekIhtisam.innerHTML = profilResimGridHtml(VIP_ERKEK_IHTISAM_PORTRE_ANAHTARLARI, aktifKey);
+  if (vipErkekKaranlik) vipErkekKaranlik.innerHTML = profilResimGridHtml(VIP_ERKEK_KARANLIK_PORTRE_ANAHTARLARI, aktifKey);
+  if (vipErkekAslan) vipErkekAslan.innerHTML = profilResimGridHtml(VIP_ERKEK_ASLAN_PORTRE_ANAHTARLARI, aktifKey);
+  if (vipErkekOperasyon) vipErkekOperasyon.innerHTML = profilResimGridHtml(VIP_ERKEK_OPERASYON_PORTRE_ANAHTARLARI, aktifKey);
+  if (vipErkekVip) vipErkekVip.innerHTML = profilResimGridHtml(VIP_ERKEK_VIP_PORTRE_ANAHTARLARI, aktifKey);
+  if (vipKadinElmas) vipKadinElmas.innerHTML = profilResimGridHtml(VIP_KADIN_ELMAS_PORTRE_ANAHTARLARI, aktifKey);
+  if (vipKadinMafya) vipKadinMafya.innerHTML = profilResimGridHtml(VIP_KADIN_MAFYA_PORTRE_ANAHTARLARI, aktifKey);
+  if (vipKadinKral) vipKadinKral.innerHTML = profilResimGridHtml(VIP_KADIN_KRAL_PORTRE_ANAHTARLARI, aktifKey);
+  if (vipKadinIhtisam) vipKadinIhtisam.innerHTML = profilResimGridHtml(VIP_KADIN_IHTISAM_PORTRE_ANAHTARLARI, aktifKey);
+  if (vipKadinKaranlik) vipKadinKaranlik.innerHTML = profilResimGridHtml(VIP_KADIN_KARANLIK_PORTRE_ANAHTARLARI, aktifKey);
+  if (vipKadinAslan) vipKadinAslan.innerHTML = profilResimGridHtml(VIP_KADIN_ASLAN_PORTRE_ANAHTARLARI, aktifKey);
+  if (vipKadinOperasyon) vipKadinOperasyon.innerHTML = profilResimGridHtml(VIP_KADIN_OPERASYON_PORTRE_ANAHTARLARI, aktifKey);
+  if (vipKadinVip) vipKadinVip.innerHTML = profilResimGridHtml(VIP_KADIN_VIP_PORTRE_ANAHTARLARI, aktifKey);
   profilResimSekmeDegistir(profilPortreSekmesi(aktifKey));
   modal.classList.remove('gizli');
 }
@@ -4926,11 +5443,28 @@ async function profilResmiUygula(btn) {
   if (!btn) return;
   var key = btn.getAttribute('data-key');
   if (!key) return;
+
+  if (vipPortreKilitliMi(key)) {
+    toast(t('game.profil.vipLockedToast'), 'hata');
+    elmasMagazaAc();
+    return;
+  }
+
+  var kaliciSec = false;
+  if (profilPortreVipListesindeMi(key) && !vipPortreSahipMi(key) && vipPortreHediyeSecilebilirMi(key)) {
+    var onay = window.confirm(t('game.profil.vipPermanentConfirm'));
+    if (onay) {
+      kaliciSec = true;
+    } else if (!vipPortreUyelikKoleksiyonAcikMi(key)) {
+      return;
+    }
+  }
+
   var kayitliKey = key;
   try {
     var res = await apiFetch('/api/profile', {
       method: 'POST',
-      body: { profilResmi: key }
+      body: { profilResmi: key, vipKaliciSec: kaliciSec }
     });
     var data = await res.json().catch(function() { return {}; });
     if (!res.ok || !data.ok) {
@@ -4948,10 +5482,14 @@ async function profilResmiUygula(btn) {
     img.src = profilPortreUrlFromKey(kayitliKey);
     img.classList.add('profil-avatar-ozel');
   }
+  profilAvatarKutuGuncelle(kayitliKey);
   var wrap = document.querySelector('.profil-wrap');
   if (wrap) wrap.setAttribute('data-profil-resmi', kayitliKey);
   profilResmiModalKapat();
-  toast(t('game.toast.profilePhotoUpdated'), 'basari');
+  toast(
+    kaliciSec ? t('game.profil.vipPermanentSaved') : t('game.toast.profilePhotoUpdated'),
+    'basari'
+  );
 }
 
 function escHtml(s) {
@@ -5501,8 +6039,10 @@ async function gazeteEkranCiz(ic) {
     var kabusHtml = '';
     if (data.gunlukKabus && data.gunlukKabus.isim) {
       var kabus = data.gunlukKabus;
+      var kabusAvatarUrl = profilResmiUrl(kabus.userId, kabus.profilResmi);
+      var kabusAvatarCls = profilResmiOzelMi(kabusAvatarUrl) ? ' gazete-manset-img--ozel' : '';
       kabusHtml = '<article class="gazete-manset gazete-manset--kabus">'
-        + '<div class="gazete-manset-sol gazete-manset-sol--tam">'
+        + '<div class="gazete-manset-sol">'
         + '<span class="gazete-etiket gazete-etiket--kabus">' + escHtml(t('game.gazete.dailyHeadline')) + '</span>'
         + '<h2 class="gazete-manset-baslik gazete-manset-baslik--kabus">' + metindeIsimLinkleri(t('game.gazete.news.kabusHeadline', { name: kabus.isim }), oyuncular) + '</h2>'
         + '<p class="gazete-manset-metin">' + metindeIsimLinkleri(t('game.gazete.news.kabusBody', {
@@ -5510,6 +6050,9 @@ async function gazeteEkranCiz(ic) {
           icraat: fmt(kabus.icraatIs || kabus.icraat || 0),
           sayginlik: fmt(kabus.sayginlik || 0)
         }), oyuncular) + '</p>'
+        + '</div>'
+        + '<div class="gazete-manset-sag gazete-manset-sag--kabus">'
+        + '<img src="' + escHtml(kabusAvatarUrl) + '" class="gazete-manset-img gazete-manset-img--profil' + kabusAvatarCls + '" alt="' + escHtml(kabus.isim) + '" loading="lazy" onerror="imgFallback(this)">'
         + '</div></article>';
     }
 
@@ -5942,6 +6485,7 @@ function ekranDegistir(tip) {
       sehreHukmeden: sehreHukmeden,
       yetenekler: oyuncuYetenekler,
       aktifMeslek: oyuncuAktifMeslek,
+      vipPortreSahip: oyuncuVipPortreSahip,
       icraatKalan: profilSureFormat(profilIcraatKalanSn(
         oyuncuIcraat,
         oyuncuLastIcraatAt,
@@ -7459,6 +8003,7 @@ async function profilYukle() {
       avatar.classList.toggle('profil-avatar-ozel', profilResmiOzelMi(url));
     }
     if (p.profilResmi) oyuncuProfilResmi = profilPortreKeyNormalize(p.profilResmi);
+    profilAvatarKutuGuncelle(p.profilResmi || oyuncuProfilResmi);
     var wrap = document.querySelector('.profil-wrap');
     if (wrap && p.profilResmi) wrap.setAttribute('data-profil-resmi', p.profilResmi);
 
@@ -7470,6 +8015,10 @@ async function profilYukle() {
     if (p.icraatRegenSec != null) oyuncuIcraatRegenSec = p.icraatRegenSec;
     if (p.icraatSaatlikBonus != null) oyuncuIcraatSaatlikBonus = p.icraatSaatlikBonus;
     profilYetenekleriGuncelle(p.yetenekler, p.aktifMeslek, p.yetenekOzeti);
+    if (Array.isArray(p.vipPortreSahip)) {
+      oyuncuVipPortreSahip = p.vipPortreSahip.slice();
+      profilKoleksiyonGuncelle(oyuncuVipPortreSahip);
+    }
     arayuzGuncelle();
     profilIcraatTimerBaslat(
       p.icraat != null ? p.icraat : oyuncuIcraat,
@@ -7610,6 +8159,7 @@ async function profilKaydet() {
       avatar.src = profilPortreUrlFromKey(oyuncuProfilResmi);
       avatar.classList.add('profil-avatar-ozel');
     }
+    profilAvatarKutuGuncelle(oyuncuProfilResmi);
     if (wrap && oyuncuProfilResmi) wrap.setAttribute('data-profil-resmi', oyuncuProfilResmi);
     toast(t('game.toast.profileSaved'), 'basari');
   } catch (_) {
@@ -7771,8 +8321,10 @@ async function oyuncuProfilGoster(userId) {
       karaListede: p.karaListede,
       mafyaDavetGoster: p.mafyaDavetGoster,
       mafyaDavetBekliyor: p.mafyaDavetBekliyor,
-      isDurumu: p.isDurumu
+      isDurumu: p.isDurumu,
+      vipPortreSahip: p.vipPortreSahip || []
     });
+    profilAktifSekme = 'karakter';
     await profilSiralamaAlanlariGuncelle(p);
     profilLocaleAlanGuncelle(p);
     profilAciklamaGosterUygula(p.aciklama);
@@ -8116,7 +8668,7 @@ async function mafyaSohbetCiz(ic) {
       mafyaSohbetGovdeHTML(data.liste)
     );
     var liste = document.getElementById('sohbetListe');
-    if (liste) liste.scrollTop = liste.scrollHeight;
+    if (liste) liste.scrollTop = 0;
   } catch (e) {
     ic.innerHTML = sbSayfaKabuk(
       sohbetGorseller.mafyaMasa,

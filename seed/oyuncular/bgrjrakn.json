@@ -5,7 +5,7 @@
   "lakap": "Mafya",
   "force_restore": true,
   "player": {
-    "kasa": 114111,
+    "kasa": 119711,
     "guc": 24225,
     "puan": 3103,
     "icraat": 1004,
@@ -108,11 +108,11 @@
     "guc": 9,
     "zeka": 8,
     "dayaniklilik": 8,
-    "beceri": 11
+    "beceri": 15
   },
   "meslek": {
     "meslek_id": "cafe_stajyer",
     "ise_baslama": 1783655503,
-    "son_gelir_gunu": "2026-07-12"
+    "son_gelir_gunu": "2026-07-16"
   }
 }

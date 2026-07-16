@@ -138,6 +138,12 @@ async function getGunlukKabusManset(db) {
     const icraatIs = data.icraatIs ?? data.icraat ?? 0;
     const sayginlik = data.sayginlik || 0;
     const haber = kabusHaberMetni(data.isim, sayginlik, icraatIs);
+    let profilResmi = "";
+    if (data.userId) {
+      await ensureGazetePlayerColumns(db);
+      const p = await get(db, `SELECT profil_resmi FROM players WHERE user_id = ?`, [data.userId]);
+      profilResmi = p?.profil_resmi || "";
+    }
     return {
       gunKey: data.gunKey || dun,
       userId: data.userId,
@@ -148,6 +154,7 @@ async function getGunlukKabusManset(db) {
       icraat: data.icraat || 0,
       icraatIs,
       puan: data.puan || 0,
+      profilResmi,
     };
   } catch {
     return null;

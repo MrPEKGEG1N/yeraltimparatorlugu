@@ -14,6 +14,9 @@ const HAPIS_IZINLI_AKSIYONLAR = new Set([
   "hapishane_oyuncu_cikar",
   "hapishane_oyuncu_elmas_cikar",
   "hapishane_hedef_bilgi",
+  // Hapisteyken ilişki düzeltilebilsin (çıkınca eşik yüzünden tekrar hapse düşmesin)
+  "rusvet_ver",
+  "rusvet_elmas_ver",
 ]);
 
 async function ensureHapisColumn(db) {
@@ -99,16 +102,16 @@ async function devletDususundeHapseGir(db, userId, onceki, yeni) {
 async function hapisKontrol(db, userId) {
   await hapisSureTemizle(db, userId);
   const devlet = await getDevletIliskisi(db, userId);
-  if (devlet < HAPSE_GIR_ESIK && !(await hapisAktifMi(db, userId))) {
-    await hapseGir(db, userId);
-  }
+  // Hapse giriş yalnızca eşik altına DÜŞÜŞTE (devletDususundeHapseGir) veya olaylarla olur.
+  // İlişki hâlâ düşükken yeniden hapse atma — parayla/elmasla/süreyle çıkan oyuncu
+  // avukata rüşvet veremeden tekrar hapse girerdi (kısır döngü).
   if (await hapisAktifMi(db, userId)) {
     const bitis = await hapisBitisOku(db, userId);
     const kalan = Math.max(0, bitis - simdiSn());
     return {
       ok: false,
       error:
-        "Hapistesin! İcraat yapamaz ve faaliyette bulunamazsın. Gardiyanlara rüşvet ver, elmas kullan veya sürenin dolmasını bekle.",
+        "Hapistesin! İcraat yapamaz ve faaliyette bulunamazsın. Gardiyanlara rüşvet ver, elmas kullan, avukat ilişkini düzelt veya sürenin dolmasını bekle.",
       hapis: true,
       hapisBitisAt: bitis,
       hapisKalanSn: kalan,

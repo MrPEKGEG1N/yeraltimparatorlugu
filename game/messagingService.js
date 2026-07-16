@@ -347,19 +347,18 @@ async function mafyaSohbetListe(db, limit = 60) {
      LIMIT ?`,
     [limit]
   );
-  return rows
-    .reverse()
-    .map((r) => ({
-      id: r.id,
-      userId: r.user_id,
-      reisAdi: r.reis_adi,
-      profilResmi: r.profil_resmi || "",
-      premiumPaket: r.premium_paket || "",
-      mesaj: r.mesaj,
-      tarih: new Date(r.created_at * 1000).toLocaleString("tr-TR", {
-        timeZone: "Europe/Istanbul",
-      }),
-    }));
+  // En yeni mesaj en üstte (ORDER BY created_at DESC)
+  return rows.map((r) => ({
+    id: r.id,
+    userId: r.user_id,
+    reisAdi: r.reis_adi,
+    profilResmi: r.profil_resmi || "",
+    premiumPaket: r.premium_paket || "",
+    mesaj: r.mesaj,
+    tarih: new Date(r.created_at * 1000).toLocaleString("tr-TR", {
+      timeZone: "Europe/Istanbul",
+    }),
+  }));
 }
 
 async function mafyaGrupMesajGonder(db, userId, metin, grupIdOverride, parentMesajId) {

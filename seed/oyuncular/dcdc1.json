@@ -5,12 +5,12 @@
   "lakap": "Mafya",
   "force_restore": true,
   "player": {
-    "kasa": 1692458037,
+    "kasa": 1692466437,
     "guc": 105200,
     "puan": 182434,
     "icraat": 16373,
     "sms_hakki": 250,
-    "elmas": 0,
+    "elmas": 114,
     "kara_listede": 0,
     "sehir_efsane": 0,
     "sehre_hukmet_sayisi": 0,
@@ -108,11 +108,11 @@
     "guc": 9,
     "zeka": 9,
     "dayaniklilik": 9,
-    "beceri": 19
+    "beceri": 23
   },
   "meslek": {
     "meslek_id": "fastfood_mutfak",
     "ise_baslama": 1783017986,
-    "son_gelir_gunu": "2026-07-12"
+    "son_gelir_gunu": "2026-07-16"
   }
 }

@@ -216,6 +216,13 @@ function createGameRouter(db) {
         }
       }
 
+      let vipPortreSahip = [];
+      try {
+        const { getVipPortreDurum } = require("../game/vipPortreService");
+        const durum = await getVipPortreDurum(db, targetId);
+        vipPortreSahip = durum.sahip || [];
+      } catch (_) {}
+
       res.json({
         ok: true,
         profil: {
@@ -249,6 +256,7 @@ function createGameRouter(db) {
           isDurumu,
           mafyaDavetGoster,
           mafyaDavetBekliyor,
+          vipPortreSahip,
         },
       });
     } catch (err) {
@@ -263,6 +271,16 @@ function createGameRouter(db) {
       const portre = body.profilResmi != null ? gecerliProfilResmi(body.profilResmi) : null;
       if (body.profilResmi != null && !portre) {
         return res.status(400).json({ ok: false, error: "Geçersiz profil resmi." });
+      }
+
+      if (portre) {
+        const { vipPortreEquipKontrol } = require("../game/vipPortreService");
+        const izin = await vipPortreEquipKontrol(db, req.user.id, portre, {
+          kaliciSec: !!body.vipKaliciSec,
+        });
+        if (!izin.ok) {
+          return res.status(400).json({ ok: false, error: izin.error });
+        }
       }
 
       const sadeceResim =
@@ -304,7 +322,11 @@ function createGameRouter(db) {
       }
       const player = await loadPlayer(db, req.user.id);
       const full = await publicPlayerFull(db, req.user.id, player);
-      res.json({ ok: true, player: full });
+      res.json({
+        ok: true,
+        player: full,
+        vipKaliciYapildi: !!(portre && body.vipKaliciSec),
+      });
     } catch (err) {
       console.error(err);
       res.status(500).json({ ok: false, error: "Profil kaydedilemedi." });
