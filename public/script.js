@@ -30,6 +30,7 @@ var oyuncuElmasParaBirimi = 'TRY';
 var oyuncuIcraatPaket = null;
 var oyuncuSmsSinirsiz = false;
 var bankaHakSinirsiz = false;
+var bankaFaizOran = 0.005;
 var saatlikKazanc = 0;
 var karaListede = false;
 var sehirEfsane = false;
@@ -248,6 +249,8 @@ function oyuncuUygula(p, secenekler) {
   oyuncuIcraatPaket = p.icraatPaket || oyuncuIcraatPaket;
   oyuncuSmsSinirsiz = !!p.smsSinirsiz;
   bankaHakSinirsiz = !!p.bankaHakSinirsiz;
+  if (p.faizOran != null) bankaFaizOran = Number(p.faizOran);
+  else if (p.premiumBonuses && p.premiumBonuses.faizOran != null) bankaFaizOran = Number(p.premiumBonuses.faizOran);
   saatlikKazanc = p.saatlikKazanc || 0;
   sektorSahiplik = p.sektorSahiplik || {};
   rusvetBilgi = p.rusvet || rusvetBilgi;
@@ -2654,7 +2657,7 @@ function bankaPanelHTML() {
     + '<span class="banka-kasa-not">' + escHtml(t('game.bank.rightsNote')) + ' <b style="color:#ffd76a;">' + fmtSinirsiz(bankaHakki, bankaHakSinirsiz) + '</b> <span style="color:#777;">' + escHtml(t('game.bank.rightsHelp')) + '</span></span>'
     + '</div>'
     + '<div class="banka-bilgi-kart">'
-    + '<p>' + t('game.bank.interestInfo') + '</p>'
+    + '<p>' + t('game.bank.interestInfo', { n: (Math.round((bankaFaizOran || 0.005) * 1000) / 10) }) + '</p>'
     + '<p style="margin-top:8px;color:#888;">' + escHtml(t('game.bank.limitInfo')) + '</p>'
     + '</div>'
     + '<div class="banka-islem-ust">'
@@ -4642,7 +4645,9 @@ function elmasMagazaPaketKart(p) {
   else ozellikler.push(t('game.premium.benefitSms', { n: p.smsGunluk }));
   if (p.bankaHakSinirsiz) ozellikler.push(t('game.premium.benefitBankUnlimited'));
   else ozellikler.push(t('game.premium.benefitBank', { n: p.bankaHakGunluk }));
-  ozellikler.push(t('game.premium.benefitFaiz', { n: p.faizYuzde }));
+  if (p.faizYuzde != null && p.faizYuzde > 0) {
+    ozellikler.push(t('game.premium.benefitFaiz', { n: p.faizYuzde }));
+  }
   if (p.mekanGelirBonusYuzde > 0) {
     ozellikler.push(t('game.premium.benefitMekan', { n: p.mekanGelirBonusYuzde }));
   }
@@ -4717,9 +4722,9 @@ function elmasMagazaIcerikHtml() {
   var paketler = oyuncuPremiumMagaza && oyuncuPremiumMagaza.length
     ? oyuncuPremiumMagaza
     : [
-      { id: 'tetikci', baslik: 'Tetikçi Paketi', altBaslik: 'Gözü Kara Başlangıç', elmasMaliyet: 100, tlOrtalama: 75, icraatSaatlik: 35, smsGunluk: 75, bankaHakGunluk: 30, faizYuzde: 1.5, mekanGelirBonusYuzde: 0, prestijRozet: '🥉', prestijEtiket: 'Bronz Kurşun' },
-      { id: 'racon', baslik: 'Racon Paketi', altBaslik: 'Sözü Geçenler İçin', elmasMaliyet: 250, tlOrtalama: 175, icraatSaatlik: 50, smsGunluk: 100, bankaHakGunluk: 50, faizYuzde: 2, mekanGelirBonusYuzde: 10, prestijRozet: '🥈', prestijEtiket: 'Gümüş Şarjör' },
-      { id: 'baron', baslik: 'Baron / Hükümdar Paketi', altBaslik: 'Yeraltının Tek Sahibi', elmasMaliyet: 600, tlOrtalama: 320, icraatSaatlik: 75, smsSinirsiz: true, bankaHakSinirsiz: true, faizYuzde: 2.5, mekanGelirBonusYuzde: 20, hapisUyariEsik: 30, prestijRozet: '👑', prestijEtiket: 'Altın Taç' }
+      { id: 'tetikci', baslik: 'Tetikçi Paketi', altBaslik: 'Gözü Kara Başlangıç', elmasMaliyet: 100, tlOrtalama: 75, icraatSaatlik: 35, smsGunluk: 75, bankaHakGunluk: 30, faizYuzde: null, mekanGelirBonusYuzde: 0, prestijRozet: '🥉', prestijEtiket: 'Bronz Kurşun' },
+      { id: 'racon', baslik: 'Racon Paketi', altBaslik: 'Sözü Geçenler İçin', elmasMaliyet: 250, tlOrtalama: 175, icraatSaatlik: 45, smsGunluk: 100, bankaHakGunluk: 50, faizYuzde: 1, mekanGelirBonusYuzde: 5, prestijRozet: '🥈', prestijEtiket: 'Gümüş Şarjör' },
+      { id: 'baron', baslik: 'Baron / Hükümdar Paketi', altBaslik: 'Yeraltının Tek Sahibi', elmasMaliyet: 600, tlOrtalama: 320, icraatSaatlik: 60, smsSinirsiz: true, bankaHakSinirsiz: true, faizYuzde: 1.5, mekanGelirBonusYuzde: 10, hapisUyariEsik: 30, prestijRozet: '👑', prestijEtiket: 'Altın Taç' }
     ];
   var aktifPaket = (oyuncuPremiumMagaza || []).find(function (p) { return p.id === oyuncuPremiumPaket; });
   var aktifMetin = oyuncuPremiumPaket && oyuncuPremiumKalanSn > 0

@@ -186,7 +186,7 @@ module.exports = {
   "game.bank.cashNote": ["Kasandaki nakit:", "Cash on hand:"],
   "game.bank.rightsNote": ["Banka hakkı:", "Bank rights:"],
   "game.bank.rightsHelp": ["(Her 24 saatte +20)", "(+20 every 24 hours)"],
-  "game.bank.interestInfo": ["Saat <b>18:00</b>'a kadar bankaya yatırılan para faiz işler. Ertesi gün saat <b>10:00</b>'da miktarın <b>%1</b>'i kadar faiz kazanırsın. Paranı dilediğin zaman çekebilirsin.", "Money deposited before <b>18:00</b> earns interest. Next day at <b>10:00</b> you earn <b>1%</b> interest. Withdraw anytime."],
+  "game.bank.interestInfo": ["Saat <b>18:00</b>'a kadar bankaya yatırılan para faiz işler. Ertesi gün saat <b>10:00</b>'da miktarın <b>%{n}</b>'i kadar faiz kazanırsın. Paranı dilediğin zaman çekebilirsin.", "Money deposited before <b>18:00</b> earns interest. Next day at <b>10:00</b> you earn <b>{n}%</b> interest. Withdraw anytime."],
   "game.bank.limitInfo": ["Günlük para yatırma ve çekme limiti banka hakkınla sınırlıdır (her işlem 1 hak).", "Daily deposit/withdrawal limit equals bank rights (1 right per transaction)."],
   "game.bank.depositTitle": ["Para Yatır", "Deposit"],
   "game.bank.depositDesc": ["Kazanmak için cesaretini yatır. Kasandaki paran bankaya aktarılır.", "Deposit your courage to earn. Cash moves to the bank."],

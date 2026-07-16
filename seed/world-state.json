@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "exportedAt": 1784155148,
+  "exportedAt": 1784159634,
   "piyango": {
     "jackpot_birikim": 1800000,
     "acikCekilis": {
-      "id": 5,
-      "donem": "2026-07-13T2030",
+      "id": 6,
+      "donem": "2026-07-17T2030",
       "durum": "acik",
       "havuz_toplam": 0,
       "odul_toplam": 0,

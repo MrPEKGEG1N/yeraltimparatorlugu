@@ -106,16 +106,27 @@ async function main() {
     PREMIUM_PAKETLER,
   } = require("../game/premiumService");
 
-  assert(paketTanim("tetikci").faizOran === 0.015, "tetikci faiz %1.5 olmalı");
-  assert(paketTanim("racon").faizOran === 0.02, "racon faiz %2 olmalı");
-  assert(paketTanim("baron").faizOran === 0.025, "baron faiz %2.5 olmalı");
+  assert(paketTanim("racon").icraatSaatlik === 45, "racon icraat saatlik 45 olmalı");
+  assert(paketTanim("baron").icraatSaatlik === 60, "baron icraat saatlik 60 olmalı");
+  assert(paketTanim("tetikci").icraatSaatlik === 35, "tetikci icraat saatlik değişmemeli");
+
+  assert(paketTanim("tetikci").faizOran == null, "tetikci banka faizi olmamalı");
+  assert(paketTanim("racon").faizOran === 0.01, "racon faiz %1 olmalı");
+  assert(paketTanim("baron").faizOran === 0.015, "baron faiz %1.5 olmalı");
+
+  const { FAIZ_ORAN } = require("../game/bankaService");
+  assert(FAIZ_ORAN === 0.005, "taban faiz %0.5 olmalı");
 
   const sonuc = await premiumSatinAl(db, 1, "tetikci");
   assert(sonuc.ok, "tetikci satın alma başarısız: " + (sonuc.error || ""));
   const bonuses = await getPremiumBonuses(db, 1);
   assert(bonuses.paket === "tetikci", "aktif paket tetikci değil");
-  assert(bonuses.faizOran === 0.015, "faiz oranı uygulanmadı");
+  assert(bonuses.faizOran === 0.005, "tetikci taban faiz %0.5 kullanmalı");
   assert(bonuses.icraatSaatlik === 35, "icraat saatlik bonusu yanlış");
+  assert(bonuses.smsGunluk === 75, "tetikci SMS günlük 75 olmalı");
+  assert(bonuses.bankaHakGunluk === 30, "tetikci banka hakkı 30 olmalı");
+  assert(!bonuses.smsSinirsiz && !bonuses.bankaHakSinirsiz, "tetikci sınırsız olmamalı");
+  assert(bonuses.mekanGelirBonus === 0, "tetikci mekan geliri 0 olmalı");
 
   const sms = await get(db, `SELECT sms_hakki FROM players WHERE user_id = 1`);
   assert(sms.sms_hakki >= 75, "SMS hakkı hemen yükselmedi: " + sms.sms_hakki);
@@ -131,29 +142,44 @@ async function main() {
   const racon = await premiumSatinAl(db, 1, "racon");
   assert(racon.ok, "racon yükseltme başarısız");
   const raconBonus = await getPremiumBonuses(db, 1);
-  assert(raconBonus.faizOran === 0.02, "racon faiz %2 değil");
+  assert(raconBonus.faizOran === 0.01, "racon faiz %1 değil");
+  assert(raconBonus.icraatSaatlik === 45, "racon icraat 45 değil");
+  assert(raconBonus.smsGunluk === 100, "racon SMS 100 değil");
+  assert(raconBonus.bankaHakGunluk === 50, "racon banka hakkı 50 değil");
+  assert(Math.abs(raconBonus.mekanGelirBonus - 0.05) < 0.0001, "racon mekan +%5 değil");
   const sms2 = await get(db, `SELECT sms_hakki FROM players WHERE user_id = 1`);
   assert(sms2.sms_hakki >= 100, "racon SMS yükseltmesi uygulanmadı");
+  const banka2 = await get(db, `SELECT banka_hakki FROM banka_hesaplari WHERE user_id = 1`);
+  assert(banka2.banka_hakki >= 50, "racon banka hakkı yükselmedi");
 
   await run(db, `UPDATE players SET elmas = 2000, icraat = 150`);
   const baron = await premiumSatinAl(db, 1, "baron");
   assert(baron.ok, "baron yükseltme başarısız");
   const baronBonus = await getPremiumBonuses(db, 1);
-  assert(baronBonus.faizOran === 0.025, "baron faiz %2.5 değil");
+  assert(baronBonus.faizOran === 0.015, "baron faiz %1.5 değil");
+  assert(baronBonus.icraatSaatlik === 60, "baron icraat 60 değil");
   assert(baronBonus.smsSinirsiz && baronBonus.bankaHakSinirsiz, "baron sınırsız haklar aktif değil");
+  assert(Math.abs(baronBonus.mekanGelirBonus - 0.1) < 0.0001, "baron mekan +%10 değil");
   const icraat = await get(db, `SELECT icraat FROM players WHERE user_id = 1`);
   assert(icraat.icraat >= 150, "baron satın alınca icraat kesilmemeli: " + icraat.icraat);
+
+  const panel = await require("../game/bankaService").getBankaPanel(db, 1);
+  assert(panel.faizOran === 0.015, "banka paneli baron faizini yansıtmıyor");
+  assert(panel.bankaHakSinirsiz, "banka paneli baron sınırsız hakkını yansıtmıyor");
 
   console.log("OK — premium paket testleri geçti");
   console.log(
     "  Faiz oranları:",
+    "taban=" + FAIZ_ORAN * 100 + "%",
     Object.values(PREMIUM_PAKETLER)
-      .map((p) => p.id + "=" + Math.round(p.faizOran * 1000) / 10 + "%")
+      .map((p) => p.id + "=" + (p.faizOran == null ? "yok(taban)" : Math.round(p.faizOran * 1000) / 10 + "%"))
       .join(", ")
   );
 
-  db.close();
-  fs.unlinkSync(TEST_DB);
+  await new Promise((resolve) => db.close(() => resolve()));
+  try {
+    fs.unlinkSync(TEST_DB);
+  } catch (_) {}
   Object.defineProperty(dbMod, "DB_PATH", { value: origPath, writable: true, configurable: true });
 }
 

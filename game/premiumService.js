@@ -3,6 +3,8 @@ const { ICRAAT_SAATLIK_BONUS, ICRAAT_MAX } = require("./catalog");
 
 const SMS_GUNLUK_VARSAYILAN = 50;
 const BANKA_HAK_GUNLUK_VARSAYILAN = 20;
+/** Paketsiz günlük banka faizi — bankaService.FAIZ_ORAN ile aynı */
+const FAIZ_ORAN_VARSAYILAN = 0.005;
 
 const PAKET_SIRA = { tetikci: 1, racon: 2, baron: 3 };
 const PAKET_SURE_SN = 30 * 24 * 3600;
@@ -64,7 +66,7 @@ const PREMIUM_PAKETLER = {
     smsSinirsiz: false,
     bankaHakGunluk: 30,
     bankaHakSinirsiz: false,
-    faizOran: 0.015,
+    faizOran: null,
     mekanGelirBonus: 0,
     prestijRozet: "🥉",
     prestijEtiket: "Bronz Kurşun",
@@ -75,13 +77,13 @@ const PREMIUM_PAKETLER = {
     altBaslik: "Sözü Geçenler İçin",
     elmasMaliyet: 250,
     tlOrtalama: 175,
-    icraatSaatlik: 50,
+    icraatSaatlik: 45,
     smsGunluk: 100,
     smsSinirsiz: false,
     bankaHakGunluk: 50,
     bankaHakSinirsiz: false,
-    faizOran: 0.02,
-    mekanGelirBonus: 0.1,
+    faizOran: 0.01,
+    mekanGelirBonus: 0.05,
     prestijRozet: "🥈",
     prestijEtiket: "Gümüş Şarjör",
   },
@@ -91,13 +93,13 @@ const PREMIUM_PAKETLER = {
     altBaslik: "Yeraltının Tek Sahibi",
     elmasMaliyet: 600,
     tlOrtalama: 320,
-    icraatSaatlik: 75,
+    icraatSaatlik: 60,
     smsGunluk: null,
     smsSinirsiz: true,
     bankaHakGunluk: null,
     bankaHakSinirsiz: true,
-    faizOran: 0.025,
-    mekanGelirBonus: 0.2,
+    faizOran: 0.015,
+    mekanGelirBonus: 0.1,
     hapisUyariEsik: 30,
     prestijRozet: "👑",
     prestijEtiket: "Altın Taç",
@@ -297,7 +299,7 @@ function paketListesi() {
     smsSinirsiz: !!p.smsSinirsiz,
     bankaHakGunluk: p.bankaHakSinirsiz ? null : p.bankaHakGunluk,
     bankaHakSinirsiz: !!p.bankaHakSinirsiz,
-    faizYuzde: Math.round(p.faizOran * 1000) / 10,
+    faizYuzde: p.faizOran != null ? Math.round(p.faizOran * 1000) / 10 : null,
     mekanGelirBonusYuzde: Math.round(p.mekanGelirBonus * 100),
     hapisUyariEsik: p.hapisUyariEsik || null,
     prestijRozet: p.prestijRozet,
@@ -401,7 +403,7 @@ async function getPremiumBonuses(db, userId) {
     smsSinirsiz: !!p?.smsSinirsiz,
     bankaHakGunluk: p?.bankaHakSinirsiz ? BANKA_HAK_GUNLUK_VARSAYILAN : p?.bankaHakGunluk ?? BANKA_HAK_GUNLUK_VARSAYILAN,
     bankaHakSinirsiz: !!p?.bankaHakSinirsiz,
-    faizOran: p?.faizOran ?? 0.01,
+    faizOran: p?.faizOran != null ? p.faizOran : FAIZ_ORAN_VARSAYILAN,
     mekanGelirBonus: p?.mekanGelirBonus ?? 0,
     prestijRozet: p?.prestijRozet || "",
     prestijEtiket: p?.prestijEtiket || "",
@@ -572,5 +574,6 @@ module.exports = {
   icraatPaketPanel,
   icraatPaketSatinAl,
   ICRAAT_PAKET,
+  FAIZ_ORAN_VARSAYILAN,
   applyPremiumPaketAvantajlari,
 };

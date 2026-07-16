@@ -2,7 +2,8 @@ const { run, get, all } = require("../db/database");
 
 const BANKA_HAK_GUNLUK = 20;
 const BANKA_HAK_REGEN_SEC = 86400;
-const FAIZ_ORAN = 0.01;
+/** Paketsiz / tetikçi günlük banka faizi (mutlak oran) */
+const FAIZ_ORAN = 0.005;
 const FAIZ_SAAT = 10;
 const FAIZ_YATIRIM_SAAT = 18;
 
@@ -246,6 +247,7 @@ async function bankaDogrudanYatir(db, userId, miktar) {
 
 module.exports = {
   BANKA_HAK_GUNLUK,
+  FAIZ_ORAN,
   getBanka,
   getBankaPanel,
   paraYatir,
