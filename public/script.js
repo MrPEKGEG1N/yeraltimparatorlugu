@@ -619,7 +619,7 @@ async function sunucuAksiyon(action, key, adet, extra) {
 // ========================
 // GÖRSELLER — yerel (/public/images)
 // ========================
-var GORSEL_VERSIYON = '143';
+var GORSEL_VERSIYON = '144';
 var profilLiderlikOyunculari = [];
 var profilAktifSekme = 'karakter';
 var oyuncuYetenekler = null;
@@ -4917,6 +4917,8 @@ function profilBasariKoleksiyonHTML(liste) {
     { id: 'npc_worker', icon: 'tools.png', kategori: 'ekonomi', goal: '+1' },
     { id: 'stock_trader', icon: 'stock_chart.png', kategori: 'ekonomi', goal: '+10M', format: 'money' },
     { id: 'casino_player', icon: 'casino_dice.png', kategori: 'ekonomi', goal: '+10M', format: 'money' },
+    { id: 'casino_allin_win', icon: 'casino_allin_win.png', kategori: 'ekonomi', goal: '+1' },
+    { id: 'casino_allin_bust', icon: 'casino_allin_bust.png', kategori: 'ekonomi', goal: '+1' },
     { id: 'daily_quest', icon: 'daily_calendar.png', kategori: 'sosyal', goal: '+7' },
     { id: 'yearly_player', icon: 'hourglass_snake.png', kategori: 'sosyal', goal: '+1' },
     { id: 'mafia_chat', icon: 'chat_bubble.png', kategori: 'sosyal', goal: '+500' },

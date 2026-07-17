@@ -375,13 +375,27 @@ async function hazirToggle(db, userId) {
 
 async function potTahsil(db, masa) {
   const bahis = masa.bahis;
+  const allIn = {};
   for (const uid of [masa.oyuncu1_id, masa.rakip_id]) {
+    const chip = await chipGetir(db, uid);
+    allIn[uid] = bahis > 0 && chip === bahis;
     const ok = await chipGuncelle(db, uid, -bahis);
     if (!ok) {
       return { ok: false, error: "Çip tahsil edilemedi — yetersiz bakiye." };
     }
   }
-  return { ok: true };
+  return { ok: true, allIn };
+}
+
+async function pvpAllInRozetIsle(db, allInMap, kazananId, kaybedenId) {
+  if (!kazananId || !kaybedenId || !allInMap) return;
+  try {
+    const { basariRozetArtir } = require("./basariRozetService");
+    if (allInMap[kazananId]) await basariRozetArtir(db, kazananId, "casino_allin_win", 1);
+    if (allInMap[kaybedenId]) await basariRozetArtir(db, kaybedenId, "casino_allin_bust", 1);
+  } catch (err) {
+    console.warn("[kumarhane-pvp] all-in rozet:", err?.message || err);
+  }
 }
 
 function barbutPvpSonuc() {
@@ -498,6 +512,7 @@ async function barbutOyna(db, masa, userId) {
   if (kazananId) {
     await logEkle(db, kazananId, "barbut_pvp", masa.bahis, pot, gorunum);
     const kaybedenId = kazananId === masa.oyuncu1_id ? masa.rakip_id : masa.oyuncu1_id;
+    await pvpAllInRozetIsle(db, tahsil.allIn, kazananId, kaybedenId);
     await bildirimGonder(
       db,
       kaybedenId,
@@ -552,8 +567,8 @@ async function rusOyna(db, masa, userId) {
     tetikSayisi = 0;
     await run(
       db,
-      `UPDATE kumarhane_pvp_masa SET durum = 'oyun', updated_at = ? WHERE id = ?`,
-      [now, masa.id]
+      `UPDATE kumarhane_pvp_masa SET durum = 'oyun', state_json = ?, updated_at = ? WHERE id = ?`,
+      [JSON.stringify({ mermi, siradaki, tetikSayisi, allIn: tahsil.allIn || {} }), now, masa.id]
     );
   }
 
@@ -590,6 +605,7 @@ async function rusOyna(db, masa, userId) {
       [JSON.stringify(gorunum), now, masa.id]
     );
     await logEkle(db, kazananId, "rus_ruleti_pvp", masa.bahis, pot, gorunum);
+    await pvpAllInRozetIsle(db, state.allIn || {}, kazananId, userId);
     await bildirimGonder(db, userId, "Rus Ruleti", "BANG! Ortadaki potu rakibin aldı.");
     await bildirimGonder(
       db,
@@ -615,6 +631,7 @@ async function rusOyna(db, masa, userId) {
     tetikSayisi,
     sonTetik: tetik,
     sonVuran: userId,
+    allIn: state.allIn || {},
   };
   await run(
     db,

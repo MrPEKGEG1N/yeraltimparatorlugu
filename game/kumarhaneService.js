@@ -252,6 +252,9 @@ async function oyunOyna(db, userId, payload) {
     return { ok: false, error: `Yeterli çipin yok! ${bahis.toLocaleString("tr-TR")} çip gerekir.` };
   }
 
+  // All-in: bahis, çekim öncesi tüm çip bakiyesine eşit
+  const allIn = bahis > 0 && bahis === chip;
+
   const chipOk = await chipGuncelle(db, userId, -bahis);
   if (!chipOk) return { ok: false, error: "Çip düşülemedi." };
 
@@ -288,7 +291,8 @@ async function oyunOyna(db, userId, payload) {
   }
 
   if (oturumBekle) {
-    await oturumKaydet(db, userId, oyunId, sonuc.state);
+    const state = { ...(sonuc.state || {}), allIn: !!allIn };
+    await oturumKaydet(db, userId, oyunId, state);
     return {
       ok: true,
       bitti: false,
@@ -302,12 +306,13 @@ async function oyunOyna(db, userId, payload) {
     };
   }
 
-  return oyunSonucIsle(db, userId, oyunId, bahis, sonuc);
+  return oyunSonucIsle(db, userId, oyunId, bahis, sonuc, { allIn });
 }
 
 async function oyunDevamEt(db, userId, oturum, aksiyon, payload) {
   const oyunId = oturum.oyunId;
   let sonuc;
+  let allIn = !!(oturum.state && oturum.state.allIn);
 
   if (oyunId === "blackjack") {
     if (aksiyon === "parmak") {
@@ -317,6 +322,8 @@ async function oyunDevamEt(db, userId, oturum, aksiyon, payload) {
       const ek = oturum.state.bahis;
       const chip = await chipGetir(db, userId);
       if (chip < ek) return { ok: false, error: "Double için ek çip gerekir." };
+      // Kalan tüm çip double'a gidiyorsa all-in say
+      if (chip === ek) allIn = true;
       const ok = await chipGuncelle(db, userId, -ek);
       if (!ok) return { ok: false, error: "Double için yeterli çip yok." };
     }
@@ -330,7 +337,8 @@ async function oyunDevamEt(db, userId, oturum, aksiyon, payload) {
   if (!sonuc.ok) return sonuc;
 
   if (!sonuc.bitti) {
-    await oturumKaydet(db, userId, oyunId, sonuc.state);
+    const state = { ...(sonuc.state || {}), allIn: !!allIn };
+    await oturumKaydet(db, userId, oyunId, state);
     return {
       ok: true,
       bitti: false,
@@ -343,10 +351,10 @@ async function oyunDevamEt(db, userId, oturum, aksiyon, payload) {
 
   await oturumSil(db, userId);
   const toplamBahis = sonuc.state?.bahis || oturum.state.bahis;
-  return oyunSonucIsle(db, userId, oyunId, toplamBahis, sonuc);
+  return oyunSonucIsle(db, userId, oyunId, toplamBahis, sonuc, { allIn });
 }
 
-async function oyunSonucIsle(db, userId, oyunId, bahis, sonuc) {
+async function oyunSonucIsle(db, userId, oyunId, bahis, sonuc, opts = {}) {
   const kazanc = Math.max(0, Math.floor(sonuc.kazanc || 0));
   if (kazanc > 0) await chipGuncelle(db, userId, kazanc);
   await logEkle(db, userId, oyunId, bahis, kazanc, sonuc.gorunum);
@@ -355,6 +363,20 @@ async function oyunSonucIsle(db, userId, oyunId, bahis, sonuc) {
   let mesaj = sonuc.mesaj || "";
   if (!mesaj) {
     mesaj = net > 0 ? `Kazandın: +${net.toLocaleString("tr-TR")} çip` : `Kaybettin: ${bahis.toLocaleString("tr-TR")} çip`;
+  }
+
+  const allIn = !!(opts.allIn || sonuc?.state?.allIn);
+  if (allIn && bahis > 0) {
+    try {
+      const { basariRozetArtir } = require("./basariRozetService");
+      if (net > 0) {
+        await basariRozetArtir(db, userId, "casino_allin_win", 1);
+      } else if (kazanc === 0) {
+        await basariRozetArtir(db, userId, "casino_allin_bust", 1);
+      }
+    } catch (err) {
+      console.warn("[kumarhane] all-in rozet:", err?.message || err);
+    }
   }
 
   return {
@@ -367,6 +389,7 @@ async function oyunSonucIsle(db, userId, oyunId, bahis, sonuc) {
     mesaj,
     gorunum: sonuc.gorunum,
     chip: await chipGetir(db, userId),
+    allIn: allIn || undefined,
   };
 }
 

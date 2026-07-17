@@ -24,6 +24,8 @@ const BASARI_ROZETLER = [
   { id: "npc_worker", name: "NPC İşinde Çalıştı", icon: "tools.png", goal: "+1", unlockMin: 1, kategori: "ekonomi" },
   { id: "stock_trader", name: "Borsada +10M Kazandı", icon: "stock_chart.png", goal: "+10M", unlockMin: ON_MILYON, kategori: "ekonomi", format: "money" },
   { id: "casino_player", name: "Kumarhanede +10M Kazandı", icon: "casino_dice.png", goal: "+10M", unlockMin: ON_MILYON, kategori: "ekonomi", format: "money" },
+  { id: "casino_allin_win", name: "Kasa Bizim", icon: "casino_allin_win.png", goal: "+1", unlockMin: 1, kategori: "ekonomi" },
+  { id: "casino_allin_bust", name: "Sıfırı Tüketen", icon: "casino_allin_bust.png", goal: "+1", unlockMin: 1, kategori: "ekonomi" },
   // Sosyal ve Adalet
   { id: "daily_quest", name: "Günlük Görev Uzmanı", icon: "daily_calendar.png", goal: "+7", unlockMin: 7, kategori: "sosyal" },
   { id: "yearly_player", name: "Senedir Oynayan", icon: "hourglass_snake.png", goal: "+1", unlockMin: 1, kategori: "sosyal" },
@@ -330,6 +332,8 @@ async function adaySayilariHesapla(db, userId) {
     npc_worker: npc,
     stock_trader: borsa,
     casino_player: kumar,
+    casino_allin_win: 0, // all-in kazanç latch
+    casino_allin_bust: 0, // all-in kayıp latch
     daily_quest: gunlukGorev,
     yearly_player: yil,
     mafia_chat: sohbet,

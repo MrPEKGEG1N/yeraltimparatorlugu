@@ -1671,6 +1671,8 @@
     row("game.profil.achievement.npc_worker", ["NPC İşinde Çalıştı", "Worked an NPC Job", "Praca u NPC", , , , , , , , , , , , , , "Praca u NPC"]),
     row("game.profil.achievement.stock_trader", ["Borsada +10M Kazandı", "Stock Market +10M", "Giełda +10M", , , , , , , , , , , , , , "Giełda +10M"]),
     row("game.profil.achievement.casino_player", ["Kumarhanede +10M Kazandı", "Casino +10M", "Kasyno +10M", , , , , , , , , , , , , , "Kasyno +10M"]),
+    row("game.profil.achievement.casino_allin_win", ["Kasa Bizim", "The House Is Ours", "Kasyno nasze", , , , , , , , , , , , , , "Kasyno nasze"]),
+    row("game.profil.achievement.casino_allin_bust", ["Sıfırı Tüketen", "Zeroed Out", "Wyzerowany", , , , , , , , , , , , , , "Wyzerowany"]),
     row("game.profil.achievement.daily_quest", ["Günlük Görev Uzmanı", "Daily Quest Expert", "Ekspert misji dziennych", , , , , , , , , , , , , , "Ekspert misji dziennych"]),
     row("game.profil.achievement.yearly_player", ["Senedir Oynayan", "Year-Long Player", "Gracz od roku", , , , , , , , , , , , , , "Gracz od roku"]),
     row("game.profil.achievement.mafia_chat", ["Mafya Sohbetleri +500 SMS", "Mafia Chat +500 SMS", "Czat mafii +500 SMS", , , , , , , , , , , , , , "Czat mafii +500 SMS"]),
