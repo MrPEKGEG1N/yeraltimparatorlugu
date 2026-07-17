@@ -12,7 +12,7 @@ function savunmaGucu(row) {
   return toplamGuc(row);
 }
 
-/** Liman / Sözünü Geçir / Sadakat Yemini saldırılarında şehre hükmeden savunması yarı güç */
+/** Sözünü Geçir / Sadakat: şehre hükmeden (kara liste) savunması yarı güç */
 function makamSavunmaGucu(row) {
   if (!row) return 0;
   let t = toplamGuc(row);

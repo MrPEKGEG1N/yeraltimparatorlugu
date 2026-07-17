@@ -167,7 +167,7 @@ module.exports = {
   "game.enemy.placeholder": ["Düşman Adını Yaz...", "Enter Enemy Name..."],
   "game.enemy.searchLabel": ["Düşman Ara", "Search Enemy"],
   "game.enemy.powerTitle": ["⚔️ Güç Değeri", "⚔️ Power Value"],
-  "game.enemy.powerDesc": ["Senden en fazla %50 güçlü veya %50 güçsüz rakipleri bul. Rakip güçleri gizlidir. Öğrenmek için İstihbarat gönderebilirsin.", "Find rivals up to 50% stronger or weaker. Rival power is hidden. Send Intelligence to learn."],
+  "game.enemy.powerDesc": ["Senden en fazla %150 güçlü veya %50 güçsüz rakipleri bul (−%50 … +%150). Rakip güçleri gizlidir. Öğrenmek için İstihbarat gönderebilirsin.", "Find rivals from 50% weaker to 150% stronger (−50% … +150%). Rival power is hidden. Send Intelligence to learn."],
   "game.enemy.findRivals": ["[ 🔍 RAKİP ARA ]", "[ 🔍 FIND RIVALS ]"],
   "game.enemy.respect": ["🕶️ Saygınlık:", "🕶️ Respect:"],
   "game.enemy.group": ["🕶️ Grup:", "🕶️ Group:"],
@@ -213,7 +213,7 @@ module.exports = {
   "game.hire.buyLuxury": ["💎 SATIN AL", "💎 BUY"],
   "game.elitePriceNote": ["⚠️ Şehre Hükmeden veya en yüksek saygınlıklı oyuncu olduğun için alım fiyatların <b>x2</b> uygulanıyor (aşağıdaki fiyatlarda gösterilir).", "⚠️ As city ruler or top respect player, your purchase prices are <b>x2</b> (shown below)."],
   "game.elitePriceDefault": ["Şehre Hükmet en oyuncuya ve en çok saygınlığı olan oyuncuya sektör ve güç alımlarında x2 fiyat uygulanır!", "City ruler and top respect player pay x2 for sectors and power purchases!"],
-  "game.rulerDefenseNote": ["Şehre hükmeden oyuncu liman, Sözünü Geçir ve Sadakat Yemini saldırılarında savunma gücü %50 hesaplanır. Düşmana Çök ve profilden saldırıda tam güç geçerlidir.", "City ruler has 50% defense power vs port, Word and Loyalty attacks. Full power applies for Crush the Enemy and profile attacks."],
+  "game.rulerDefenseNote": ["Liman ve baba makamı sahiplerinin savunma gücü saldırılarda %50 (yarı) hesaplanır. Sözünü Geçir ve Sadakat Yemini'nde yalnızca şehre hükmeden yarı güçtedir. Düşmana Çök ve profilden saldırıda tam güç geçerlidir.", "Port and boss seat owners defend at 50% power. Word and Loyalty: only the city ruler is at half power. Full power for Crush the Enemy and profile attacks."],
 
   "game.job.netGain": ["💰 Net Kazanç:", "💰 Net Gain:"],
   "game.job.required": ["⚡ Gereken:", "⚡ Required:"],

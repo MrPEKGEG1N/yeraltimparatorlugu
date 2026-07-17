@@ -1613,6 +1613,15 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: #b8942a;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#masterLayout .profil-yetenek-ikon {
+  font-style: normal;
+  font-size: 15px;
+  line-height: 1;
 }
 
 #masterLayout .profil-yetenek-deger {
@@ -1681,11 +1690,8 @@
 
 #masterLayout .profil-sekme {
   cursor: pointer;
-  border: none;
-  background: none;
-  font: inherit;
 }
 
 #masterLayout .profil-sekme:not(.aktif):hover {
-  color: #d8cec0;
+  color: #fff8ec;
 }

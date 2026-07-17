@@ -61,6 +61,14 @@ const {
   antrenmanTamamla: sporAntrenmanTamamla,
 } = require("./sporSalonuService");
 const {
+  panelGetir: sagKolPanelGetir,
+  antrenmanBaslat: sagKolAntrenmanBaslat,
+  antrenmanTamamla: sagKolAntrenmanTamamla,
+  profilResmiKaydet: sagKolProfilResmiKaydet,
+  satinAl: sagKolSatinAl,
+  hastaneIyilestir: sagKolHastaneIyilestir,
+} = require("./sagKolService");
+const {
   panelGetir: sirketPanelGetir,
   processSirketEkonomisi,
   olustur: sirketOlustur,
@@ -1669,6 +1677,67 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
       ok: true,
       player: await publicPlayerFull(db, userId, player),
       effect: { type: "spor_antrenman_tamamla", ...sonuc },
+    };
+  }
+
+  if (action === "sag_kol_antrenman") {
+    const yetenekKey = extra.yetenek || key;
+    const sonuc = await sagKolAntrenmanBaslat(db, userId, player, yetenekKey);
+    if (!sonuc.ok) return sonuc;
+    player = await loadPlayer(db, userId);
+    return {
+      ok: true,
+      player: await publicPlayerFull(db, userId, player),
+      effect: { type: "sag_kol_antrenman", ...sonuc },
+    };
+  }
+
+  if (action === "sag_kol_satin_al") {
+    const sonuc = await sagKolSatinAl(db, userId, player);
+    if (!sonuc.ok) return sonuc;
+    player = await loadPlayer(db, userId);
+    return {
+      ok: true,
+      player: await publicPlayerFull(db, userId, player),
+      effect: { type: "sag_kol_satin_al", ...sonuc },
+    };
+  }
+
+  if (action === "sag_kol_antrenman_tamamla") {
+    const sonuc = await sagKolAntrenmanTamamla(db, userId);
+    if (!sonuc.ok) return sonuc;
+    player = await loadPlayer(db, userId);
+    return {
+      ok: true,
+      player: await publicPlayerFull(db, userId, player),
+      effect: { type: "sag_kol_antrenman_tamamla", ...sonuc },
+    };
+  }
+
+  if (action === "sag_kol_profil_resmi") {
+    const sonuc = await sagKolProfilResmiKaydet(db, userId, extra.profilResmi || key, {
+      kaliciSec: !!extra.vipKaliciSec,
+    });
+    if (!sonuc.ok) return sonuc;
+    player = await loadPlayer(db, userId);
+    return {
+      ok: true,
+      player: await publicPlayerFull(db, userId, player),
+      effect: { type: "sag_kol_profil_resmi", ...sonuc },
+    };
+  }
+
+  if (action === "sag_kol_hastane_iyilestir") {
+    const sonuc = await sagKolHastaneIyilestir(db, userId, player, {
+      vip: !!(extra && (extra.vip || extra.tip === "vip")),
+      full: !!(extra && (extra.full || extra.tip === "full")),
+    });
+    if (!sonuc.ok) return sonuc;
+    player = await loadPlayer(db, userId);
+    return {
+      ok: true,
+      player: await publicPlayerFull(db, userId, player),
+      effect: { type: "sag_kol_hastane_iyilestir", ...sonuc },
     };
   }
 

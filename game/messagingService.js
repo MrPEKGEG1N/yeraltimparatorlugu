@@ -513,6 +513,7 @@ module.exports = {
   SMS_GUNLUK,
   turkeyDayKey,
   getSmsHakki,
+  smsHarca,
   ensureMessagingTables,
   saldiriMesajiEkle,
   sabotajMesajiEkle,

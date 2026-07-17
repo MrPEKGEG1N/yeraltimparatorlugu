@@ -72,7 +72,8 @@ async function oyuncuGucunuOgren(db, userId, hedefAdi) {
   }
   
   const hedefIstihbarat = hedef.hedef_istihbarat || 0;
-  
+
+  // Sadece oyuncunun mevcut gücü (normal + bonus); zekâ/sağ kol kesimi yok
   const hedefToplam = toplamGuc(hedef);
 
   // Intelligence comparison system

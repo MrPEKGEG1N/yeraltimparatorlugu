@@ -4,6 +4,55 @@
   max-width: 1000px;
 }
 
+#masterLayout .spor-sekmeler {
+  display: flex;
+  gap: 4px;
+  margin: 14px 0 0;
+  flex-wrap: wrap;
+  position: relative;
+  z-index: 2;
+}
+
+#masterLayout .spor-sekme,
+#masterLayout button.spor-sekme {
+  font-family: 'Oswald', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  padding: 10px 18px;
+  border: 1px solid rgba(197, 160, 89, 0.45);
+  border-bottom: none;
+  background: linear-gradient(180deg, rgba(42, 34, 26, 0.96) 0%, rgba(18, 14, 10, 0.98) 100%);
+  color: #f2ead8;
+  text-transform: uppercase;
+  display: inline-block;
+  cursor: pointer;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+#masterLayout .spor-sekme:not(.aktif):hover,
+#masterLayout button.spor-sekme:not(.aktif):hover {
+  color: #fff8ec;
+  border-color: rgba(212, 175, 55, 0.65);
+  background: linear-gradient(180deg, rgba(56, 44, 32, 0.98) 0%, rgba(28, 20, 14, 0.98) 100%);
+}
+
+#masterLayout button.spor-sekme.aktif,
+#masterLayout .spor-sekme.aktif {
+  background: linear-gradient(180deg, #9a1818 0%, #5c0808 100%);
+  color: #fffaf0;
+  border-color: #c02828;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+#masterLayout .spor-sekme-panel {
+  margin-top: 0;
+  padding-top: 12px;
+  border-top: 1px solid rgba(197, 160, 89, 0.35);
+}
+
 #masterLayout .spor-salon-list {
   display: flex;
   flex-direction: column;
@@ -249,4 +298,83 @@
 
 #masterLayout .spor-aktif-antrenman .meslek-btn {
   margin-top: 10px;
+}
+
+#masterLayout .spor-sagkol-panel {
+  margin-top: 0;
+  border: 1px solid rgba(197, 160, 89, 0.4);
+  background:
+    linear-gradient(165deg, rgba(28, 18, 12, 0.95) 0%, rgba(10, 8, 6, 0.96) 100%);
+}
+
+#masterLayout .spor-sagkol-panel .meslek-antrenman-ust h4 {
+  color: #e8c96a;
+}
+
+#masterLayout .spor-sagkol-aktif {
+  margin: 10px 0 12px;
+}
+
+#masterLayout .spor-sagkol-panel .meslek-antrenman-ust.sag-kol-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+}
+
+#masterLayout .spor-sagkol-panel .rutbe-container {
+  margin-right: auto;
+}
+
+#masterLayout .spor-sagkol-panel .rutbe-rozet {
+  width: 40px;
+  height: 40px;
+}
+
+#masterLayout .spor-sagkol-panel .meslek-antrenman-kart--seviye {
+  border-color: rgba(232, 201, 106, 0.55);
+  box-shadow: inset 0 0 0 1px rgba(232, 201, 106, 0.12);
+}
+
+#masterLayout .spor-sagkol-panel .profil-sagkol-rutbe {
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+#masterLayout .spor-sagkol-panel--hastane {
+  border-color: rgba(180, 60, 60, 0.5);
+  background:
+    linear-gradient(165deg, rgba(40, 14, 12, 0.96) 0%, rgba(10, 6, 6, 0.98) 100%);
+}
+
+#masterLayout .spor-sagkol-hastane-kutu {
+  margin-top: 12px;
+  padding: 18px 16px;
+  text-align: center;
+  border: 1px solid rgba(180, 60, 60, 0.4);
+  border-radius: 6px;
+  background: rgba(40, 8, 8, 0.45);
+}
+
+#masterLayout .spor-sagkol-hastane-damga {
+  display: inline-block;
+  margin-bottom: 12px;
+  padding: 8px 16px;
+  border: 3px solid rgba(220, 60, 60, 0.9);
+  border-radius: 4px;
+  color: #ff6b6b;
+  font-family: 'Oswald', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  transform: rotate(-6deg);
+  background: rgba(30, 0, 0, 0.65);
+}
+
+#masterLayout .spor-sagkol-hastane-metin {
+  margin: 0 0 14px;
+  color: #d8b0b0;
+  font-size: 14px;
+  line-height: 1.45;
 }

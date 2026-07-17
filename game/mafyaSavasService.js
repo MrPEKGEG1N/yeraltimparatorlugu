@@ -99,6 +99,7 @@ async function grupAktifSavasVarMi(db, grupId) {
 }
 
 async function grupKatilimciToplamGuc(db, savasId, grupId) {
+  const { etkinToplamGuc } = require("./sagKolGucService");
   const katilim = await all(
     db,
     `SELECT user_id FROM mafya_savas_katilim WHERE savas_id = ? AND grup_id = ?`,
@@ -106,12 +107,7 @@ async function grupKatilimciToplamGuc(db, savasId, grupId) {
   );
   let toplam = 0;
   for (const k of katilim) {
-    const p = await get(
-      db,
-      `SELECT guc, COALESCE(bonus_guc, 0) AS bonus_guc FROM players WHERE user_id = ?`,
-      [k.user_id]
-    );
-    toplam += toplamGuc(p);
+    toplam += await etkinToplamGuc(db, k.user_id);
   }
   return { toplam, katilim };
 }

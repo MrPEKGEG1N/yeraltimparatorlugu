@@ -3129,6 +3129,150 @@ function sporAntrenmanSayacBaslat(aktif) {
   }, 1000);
 }
 
+var sagKolAntrenmanSayacTimer = null;
+var sporSalonuAktifSekme = 'salon';
+
+function sagKolAntrenmanSayacDurdur() {
+  if (sagKolAntrenmanSayacTimer) {
+    clearInterval(sagKolAntrenmanSayacTimer);
+    sagKolAntrenmanSayacTimer = null;
+  }
+}
+
+function sagKolAktifAntrenmanHTML(aktif) {
+  if (!aktif) return '';
+  var html = '<div class="spor-aktif-antrenman spor-sagkol-aktif" id="sagKolAktifAntrenmanKutu">';
+  if (aktif.tamamlanabilir) {
+    html += '<p class="spor-aktif-baslik">✅ ' + escHtml(t('game.sagKol.sessionReady')) + '</p>'
+      + '<p class="meslek-dim">' + escHtml(aktif.yetenekAd) + ' · +' + (aktif.kazanc || 1) + '</p>'
+      + '<button type="button" class="meslek-btn meslek-btn--altin" onclick="sagKolAntrenmanTamamla()">'
+      + escHtml(t('game.sagKol.sessionCollect')) + '</button>';
+  } else {
+    html += '<p class="spor-aktif-baslik">🤝 ' + escHtml(t('game.sagKol.sessionActive', { stat: aktif.yetenekAd })) + '</p>'
+      + '<p class="meslek-dim">' + escHtml(t('game.sagKol.sessionDuration')) + '</p>'
+      + '<div class="spor-aktif-sayac" id="sagKolAntrenmanKalan">' + sporAntrenmanSuresiFmt(aktif.kalanSaniye) + '</div>';
+  }
+  return html + '</div>';
+}
+
+function sagKolAntrenmanSayacBaslat(aktif) {
+  sagKolAntrenmanSayacDurdur();
+  if (!aktif || aktif.tamamlanabilir) return;
+  var bitisTs = aktif.bitisTs;
+  sagKolAntrenmanSayacTimer = setInterval(function() {
+    if (aktifEkran !== 'sporSalonu') {
+      sagKolAntrenmanSayacDurdur();
+      return;
+    }
+    var kalan = Math.max(0, bitisTs - Math.floor(Date.now() / 1000));
+    var el = document.getElementById('sagKolAntrenmanKalan');
+    if (el) el.textContent = sporAntrenmanSuresiFmt(kalan);
+    if (kalan <= 0) {
+      sagKolAntrenmanSayacDurdur();
+      sporSalonuEkranCiz(document.getElementById('anaIcerik'));
+    }
+  }, 1000);
+}
+
+function sagKolSatinAlHTML(fiyat) {
+  fiyat = fiyat != null ? fiyat : 500000;
+  return '<div class="profil-sagkol-satin-al">'
+    + '<p class="profil-sagkol-aciklama">' + escHtml(t('game.sagKol.buyDesc')) + '</p>'
+    + '<button type="button" class="profil-alt-btn kirmizi profil-sagkol-satin-btn" onclick="sagKolSatinAl()">'
+    + escHtml(t('game.sagKol.buyButton', { cost: fmt(fiyat) }))
+    + '</button>'
+    + '</div>';
+}
+
+function sagKolEgitPanelHTML(sk) {
+  if (!sk) return '';
+  if (sk.sahip === false) {
+    return '<section class="meslek-panel spor-salon-panel spor-sagkol-panel">'
+      + '<div class="spor-salon-panel-govde">'
+      + '<div class="meslek-antrenman">'
+      + '<div class="meslek-antrenman-ust"><h4>🤝 ' + escHtml(t('game.sagKol.trainTitle')) + '</h4></div>'
+      + sagKolSatinAlHTML(sk.satinAlFiyat)
+      + '</div></div></section>';
+  }
+  var hastanelik = !!sk.hastanelik || (sk.saglik != null && Number(sk.saglik) <= 0);
+  if (hastanelik) {
+    return '<section class="meslek-panel spor-salon-panel spor-sagkol-panel spor-sagkol-panel--hastane">'
+      + '<div class="spor-salon-panel-govde">'
+      + '<div class="meslek-antrenman">'
+      + '<div class="meslek-antrenman-ust sag-kol-header">'
+      + '<h4>🤝 ' + escHtml(t('game.sagKol.trainTitle')) + '</h4>'
+      + sagKolRutbeRozetleriHTML(sk)
+      + '</div>'
+      + '<div class="spor-sagkol-hastane-kutu">'
+      + '<span class="spor-sagkol-hastane-damga">' + escHtml(t('game.sagKol.inHospitalStamp')) + '</span>'
+      + '<p class="spor-sagkol-hastane-metin">' + escHtml(t('game.sagKol.trainBlockedHospital')) + '</p>'
+      + '<button type="button" class="meslek-btn meslek-btn--altin" onclick="ekranDegistir(\'hastane\')">'
+      + escHtml(t('game.sagKol.goHospital')) + '</button>'
+      + '</div></div></div></section>';
+  }
+  var keys = ['guc', 'zeka', 'dayaniklilik', 'beceri'];
+  var aktif = sk.aktifAntrenman || null;
+  var oturumDevam = aktif && !aktif.tamamlanabilir;
+  var pasif = oturumDevam;
+  var sureDk = sk.antrenmanSureDk || 90;
+  var statlar = (sk.ozet && sk.ozet.statlar) || [];
+  var rutbeId = sk.rutbeId || (sk.ozet && sk.ozet.rutbeId) || 'demir';
+  var rutbeAdKey = 'game.sagKol.rank.' + rutbeId;
+  var rutbeAd = t(rutbeAdKey);
+  if (rutbeAd === rutbeAdKey) {
+    rutbeAd = sk.rutbeAd || (sk.ozet && sk.ozet.rutbeAd) || 'Demir';
+  }
+  var html = '<section class="meslek-panel spor-salon-panel spor-sagkol-panel">'
+    + '<div class="spor-salon-panel-govde">'
+    + '<div class="meslek-antrenman">'
+    + '<div class="meslek-antrenman-ust sag-kol-header">'
+    + '<h4>🤝 ' + escHtml(t('game.sagKol.trainTitle')) + '</h4>'
+    + sagKolRutbeRozetleriHTML(sk)
+    + '</div>'
+    + '<p class="meslek-dim">' + escHtml(t('game.sagKol.rankLabel', { rank: rutbeAd })) + '</p>';
+  if (oturumDevam) {
+    html += '<p class="meslek-dim spor-gunluk-doldu">⏳ ' + escHtml(t('game.sagKol.sessionWait')) + '</p>';
+  }
+  html += sagKolAktifAntrenmanHTML(aktif);
+  html += '<div class="meslek-antrenman-grid">';
+  for (var i = 0; i < keys.length; i++) {
+    var k = keys[i];
+    var meta = sporSalonuStatMeta(statlar, k);
+    var maliyet = (sk.statMaliyet && sk.statMaliyet[k] != null)
+      ? sk.statMaliyet[k]
+      : ((meta && meta.antrenmanMaliyet) || 0);
+    var etki = meta && meta.etkiMetin ? meta.etkiMetin : '';
+    var maxa = !!(meta && meta.maxaUlasti);
+    var seviye = !!(meta && meta.seviyeAtlamaHazir);
+    var kartPasif = pasif || maxa || maliyet == null;
+    var btnMetin;
+    if (maxa) {
+      btnMetin = t('game.sagKol.maxReached');
+    } else if (seviye) {
+      btnMetin = t('game.sagKol.rankUpStart', { cost: fmt(maliyet), dk: sureDk })
+        + ' · ⚡' + (sk.icraatMaliyet || 3);
+    } else {
+      btnMetin = t('game.spor.trainStart', { cost: fmt(maliyet), dk: sureDk })
+        + ' · ⚡' + (sk.icraatMaliyet || 3);
+    }
+    html += '<div class="meslek-antrenman-kart meslek-antrenman-kart--' + k
+      + (kartPasif ? ' meslek-antrenman-kart--pasif' : '')
+      + (seviye ? ' meslek-antrenman-kart--seviye' : '')
+      + '">'
+      + '<div class="meslek-antrenman-kart-ust">'
+      + '<span>' + escHtml((meta ? meta.emoji : sporSalonuYetenekEmoji(k)) + ' ' + sporSalonuYetenekEtiket(k)) + '</span>'
+      + '<span class="meslek-antrenman-deger">' + (meta ? meta.deger : 1) + '</span></div>'
+      + '<p class="meslek-antrenman-aciklama">' + escHtml(etki || (meta && meta.aciklama ? meta.aciklama : '')) + '</p>'
+      + (meta && meta.rutbeAd ? '<p class="meslek-dim">' + escHtml(meta.rutbeAd) + (seviye ? ' · ' + escHtml(t('game.sagKol.rankUpMarker')) : '') + '</p>' : '')
+      + '<button type="button" class="meslek-btn meslek-btn--alt meslek-antrenman-btn"'
+      + (kartPasif ? ' disabled' : '')
+      + ' onclick="sagKolAntrenmanBaslat(\'' + k + '\')">'
+      + escHtml(btnMetin)
+      + '</button></div>';
+  }
+  return html + '</div></div></div></section>';
+}
+
 function sporSalonAntrenmanGridHTML(s, statlar, aktifAntrenman) {
   if (!s.acik || !s.kayitli || !s.statMaliyet) return '';
   var kalan = s.gunlukKalan != null ? s.gunlukKalan : 0;
@@ -3217,6 +3361,7 @@ function sporSalonuPanelHTML(panel) {
   var ozet = panel.yetenekOzeti || {};
   var statlar = ozet.statlar || [];
   var aktif = panel.aktifAntrenman || null;
+  var sekme = sporSalonuAktifSekme === 'sagkol' ? 'sagkol' : 'salon';
   var html = '<div class="meslek-wrap spor-wrap">'
     + '<div class="meslek-dashboard spor-dashboard">'
     + '<header class="meslek-hero">'
@@ -3226,16 +3371,42 @@ function sporSalonuPanelHTML(panel) {
     + '<p class="meslek-dim spor-ekonomi-notu">' + escHtml(t('game.spor.economyNote')) + '</p>'
     + '<p class="meslek-dim"><b>⚡ ' + escHtml(t('game.spor.icraat')) + ':</b> ' + (panel.icraat != null ? panel.icraat : '—') + '</p>'
     + '</div></header>'
+    + '<div class="spor-sekmeler" role="tablist">'
+    + '<button type="button" class="spor-sekme' + (sekme === 'salon' ? ' aktif' : '') + '" data-sekme="salon"'
+    + ' onclick="sporSalonuSekmeDegistir(\'salon\')">🏋️ ' + escHtml(t('game.spor.title')) + '</button>'
+    + '<button type="button" class="spor-sekme' + (sekme === 'sagkol' ? ' aktif' : '') + '" data-sekme="sagkol"'
+    + ' onclick="sporSalonuSekmeDegistir(\'sagkol\')">🤝 ' + escHtml(t('game.sagKol.trainTitle')) + '</button>'
+    + '</div>'
+    + '<div id="sporSekmeSalon" class="spor-sekme-panel' + (sekme !== 'salon' ? ' gizli' : '') + '" role="tabpanel">'
     + sporAktifAntrenmanHTML(aktif)
     + sporSalonuYetenekBandHTML(panel.yetenekler || {}, ozet)
     + '<div class="spor-salon-list">';
   var list = panel.salonlar || [];
   for (var i = 0; i < list.length; i++) html += sporSalonuKartHTML(list[i], statlar, aktif);
-  return html + '</div></div></div>';
+  html += '</div></div>'
+    + '<div id="sporSekmeSagKol" class="spor-sekme-panel' + (sekme !== 'sagkol' ? ' gizli' : '') + '" role="tabpanel">'
+    + sagKolEgitPanelHTML(panel.sagKol || null)
+    + '</div>'
+    + '</div></div>';
+  return html;
+}
+
+function sporSalonuSekmeDegistir(sekme) {
+  sporSalonuAktifSekme = sekme === 'sagkol' ? 'sagkol' : 'salon';
+  var wrap = document.querySelector('.spor-wrap');
+  if (!wrap) return;
+  wrap.querySelectorAll('.spor-sekme').forEach(function(btn) {
+    btn.classList.toggle('aktif', (btn.getAttribute('data-sekme') || '') === sporSalonuAktifSekme);
+  });
+  var salon = document.getElementById('sporSekmeSalon');
+  var sagKol = document.getElementById('sporSekmeSagKol');
+  if (salon) salon.classList.toggle('gizli', sporSalonuAktifSekme !== 'salon');
+  if (sagKol) sagKol.classList.toggle('gizli', sporSalonuAktifSekme !== 'sagkol');
 }
 
 async function sporSalonuEkranCiz(ic) {
   sporAntrenmanSayacDurdur();
+  sagKolAntrenmanSayacDurdur();
   ic.innerHTML = '<p style="color:#888;">' + escHtml(t('game.loading')) + '</p>';
   try {
     var res = await apiFetch('/api/spor-salonu/panel');
@@ -3249,6 +3420,7 @@ async function sporSalonuEkranCiz(ic) {
     var panel = data.panel || {};
     ic.innerHTML = sporSalonuPanelHTML(panel);
     sporAntrenmanSayacBaslat(panel.aktifAntrenman);
+    if (panel.sagKol) sagKolAntrenmanSayacBaslat(panel.sagKol.aktifAntrenman);
   } catch (e) {
     if (aktifEkran === 'sporSalonu') {
       ic.innerHTML = '<p style="color:#c55;">' + escHtml(t('game.error.loadFailed')) + '</p>';
@@ -3284,6 +3456,33 @@ async function sporSalonuAntrenmanTamamla() {
     }
   }
   if (aktifEkran === 'sporSalonu') sporSalonuEkranCiz(document.getElementById('anaIcerik'));
+}
+
+async function sagKolAntrenmanBaslat(yetenek) {
+  if (!yetenek || ['guc', 'zeka', 'dayaniklilik', 'beceri'].indexOf(yetenek) < 0) return;
+  var ef = await sunucuAksiyon('sag_kol_antrenman', null, null, { yetenek: yetenek });
+  if (!ef) return;
+  toast(tr(ef.mesaj) || t('game.sagKol.sessionStarted'), 'basari');
+  if (aktifEkran === 'sporSalonu') sporSalonuEkranCiz(document.getElementById('anaIcerik'));
+}
+
+async function sagKolSatinAl() {
+  var ef = await sunucuAksiyon('sag_kol_satin_al');
+  if (!ef) return;
+  toast(tr(ef.mesaj) || t('game.sagKol.buySuccess'), 'basari');
+  if (ef.panel) window.__sonSagKolPanel = ef.panel;
+  if (typeof profilSagKolYenile === 'function') profilSagKolYenile();
+  if (aktifEkran === 'sporSalonu') sporSalonuEkranCiz(document.getElementById('anaIcerik'));
+}
+
+async function sagKolAntrenmanTamamla() {
+  var ef = await sunucuAksiyon('sag_kol_antrenman_tamamla');
+  if (!ef) return;
+  toast(tr(ef.mesaj) || t('game.sagKol.sessionCollect'), 'basari');
+  if (aktifEkran === 'sporSalonu') sporSalonuEkranCiz(document.getElementById('anaIcerik'));
+  if (aktifEkran === 'profil' && typeof profilSagKolYenile === 'function') {
+    profilSagKolYenile();
+  }
 }
 
 function guclenKartHTML(key, img, imgCls, baslik, alinti, bazMaliyet, guc, gucRenk, btnLabel, btnCls) {
@@ -3539,6 +3738,142 @@ function avukatHTML() {
     + '</div>'
     + rusvetPanel
     + '</div></div></div></div>';
+}
+
+function hastaneHTML(panel) {
+  panel = panel || null;
+  var gorselV = '1';
+  var sahip = !!(panel && panel.sahip);
+  var saglik = sahip && panel.saglik != null ? Number(panel.saglik) : 0;
+  var saglikMax = panel && panel.saglikMax != null ? Number(panel.saglikMax) : 150;
+  var maliyet = panel && panel.hastaneMaliyet != null ? Number(panel.hastaneMaliyet) : 0;
+  var iyilesme = panel && panel.iyilesmeMiktar != null ? Number(panel.iyilesmeMiktar) : 10;
+  var hastanelik = !!(panel && panel.hastanelik);
+  var fullCikis = !!(panel && panel.hastaneFullCikis) || hastanelik;
+  var tam = sahip && saglik >= saglikMax;
+  var saglikYuzde = saglikMax > 0 ? Math.max(0, Math.min(100, Math.round((saglik / saglikMax) * 100))) : 0;
+  var vipPartial = panel && panel.vipIyilesmeElmas != null ? Number(panel.vipIyilesmeElmas) : 3;
+  var vipFull = panel && panel.vipFullElmas != null ? Number(panel.vipFullElmas) : 35;
+  var elmas = panel && panel.elmas != null ? Number(panel.elmas) : (typeof oyuncuElmas !== 'undefined' ? oyuncuElmas : 0);
+
+  function tedaviBlok(opts) {
+    opts = opts || {};
+    var vip = !!opts.vip;
+    var html = '<div class="hs-tedavi' + (vip ? ' hs-tedavi--vip' : '') + '">'
+      + '<div class="hs-tedavi-saglik' + (hastanelik ? ' is-hastane' : '') + '">'
+      + '<span class="hs-tedavi-etiket">' + escHtml(t('game.sagKol.healthLabel')) + '</span>'
+      + '<div class="hs-tedavi-bar"><i style="width:' + saglikYuzde + '%"></i></div>'
+      + '<span class="hs-tedavi-deger">' + saglik + '/' + saglikMax + '</span>'
+      + '</div>';
+    if (hastanelik) {
+      html += '<p class="hs-tedavi-uyari">' + escHtml(t('game.sagKol.healthHospital')) + '</p>';
+    }
+    if (vip) {
+      // VIP: +10 ve Full (35 elmas) her zaman yan yana
+      if (!fullCikis) {
+        html += '<p class="hs-tedavi-aciklama">' + escHtml(t('game.hastane.healDesc', { n: iyilesme })) + '</p>';
+      } else {
+        html += '<p class="hs-tedavi-aciklama">' + escHtml(t('game.hastane.healFullDesc')) + '</p>';
+      }
+      html += '<p class="hs-tedavi-elmas-bakiye">💎 ' + fmt(elmas) + '</p>'
+        + '<div class="hs-tedavi-btns">';
+      if (!fullCikis) {
+        html += '<button type="button" class="hs-tedavi-btn hs-tedavi-btn--vip"'
+          + (tam ? ' disabled' : '')
+          + ' onclick="hastaneSagKolIyilestir(true, false)">'
+          + escHtml(tam ? t('game.hastane.healFull') : t('game.hastane.healBtnElmas', { n: iyilesme, elmas: vipPartial }))
+          + '</button>';
+      }
+      html += '<button type="button" class="hs-tedavi-btn hs-tedavi-btn--vip"'
+        + (tam ? ' disabled' : '')
+        + ' onclick="hastaneSagKolIyilestir(true, true)">'
+        + escHtml(tam ? t('game.hastane.healFull') : t('game.hastane.healFullBtnElmas', { n: vipFull }))
+        + '</button></div></div>';
+      return html;
+    }
+    if (fullCikis) {
+      html += '<p class="hs-tedavi-aciklama">' + escHtml(t('game.hastane.healFullDesc')) + '</p>';
+    } else {
+      html += '<p class="hs-tedavi-aciklama">' + escHtml(t('game.hastane.healDesc', { n: iyilesme })) + '</p>';
+    }
+    html += '<p class="hs-tedavi-maliyet">' + escHtml(t('game.hastane.healCost', { cost: fmt(maliyet) })) + '</p>';
+    var btnMetin;
+    if (tam) btnMetin = t('game.hastane.healFull');
+    else if (fullCikis) btnMetin = t('game.hastane.healFullBtn');
+    else btnMetin = t('game.hastane.healBtn', { n: iyilesme });
+    html += '<button type="button" class="hs-tedavi-btn"'
+      + (tam ? ' disabled' : '')
+      + ' onclick="hastaneSagKolIyilestir(false)">'
+      + escHtml(btnMetin)
+      + '</button></div>';
+    return html;
+  }
+
+  var tedaviHtml;
+  var vipHtml;
+  if (sahip) {
+    tedaviHtml = tedaviBlok({ vip: false });
+    vipHtml = tedaviBlok({ vip: true });
+  } else {
+    tedaviHtml = '<div class="hs-tedavi"><p class="hs-tedavi-uyari">' + escHtml(t('game.hastane.needRightHand')) + '</p></div>';
+    vipHtml = '<div class="hs-tedavi hs-tedavi--vip"><p class="hs-tedavi-uyari">' + escHtml(t('game.hastane.needRightHand')) + '</p></div>';
+  }
+
+  return '<div class="hs-sayfa"><div class="hs-wrap">'
+    + '<div class="hs-hero">'
+    + '<h3>🏥 ' + escHtml(t('game.hastane.title')) + '</h3>'
+    + '<p>' + escHtml(t('game.hastane.intro')) + '</p>'
+    + '</div>'
+    + '<div class="hs-liste">'
+    + '<section class="hs-kart" tabindex="0" role="button">'
+    + '<div class="hs-banner">'
+    + '<img src="/images/hastane/yeralti-hastanesi.png?v=' + gorselV + '" alt="'
+    + escHtml(t('game.hastane.normal')) + '" loading="lazy" decoding="async" onerror="imgFallback(this)">'
+    + '<div class="hs-banner-ortu" aria-hidden="true"></div>'
+    + '<div class="hs-banner-etiket">'
+    + '<h4>' + escHtml(t('game.hastane.normal')) + '</h4>'
+    + '</div></div>'
+    + tedaviHtml
+    + '</section>'
+    + '<section class="hs-kart hs-kart--vip" tabindex="0" role="button">'
+    + '<div class="hs-banner">'
+    + '<img src="/images/hastane/vip-yeralti-hastanesi.png?v=' + gorselV + '" alt="'
+    + escHtml(t('game.hastane.vip')) + '" loading="lazy" decoding="async" onerror="imgFallback(this)">'
+    + '<div class="hs-banner-ortu" aria-hidden="true"></div>'
+    + '<div class="hs-banner-etiket">'
+    + '<h4>' + escHtml(t('game.hastane.vip')) + '</h4>'
+    + '<span class="hs-etiket-alt">' + escHtml(t('game.hastane.vipBadge')) + '</span>'
+    + '</div></div>'
+    + vipHtml
+    + '</section>'
+    + '</div></div></div>';
+}
+
+async function hastaneYukle() {
+  var ic = document.getElementById('anaIcerik');
+  if (!ic || aktifEkran !== 'hastane') return;
+  try {
+    var res = await apiFetch('/api/sag-kol/panel');
+    var data = await res.json().catch(function() { return {}; });
+    if (aktifEkran !== 'hastane') return;
+    var panel = (res.ok && data.ok) ? (data.panel || null) : null;
+    window.__sonSagKolPanel = panel;
+    ic.innerHTML = hastaneHTML(panel);
+  } catch (_) {
+    if (aktifEkran === 'hastane') ic.innerHTML = hastaneHTML(null);
+  }
+}
+
+async function hastaneSagKolIyilestir(vip, full) {
+  var ef = await sunucuAksiyon('sag_kol_hastane_iyilestir', null, null, {
+    vip: !!vip,
+    full: !!full
+  });
+  if (!ef) return;
+  toast(tr(ef.mesaj) || t('game.hastane.healDone'), 'basari');
+  if (ef.panel) window.__sonSagKolPanel = ef.panel;
+  if (aktifEkran === 'hastane') hastaneYukle();
+  if (typeof profilSagKolYenile === 'function') profilSagKolYenile();
 }
 
 function hapishaneSureFormat(sn) {
@@ -4566,6 +4901,7 @@ function profilYetenekBarHTML(key, deger, meta) {
   deger = deger || 0;
   meta = meta || null;
   var yuzde = meta && meta.yuzde != null ? meta.yuzde : 0;
+  var emoji = (meta && meta.emoji) ? meta.emoji : sporSalonuYetenekEmoji(key);
   var kademeHtml = meta && meta.kademe
     ? '<span class="profil-yetenek-kademe">' + escHtml(meta.kademe) + '</span>'
     : '';
@@ -4573,10 +4909,107 @@ function profilYetenekBarHTML(key, deger, meta) {
     ? '<span class="profil-yetenek-sonraki">' + escHtml(t('game.profil.nextTier')) + ' ' + meta.sonrakiEsik + '</span>'
     : '';
   return '<div class="profil-yetenek-kart">'
-    + '<h4>' + escHtml(profilYetenekEtiket(key)) + '</h4>'
+    + '<h4><span class="profil-yetenek-ikon" aria-hidden="true">' + emoji + '</span> '
+    + escHtml(profilYetenekEtiket(key)) + '</h4>'
     + '<div class="profil-yetenek-deger" id="profilYetenek_' + key + '">' + deger + kademeHtml + '</div>'
     + '<div class="profil-yetenek-bar"><i style="width:' + yuzde + '%"></i></div>'
     + sonrakiHtml
+    + '</div>';
+}
+
+function sagKolRutbeRozetUrl(iconPath) {
+  var base = iconPath || 'images/sag-kol/rozet/demir.png';
+  var v = (typeof GORSEL_VERSIYON !== 'undefined' && GORSEL_VERSIYON) ? GORSEL_VERSIYON : '1';
+  return base + (base.indexOf('?') >= 0 ? '&' : '?') + 'v=' + encodeURIComponent(v);
+}
+
+/** Aktif rütbe rozet şeridi — kurallar: Demir 1-100 … Altın 301-400 */
+function sagKolRutbeRozetleriHTML(panel) {
+  panel = panel || {};
+  var ozet = panel.ozet || panel;
+  var aktifId = panel.rutbeId || ozet.rutbeId || 'demir';
+  var liste = ozet.rutbeler;
+  if (!liste || !liste.length) {
+    liste = [
+      { id: 'demir', ad: 'Demir', icon: 'images/sag-kol/rozet/demir.png' },
+      { id: 'bronz', ad: 'Bronz', icon: 'images/sag-kol/rozet/bronz.png' },
+      { id: 'gumus', ad: 'Gümüş', icon: 'images/sag-kol/rozet/gumus.png' },
+      { id: 'altin', ad: 'Altın', icon: 'images/sag-kol/rozet/altin.png' }
+    ];
+  }
+  var aktifIdx = 0;
+  for (var i = 0; i < liste.length; i++) {
+    if (liste[i].id === aktifId) { aktifIdx = i; break; }
+  }
+  var html = '<div class="rutbe-container" role="list" aria-label="' + escHtml(t('game.sagKol.rankLabel', { rank: '' }).replace(/:\s*$/, '')) + '">';
+  for (var j = 0; j < liste.length; j++) {
+    var r = liste[j];
+    var rid = r.id || 'demir';
+    var adKey = 'game.sagKol.rank.' + rid;
+    var ad = t(adKey);
+    if (ad === adKey) ad = r.ad || rid;
+    var aktif = rid === aktifId || !!r.aktif;
+    var acik = j <= aktifIdx || !!r.acik;
+    var cls = 'rutbe-rozet ' + rid
+      + (aktif ? ' active' : '')
+      + (acik && !aktif ? ' unlocked' : '')
+      + (!acik ? ' locked' : '');
+    html += '<img src="' + escHtml(sagKolRutbeRozetUrl(r.icon || ('images/sag-kol/rozet/' + rid + '.png'))) + '"'
+      + ' class="' + cls + '"'
+      + ' role="listitem"'
+      + ' title="' + escHtml(t('game.sagKol.rankLabel', { rank: ad })) + '"'
+      + ' alt="' + escHtml(ad) + '">';
+  }
+  return html + '</div>';
+}
+
+function profilSagKolStatHTML(s) {
+  s = s || {};
+  var key = s.key || '';
+  var deger = s.deger != null ? s.deger : 1;
+  var yuzde = s.yuzde != null ? Math.max(0, Math.min(100, Number(s.yuzde) || 0)) : 0;
+  var emoji = s.emoji || sporSalonuYetenekEmoji(key);
+  var ad = s.ad || profilYetenekEtiket(key);
+  var kademeGoster = s.rutbeAd || s.kademe || '';
+  if (s.rutbeId) {
+    var rk = t('game.sagKol.rank.' + s.rutbeId);
+    if (rk !== 'game.sagKol.rank.' + s.rutbeId) kademeGoster = rk;
+  }
+  var kademeHtml = kademeGoster
+    ? '<span class="profil-yetenek-kademe">' + escHtml(kademeGoster) + '</span>'
+    : '';
+  var sonrakiHtml = '';
+  if (s.maxaUlasti) {
+    sonrakiHtml = '<span class="profil-yetenek-sonraki">' + escHtml(t('game.sagKol.maxReached')) + '</span>';
+  } else if (s.seviyeAtlamaHazir) {
+    var sonrakiRank = s.sonrakiRutbeAd || '';
+    if (s.rutbeId === 'demir') sonrakiRank = t('game.sagKol.rank.bronz');
+    else if (s.rutbeId === 'bronz') sonrakiRank = t('game.sagKol.rank.gumus');
+    else if (s.rutbeId === 'gumus') sonrakiRank = t('game.sagKol.rank.altin');
+    sonrakiHtml = '<span class="profil-yetenek-sonraki profil-sagkol-seviye-hazir">'
+      + escHtml(t('game.sagKol.rankUpReady', { rank: sonrakiRank }))
+      + '</span>';
+  }
+  var etkiHtml = s.etkiMetin
+    ? '<p class="profil-sagkol-stat-etki">' + escHtml(s.etkiMetin) + '</p>'
+    : '';
+  var isaret = s.seviyeAtlamaHazir
+    ? '<span class="profil-sagkol-seviye-isaret" title="' + escHtml(t('game.sagKol.rankUpMarker')) + '" aria-hidden="true">▲</span>'
+    : '';
+  return '<div class="profil-yetenek-kart profil-sagkol-stat'
+    + (s.seviyeAtlamaHazir ? ' profil-sagkol-stat--seviye' : '')
+    + (s.maxaUlasti ? ' profil-sagkol-stat--max' : '')
+    + '">'
+    + '<h4><span class="profil-yetenek-ikon" aria-hidden="true">' + emoji + '</span> '
+    + escHtml(ad) + '</h4>'
+    + '<div class="profil-yetenek-deger">' + deger + kademeHtml + '</div>'
+    + '<div class="profil-yetenek-bar profil-sagkol-bar">'
+    + '<i style="width:' + yuzde + '%"></i>'
+    + '<span class="profil-sagkol-bar-sinir" aria-hidden="true"></span>'
+    + isaret
+    + '</div>'
+    + sonrakiHtml
+    + etkiHtml
     + '</div>';
 }
 
@@ -4614,6 +5047,7 @@ function profilYetenekleriPanelHTML(yetenekler, aktifMeslek, ozet) {
 function profilSekmeDegistir(sekme) {
   if (sekme === 'yetenekler') profilAktifSekme = 'yetenekler';
   else if (sekme === 'koleksiyon') profilAktifSekme = 'koleksiyon';
+  else if (sekme === 'sagkol') profilAktifSekme = 'sagkol';
   else profilAktifSekme = 'karakter';
   var wrap = document.querySelector('.profil-wrap');
   if (!wrap) return;
@@ -4624,9 +5058,152 @@ function profilSekmeDegistir(sekme) {
   var karakter = document.getElementById('profilSekmeKarakter');
   var yetenekler = document.getElementById('profilSekmeYetenekler');
   var koleksiyon = document.getElementById('profilSekmeKoleksiyon');
+  var sagKol = document.getElementById('profilSekmeSagKol');
   if (karakter) karakter.classList.toggle('gizli', profilAktifSekme !== 'karakter');
   if (yetenekler) yetenekler.classList.toggle('gizli', profilAktifSekme !== 'yetenekler');
   if (koleksiyon) koleksiyon.classList.toggle('gizli', profilAktifSekme !== 'koleksiyon');
+  if (sagKol) sagKol.classList.toggle('gizli', profilAktifSekme !== 'sagkol');
+  if (profilAktifSekme === 'sagkol') profilSagKolYenile();
+}
+
+function profilSagKolPanelHTML(panel, opts) {
+  opts = opts || {};
+  panel = panel || null;
+  var ziyaretci = !!opts.ziyaretci;
+  var duzenlenebilir = opts.duzenlenebilir != null ? !!opts.duzenlenebilir : !ziyaretci;
+  var html = '<div class="profil-sagkol-wrap" id="profilSagKolIcerik">';
+  if (!panel) {
+    html += '<div class="sag-kol-header">'
+      + '<h3 class="profil-sagkol-baslik">' + escHtml(t('game.profil.rightHandTab')) + '</h3>'
+      + '</div>';
+    if (!ziyaretci) {
+      html += '<p class="profil-sagkol-aciklama">' + escHtml(t('game.profil.rightHandHint')) + '</p>';
+    }
+    html += '<div class="profil-sagkol-bos"><p>' + escHtml(t('game.loading')) + '</p></div>';
+    return html + '</div>';
+  }
+  if (panel.sahip === false) {
+    html += '<div class="sag-kol-header">'
+      + '<h3 class="profil-sagkol-baslik">' + escHtml(t('game.profil.rightHandTab')) + '</h3>'
+      + '</div>';
+    if (ziyaretci) {
+      html += '<div class="profil-sagkol-bos"><p>' + escHtml(t('game.sagKol.visitNone')) + '</p></div>';
+    } else {
+      html += sagKolSatinAlHTML(panel.satinAlFiyat);
+    }
+    return html + '</div>';
+  }
+  var statlar = (!ziyaretci && panel.ozet && panel.ozet.statlar) ? panel.ozet.statlar : [];
+  var portreKey = profilPortreKeyNormalize(panel.profilResmi || '');
+  var portreUrl = profilPortreUrlFromKey(portreKey);
+  var premium = profilPortrePremiumMi(portreKey);
+  var koleksiyon = profilPortreVipKoleksiyonu(portreKey);
+  var kutuCls = 'profil-sagkol-avatar-kutu'
+    + (premium ? ' profil-avatar-kutu--premium' : '')
+    + (koleksiyon === 'mafya' ? ' profil-avatar-kutu--mafya' : '')
+    + (koleksiyon === 'kral' ? ' profil-avatar-kutu--kral' : '')
+    + (koleksiyon === 'ihtisam' ? ' profil-avatar-kutu--ihtisam' : '')
+    + (koleksiyon === 'karanlik' ? ' profil-avatar-kutu--karanlik' : '')
+    + (koleksiyon === 'aslan' ? ' profil-avatar-kutu--aslan' : '')
+    + (koleksiyon === 'operasyon' ? ' profil-avatar-kutu--operasyon' : '')
+    + (koleksiyon === 'vip' ? ' profil-avatar-kutu--vip' : '');
+  var imgCls = 'profil-sagkol-avatar-img' + (premium ? ' profil-avatar-img--premium' : '') + (portreKey ? ' profil-avatar-ozel' : '');
+  var vipEtiket = '';
+  if (premium) {
+    vipEtiket = '<span class="profil-elmas-koleksiyon-etiket'
+      + (koleksiyon === 'mafya' ? ' profil-elmas-koleksiyon-etiket--mafya' : '')
+      + (koleksiyon === 'kral' ? ' profil-elmas-koleksiyon-etiket--kral' : '')
+      + (koleksiyon === 'ihtisam' ? ' profil-elmas-koleksiyon-etiket--ihtisam' : '')
+      + (koleksiyon === 'karanlik' ? ' profil-elmas-koleksiyon-etiket--karanlik' : '')
+      + (koleksiyon === 'aslan' ? ' profil-elmas-koleksiyon-etiket--aslan' : '')
+      + (koleksiyon === 'operasyon' ? ' profil-elmas-koleksiyon-etiket--operasyon' : '')
+      + (koleksiyon === 'vip' ? ' profil-elmas-koleksiyon-etiket--vip' : '')
+      + '">' + escHtml(profilPortreVipKoleksiyonBaslik(portreKey)) + '</span>';
+  }
+  var rutbeId = panel.rutbeId || (panel.ozet && panel.ozet.rutbeId) || 'demir';
+  var rutbeAdKey = 'game.sagKol.rank.' + rutbeId;
+  var rutbeAd = t(rutbeAdKey);
+  if (rutbeAd === rutbeAdKey) {
+    rutbeAd = panel.rutbeAd || (panel.ozet && panel.ozet.rutbeAd) || 'Demir';
+  }
+  var saglik = panel.saglik != null ? Number(panel.saglik) : 0;
+  var saglikMax = panel.saglikMax != null ? Number(panel.saglikMax) : 150;
+  var hastanelik = !!panel.hastanelik || saglik <= 0;
+  var saglikYuzde = (!hastanelik && saglikMax > 0)
+    ? Math.max(0, Math.min(100, Math.round((saglik / saglikMax) * 100)))
+    : 0;
+  html += '<div class="sag-kol-header">'
+    + '<h3 class="profil-sagkol-baslik">' + escHtml(t('game.profil.rightHandTab')) + '</h3>'
+    + sagKolRutbeRozetleriHTML(panel)
+    + '</div>';
+  if (!ziyaretci) {
+    html += '<p class="profil-sagkol-aciklama">' + escHtml(t('game.sagKol.profilHint')) + '</p>';
+  }
+  html += '<p class="profil-sagkol-rutbe-metin">' + escHtml(t('game.sagKol.rankLabel', { rank: rutbeAd })) + '</p>'
+    + '<div class="profil-sagkol-govde'
+    + (ziyaretci ? ' profil-sagkol-govde--ziyaret' : '')
+    + (hastanelik ? ' profil-sagkol-govde--hastane' : '')
+    + '">'
+    + '<div class="profil-sagkol-sol">'
+    + '<div id="profilSagKolAvatarKutu" class="' + kutuCls + (hastanelik ? ' profil-sagkol-avatar-kutu--hastane' : '') + '">'
+    + '<img id="profilSagKolAvatar" class="' + imgCls + '" src="' + escHtml(portreUrl) + '" alt="' + escHtml(t('game.profil.rightHandTab')) + '">'
+    + vipEtiket
+    + (hastanelik
+      ? '<span class="profil-sagkol-hastane-damga" aria-hidden="true">' + escHtml(t('game.sagKol.inHospitalStamp')) + '</span>'
+      : '')
+    + '</div>';
+  if (duzenlenebilir) {
+    html += '<button type="button" class="profil-resim-btn profil-sagkol-resim-btn" onclick="sagKolResmiSecModal()">'
+      + escHtml(t('game.profil.changePhoto')) + '</button>';
+  }
+  html += '</div>';
+  if (!ziyaretci && statlar.length) {
+    html += '<div class="profil-sagkol-stat-grid' + (hastanelik ? ' profil-sagkol-stat-grid--hastane' : '') + '">'
+      + '<div class="profil-sagkol-saglik' + (hastanelik ? ' is-hastane is-bos' : '') + '" title="'
+      + escHtml(hastanelik ? t('game.sagKol.healthHospital') : t('game.sagKol.healthLabel')) + '">'
+      + '<span class="profil-sagkol-saglik-etiket">' + escHtml(t('game.sagKol.healthLabel')) + '</span>'
+      + '<div class="profil-sagkol-saglik-bar"><i style="width:' + saglikYuzde + '%"></i></div>'
+      + '<span class="profil-sagkol-saglik-deger">' + saglik + '/' + saglikMax + '</span>'
+      + '</div>'
+      + '<p class="profil-sagkol-saglik-not">' + escHtml(t('game.sagKol.healthHint')) + '</p>';
+    if (hastanelik) {
+      html += '<p class="profil-sagkol-hastane-uyari">' + escHtml(t('game.sagKol.healthHospital')) + '</p>';
+    }
+    for (var i = 0; i < statlar.length; i++) {
+      html += profilSagKolStatHTML(statlar[i]);
+    }
+    html += '</div>';
+  } else if (ziyaretci && hastanelik) {
+    html += '<div class="profil-sagkol-ziyaret-hastane">'
+      + '<span class="profil-sagkol-hastane-damga profil-sagkol-hastane-damga--metin">'
+      + escHtml(t('game.sagKol.inHospitalStamp')) + '</span>'
+      + '<p>' + escHtml(t('game.sagKol.visitHospital')) + '</p>'
+      + '</div>';
+  }
+  html += '</div>';
+  if (!ziyaretci) {
+    html += '<p class="profil-sagkol-not">' + escHtml(t('game.sagKol.trainAtGym')) + '</p>';
+  }
+  html += '</div>';
+  return html;
+}
+
+async function profilSagKolYenile() {
+  var panelEl = document.getElementById('profilSekmeSagKol');
+  if (!panelEl) return;
+  if (panelEl.getAttribute('data-sagkol-ziyaret') === '1') return;
+  try {
+    var res = await apiFetch('/api/sag-kol/panel');
+    var data = await res.json().catch(function() { return {}; });
+    if (!res.ok || !data.ok) return;
+    window.__sonSagKolPanel = data.panel || null;
+    panelEl.innerHTML = profilSagKolPanelHTML(data.panel, { duzenlenebilir: true, ziyaretci: false });
+  } catch (_) {}
+}
+
+function sagKolResmiSecModal() {
+  var aktif = (window.__sonSagKolPanel && window.__sonSagKolPanel.profilResmi) || '';
+  profilResmiSecModal({ hedef: 'sagkol', aktifKey: aktif });
 }
 
 function profilKoleksiyonAnahtarlari(koleksiyonKey) {
@@ -5106,8 +5683,10 @@ function profilKoleksiyonGuncelle(sahipListe, basariListe) {
     panel.classList.remove('gizli');
     var karakter = document.getElementById('profilSekmeKarakter');
     var yetenekler = document.getElementById('profilSekmeYetenekler');
+    var sagKol = document.getElementById('profilSekmeSagKol');
     if (karakter) karakter.classList.add('gizli');
     if (yetenekler) yetenekler.classList.add('gizli');
+    if (sagKol) sagKol.classList.add('gizli');
   }
 }
 
@@ -5279,8 +5858,9 @@ function profilEkranSablonu(opts) {
   if (opts.duzenlenebilir) {
     sekmelerHtml += '<button type="button" class="profil-sekme" data-sekme="yetenekler" onclick="profilSekmeDegistir(\'yetenekler\')">' + escHtml(t('game.profil.skillsTab')) + '</button>';
   }
-  sekmelerHtml += '<button type="button" class="profil-sekme" data-sekme="koleksiyon" onclick="profilSekmeDegistir(\'koleksiyon\')">' + escHtml(t('game.profil.collectionTab')) + '</button>'
-    + '</div>';
+  sekmelerHtml += '<button type="button" class="profil-sekme" data-sekme="koleksiyon" onclick="profilSekmeDegistir(\'koleksiyon\')">' + escHtml(t('game.profil.collectionTab')) + '</button>';
+  sekmelerHtml += '<button type="button" class="profil-sekme" data-sekme="sagkol" onclick="profilSekmeDegistir(\'sagkol\')">' + escHtml(t('game.profil.rightHandTab')) + '</button>';
+  sekmelerHtml += '</div>';
 
   var yeteneklerSekmeHtml = opts.duzenlenebilir
     ? '<div id="profilSekmeYetenekler" class="profil-kart gizli">' + profilYetenekleriPanelHTML(opts.yetenekler, opts.aktifMeslek) + '</div>'
@@ -5288,6 +5868,13 @@ function profilEkranSablonu(opts) {
 
   var koleksiyonSekmeHtml = '<div id="profilSekmeKoleksiyon" class="profil-kart gizli">'
     + profilKoleksiyonPanelHTML(opts.vipPortreSahip, opts.basariRozetleri)
+    + '</div>';
+
+  var sagKolZiyaret = !opts.duzenlenebilir;
+  var sagKolSekmeHtml = '<div id="profilSekmeSagKol" class="profil-kart gizli"'
+    + (sagKolZiyaret ? ' data-sagkol-ziyaret="1"' : '')
+    + '>'
+    + profilSagKolPanelHTML(opts.sagKol || null, { ziyaretci: sagKolZiyaret, duzenlenebilir: !!opts.duzenlenebilir })
     + '</div>';
 
   return '<div class="profil-wrap" data-profil-user="' + escHtml(String(userId)) + '" data-profil-hedef-adi="' + escHtml(opts.oyuncuAdi || '') + '" data-profil-resmi="' + escHtml(opts.profilResmi || '') + '">'
@@ -5308,10 +5895,14 @@ function profilEkranSablonu(opts) {
     + '</div></div>'
     + formHtml
     + '<div id="profilZiyaretlerBox" class="profil-ziyaretler"></div>'
+    + '<div id="profilZiyaretciDefteriBox" class="profil-ziyaretci-defteri" data-hedef-user="' + escHtml(String(userId)) + '"'
+    + (opts.ziyaretciModu ? ' data-yazabilir="1"' : '')
+    + '></div>'
     + altBtn
     + '</div>'
     + yeteneklerSekmeHtml
     + koleksiyonSekmeHtml
+    + sagKolSekmeHtml
     + '</div>';
 }
 
@@ -5825,7 +6416,9 @@ function profilResimSekmeDegistir(sekme) {
   if (vipKadinPanel) vipKadinPanel.classList.toggle('gizli', profilResimAktifSekme !== 'vip-kadin');
 }
 
-function profilResmiSecModal() {
+function profilResmiSecModal(opts) {
+  opts = opts || {};
+  window.__profilResimHedef = opts.hedef === 'sagkol' ? 'sagkol' : 'oyuncu';
   var modal = document.getElementById('profilResimModal');
   if (modal && (!document.getElementById('profilResimGridVipErkekOperasyon') || !document.getElementById('profilResimGridVipErkekVip') || !document.getElementById('profilResimGridVipKadinVip'))) {
     modal.remove();
@@ -5836,7 +6429,7 @@ function profilResmiSecModal() {
     modal.id = 'profilResimModal';
     modal.className = 'gizli';
     modal.innerHTML = '<div class="profil-resim-modal-ic">'
-      + '<h3>' + escHtml(t('game.profil.selectPhoto')) + '</h3>'
+      + '<h3 id="profilResimModalBaslik">' + escHtml(t('game.profil.selectPhoto')) + '</h3>'
       + '<p id="profilResimModalAciklama">' + escHtml(t('game.profil.selectPortrait')) + '</p>'
       + '<div class="profil-resim-sekmeler">'
       + '<button type="button" class="profil-resim-sekme aktif" data-sekme="kadin" onclick="profilResimSekmeDegistir(\'kadin\')">' + escHtml(t('game.profil.female')) + '</button>'
@@ -5856,9 +6449,19 @@ function profilResmiSecModal() {
     });
   }
 
+  var baslik = document.getElementById('profilResimModalBaslik');
+  var aciklama = document.getElementById('profilResimModalAciklama');
+  if (window.__profilResimHedef === 'sagkol') {
+    if (baslik) baslik.textContent = t('game.sagKol.selectPhoto');
+    if (aciklama) aciklama.textContent = t('game.sagKol.selectPortrait');
+  } else {
+    if (baslik) baslik.textContent = t('game.profil.selectPhoto');
+    if (aciklama) aciklama.textContent = t('game.profil.selectPortrait');
+  }
+
   var wrap = document.querySelector('.profil-wrap');
   var userId = wrap ? wrap.getAttribute('data-profil-user') : (window.__benimUserId || 'me');
-  var aktifKey = optsProfilResmiKey(userId);
+  var aktifKey = opts.aktifKey != null ? opts.aktifKey : optsProfilResmiKey(userId);
   var kadinGrid = document.getElementById('profilResimGridKadin');
   var erkekGrid = document.getElementById('profilResimGridErkek');
   var vipErkekElmas = document.getElementById('profilResimGridVipErkekElmas');
@@ -5931,8 +6534,35 @@ async function profilResmiUygula(btn) {
     }
   }
 
+  var sagKolHedef = window.__profilResimHedef === 'sagkol';
   var kayitliKey = key;
   try {
+    if (sagKolHedef) {
+      var ef = await sunucuAksiyon('sag_kol_profil_resmi', null, null, {
+        profilResmi: key,
+        vipKaliciSec: kaliciSec,
+        sessizHata: true
+      });
+      if (!ef || ef.hata) {
+        toast(tr((ef && (ef.error || ef.mesaj)) || '') || t('game.toast.profilePhotoSaveFailed'), 'hata');
+        return;
+      }
+      kayitliKey = ef.profilResmi || key;
+      if (ef.panel) {
+        window.__sonSagKolPanel = ef.panel;
+      } else if (window.__sonSagKolPanel) {
+        window.__sonSagKolPanel.profilResmi = kayitliKey;
+      }
+      if (typeof profilSagKolYenile === 'function') profilSagKolYenile();
+      profilResmiModalKapat();
+      window.__profilResimHedef = 'oyuncu';
+      toast(
+        kaliciSec ? t('game.profil.vipPermanentSaved') : t('game.sagKol.photoUpdated'),
+        'basari'
+      );
+      return;
+    }
+
     var res = await apiFetch('/api/profile', {
       method: 'POST',
       body: { profilResmi: key, vipKaliciSec: kaliciSec }
@@ -5957,6 +6587,7 @@ async function profilResmiUygula(btn) {
   var wrap = document.querySelector('.profil-wrap');
   if (wrap) wrap.setAttribute('data-profil-resmi', kayitliKey);
   profilResmiModalKapat();
+  window.__profilResimHedef = 'oyuncu';
   toast(
     kaliciSec ? t('game.profil.vipPermanentSaved') : t('game.toast.profilePhotoUpdated'),
     'basari'
@@ -7029,6 +7660,12 @@ function ekranDegistir(tip) {
 
   if (tip === 'devletIliskisi') {
     ic.innerHTML = avukatHTML();
+    return;
+  }
+
+  if (tip === 'hastane') {
+    ic.innerHTML = '<p style="color:#888;">' + escHtml(t('game.loading')) + '</p>';
+    hastaneYukle();
     return;
   }
 
@@ -8439,6 +9076,155 @@ function profilZiyaretleriHTML(ziyaretler) {
   return zHtml;
 }
 
+function profilDefterTarihFmt(ts) {
+  var n = Number(ts) || 0;
+  if (!n) return '';
+  try {
+    return new Date(n * 1000).toLocaleString('tr-TR', {
+      timeZone: 'Europe/Istanbul',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  } catch (_) {
+    return '';
+  }
+}
+
+function profilZiyaretciDefteriHTML(kayitlar, yazabilir) {
+  var html = '<h3 class="profil-ziyaretler-baslik">' + escHtml(t('game.profil.guestbookTitle')) + '</h3>';
+  html += '<ul class="profil-defter-liste" id="profilDefterListe">';
+  if (kayitlar && kayitlar.length) {
+    for (var i = 0; i < kayitlar.length; i++) {
+      var k = kayitlar[i];
+      var ad = k.yazarAdi || '—';
+      var uid = k.yazarUserId;
+      var kid = k.id;
+      var adHtml = uid
+        ? '<button type="button" class="oyuncu-link-btn" onclick="oyuncuProfilGoster(' + uid + ')">' + escHtml(ad) + '</button>'
+        : escHtml(ad);
+      var benimOy = Number(k.benimOy) || 0;
+      var begenAktif = benimOy === 1 ? ' is-aktif' : '';
+      var begenmeAktif = benimOy === -1 ? ' is-aktif' : '';
+      html += '<li class="profil-defter-kayit" data-kayit-id="' + escHtml(String(kid)) + '">'
+        + '<div class="profil-defter-ust">'
+        + '<span class="profil-defter-yazar">' + adHtml + '</span>'
+        + '<span class="profil-defter-tarih">' + escHtml(profilDefterTarihFmt(k.createdAt)) + '</span>'
+        + '</div>'
+        + '<p class="profil-defter-metin">' + escHtml(k.metin || '') + '</p>'
+        + '<div class="profil-defter-oylar">'
+        + '<button type="button" class="profil-defter-oy begen' + begenAktif + '" title="'
+        + escHtml(t('game.profil.guestbookLike')) + '" aria-label="'
+        + escHtml(t('game.profil.guestbookLike')) + '" onclick="profilZiyaretciDefteriOy(' + kid + ',\'begen\')">'
+        + '<span class="profil-defter-oy-ikon" aria-hidden="true">👍</span>'
+        + '<span class="profil-defter-oy-say" data-oy="begeni">' + escHtml(String(k.begeni || 0)) + '</span>'
+        + '</button>'
+        + '<button type="button" class="profil-defter-oy begenme' + begenmeAktif + '" title="'
+        + escHtml(t('game.profil.guestbookDislike')) + '" aria-label="'
+        + escHtml(t('game.profil.guestbookDislike')) + '" onclick="profilZiyaretciDefteriOy(' + kid + ',\'begenme\')">'
+        + '<span class="profil-defter-oy-ikon" aria-hidden="true">👎</span>'
+        + '<span class="profil-defter-oy-say" data-oy="begenme">' + escHtml(String(k.begenme || 0)) + '</span>'
+        + '</button>'
+        + '</div>'
+        + '</li>';
+    }
+  } else {
+    html += '<li class="bos">' + escHtml(t('game.profil.guestbookEmpty')) + '</li>';
+  }
+  html += '</ul>';
+  if (yazabilir) {
+    html += '<div class="profil-defter-yaz">'
+      + '<label for="profilDefterMetin" class="gizli">' + escHtml(t('game.profil.guestbookWrite')) + '</label>'
+      + '<textarea id="profilDefterMetin" class="profil-ziyaret-textarea" rows="3" maxlength="280" placeholder="'
+      + escHtml(t('game.profil.guestbookPlaceholder')) + '"></textarea>'
+      + '<button type="button" class="profil-alt-btn kirmizi" onclick="profilZiyaretciDefteriYaz()">'
+      + escHtml(t('game.profil.guestbookSend')) + '</button>'
+      + '</div>';
+  }
+  return html;
+}
+
+function profilZiyaretciDefteriCiz(kayitlar, yazabilir) {
+  var box = document.getElementById('profilZiyaretciDefteriBox');
+  if (!box) return;
+  if (yazabilir == null) yazabilir = box.getAttribute('data-yazabilir') === '1';
+  box.innerHTML = profilZiyaretciDefteriHTML(kayitlar || [], yazabilir);
+}
+
+function profilDefterOyUIGuncelle(kayitId, data) {
+  var li = document.querySelector('.profil-defter-kayit[data-kayit-id="' + kayitId + '"]');
+  if (!li) return;
+  var begenBtn = li.querySelector('.profil-defter-oy.begen');
+  var begenmeBtn = li.querySelector('.profil-defter-oy.begenme');
+  var begeniSay = li.querySelector('[data-oy="begeni"]');
+  var begenmeSay = li.querySelector('[data-oy="begenme"]');
+  if (begeniSay) begeniSay.textContent = String(data.begeni || 0);
+  if (begenmeSay) begenmeSay.textContent = String(data.begenme || 0);
+  var oy = Number(data.benimOy) || 0;
+  if (begenBtn) begenBtn.classList.toggle('is-aktif', oy === 1);
+  if (begenmeBtn) begenmeBtn.classList.toggle('is-aktif', oy === -1);
+}
+
+async function profilZiyaretciDefteriOy(kayitId, tip) {
+  var box = document.getElementById('profilZiyaretciDefteriBox');
+  if (!box || !kayitId) return;
+  var hedef = box.getAttribute('data-hedef-user');
+  if (!hedef) return;
+  try {
+    var res = await apiFetch(
+      '/api/profile/' + encodeURIComponent(String(hedef)) + '/ziyaretci-defteri/'
+        + encodeURIComponent(String(kayitId)) + '/oy',
+      { method: 'POST', body: { tip: tip === 'begenme' ? 'begenme' : 'begen' } }
+    );
+    var data = await res.json().catch(function() { return {}; });
+    if (!res.ok || !data.ok) {
+      toast(tr(data.error) || t('game.profil.guestbookVoteFail'), 'hata');
+      return;
+    }
+    profilDefterOyUIGuncelle(kayitId, data);
+  } catch (_) {
+    toast(t('game.profil.guestbookVoteFail'), 'hata');
+  }
+}
+
+async function profilZiyaretciDefteriYaz() {
+  var box = document.getElementById('profilZiyaretciDefteriBox');
+  var ta = document.getElementById('profilDefterMetin');
+  if (!box || !ta) return;
+  var hedef = box.getAttribute('data-hedef-user');
+  if (!hedef || hedef === 'me' || String(hedef) === String(window.__benimUserId)) {
+    toast(t('game.profil.guestbookSelfError'), 'hata');
+    return;
+  }
+  var metin = String(ta.value || '').trim();
+  if (!metin) {
+    toast(t('game.profil.guestbookEmptyError'), 'hata');
+    return;
+  }
+  try {
+    var res = await apiFetch('/api/profile/' + encodeURIComponent(String(hedef)) + '/ziyaretci-defteri', {
+      method: 'POST',
+      body: { metin: metin }
+    });
+    var data = await res.json().catch(function() { return {}; });
+    if (!res.ok || !data.ok) {
+      toast(tr(data.error) || t('game.profil.guestbookFail'), 'hata');
+      return;
+    }
+    if (data.smsHakki != null) {
+      oyuncuSms = data.smsHakki;
+      if (typeof arayuzGuncelle === 'function') arayuzGuncelle();
+    }
+    ta.value = '';
+    profilZiyaretciDefteriCiz(data.liste || [], true);
+    toast(t('game.profil.guestbookSent'), 'basari');
+  } catch (_) {
+    toast(t('game.profil.guestbookFail'), 'hata');
+  }
+}
+
 function profilAlanGuncelle(id, text) {
   var el = document.getElementById(id);
   if (el) el.textContent = text;
@@ -8528,6 +9314,7 @@ async function profilYukle() {
 
     var z = document.getElementById('profilZiyaretlerBox');
     if (z) z.innerHTML = profilZiyaretleriHTML(p.ziyaretler);
+    profilZiyaretciDefteriCiz(p.ziyaretciDefteri || [], false);
 
     if (p.lastIcraatAt != null) oyuncuLastIcraatAt = p.lastIcraatAt;
     if (p.icraat != null) oyuncuIcraat = p.icraat;
@@ -8856,7 +9643,8 @@ async function oyuncuProfilGoster(userId) {
       isDurumu: p.isDurumu,
       vipPortreSahip: p.vipPortreSahip || [],
       basariRozetleri: p.basariRozetleri || [],
-      basariRozetPinleri: p.basariRozetPinleri || []
+      basariRozetPinleri: p.basariRozetPinleri || [],
+      sagKol: p.sagKol || null
     });
     profilAktifSekme = 'karakter';
     await profilSiralamaAlanlariGuncelle(p);
@@ -8864,6 +9652,10 @@ async function oyuncuProfilGoster(userId) {
     profilAciklamaGosterUygula(p.aciklama);
     var z = document.getElementById('profilZiyaretlerBox');
     if (z) z.innerHTML = profilZiyaretleriHTML(p.ziyaretler);
+    profilZiyaretciDefteriCiz(
+      p.ziyaretciDefteri || [],
+      String(p.userId) !== String(window.__benimUserId)
+    );
   } catch (e) {
     ic.innerHTML = '<div class="profil-wrap"><p style="color:#c00;padding:24px;">' + escHtml(e.message || t('game.error.loadFailed')) + '</p></div>';
   }

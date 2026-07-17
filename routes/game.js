@@ -234,6 +234,18 @@ function createGameRouter(db) {
         basariRozetPinleri = basari.pinler || [];
       } catch (_) {}
 
+      let sagKol = null;
+      try {
+        const { ziyaretciOzeti: sagKolZiyaretciOzeti } = require("../game/sagKolService");
+        sagKol = await sagKolZiyaretciOzeti(db, targetId);
+      } catch (_) {}
+
+      let ziyaretciDefteri = [];
+      try {
+        const { defterListeGetir } = require("../game/ziyaretciDefteriService");
+        ziyaretciDefteri = await defterListeGetir(db, targetId, req.user.id);
+      } catch (_) {}
+
       res.json({
         ok: true,
         profil: {
@@ -262,6 +274,7 @@ function createGameRouter(db) {
           kayitUlkesi: p.kayit_ulkesi || "",
           oyunDili: p.oyun_dili || "tr",
           ziyaretler: ziyaretler.map((x) => x.reis_adi),
+          ziyaretciDefteri,
           yetenekler,
           aktifMeslek,
           isDurumu,
@@ -270,6 +283,7 @@ function createGameRouter(db) {
           vipPortreSahip,
           basariRozetleri,
           basariRozetPinleri,
+          sagKol,
         },
       });
     } catch (err) {
@@ -500,10 +514,23 @@ function createGameRouter(db) {
   router.get("/spor-salonu/panel", async (req, res) => {
     try {
       const panel = await sporSalonuPanelGetir(db, req.user.id);
+      const { panelGetir: sagKolPanelGetir } = require("../game/sagKolService");
+      panel.sagKol = await sagKolPanelGetir(db, req.user.id);
       res.json({ ok: true, panel });
     } catch (err) {
       console.error("[spor-salonu/panel]", err?.message || err);
       res.status(500).json({ ok: false, error: "Spor salonu yüklenemedi." });
+    }
+  });
+
+  router.get("/sag-kol/panel", async (req, res) => {
+    try {
+      const { panelGetir: sagKolPanelGetir } = require("../game/sagKolService");
+      const panel = await sagKolPanelGetir(db, req.user.id);
+      res.json({ ok: true, panel });
+    } catch (err) {
+      console.error("[sag-kol/panel]", err?.message || err);
+      res.status(500).json({ ok: false, error: "Sağ kol paneli yüklenemedi." });
     }
   });
 
@@ -606,6 +633,35 @@ function createGameRouter(db) {
     } catch (err) {
       console.error(err);
       res.status(500).json({ ok: false, error: "İşlem başarısız." });
+    }
+  });
+
+  router.post("/profile/:userId/ziyaretci-defteri", async (req, res) => {
+    try {
+      const targetId = parseInt(req.params.userId, 10);
+      if (!targetId) return res.status(400).json({ ok: false, error: "Geçersiz oyuncu." });
+      const { defterYaz } = require("../game/ziyaretciDefteriService");
+      const sonuc = await defterYaz(db, req.user.id, targetId, req.body?.metin);
+      if (!sonuc.ok) return res.status(400).json(sonuc);
+      res.json(sonuc);
+    } catch (err) {
+      console.error("[ziyaretci-defteri]", err?.message || err);
+      res.status(500).json({ ok: false, error: "Deftere yazılamadı." });
+    }
+  });
+
+  router.post("/profile/:userId/ziyaretci-defteri/:kayitId/oy", async (req, res) => {
+    try {
+      const kayitId = parseInt(req.params.kayitId, 10);
+      if (!kayitId) return res.status(400).json({ ok: false, error: "Geçersiz yazı." });
+      const tip = req.body?.tip === "begenme" ? "begenme" : "begen";
+      const { defterOyVer } = require("../game/ziyaretciDefteriService");
+      const sonuc = await defterOyVer(db, req.user.id, kayitId, tip);
+      if (!sonuc.ok) return res.status(400).json(sonuc);
+      res.json(sonuc);
+    } catch (err) {
+      console.error("[ziyaretci-defteri-oy]", err?.message || err);
+      res.status(500).json({ ok: false, error: "Oy verilemedi." });
     }
   });
 

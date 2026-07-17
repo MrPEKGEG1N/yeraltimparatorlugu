@@ -219,31 +219,47 @@ async function vipPortreEquipKontrol(db, userId, key, opts = {}) {
   };
 }
 
+function vipPortreUyelikDisindaMi(key, sahip, premiumAktif, paket) {
+  const mevcut = normalizeProfilResmi(key || "");
+  if (!vipPortreMi(mevcut)) return false;
+  if (sahip.includes(mevcut)) return false;
+  if (premiumAktif) {
+    const koleksiyon = vipKoleksiyonu(mevcut);
+    if (paketUyelikKoleksiyonlari(paket).includes(koleksiyon)) return false;
+  }
+  return true;
+}
+
 /** Üyelik bitince veya paketin kapsadığı koleksiyon dışında kalınca sahiplenilmemiş VIP'i klasik portreye çevir */
 async function vipPortreUyelikBitinceTemizle(db, userId) {
   await ensureVipPortreColumns(db);
+  try {
+    const { ensureSagKol } = require("./sagKolService");
+    await ensureSagKol(db);
+  } catch (_) {}
   const row = await get(
     db,
-    `SELECT vip_portre_sahip, profil_resmi, premium_paket, premium_paket_bitis FROM players WHERE user_id = ?`,
+    `SELECT vip_portre_sahip, profil_resmi, sag_kol_profil_resmi, premium_paket, premium_paket_bitis FROM players WHERE user_id = ?`,
     [userId]
   );
   const simdi = Math.floor(Date.now() / 1000);
   const paket = String(row?.premium_paket || "").trim();
   const bitis = Number(row?.premium_paket_bitis || 0);
   const premiumAktif = !!(paket && bitis > simdi);
-
-  const mevcut = normalizeProfilResmi(row?.profil_resmi || "");
-  if (!vipPortreMi(mevcut)) return null;
   const sahip = normalizeSahip(row?.vip_portre_sahip);
-  if (sahip.includes(mevcut)) return null;
 
-  if (premiumAktif) {
-    const koleksiyon = vipKoleksiyonu(mevcut);
-    if (paketUyelikKoleksiyonlari(paket).includes(koleksiyon)) return null;
+  let yeni = null;
+  const mevcut = normalizeProfilResmi(row?.profil_resmi || "");
+  if (vipPortreUyelikDisindaMi(mevcut, sahip, premiumAktif, paket)) {
+    yeni = rastgeleProfilResmi();
+    await run(db, `UPDATE players SET profil_resmi = ? WHERE user_id = ?`, [yeni, userId]);
   }
 
-  const yeni = rastgeleProfilResmi();
-  await run(db, `UPDATE players SET profil_resmi = ? WHERE user_id = ?`, [yeni, userId]);
+  const sagKol = normalizeProfilResmi(row?.sag_kol_profil_resmi || "");
+  if (vipPortreUyelikDisindaMi(sagKol, sahip, premiumAktif, paket)) {
+    await run(db, `UPDATE players SET sag_kol_profil_resmi = '' WHERE user_id = ?`, [userId]);
+  }
+
   return yeni;
 }
 
