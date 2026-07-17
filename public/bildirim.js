@@ -218,7 +218,7 @@
         var checked = bildirimTercihler[k] !== false ? " checked" : "";
         html +=
           '<label class="bildirim-tercih"><span>' +
-          escHtml(bildirimTurler[k]) +
+          escHtml(bi("bildirim.tur." + k, null, bildirimTurler[k] || k)) +
           '</span><input type="checkbox" data-bildirim-tur="' +
           escHtml(k) +
           '"' +
@@ -394,7 +394,23 @@
         }).then(function (r) {
           return r.ok;
         });
+      })
+      .catch(function () {
+        return false;
       });
+  }
+
+  /** İzin granted ise her girişte aboneliği sunucuya yeniden kaydet (DB kaybı / VAPID sonrası). */
+  function bildirimPushYenidenKaydet() {
+    if (!bildirimAktifMi()) return Promise.resolve(false);
+    if (bildirimTercihler.pushAktif === false) return Promise.resolve(false);
+    if (!("Notification" in window) || Notification.permission !== "granted") {
+      return Promise.resolve(false);
+    }
+    return bildirimSwKaydet().then(function (reg) {
+      if (!reg || !vapidPublicKey) return false;
+      return bildirimPushAboneOl();
+    });
   }
 
   function bildirimPushKapat() {
@@ -427,7 +443,7 @@
     if (bildirimTercihler.pushAktif === false) return;
     if (!("Notification" in window)) return;
     if (Notification.permission === "granted") {
-      bildirimPushAboneOl();
+      bildirimPushYenidenKaydet();
       return;
     }
     if (Notification.permission === "denied") return;
@@ -439,7 +455,7 @@
       document.removeEventListener("keydown", dene, true);
       if (!bildirimAktifMi() || bildirimTercihler.pushAktif === false) return;
       if (Notification.permission === "granted") {
-        bildirimPushAboneOl();
+        bildirimPushYenidenKaydet();
         return;
       }
       if (Notification.permission !== "default") return;
@@ -572,6 +588,9 @@
       })
       .then(function () {
         bildirimPushOtomatikBaslat();
+        if (typeof window.bildirimCapacitorPushBaslat === "function") {
+          window.bildirimCapacitorPushBaslat();
+        }
       });
   }
 

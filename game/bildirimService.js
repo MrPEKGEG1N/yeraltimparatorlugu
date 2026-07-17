@@ -7,6 +7,9 @@ try {
   webpush = require("web-push");
 } catch (_) {}
 
+let firebaseAdmin = null;
+let firebaseInitTried = false;
+
 const VAPID_FILE = path.join(__dirname, "..", "db", "vapid.json");
 
 const BILDIRIM_TURLERI = {
@@ -23,9 +26,27 @@ const BILDIRIM_TURLERI = {
   gazete: "Gazetede yeni olay",
   mafya_savas_baslatildi: "Mafya grubun savaş başlattı",
   mafya_savas_acildi: "Mafya grubuna savaş açıldı",
+  mafya_davet: "Mafya grubu daveti",
+  zam_onay: "Zam talebin onaylandı",
+  zam_red: "Zam talebin reddedildi",
+  sirket_kapandi: "Şirket kapandı",
+  kumarhane_pvp: "Kumarhane masası",
+  ozel_mesaj: "Özel mesaj",
 };
 
 const TUR_ANAHTARLARI = Object.keys(BILDIRIM_TURLERI);
+
+const EK_TERCIH_KOLONLARI = [
+  "bildirim_aktif",
+  "borsa_temettu",
+  "borsa_emir",
+  "mafya_davet",
+  "zam_onay",
+  "zam_red",
+  "sirket_kapandi",
+  "kumarhane_pvp",
+  "ozel_mesaj",
+];
 
 async function ensureBildirimTables(db) {
   await run(
@@ -46,6 +67,12 @@ async function ensureBildirimTables(db) {
       gazete INTEGER NOT NULL DEFAULT 1,
       mafya_savas_baslatildi INTEGER NOT NULL DEFAULT 1,
       mafya_savas_acildi INTEGER NOT NULL DEFAULT 1,
+      mafya_davet INTEGER NOT NULL DEFAULT 1,
+      zam_onay INTEGER NOT NULL DEFAULT 1,
+      zam_red INTEGER NOT NULL DEFAULT 1,
+      sirket_kapandi INTEGER NOT NULL DEFAULT 1,
+      kumarhane_pvp INTEGER NOT NULL DEFAULT 1,
+      ozel_mesaj INTEGER NOT NULL DEFAULT 1,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     )`
   );
@@ -68,6 +95,21 @@ async function ensureBildirimTables(db) {
   );
   await run(
     db,
+    `CREATE TABLE IF NOT EXISTS oyuncu_fcm_token (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      token TEXT NOT NULL UNIQUE,
+      platform TEXT NOT NULL DEFAULT 'android',
+      updated_at INTEGER NOT NULL DEFAULT (strftime('%s','now')),
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )`
+  );
+  await run(
+    db,
+    `CREATE INDEX IF NOT EXISTS idx_fcm_token_user ON oyuncu_fcm_token(user_id)`
+  );
+  await run(
+    db,
     `CREATE TABLE IF NOT EXISTS oyuncu_bildirimleri (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id INTEGER NOT NULL,
@@ -83,15 +125,14 @@ async function ensureBildirimTables(db) {
     db,
     `CREATE INDEX IF NOT EXISTS idx_bildirim_user_okundu ON oyuncu_bildirimleri(user_id, okundu, created_at DESC)`
   );
-  try {
-    await run(db, `ALTER TABLE oyuncu_bildirim_tercihleri ADD COLUMN bildirim_aktif INTEGER NOT NULL DEFAULT 1`);
-  } catch (_) {}
-  try {
-    await run(db, `ALTER TABLE oyuncu_bildirim_tercihleri ADD COLUMN borsa_temettu INTEGER NOT NULL DEFAULT 1`);
-  } catch (_) {}
-  try {
-    await run(db, `ALTER TABLE oyuncu_bildirim_tercihleri ADD COLUMN borsa_emir INTEGER NOT NULL DEFAULT 1`);
-  } catch (_) {}
+  for (const col of EK_TERCIH_KOLONLARI) {
+    try {
+      await run(
+        db,
+        `ALTER TABLE oyuncu_bildirim_tercihleri ADD COLUMN ${col} INTEGER NOT NULL DEFAULT 1`
+      );
+    } catch (_) {}
+  }
   await run(
     db,
     `INSERT INTO oyuncu_bildirim_tercihleri (user_id)
@@ -123,6 +164,9 @@ function getVapidKeys() {
   try {
     fs.writeFileSync(VAPID_FILE, JSON.stringify(keys, null, 2), "utf8");
     console.log("[bildirim] VAPID anahtarları oluşturuldu:", VAPID_FILE);
+    console.warn(
+      "[bildirim] Canlıda kalıcı abonelik için VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY env ayarlayın."
+    );
   } catch (err) {
     console.warn("[bildirim] VAPID dosyası yazılamadı:", err.message);
   }
@@ -141,6 +185,41 @@ function configureWebPush() {
 function vapidPublicKey() {
   const keys = getVapidKeys();
   return keys ? keys.publicKey : null;
+}
+
+function getFirebaseAdmin() {
+  if (firebaseInitTried) return firebaseAdmin;
+  firebaseInitTried = true;
+  try {
+    firebaseAdmin = require("firebase-admin");
+  } catch (_) {
+    firebaseAdmin = null;
+    return null;
+  }
+  if (firebaseAdmin.apps && firebaseAdmin.apps.length) return firebaseAdmin;
+
+  try {
+    let cred = null;
+    const rawJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+    if (rawJson) {
+      cred = JSON.parse(rawJson);
+    } else if (process.env.FIREBASE_SERVICE_ACCOUNT_PATH) {
+      const p = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
+      cred = JSON.parse(fs.readFileSync(p, "utf8"));
+    }
+    if (!cred) {
+      firebaseAdmin = null;
+      return null;
+    }
+    firebaseAdmin.initializeApp({
+      credential: firebaseAdmin.credential.cert(cred),
+    });
+    return firebaseAdmin;
+  } catch (err) {
+    console.warn("[bildirim] Firebase init başarısız:", err.message);
+    firebaseAdmin = null;
+    return null;
+  }
 }
 
 async function ensureTercihler(db, userId) {
@@ -175,6 +254,7 @@ async function tercihleriKaydet(db, userId, patch) {
   await ensureTercihler(db, userId);
   if (patch.pushAktif === false) {
     await pushAbonelikSil(db, userId, null);
+    await fcmTokenSil(db, userId, null);
   }
   const sets = [];
   const params = [];
@@ -241,6 +321,37 @@ async function pushAbonelikSil(db, userId, endpoint) {
   return { ok: true };
 }
 
+async function fcmTokenKaydet(db, userId, token, platform = "android") {
+  await ensureBildirimTables(db);
+  const t = String(token || "").trim();
+  if (!t || t.length < 20) {
+    return { ok: false, error: "Geçersiz FCM token." };
+  }
+  const plat = String(platform || "android").slice(0, 32);
+  await run(
+    db,
+    `INSERT INTO oyuncu_fcm_token (user_id, token, platform, updated_at)
+     VALUES (?, ?, ?, strftime('%s','now'))
+     ON CONFLICT(token) DO UPDATE SET
+       user_id = excluded.user_id,
+       platform = excluded.platform,
+       updated_at = strftime('%s','now')`,
+    [userId, t, plat]
+  );
+  await run(db, `UPDATE oyuncu_bildirim_tercihleri SET push_aktif = 1 WHERE user_id = ?`, [userId]);
+  return { ok: true, mesaj: "FCM token kaydedildi." };
+}
+
+async function fcmTokenSil(db, userId, token) {
+  await ensureBildirimTables(db);
+  if (token) {
+    await run(db, `DELETE FROM oyuncu_fcm_token WHERE user_id = ? AND token = ?`, [userId, token]);
+  } else {
+    await run(db, `DELETE FROM oyuncu_fcm_token WHERE user_id = ?`, [userId]);
+  }
+  return { ok: true };
+}
+
 async function pushGonder(db, userId, payload) {
   if (!webpush || !configureWebPush()) return;
   const row = await ensureTercihler(db, userId);
@@ -268,6 +379,52 @@ async function pushGonder(db, userId, payload) {
   }
 }
 
+async function fcmGonder(db, userId, payload) {
+  const admin = getFirebaseAdmin();
+  if (!admin) return;
+  const row = await ensureTercihler(db, userId);
+  if (!row?.push_aktif) return;
+  const tokens = await all(db, `SELECT token FROM oyuncu_fcm_token WHERE user_id = ?`, [userId]);
+  if (!tokens.length) return;
+
+  const title = String(payload.title || "Yeraltı İmparatorluğu").slice(0, 120);
+  const body = String(payload.body || "").slice(0, 500);
+  const url = String(payload.url || "/").slice(0, 200);
+  const data = {
+    title,
+    body,
+    url,
+    tur: String(payload.tur || ""),
+    id: String(payload.id || ""),
+  };
+
+  for (const rowTok of tokens) {
+    try {
+      await admin.messaging().send({
+        token: rowTok.token,
+        notification: { title, body },
+        data,
+        android: {
+          priority: "high",
+          ttl: 86400000,
+          notification: {
+            channelId: "yeralti_bildirim",
+            sound: "default",
+          },
+        },
+      });
+    } catch (err) {
+      const code = err?.code || err?.errorInfo?.code || "";
+      if (
+        code === "messaging/registration-token-not-registered" ||
+        code === "messaging/invalid-registration-token"
+      ) {
+        await run(db, `DELETE FROM oyuncu_fcm_token WHERE token = ?`, [rowTok.token]);
+      }
+    }
+  }
+}
+
 async function bildirimGonder(db, userId, tur, { baslik, icerik, url = "/" } = {}) {
   if (!userId || !tur || !baslik) return { ok: false };
   const aktif = await bildirimAktifMi(db, userId);
@@ -286,14 +443,17 @@ async function bildirimGonder(db, userId, tur, { baslik, icerik, url = "/" } = {
     [userId, tur, temizBaslik, temizIcerik]
   );
 
+  const payload = {
+    title: temizBaslik,
+    body: temizIcerik,
+    url: temizUrl,
+    tur,
+    id: sonuc?.lastID,
+  };
+
   setImmediate(() => {
-    pushGonder(db, userId, {
-      title: temizBaslik,
-      body: temizIcerik,
-      url: temizUrl,
-      tur,
-      id: sonuc?.lastID,
-    }).catch(() => {});
+    pushGonder(db, userId, payload).catch(() => {});
+    fcmGonder(db, userId, payload).catch(() => {});
   });
 
   return { ok: true, id: sonuc?.lastID };
@@ -400,10 +560,13 @@ async function bildirimTestGonder(db, userId) {
 async function bildirimSistemDurumu(db) {
   await ensureBildirimTables(db);
   const keys = getVapidKeys();
+  const admin = getFirebaseAdmin();
   return {
     webPushYuklu: !!webpush,
     vapidHazir: !!(keys?.publicKey && keys?.privateKey),
+    vapidEnv: !!(process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY),
     pushYapilandirildi: configureWebPush(),
+    fcmHazir: !!admin,
   };
 }
 
@@ -417,6 +580,8 @@ module.exports = {
   tercihleriKaydet,
   pushAbonelikEkle,
   pushAbonelikSil,
+  fcmTokenKaydet,
+  fcmTokenSil,
   bildirimGonder,
   bildirimleriGetir,
   okunmamisBildirimSayisi,

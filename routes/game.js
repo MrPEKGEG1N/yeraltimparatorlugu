@@ -45,6 +45,8 @@ const {
   tercihleriKaydet,
   pushAbonelikEkle,
   pushAbonelikSil,
+  fcmTokenKaydet,
+  fcmTokenSil,
   bildirimleriGetir,
   okunmamisBildirimSayisi,
   bildirimleriOkundu,
@@ -856,6 +858,32 @@ function createGameRouter(db) {
     } catch (err) {
       console.error(err);
       res.status(500).json({ ok: false, error: "Abonelik silinemedi." });
+    }
+  });
+
+  router.post("/bildirim/fcm-token", async (req, res) => {
+    try {
+      const sonuc = await fcmTokenKaydet(
+        db,
+        req.user.id,
+        req.body?.token || "",
+        req.body?.platform || "android"
+      );
+      if (!sonuc.ok) return res.status(400).json(sonuc);
+      res.json(sonuc);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ ok: false, error: "FCM token kaydedilemedi." });
+    }
+  });
+
+  router.post("/bildirim/fcm-token/sil", async (req, res) => {
+    try {
+      const sonuc = await fcmTokenSil(db, req.user.id, req.body?.token || null);
+      res.json(sonuc);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ ok: false, error: "FCM token silinemedi." });
     }
   });
 

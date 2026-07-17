@@ -628,6 +628,79 @@
   white-space: nowrap;
 }
 
+#masterLayout .mafya-uye-sayi-btn {
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  color: #e0c56a;
+  font: inherit;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.03em;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+#masterLayout .mafya-uye-sayi-btn:hover {
+  color: #ffe08a;
+}
+
+.mafya-uye-liste-panel {
+  width: min(480px, 100%);
+}
+
+.mafya-uye-liste-bos {
+  margin: 12px 0 0;
+  color: #888;
+  font-style: italic;
+  font-size: 13px;
+}
+
+.mafya-uye-liste-baslik,
+.mafya-uye-liste-satir {
+  display: grid;
+  grid-template-columns: 1.4fr 1.2fr 0.8fr;
+  gap: 8px;
+  align-items: center;
+}
+
+.mafya-uye-liste-baslik {
+  margin: 10px 0 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(197, 160, 89, 0.35);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #a89060;
+}
+
+.mafya-uye-liste {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: min(50vh, 420px);
+  overflow: auto;
+}
+
+.mafya-uye-liste-satir {
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 13px;
+}
+
+.mafya-uye-liste-satir .uye-puan {
+  text-align: right;
+  color: #90ee90;
+  font-weight: 700;
+}
+
+.mafya-uye-liste-satir .uye-rutbe {
+  color: #c8b8a0;
+}
+
 #masterLayout .mafya-grup-sol .mafya-sampiyon-rozetler {
   margin-top: 8px;
   max-width: 210px;

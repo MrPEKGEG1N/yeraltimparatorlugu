@@ -391,15 +391,13 @@ function piyangoGazeteMetniOlustur(ozet, opts = {}) {
   const havuzMetin = havuzToplam.toLocaleString("tr-TR");
   const guncelleme = !!opts.guncelleme;
 
-  if (guncelleme) {
-    return devreden > 0
-      ? `🎟️ Kumarhane Piyangosu: Büyük ödül ${odulMetin} çipe yükseldi! (Devreden ${devredenMetin} + bu dönem ${donemMetin} çip, ${biletAdet} bilet). Çekiliş ${cekilisMetin}.`
-      : `🎟️ Kumarhane Piyangosu: Büyük ödül ${odulMetin} çipe yükseldi! (Havuz ${havuzMetin} çip, ${biletAdet} bilet). Çekiliş ${cekilisMetin}.`;
-  }
-
-  return devreden > 0
-    ? `🎟️ Kumarhane Piyangosu: Büyük ödül ${odulMetin} çip! (Devreden ${devredenMetin} + bu dönem ${donemMetin} çip, ${biletAdet} bilet). Çekiliş ${cekilisMetin} — 6 sayının tamamını bilene.`
-    : `🎟️ Kumarhane Piyangosu: Büyük ödül ${odulMetin} çip! (Havuz ${havuzMetin} çip, ${biletAdet} bilet). Çekiliş ${cekilisMetin} — 6 sayının tamamını bilene.`;
+  return guncelleme
+    ? (devreden > 0
+      ? `🎟️ Kumarhane Piyangosu: Büyük ödül ${odulMetin} çipe yükseldi! (Bilen çıkmadı — ${devredenMetin} çip devretti + bu dönem ${donemMetin} çip, ${biletAdet} bilet). Çekiliş ${cekilisMetin}.`
+      : `🎟️ Kumarhane Piyangosu: Büyük ödül ${odulMetin} çipe yükseldi! (Havuz ${havuzMetin} çip, ${biletAdet} bilet). Çekiliş ${cekilisMetin}.`)
+    : (devreden > 0
+      ? `🎟️ Kumarhane Piyangosu: Büyük ödül ${odulMetin} çip! (Bilen çıkmadı — ${devredenMetin} çip devretti + bu dönem ${donemMetin} çip, ${biletAdet} bilet). Çekiliş ${cekilisMetin} — 6 sayının tamamını bilene.`
+      : `🎟️ Kumarhane Piyangosu: Büyük ödül ${odulMetin} çip! (Havuz ${havuzMetin} çip, ${biletAdet} bilet). Çekiliş ${cekilisMetin} — 6 sayının tamamını bilene.`);
 }
 
 async function gunlukPiyangoGazeteHaber(db) {
@@ -447,7 +445,7 @@ async function piyangoGazeteDevretmeHaber(db, cekilisSayilari, devredenMiktar) {
   const sonrakiMetin = cekilisDonemMetni(sonraki.donem);
   await gazeteEkle(
     db,
-    `🎟️ Kumarhane Piyangosu çekildi (${sayiMetin}). Kazanan çıkmadı — büyük ödül ${odulMetin} çip sonraki çekilişe devretti! (Sonraki çekiliş: ${sonrakiMetin})`
+    `🎟️ Kumarhane Piyangosu çekildi (${sayiMetin}). Bilen çıkmadı — ${odulMetin} çip sonraki çekilişe devretti! (Sonraki çekiliş: ${sonrakiMetin})`
   );
 }
 

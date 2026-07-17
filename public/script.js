@@ -842,6 +842,11 @@ function mafyaGrupUstHTML(opts) {
   var sayginlik = opts.toplamSayginlik != null ? fmt(opts.toplamSayginlik) : '—';
   var rutbe = opts.rutbe && String(opts.rutbe).trim() ? opts.rutbe : '—';
   var isim = opts.isim || '—';
+  var uyeler = Array.isArray(opts.uyeler) ? opts.uyeler : [];
+  window.__mafyaUyeListesiModal = {
+    grupAdi: isim,
+    uyeler: uyeler
+  };
 
   var html = '<div class="mafya-grup-profil-ust">'
     + '<div class="mafya-grup-sol">'
@@ -858,7 +863,8 @@ function mafyaGrupUstHTML(opts) {
     + '<div class="mafya-grup-detay-satir"><dt>' + escHtml(t('game.mafya.labelName')) + '</dt>'
     + '<dd id="mafyaGrupIsimDetay">' + escHtml(isim) + '</dd></div>'
     + '<div class="mafya-grup-detay-satir"><dt>' + escHtml(t('game.mafya.labelMembers')) + '</dt>'
-    + '<dd id="mafyaGrupUyeDetay">' + escHtml(uyeMetin) + '</dd></div>'
+    + '<dd id="mafyaGrupUyeDetay"><button type="button" class="mafya-uye-sayi-btn" onclick="mafyaUyeListesiModalAc()" title="'
+    + escHtml(t('game.mafya.membersTitle')) + '">' + escHtml(uyeMetin) + '</button></dd></div>'
     + '<div class="mafya-grup-detay-satir"><dt>' + escHtml(t('game.mafya.labelTotalRespect')) + '</dt>'
     + '<dd id="mafyaGrupSayginlikDetay" class="uye-puan">' + escHtml(sayginlik) + '</dd></div>'
     + '<div class="mafya-grup-detay-satir"><dt>' + escHtml(t('game.mafya.labelWealth')) + '</dt>'
@@ -870,6 +876,49 @@ function mafyaGrupUstHTML(opts) {
     + mafyaSampiyonRozetleriHTML(opts.sampiyonluklar);
   return html;
 }
+
+function mafyaUyeListesiModalKapat() {
+  var m = document.getElementById('mafyaUyeListesiModal');
+  if (m) m.remove();
+}
+
+function mafyaUyeListesiModalAc() {
+  mafyaUyeListesiModalKapat();
+  var veri = window.__mafyaUyeListesiModal || { grupAdi: '', uyeler: [] };
+  var uyeler = veri.uyeler || [];
+  var html = '<div id="mafyaUyeListesiModal" class="mafya-sancak-modal" onclick="if(event.target===this)mafyaUyeListesiModalKapat()">'
+    + '<div class="mafya-sancak-panel mafya-uye-liste-panel" role="dialog" aria-modal="true">'
+    + '<div class="mafya-sancak-panel-ust">'
+    + '<h3>' + escHtml(t('game.mafya.membersTitle'))
+    + (veri.grupAdi ? ' — ' + escHtml(veri.grupAdi) : '') + '</h3>'
+    + '<button type="button" class="mafya-sancak-kapat" onclick="mafyaUyeListesiModalKapat()">×</button>'
+    + '</div>';
+  if (!uyeler.length) {
+    html += '<p class="mafya-uye-liste-bos">' + escHtml(t('game.empty.noData')) + '</p>';
+  } else {
+    html += '<div class="mafya-uye-liste-baslik">'
+      + '<span>' + escHtml(t('game.mafya.colName')) + '</span>'
+      + '<span>' + escHtml(t('game.mafya.colRank')) + '</span>'
+      + '<span>' + escHtml(t('game.mafya.colRespect')) + '</span>'
+      + '</div><ul class="mafya-uye-liste">';
+    uyeler.forEach(function(u) {
+      var uid = u.userId != null ? u.userId : u.user_id;
+      var isim = u.isim || u.reis_adi || '—';
+      var rutbe = u.rutbe || '—';
+      var puan = u.puan != null ? u.puan : 0;
+      html += '<li class="mafya-uye-liste-satir">'
+        + '<span class="uye-isim">' + (uid ? oyuncuLink(uid, isim) : escHtml(isim)) + '</span>'
+        + '<span class="uye-rutbe">' + escHtml(rutbe) + '</span>'
+        + '<span class="uye-puan">' + fmt(puan) + '</span>'
+        + '</li>';
+    });
+    html += '</ul>';
+  }
+  html += '</div></div>';
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+window.mafyaUyeListesiModalAc = mafyaUyeListesiModalAc;
+window.mafyaUyeListesiModalKapat = mafyaUyeListesiModalKapat;
 
 function mafyaSancakSecModalKapat() {
   var m = document.getElementById('mafyaSancakModal');
@@ -6835,11 +6884,20 @@ function gazeteHaberCevir(metin) {
   if ((m = s.match(/^(.+?) - (.+?) ye karşı BAŞARISIZ bir sabotaj gerçekleştirdi\.$/))) {
     return t('game.gazete.news.sabotajFail', { attacker: m[1], target: m[2] });
   }
+  if ((m = s.match(/^🎟️ Kumarhane Piyangosu: Büyük ödül ([\d.,]+) çip! \(Bilen çıkmadı — ([\d.,]+) çip devretti \+ bu dönem ([\d.,]+) çip, (\d+) bilet\)\. Çekiliş (.+?) — 6 sayının tamamını bilene\.$/))) {
+    return t('game.gazete.news.lotteryPreviewRollover', { prize: m[1], rollover: m[2], period: m[3], tickets: m[4], draw: m[5] });
+  }
+  if ((m = s.match(/^🎟️ Kumarhane Piyangosu: Büyük ödül ([\d.,]+) çipe yükseldi! \(Bilen çıkmadı — ([\d.,]+) çip devretti \+ bu dönem ([\d.,]+) çip, (\d+) bilet\)\. Çekiliş (.+?)\.$/))) {
+    return t('game.gazete.news.lotteryPreviewRolloverUp', { prize: m[1], rollover: m[2], period: m[3], tickets: m[4], draw: m[5] });
+  }
   if ((m = s.match(/^🎟️ Kumarhane Piyangosu: Büyük ödül ([\d.,]+) çip! \(Devreden ([\d.,]+) \+ bu dönem ([\d.,]+) çip, (\d+) bilet\)\. Çekiliş (.+?) — 6 sayının tamamını bilene\.$/))) {
     return t('game.gazete.news.lotteryPreviewRollover', { prize: m[1], rollover: m[2], period: m[3], tickets: m[4], draw: m[5] });
   }
   if ((m = s.match(/^🎟️ Kumarhane Piyangosu: Büyük ödül ([\d.,]+) çip! \(Havuz ([\d.,]+) çip, (\d+) bilet\)\. Çekiliş (.+?) — 6 sayının tamamını bilene\.$/))) {
     return t('game.gazete.news.lotteryPreview', { prize: m[1], pool: m[2], tickets: m[3], draw: m[4] });
+  }
+  if ((m = s.match(/^🎟️ Kumarhane Piyangosu çekildi \((.+?)\)\. Bilen çıkmadı — ([\d.,]+) çip sonraki çekilişe devretti! \(Sonraki çekiliş: (.+?)\)$/))) {
+    return t('game.gazete.news.lotteryRollover', { numbers: m[1], prize: m[2], next: m[3] });
   }
   if ((m = s.match(/^🎟️ Kumarhane Piyangosu çekildi \((.+?)\)\. Kazanan çıkmadı — büyük ödül ([\d.,]+) çip sonraki çekilişe devretti! \(Sonraki çekiliş: (.+?)\)$/))) {
     return t('game.gazete.news.lotteryRollover', { numbers: m[1], prize: m[2], next: m[3] });
@@ -6885,6 +6943,7 @@ function gazeteOyuncuListesi(data) {
     ekle(h.kaybedenUserId, h.kaybedenAdi);
   });
   (data.sonDakika || []).forEach(function(t) { gazeteMetindenIsimler(t, map); });
+  (data.arsiv || []).forEach(function(h) { gazeteMetindenIsimler(h.mesaj, map); });
   return Object.keys(map).map(function(k) { return map[k]; }).filter(function(o) { return o.userId; });
 }
 
@@ -7014,6 +7073,59 @@ function gazeteIsKartToggle(sirketId) {
 window.gazeteIsBasvur = gazeteIsBasvur;
 window.gazeteIsKartToggle = gazeteIsKartToggle;
 
+function gazeteMansetLimanGorsel(manset, limanDurumu) {
+  var limanlar = limanDurumu || [];
+  var hukumdarId = manset && manset.hukumdarUserId;
+  var pick = null;
+  var i;
+  if (hukumdarId) {
+    for (i = 0; i < limanlar.length; i++) {
+      if (limanlar[i].userId === hukumdarId) { pick = limanlar[i]; break; }
+    }
+  }
+  if (!pick) {
+    for (i = 0; i < limanlar.length; i++) {
+      if (limanlar[i].sahipAdi) { pick = limanlar[i]; break; }
+    }
+  }
+  var limanId = (pick && pick.limanId) || 'istanbul';
+  return isGorselleri['liman_' + limanId] || isGorselleri.liman_istanbul || FALLBACK;
+}
+
+function gazeteArsivTarih(ts) {
+  var d = new Date((Number(ts) || 0) * 1000);
+  if (!ts || isNaN(d.getTime())) return '—';
+  try {
+    return d.toLocaleString('tr-TR', {
+      timeZone: 'Europe/Istanbul',
+      day: 'numeric',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  } catch (_) {
+    return d.toLocaleString();
+  }
+}
+
+function gazeteArsivHTML(arsiv, oyuncular) {
+  arsiv = arsiv || [];
+  if (!arsiv.length) {
+    return '<p class="gazete-bos">' + escHtml(t('game.gazete.archiveEmpty')) + '</p>';
+  }
+  var html = '<ul class="gazete-arsiv-liste">';
+  arsiv.forEach(function(h) {
+    html += '<li class="gazete-arsiv-satir">'
+      + '<time class="gazete-arsiv-tarih" datetime="' + escHtml(String(h.created_at || '')) + '">'
+      + escHtml(gazeteArsivTarih(h.created_at)) + '</time>'
+      + '<span class="gazete-arsiv-metin">'
+      + metindeIsimLinkleri(gazeteHaberCevir(h.mesaj), oyuncular)
+      + '</span></li>';
+  });
+  html += '</ul>';
+  return html;
+}
+
 async function gazeteEkranCiz(ic) {
   ic.innerHTML = '<div class="gazete-wrap"><p class="gazete-yukleniyor">' + escHtml(t('game.loadingNewspaper')) + '</p></div>';
   try {
@@ -7044,22 +7156,7 @@ async function gazeteEkranCiz(ic) {
     });
     if (!liderHtml) liderHtml = '<p class="gazete-bos">' + escHtml(t('game.empty.noData')) + '</p>';
 
-    var efsaneHtml = '';
-    (data.efsaneler24 || []).forEach(function(r, i) {
-      var etiket;
-      if (r.fallback) {
-        etiket = fmt(r.sayginlik || r.miktar || 0) + t('game.gazete.respectUnit');
-      } else {
-        var parcalar = [];
-        if ((r.sayginlik || 0) > 0) parcalar.push('+' + fmt(r.sayginlik) + t('game.gazete.respectGain'));
-        if ((r.icraatIs || r.icraat || 0) > 0) parcalar.push(fmt(r.icraatIs || r.icraat) + ' ' + t('game.gazete.icraatAction'));
-        etiket = parcalar.length ? parcalar.join(' · ') : '+' + fmt(r.miktar || 0) + t('game.gazete.respectGain');
-      }
-      efsaneHtml += '<p class="gazete-efsane-satir"><b>' + (i + 1) + '.</b> '
-        + oyuncuLink(r.userId, r.isim)
-        + ' <span class="gazete-yesil">(' + etiket + ')</span></p>';
-    });
-    if (!efsaneHtml) efsaneHtml = '<p class="gazete-bos">' + escHtml(t('game.empty.noLegends')) + '</p>';
+    var arsivHtml = gazeteArsivHTML(data.arsiv, oyuncular);
 
     var manseHtml = '';
     (data.yeraltiManse || []).forEach(function(h) {
@@ -7100,7 +7197,7 @@ async function gazeteEkranCiz(ic) {
 
     var manset = data.manset || {};
     var mansetBasliklar = gazeteMansetBaslikLokal(manset);
-    var mansetImg = isGorselleri.liman_istanbul || FALLBACK;
+    var mansetImg = gazeteMansetLimanGorsel(manset, data.limanDurumu);
     var mansetOzet = metindeIsimLinkleri(gazeteMansetOzetLokal(manset, data.limanDurumu), oyuncular);
     var mansetBaslikHtml = '<h2 class="gazete-manset-baslik">' + metindeIsimLinkleri(mansetBasliklar.baslik, oyuncular) + '</h2>';
     if (mansetBasliklar.baslik2) {
@@ -7110,9 +7207,11 @@ async function gazeteEkranCiz(ic) {
 
     var sampiyonHtml = '';
     if (sampiyon && sampiyon.grupId) {
+      var sancakUrl = mafyaSancakUrl(sampiyon.sancak);
       sampiyonHtml = '<section class="gazete-aylik-sampiyon">'
         + '<div class="gazete-aylik-sampiyon-rozet" aria-hidden="true">'
-        + '<img class="gazete-aylik-sampiyon-kupa" src="' + GAZETE_AYLIK_KUPA + '" alt="" loading="lazy" onerror="imgFallback(this)">'
+        + '<img class="gazete-aylik-sampiyon-sancak" src="' + escHtml(sancakUrl) + '" alt="" loading="lazy" onerror="mafyaSancakImgFallback(this)">'
+        + '<img class="gazete-aylik-sampiyon-kupa-mini" src="' + GAZETE_AYLIK_KUPA + '" alt="" loading="lazy" onerror="imgFallback(this)">'
         + '</div>'
         + '<div class="gazete-aylik-sampiyon-icerik">'
         + '<span class="gazete-aylik-sampiyon-etiket">' + escHtml(t('game.gazete.monthlyReport')) + '</span>'
@@ -7125,14 +7224,25 @@ async function gazeteEkranCiz(ic) {
     var piyangoHtml = '';
     if (data.piyango && data.piyango.buyukOdul > 0) {
       var py = data.piyango;
+      var piyangoTopHtml = '';
+      var piyangoOrnek = [7, 14, 21, 28, 35, 42];
+      for (var pi = 0; pi < piyangoOrnek.length; pi++) {
+        var topEk = 'km-py-top--mini' + (pi >= 3 ? ' km-py-top--cekilis' : ' km-py-top--dolu');
+        if (typeof kumarhanePiyangoTopHTML === 'function') {
+          piyangoTopHtml += kumarhanePiyangoTopHTML(piyangoOrnek[pi], topEk);
+        } else {
+          piyangoTopHtml += '<span class="km-py-top ' + topEk + '"><span class="km-py-top-isik"></span>'
+            + '<span class="km-py-top-rakam">' + piyangoOrnek[pi] + '</span></span>';
+        }
+      }
       piyangoHtml = '<section class="gazete-piyango">'
-        + '<div class="gazete-piyango-rozet" aria-hidden="true">🎟️</div>'
+        + '<div class="gazete-piyango-rozet gazete-piyango-rozet--toplar" aria-hidden="true">' + piyangoTopHtml + '</div>'
         + '<div class="gazete-piyango-icerik">'
         + '<span class="gazete-piyango-etiket">' + escHtml(t('game.gazete.lotteryBoxTitle')) + '</span>'
         + '<h3 class="gazete-piyango-baslik">' + escHtml(t('game.gazete.lotteryBoxPrize')) + ': ' + fmt(py.buyukOdul) + ' çip</h3>'
         + '<p class="gazete-piyango-detay">';
       if ((py.devredenOdul || 0) > 0) {
-        piyangoHtml += escHtml(t('game.gazete.lotteryBoxRollover', { n: fmt(py.devredenOdul) }));
+        piyangoHtml += escHtml(t('game.gazete.lotteryBoxNoWinnerRollover', { n: fmt(py.devredenOdul) }));
         if ((py.donemOdul || 0) > 0) piyangoHtml += ' · +' + fmt(py.donemOdul) + ' çip';
       } else if ((py.donemOdul || 0) > 0) {
         piyangoHtml += escHtml(t('game.gazete.lotteryBoxPool', { n: fmt(py.donemOdul) }));
@@ -7192,6 +7302,16 @@ async function gazeteEkranCiz(ic) {
         + '</div></article>';
     }
 
+    var ikincilHtml = '';
+    if (kabusHtml || mafyaIsHtml) {
+      ikincilHtml = '<div class="gazete-ikincil">' + kabusHtml + mafyaIsHtml + '</div>';
+    }
+
+    var promoHtml = '';
+    if (sampiyonHtml || piyangoHtml) {
+      promoHtml = '<div class="gazete-promo">' + sampiyonHtml + piyangoHtml + '</div>';
+    }
+
     if (aktifEkran !== 'gazete') return;
     ic.innerHTML = '<div class="gazete-wrap">'
       + '<div class="gazete-hero">'
@@ -7207,17 +7327,13 @@ async function gazeteEkranCiz(ic) {
       + '<div class="gazete-ticker">'
       + '<span class="gazete-ticker-etiket">' + escHtml(t('game.gazete.breaking')) + '</span>'
       + '<div class="gazete-ticker-kaydir">' + ticker + '</div></div>'
-      + sampiyonHtml
-      + piyangoHtml
-      + kabusHtml
-      + mafyaIsHtml
       + '<div class="gazete-govde">'
       + '<article class="gazete-manset">'
       + '<div class="gazete-manset-sol">'
       + '<span class="gazete-etiket">' + escHtml(t('game.gazete.mafiaHeadline')) + '</span>'
       + mansetBaslikHtml
       + '<p class="gazete-manset-metin">' + mansetOzet + '</p>'
-      + '<span class="gazete-devam">' + t('game.gazete.readMore') + '</span>'
+      + '<a class="gazete-devam" href="#gazeteArsiv">' + t('game.gazete.readMore') + '</a>'
       + '</div>'
       + '<div class="gazete-manset-sag">'
       + '<img src="' + mansetImg + '" class="gazete-manset-img" alt="' + escHtml(t('game.gazete.headlineAlt')) + '" onerror="imgFallback(this)">'
@@ -7226,6 +7342,8 @@ async function gazeteEkranCiz(ic) {
       + '<h3 class="gazete-yan-baslik">' + escHtml(t('game.gazete.topRespect')) + '</h3>'
       + liderHtml
       + '</aside></div>'
+      + ikincilHtml
+      + promoHtml
       + '<section class="gazete-is-ilanlari">'
       + '<h3 class="gazete-is-ilanlari-baslik">' + escHtml(t('game.gazete.jobListings')) + '</h3>'
       + '<p class="gazete-is-ilanlari-not">' + escHtml(t('game.gazete.jobListingsNote')) + '</p>'
@@ -7234,7 +7352,7 @@ async function gazeteEkranCiz(ic) {
       + '<div class="gazete-alt-uc">'
       + '<div class="gazete-kutu"><h4>' + escHtml(t('game.gazete.dominance')) + '</h4>' + hakimiyetHtml + '</div>'
       + '<div class="gazete-kutu gazete-kutu-kirmizi"><h4>' + t('game.gazete.undergroundHeadlines') + '</h4>' + manseHtml + '</div>'
-      + '<div class="gazete-kutu"><h4>' + escHtml(t('game.gazete.legends24h')) + '</h4>' + efsaneHtml + '</div>'
+      + '<div class="gazete-kutu gazete-kutu--arsiv" id="gazeteArsiv"><h4>' + escHtml(t('game.gazete.archiveTitle')) + '</h4>' + arsivHtml + '</div>'
       + '</div>'
       + '<div class="gazete-dekor" aria-hidden="true"></div>'
       + '</div>';
@@ -8617,7 +8735,15 @@ async function mafyaGurubumCiz(box) {
         rutbe: data.uyelik.rutbe,
         sancak: sancakId,
         sancakDegistirilebilir: !!data.uyelik.benLiderim,
-        sampiyonluklar: data.sampiyonluklar
+        sampiyonluklar: data.sampiyonluklar,
+        uyeler: (data.uyeler || []).map(function(u) {
+          return {
+            userId: u.user_id,
+            isim: u.reis_adi,
+            rutbe: u.rutbe,
+            puan: u.puan || 0
+          };
+        })
       })
       + '<div class="mafya-grup-aciklama-alan">'
       + '<h4 class="mafya-grup-aciklama-baslik">' + escHtml(t('game.mafya.groupDescTitle')) + '</h4>'
@@ -8892,7 +9018,8 @@ async function mafyaGrupGoster(grupId) {
         rutbe: g.benimGrubum ? (g.viewerRutbe || '—') : '—',
         sancak: sancakId,
         sancakDegistirilebilir: false,
-        sampiyonluklar: g.sampiyonluklar
+        sampiyonluklar: g.sampiyonluklar,
+        uyeler: g.uyeler || []
       })
       + '<div class="mafya-grup-aciklama-alan">'
       + '<div class="profil-aciklama-baslik-satir">'

@@ -118,18 +118,20 @@ async function getGazeteSampiyonu(db) {
   const hedef = oncekiAy(yil, ay);
   const row = await get(
     db,
-    `SELECT s.yil, s.ay, s.toplam_guc, s.grup_id, g.isim
+    `SELECT s.yil, s.ay, s.toplam_guc, s.grup_id, g.isim, g.sancak
      FROM mafya_aylik_sampiyon s
      JOIN mafya_gruplari g ON g.id = s.grup_id
      WHERE s.yil = ? AND s.ay = ?`,
     [hedef.yil, hedef.ay]
   );
   if (!row) return null;
+  const { normalizeSancak } = require("./mafiaService");
   const etiket = ayEtiket(row.yil, row.ay);
   const gucStr = Number(row.toplam_guc || 0).toLocaleString("tr-TR");
   return {
     grupId: row.grup_id,
     isim: row.isim,
+    sancak: normalizeSancak(row.sancak),
     yil: row.yil,
     ay: row.ay,
     ayEtiket: etiket,

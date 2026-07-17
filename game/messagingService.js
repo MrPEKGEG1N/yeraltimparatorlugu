@@ -158,6 +158,16 @@ async function ozelMesajGonder(db, fromUserId, hedefAd, metin) {
      VALUES (?, ?, 'ozel', ?, ?, 0, strftime('%s','now'))`,
     [hedef.id, fromUserId, gonderen.reis_adi, temiz]
   );
+
+  try {
+    const { bildirimGonder } = require("./bildirimService");
+    await bildirimGonder(db, hedef.id, "ozel_mesaj", {
+      baslik: gonderen.reis_adi || "Özel mesaj",
+      icerik: temiz.slice(0, 120),
+      url: "/?ekran=mesajKutusu",
+    });
+  } catch (_) {}
+
   return { ok: true };
 }
 

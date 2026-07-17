@@ -394,6 +394,8 @@ module.exports = {
   "game.gazete.dominance": ["ŞEHRİN HAKİMİYETİ", "CITY DOMINANCE"],
   "game.gazete.undergroundHeadlines": ["YERALTI MANŞETLERİ <small>(Özel İlanlar)</small>", "UNDERGROUND HEADLINES <small>(Private Ads)</small>"],
   "game.gazete.legends24h": ["SON 24 SAATİN EFSANELERİ", "LEGENDS OF THE LAST 24 HOURS"],
+  "game.gazete.archiveTitle": ["HABER ARŞİVİ", "NEWS ARCHIVE"],
+  "game.gazete.archiveEmpty": ["Arşivde henüz haber yok.", "No news in the archive yet."],
   "game.gazete.title": ["📰 GAZETE", "📰 NEWSPAPER"],
 
   "game.mafya.alreadyMember": ["Zaten bir mafya gurubuna üyesin!", "You're already in a mafia group!"],

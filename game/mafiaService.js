@@ -604,6 +604,12 @@ async function grupProfil(db, grupId, viewerUserId) {
     viewerBenLiderim,
     viewerRutbe,
     savasIlanEdilebilir,
+    uyeler: uyeler.map((u) => ({
+      userId: u.user_id,
+      isim: u.reis_adi,
+      rutbe: u.rutbe || "—",
+      puan: u.puan || 0,
+    })),
   };
 }
 
