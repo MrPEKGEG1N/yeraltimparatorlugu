@@ -226,8 +226,9 @@ async function loadPlayer(db, userId) {
   await ensureTercihler(db, userId);
 
   const now = Math.floor(Date.now() / 1000);
-  const lastSeen = row.last_seen_at || 0;
-  const offlineHours = lastSeen > 0 ? Math.floor((now - lastSeen) / 3600) : 0;
+  const lastSeen = Math.max(0, Number(row.last_seen_at) || 0);
+  const offlineSeconds = lastSeen > 0 ? Math.max(0, now - lastSeen) : 0;
+  const offlineHours = Math.floor(offlineSeconds / 3600);
 
   const icraatSync = await syncIcraatRegen(db, userId);
   let player = rowToPlayer(row);
@@ -235,7 +236,9 @@ async function loadPlayer(db, userId) {
   player.last_icraat_at = icraatSync.last_icraat_at;
   const saatlikSonuc = await processSaatlikGelir(db, userId, player);
   player = saatlikSonuc.player;
-  const saatlikGelir = saatlikSonuc.gelir;
+  const saatlikGelir = Math.max(0, Number(saatlikSonuc.gelir) || 0);
+  const saatlikOran = Math.max(0, Number(saatlikSonuc.saatlik) || 0);
+  const creditedHours = Math.max(0, Number(saatlikSonuc.saat) || 0);
   if (saatlikGelir > 0) {
     const { bildirimGonder } = require("./bildirimService");
     bildirimGonder(db, userId, "saatlik_gelir", {
@@ -258,12 +261,18 @@ async function loadPlayer(db, userId) {
     player.sirketMaasBilgi = { gelir: 0, gun: 0 };
   }
 
+  // Racon: cron gelirini önce yatırmış olabilir → gelir=0 olsa da yokluk süresine göre göster
   let offlineWelcome = null;
-  if (offlineHours >= 1 && saatlikGelir > 0) {
+  const reportHours = Math.max(offlineHours, creditedHours);
+  let reportIncome = saatlikGelir;
+  if (reportIncome <= 0 && offlineHours >= 1 && saatlikOran > 0) {
+    reportIncome = saatlikOran * offlineHours;
+  }
+  if (reportHours >= 1 && reportIncome > 0) {
     offlineWelcome = {
-      hours: saatlikSonuc.saat,
-      income: saatlikGelir,
-      saatlik: saatlikSonuc.saatlik,
+      hours: reportHours,
+      income: reportIncome,
+      saatlik: saatlikOran,
     };
   }
   player.offlineWelcome = offlineWelcome;

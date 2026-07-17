@@ -1,12 +1,13 @@
-# Render ucretsiz planda ~15 dk islem yoksa uyur; dis ping ile 7/24 uyanik tutulur.
-# Not: GitHub schedule cron bazen gecikir; */4 ile ortalama bosluk <15 dk tutulur.
+# Render ücretsiz planda ~15 dk işlem yoksa uyur.
+# GitHub schedule gecikebilir; sık ping + uzun cold-start retry ile uyanık tutulur.
 name: Keep server alive
 
 on:
   push:
-    branches: [main]
+    branches: [main, deploy]
   schedule:
-    - cron: "*/4 * * * *"
+    # Her 3 dakikada bir (Render 15 dk uyku penceresinin altında)
+    - cron: "*/3 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -19,21 +20,28 @@ concurrency:
 jobs:
   ping:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 8
     steps:
-      - name: Ping production
+      - name: Ping production (cold-start safe)
         env:
           KEEP_ALIVE_URL: ${{ secrets.KEEP_ALIVE_URL }}
         run: |
           BASE="${KEEP_ALIVE_URL:-https://yeralti-game.onrender.com}"
+          BASE="${BASE%/}"
           echo "Pinging ${BASE}"
-          for i in 1 2 3; do
-            if curl -fsS -m 90 "${BASE}/api/ping" || curl -fsS -m 90 "${BASE}/api/health"; then
-              echo ""
-              echo "OK"
-              exit 0
-            fi
-            echo "Retry ${i}..."
+          # Render cold start 30–90 sn sürebilir
+          for i in $(seq 1 10); do
+            for path in /api/ping /api/health; do
+              code=$(curl -sS -o /tmp/ka-body.txt -w "%{http_code}" -m 95 "${BASE}${path}" || echo "000")
+              echo "try ${i} ${path} -> HTTP ${code}"
+              if [ "$code" = "200" ]; then
+                head -c 200 /tmp/ka-body.txt || true
+                echo ""
+                echo "OK"
+                exit 0
+              fi
+            done
+            echo "Retry ${i}/10 in 20s..."
             sleep 20
           done
           echo "Ping failed after retries"
