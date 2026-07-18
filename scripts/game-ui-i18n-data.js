@@ -312,7 +312,7 @@ module.exports = {
   "game.sehre.wordDesc": ["Alemde en büyük söz burada söylenir. Herkes dinler!", "The biggest word in the underworld is spoken here; everyone listens."],
   "game.sehre.loyaltyDesc": ["Babaya yemin eden asla yarı yolda kalmaz.", "Those who swear loyalty to the Boss never fall halfway."],
   "game.sehre.portsDesc": ["Güç ve saygınlığın göstergesi..", "A mark of power and respect."],
-  "game.sehre.note": ["Makam veya liman ele geçirmek için 1 İcraat gerekir. Kazanan rakibin saygınlığının %5'ini alır.", "Seizing a seat or port costs 1 Action. Winner takes 5% of rival's respect."],
+  "game.sehre.note": ["Makam veya liman ele geçirmek için 1 İcraat gerekir. Tekil ele geçirmede rakibin saygınlığının %1'i, tüm liman ve makamlar tamamlanınca önceki hükümranın %5'i alınır.", "Seizing a seat or port costs 1 Action. A single capture takes 1% of rival respect; completing all ports and seats takes 5% from the former ruler."],
   "game.sehre.portsAvailable": ["3 liman müsait", "3 ports available"],
   "game.sehre.loyaltyTitle": ["SADAKAT YEMİNİ", "OATH OF LOYALTY"],
   "game.sehre.loyaltyMotto": ["Kılıcımız değil, sözümüz keskindir; biat eden asla yarı yolda kalmaz.", "Our word, not our sword, is sharp; loyal ones never fall halfway."],
@@ -354,7 +354,7 @@ module.exports = {
   "game.blacklist.title": ["KARA LİSTE", "BLACKLIST"],
   "game.blacklist.motto": ["\"Şehre hükmeden reis burada görünür.\"", "\"The boss who rules the city appears here.\""],
   "game.blacklist.rulerLine": ["Şehir şu an <span class=\"kl-hukumdar-isim\" id=\"klHukumdarIsim\">…</span> tarafından yönetiliyor!", "The city is now ruled by <span class=\"kl-hukumdar-isim\" id=\"klHukumdarIsim\">…</span>!"],
-  "game.blacklist.note": ["Şehre Hükmet sahibinden Liman, Söz veya Sadakat alındığında kazanan, rakibin saygınlığının %5'ini ödül olarak alır.", "When taking Port, Word or Loyalty from the city ruler, winner gets 5% of rival's respect."],
+  "game.blacklist.note": ["Tek liman veya makam alınca rakibin saygınlığının %1'i alınır. Limanlar + Sözünü Geçir + Sadakat Yemini'nin hepsi ele geçirilince ise önceki hükümranın saygınlığının yalnızca %5'i ödül olur.", "Taking a single port or seat steals 1% of rival respect. Capturing all ports + Word + Loyalty takes only 5% of the former ruler's respect."],
   "game.blacklist.empty": ["Şu an kara listede kimse yok.", "No one on the blacklist right now."],
 
   "game.leaderboard.tabTitle": ["Liderlik Tablosu", "Leaderboard"],
@@ -573,7 +573,7 @@ module.exports = {
 
   "game.profil.registered": ["Kayıt:", "Registered:"],
   "game.profil.legendBadge": ["👑 Şehir tarihine işlenmiş efsane.", "👑 Legend etched in city history."],
-  "game.profil.blacklistBadge": ["💀 Kara Liste: Liman/makam alındığında rakibin saygınlığının %5'i ödül", "💀 Blacklist: 5% rival respect reward when taking port/seat"],
+  "game.profil.blacklistBadge": ["💀 Kara Liste: Tek liman/makam %1 · Tüm hakimiyet %5 saygınlık", "💀 Blacklist: Single port/seat 1% · Full rule 5% respect"],
   "game.profil.player": ["👑 Oyuncu", "👑 Player"],
   "game.profil.nickname": ["🏷️ Lakap", "🏷️ Nickname"],
   "game.profil.power": ["⚔️ Güç", "⚔️ Power"],

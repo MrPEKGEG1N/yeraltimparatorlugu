@@ -2,7 +2,15 @@ const { get, all, run } = require("../db/database");
 const { enforceNoAltAccount } = require("./securityService");
 const { saldiriMesajiEkle } = require("./messagingService");
 const { devletDusur, hapisKontrol, rastgeleAvukatDususu } = require("./devletService");
-const { sehreHukmetGuncelle, kaybedenHukumdariKontrol } = require("./karaListeService");
+const {
+  sehreHukmetGuncelle,
+  kaybedenHukumdariKontrol,
+  getSehreHukmedenUserId,
+  sayginlikOranAktar,
+  dusenHukumdarOku,
+  dusenHukumdarAlinmisEkle,
+  MAKAM_LIMAN_SAYGINLIK_ORAN,
+} = require("./karaListeService");
 const { ZAYIF_HAMLE_MSG } = require("./saygiDuvariService");
 const { limanHaberEkle, makamHaberEkle } = require("./sehirGazeteService");
 const { logStatHareket } = require("./statService");
@@ -42,6 +50,46 @@ function saldiriOdulHesapla(hedefKasa, hedefPuan, korumaOrani = 0) {
     ? Math.floor(Math.max(0, hedefPuan) * SALDIRI_SAYGINLIK_ORAN)
     : 0;
   return { paraKazanc, puanKazanc, sayginlikAlinabilir, korunanMiktar };
+}
+
+/**
+ * Liman/makam saygınlık ödülü:
+ * - Tek koltuk: %1
+ * - Önceki hükümrandan kademeli parçalar: her parça %1 (toplam tavan %5, tamamlanınca tamamlanır)
+ * - Tüm liman+makam bitince: düşüş anındaki puanın %5'ine tamamlanır
+ */
+async function limanMakamSayginlikOdulu(db, attackerId, eskiSahip, oncekiHukumdarId, hukumSonuc) {
+  const tamHakimiyetOdulu = !!(hukumSonuc && hukumSonuc.degisti && hukumSonuc.oncekiId);
+  if (tamHakimiyetOdulu) {
+    const transfer = hukumSonuc.odulSayginlikTransfer || 0;
+    const toplam = hukumSonuc.odulSayginlik || transfer;
+    return {
+      sayginlikOdul: toplam,
+      sehreHukmet: true,
+    };
+  }
+  if (!eskiSahip || eskiSahip === attackerId) {
+    return { sayginlikOdul: 0, sehreHukmet: !!(hukumSonuc && hukumSonuc.degisti) };
+  }
+  const miktar = await sayginlikOranAktar(db, attackerId, eskiSahip, MAKAM_LIMAN_SAYGINLIK_ORAN);
+  if (miktar > 0) {
+    let dusen = null;
+    try {
+      dusen = await dusenHukumdarOku(db);
+    } catch (_) {}
+    if (
+      (oncekiHukumdarId && eskiSahip === oncekiHukumdarId) ||
+      (dusen && dusen.dusen_user_id === eskiSahip)
+    ) {
+      try {
+        await dusenHukumdarAlinmisEkle(db, miktar);
+      } catch (_) {}
+    }
+  }
+  return {
+    sayginlikOdul: miktar,
+    sehreHukmet: !!(hukumSonuc && hukumSonuc.degisti),
+  };
 }
 
 async function ensureWorldRows(db) {
@@ -203,6 +251,10 @@ async function limanCok(db, attackerId, attacker, limanId, securityMeta = {}) {
   }
   attacker.icraat = icraatSonuc.icraat;
   const eskiSahip = liman.owner_user_id;
+  let oncekiHukumdarId = null;
+  try {
+    oncekiHukumdarId = await getSehreHukmedenUserId(db);
+  } catch (_) {}
   await devletDusur(db, attackerId, 4);
   await run(
     db,
@@ -219,9 +271,19 @@ async function limanCok(db, attackerId, attacker, limanId, securityMeta = {}) {
       await syncSaatlikGelirSaati(db, eskiSahip);
     } catch (_) {}
   }
+  let hukumSonuc = { degisti: false, odulVar: false, odulSayginlik: 0, oncekiId: null };
   try {
-    await sehreHukmetGuncelle(db, attackerId);
+    hukumSonuc = (await sehreHukmetGuncelle(db, attackerId, { oncekiHukumdarId })) || hukumSonuc;
   } catch (_) {}
+  let sayginlikOdul = 0;
+  let sehreHukmet = false;
+  try {
+    const odul = await limanMakamSayginlikOdulu(db, attackerId, eskiSahip, oncekiHukumdarId, hukumSonuc);
+    sayginlikOdul = odul.sayginlikOdul;
+    sehreHukmet = odul.sehreHukmet;
+  } catch (_) {
+    sehreHukmet = !!hukumSonuc.degisti;
+  }
   try {
     await limanHaberEkle(db, limanId, attackerId, eskiSahip || null);
   } catch (_) {}
@@ -234,6 +296,8 @@ async function limanCok(db, attackerId, attacker, limanId, securityMeta = {}) {
     mesaj: liman.owner_user_id
       ? `${liman.sahip_adi} limandan indirildi. Liman artık ${attackerRow.reis_adi}'in!`
       : `Boş liman ele geçirildi! Sahip: ${attackerRow.reis_adi}`,
+    sayginlikOdul,
+    sehreHukmet,
   };
 }
 
@@ -283,6 +347,10 @@ async function babaCok(db, attackerId, attacker, makam, securityMeta = {}) {
   }
   attacker.icraat = icraatSonuc.icraat;
   const eskiSahip = row.owner_user_id;
+  let oncekiHukumdarId = null;
+  try {
+    oncekiHukumdarId = await getSehreHukmedenUserId(db);
+  } catch (_) {}
   await devletDusur(db, attackerId, 5);
   await run(db, `UPDATE baba_makamlari SET owner_user_id = ? WHERE makam = ?`, [
     attackerId,
@@ -294,9 +362,19 @@ async function babaCok(db, attackerId, attacker, makam, securityMeta = {}) {
       await kaybedenHukumdariKontrol(db, eskiSahip);
     } catch (_) {}
   }
+  let hukumSonuc = { degisti: false, odulVar: false, odulSayginlik: 0, oncekiId: null };
   try {
-    await sehreHukmetGuncelle(db, attackerId);
+    hukumSonuc = (await sehreHukmetGuncelle(db, attackerId, { oncekiHukumdarId })) || hukumSonuc;
   } catch (_) {}
+  let sayginlikOdul = 0;
+  let sehreHukmet = false;
+  try {
+    const odul = await limanMakamSayginlikOdulu(db, attackerId, eskiSahip, oncekiHukumdarId, hukumSonuc);
+    sayginlikOdul = odul.sayginlikOdul;
+    sehreHukmet = odul.sehreHukmet;
+  } catch (_) {
+    sehreHukmet = !!hukumSonuc.degisti;
+  }
   try {
     await makamHaberEkle(db, makam, attackerId, eskiSahip || null);
   } catch (_) {}
@@ -309,6 +387,8 @@ async function babaCok(db, attackerId, attacker, makam, securityMeta = {}) {
     mesaj: row.owner_user_id
       ? `Makam ${attackerRow.reis_adi}'e geçti!`
       : `Boş makam ele geçirildi! Sahip: ${attackerRow.reis_adi}`,
+    sayginlikOdul,
+    sehreHukmet,
   };
 }
 

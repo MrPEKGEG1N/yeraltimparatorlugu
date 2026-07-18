@@ -436,6 +436,31 @@
   color: #fff;
 }
 
+#masterLayout .oyuncu-link-btn .lt-name-txt--tetikci {
+  color: #e8c878 !important;
+}
+
+#masterLayout .oyuncu-link-btn .lt-name-txt--racon {
+  color: #5eb0ff !important;
+}
+
+#masterLayout .oyuncu-link-btn .lt-name-txt--baron {
+  color: #ffd76a !important;
+  text-shadow: 0 0 10px rgba(255, 215, 100, 0.35);
+}
+
+#masterLayout .oyuncu-link-btn:hover .lt-name-txt--tetikci {
+  color: #f0d898 !important;
+}
+
+#masterLayout .oyuncu-link-btn:hover .lt-name-txt--racon {
+  color: #7ec0ff !important;
+}
+
+#masterLayout .oyuncu-link-btn:hover .lt-name-txt--baron {
+  color: #ffe08a !important;
+}
+
 /* Gazete stilleri: gazete.css */
 
 #masterLayout .mafya-savas-hero {

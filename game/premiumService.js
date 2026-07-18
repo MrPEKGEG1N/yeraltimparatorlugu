@@ -1,4 +1,4 @@
-const { run, get } = require("../db/database");
+const { run, get, all } = require("../db/database");
 const { ICRAAT_SAATLIK_BONUS, ICRAAT_MAX } = require("./catalog");
 
 const SMS_GUNLUK_VARSAYILAN = 50;
@@ -399,6 +399,30 @@ async function getPlayerPremiumPaket(db, userId) {
   return st.paket;
 }
 
+/** Birden fazla oyuncu için aktif aylık paket id map'i (tetikci|racon|baron). */
+async function aktifPremiumPaketMap(db, userIds) {
+  const ids = [...new Set((userIds || []).map((x) => String(x || "").trim()).filter(Boolean))];
+  const map = Object.create(null);
+  if (!ids.length) return map;
+  const simdi = Math.floor(Date.now() / 1000);
+  const ph = ids.map(() => "?").join(",");
+  const rows = await all(
+    db,
+    `SELECT user_id, premium_paket, premium_paket_bitis FROM players WHERE user_id IN (${ph})`,
+    ids
+  );
+  for (const row of rows || []) {
+    const uid = String(row.user_id || "").trim();
+    const paket = String(row.premium_paket || "").trim();
+    const bitis = Number(row.premium_paket_bitis || 0);
+    if (!uid || !paketTanim(paket)) continue;
+    if (bitis > 0 && bitis <= simdi) continue;
+    if (bitis <= 0) continue;
+    map[uid] = paket;
+  }
+  return map;
+}
+
 async function getPremiumBonuses(db, userId) {
   const paketId = await getPlayerPremiumPaket(db, userId);
   const p = paketTanim(paketId);
@@ -577,6 +601,7 @@ module.exports = {
   resolveElmasParaBirimi,
   elmasPaketFiyat,
   getPlayerPremiumPaket,
+  aktifPremiumPaketMap,
   getPremiumStatus,
   getPremiumBonuses,
   premiumSatinAl,

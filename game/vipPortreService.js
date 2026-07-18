@@ -2,12 +2,65 @@ const { run, get } = require("../db/database");
 const {
   VIP_ERKEK_PORTRELER,
   VIP_KADIN_PORTRELER,
+  VIP_ERKEK_ELMAS_PORTRELER,
+  VIP_ERKEK_MAFYA_PORTRELER,
+  VIP_ERKEK_KRAL_PORTRELER,
+  VIP_ERKEK_IHTISAM_PORTRELER,
+  VIP_ERKEK_KARANLIK_PORTRELER,
+  VIP_ERKEK_ASLAN_PORTRELER,
+  VIP_ERKEK_OPERASYON_PORTRELER,
+  VIP_ERKEK_VIP_PORTRELER,
+  VIP_KADIN_ELMAS_PORTRELER,
+  VIP_KADIN_MAFYA_PORTRELER,
+  VIP_KADIN_KRAL_PORTRELER,
+  VIP_KADIN_IHTISAM_PORTRELER,
+  VIP_KADIN_KARANLIK_PORTRELER,
+  VIP_KADIN_ASLAN_PORTRELER,
+  VIP_KADIN_OPERASYON_PORTRELER,
+  VIP_KADIN_VIP_PORTRELER,
   normalizeProfilResmi,
   rastgeleProfilResmi,
   gecerliProfilResmi,
 } = require("./profilPortreler");
 
 const VIP_PORTRE_SET = new Set([...VIP_ERKEK_PORTRELER, ...VIP_KADIN_PORTRELER]);
+
+/** Koleksiyon elmas fiyatları — cinsiyete göre (kalıcı sahiplik) */
+const VIP_KOLEKSIYON_FIYATLARI_ERKEK = {
+  elmas: { koleksiyon: 1200, tekil: 150 },
+  mafya: { koleksiyon: 350, tekil: 150 },
+  kral: { koleksiyon: 500, tekil: 150 },
+  ihtisam: { koleksiyon: 250, tekil: 150 },
+  karanlik: { koleksiyon: 250, tekil: 150 },
+  aslan: { koleksiyon: 250, tekil: 150 },
+  operasyon: { koleksiyon: 350, tekil: 150 },
+  vip: { koleksiyon: 1200, tekil: 150 },
+};
+
+const VIP_KOLEKSIYON_FIYATLARI_KADIN = {
+  elmas: { koleksiyon: 1200, tekil: 150 },
+  mafya: { koleksiyon: 350, tekil: 150 },
+  kral: { koleksiyon: 250, tekil: 150 },
+  ihtisam: { koleksiyon: 250, tekil: 150 },
+  karanlik: { koleksiyon: 250, tekil: 150 },
+  aslan: { koleksiyon: 250, tekil: 150 },
+  operasyon: { koleksiyon: 350, tekil: 150 },
+  vip: { koleksiyon: 1200, tekil: 150 },
+};
+
+/** Geriye uyum: varsayılan erkek fiyatları */
+const VIP_KOLEKSIYON_FIYATLARI = VIP_KOLEKSIYON_FIYATLARI_ERKEK;
+
+const VIP_KOLEKSIYON_PORTRELERI = {
+  elmas: { erkek: VIP_ERKEK_ELMAS_PORTRELER, kadin: VIP_KADIN_ELMAS_PORTRELER },
+  mafya: { erkek: VIP_ERKEK_MAFYA_PORTRELER, kadin: VIP_KADIN_MAFYA_PORTRELER },
+  kral: { erkek: VIP_ERKEK_KRAL_PORTRELER, kadin: VIP_KADIN_KRAL_PORTRELER },
+  ihtisam: { erkek: VIP_ERKEK_IHTISAM_PORTRELER, kadin: VIP_KADIN_IHTISAM_PORTRELER },
+  karanlik: { erkek: VIP_ERKEK_KARANLIK_PORTRELER, kadin: VIP_KADIN_KARANLIK_PORTRELER },
+  aslan: { erkek: VIP_ERKEK_ASLAN_PORTRELER, kadin: VIP_KADIN_ASLAN_PORTRELER },
+  operasyon: { erkek: VIP_ERKEK_OPERASYON_PORTRELER, kadin: VIP_KADIN_OPERASYON_PORTRELER },
+  vip: { erkek: VIP_ERKEK_VIP_PORTRELER, kadin: VIP_KADIN_VIP_PORTRELER },
+};
 
 /** Paket → üyelik boyunca + kalıcı hediye koleksiyon havuzu */
 const PAKET_HEDIYE_KOLEKSIYONLARI = {
@@ -38,6 +91,30 @@ function vipKoleksiyonu(key) {
   if (k.includes("-kral-")) return "kral";
   if (k.includes("-mafya-")) return "mafya";
   return "elmas";
+}
+
+function vipKoleksiyonFiyat(koleksiyonId, cinsiyet) {
+  const kol = String(koleksiyonId || "").trim();
+  const c = String(cinsiyet || "").trim();
+  const map = c === "kadin" ? VIP_KOLEKSIYON_FIYATLARI_KADIN : VIP_KOLEKSIYON_FIYATLARI_ERKEK;
+  return map[kol] || null;
+}
+
+function vipPortreCinsiyeti(key) {
+  const k = normalizeProfilResmi(key || "");
+  if (/^vip-kadin-/.test(k)) return "kadin";
+  if (/^vip-erkek-/.test(k)) return "erkek";
+  return "";
+}
+
+function vipKoleksiyonPortreleri(koleksiyonId, cinsiyet) {
+  const kol = String(koleksiyonId || "").trim();
+  const map = VIP_KOLEKSIYON_PORTRELERI[kol];
+  if (!map) return [];
+  const c = String(cinsiyet || "").trim();
+  if (c === "erkek") return [...(map.erkek || [])];
+  if (c === "kadin") return [...(map.kadin || [])];
+  return [...(map.erkek || []), ...(map.kadin || [])];
 }
 
 async function ensureVipPortreColumns(db) {
@@ -219,6 +296,115 @@ async function vipPortreEquipKontrol(db, userId, key, opts = {}) {
   };
 }
 
+async function elmasDus(db, userId, maliyet) {
+  const m = Math.max(0, Math.floor(Number(maliyet) || 0));
+  if (m <= 0) return { ok: false, error: "Geçersiz fiyat." };
+  const row = await get(db, `SELECT elmas FROM players WHERE user_id = ?`, [userId]);
+  const elmas = Number(row?.elmas || 0);
+  if (elmas < m) {
+    return {
+      ok: false,
+      error: `Yeterli elmasın yok! ${m.toLocaleString("tr-TR")} elmas gerekir.`,
+      elmasGerekli: m,
+      elmas,
+    };
+  }
+  const res = await run(
+    db,
+    `UPDATE players SET elmas = elmas - ? WHERE user_id = ? AND elmas >= ?`,
+    [m, userId, m]
+  );
+  if (!res?.changes) return { ok: false, error: "Satın alma başarısız." };
+  const yeni = await get(db, `SELECT elmas FROM players WHERE user_id = ?`, [userId]);
+  return { ok: true, elmas: Number(yeni?.elmas || 0), maliyet: m };
+}
+
+/** Tek V.I.P portreyi elmasla kalıcı aç (vip-erkek-* veya vip-kadin-*) */
+async function vipPortreTekilSatinAl(db, userId, key) {
+  const portre = gecerliProfilResmi(key);
+  if (!portre || !vipPortreMi(portre)) {
+    return { ok: false, error: "Geçersiz V.I.P portre." };
+  }
+  const cinsiyet = vipPortreCinsiyeti(portre);
+  if (!cinsiyet) {
+    return { ok: false, error: "Bu portre elmasla alınamaz." };
+  }
+  const koleksiyon = vipKoleksiyonu(portre);
+  const fiyat = vipKoleksiyonFiyat(koleksiyon, cinsiyet);
+  if (!fiyat) return { ok: false, error: "Bu koleksiyon satılmıyor." };
+
+  await ensureVipPortreColumns(db);
+  const durum = await getVipPortreDurum(db, userId);
+  if (durum.sahip.includes(portre)) {
+    return { ok: true, zaten: true, sahip: durum.sahip, key: portre, elmas: null };
+  }
+
+  const odeme = await elmasDus(db, userId, fiyat.tekil);
+  if (!odeme.ok) return odeme;
+
+  const sahip = [...durum.sahip, portre];
+  await run(db, `UPDATE players SET vip_portre_sahip = ? WHERE user_id = ?`, [
+    JSON.stringify(sahip),
+    userId,
+  ]);
+  return {
+    ok: true,
+    key: portre,
+    sahip,
+    elmas: odeme.elmas,
+    maliyet: odeme.maliyet,
+    mesaj: `Portre kalıcı açıldı (−${odeme.maliyet} elmas).`,
+  };
+}
+
+/**
+ * Koleksiyonu elmasla kalıcı aç.
+ * cinsiyet: "erkek" | "kadin"
+ */
+async function vipPortreKoleksiyonSatinAl(db, userId, koleksiyonId, cinsiyet) {
+  const kol = String(koleksiyonId || "").trim();
+  const c = String(cinsiyet || "").trim() === "kadin" ? "kadin" : "erkek";
+  const fiyat = vipKoleksiyonFiyat(kol, c);
+  if (!fiyat) return { ok: false, error: "Geçersiz koleksiyon." };
+
+  const portreler = vipKoleksiyonPortreleri(kol, c);
+  if (!portreler.length) return { ok: false, error: "Koleksiyonda portre yok." };
+
+  await ensureVipPortreColumns(db);
+  const durum = await getVipPortreDurum(db, userId);
+  const eksik = portreler.filter((k) => !durum.sahip.includes(k));
+  if (!eksik.length) {
+    return {
+      ok: true,
+      zaten: true,
+      sahip: durum.sahip,
+      koleksiyon: kol,
+      mesaj: "Bu koleksiyonun tüm resimleri zaten sende.",
+    };
+  }
+
+  const odeme = await elmasDus(db, userId, fiyat.koleksiyon);
+  if (!odeme.ok) return odeme;
+
+  const sahipSet = new Set(durum.sahip);
+  for (const k of eksik) sahipSet.add(k);
+  const sahip = [...sahipSet];
+  await run(db, `UPDATE players SET vip_portre_sahip = ? WHERE user_id = ?`, [
+    JSON.stringify(sahip),
+    userId,
+  ]);
+  return {
+    ok: true,
+    koleksiyon: kol,
+    cinsiyet: c,
+    eklenen: eksik,
+    sahip,
+    elmas: odeme.elmas,
+    maliyet: odeme.maliyet,
+    mesaj: `Koleksiyon kalıcı açıldı (−${odeme.maliyet} elmas, ${eksik.length} portre).`,
+  };
+}
+
 function vipPortreUyelikDisindaMi(key, sahip, premiumAktif, paket) {
   const mevcut = normalizeProfilResmi(key || "");
   if (!vipPortreMi(mevcut)) return false;
@@ -274,19 +460,31 @@ function vipPortreClientOzet(durum) {
     vipPortreUyelikAcik: !!durum.premiumAktif,
     vipPortreUyelikKoleksiyonlari: uyelikKoleksiyonlari,
     vipPortrePremiumPaket: durum.premiumPaket || "",
+    vipPortreFiyatlar: {
+      erkek: VIP_KOLEKSIYON_FIYATLARI_ERKEK,
+      kadin: VIP_KOLEKSIYON_FIYATLARI_KADIN,
+    },
   };
 }
 
 module.exports = {
   PAKET_HEDIYE_KOLEKSIYONLARI,
+  VIP_KOLEKSIYON_FIYATLARI,
+  VIP_KOLEKSIYON_FIYATLARI_ERKEK,
+  VIP_KOLEKSIYON_FIYATLARI_KADIN,
   paketUyelikKoleksiyonlari,
   vipPortreMi,
   vipKoleksiyonu,
+  vipKoleksiyonFiyat,
+  vipKoleksiyonPortreleri,
+  vipPortreCinsiyeti,
   ensureVipPortreColumns,
   getVipPortreDurum,
   vipPortreHediyeHakkiAc,
   vipPortreKaliciSec,
   vipPortreEquipKontrol,
+  vipPortreTekilSatinAl,
+  vipPortreKoleksiyonSatinAl,
   vipPortreUyelikBitinceTemizle,
   vipPortreClientOzet,
   vipPortreKullanabilirMi,

@@ -65,6 +65,89 @@ async function getSehreHukmedenUserId(db) {
   return null;
 }
 
+const SEHRE_HUKMET_SAYGINLIK_ORAN = 0.05;
+const MAKAM_LIMAN_SAYGINLIK_ORAN = 0.01;
+
+async function ensureDusenHukumdarTable(db) {
+  await run(
+    db,
+    `CREATE TABLE IF NOT EXISTS sehir_hukum_odul (
+      id INTEGER PRIMARY KEY CHECK (id = 1),
+      dusen_user_id INTEGER,
+      puan_baslangic INTEGER NOT NULL DEFAULT 0,
+      alinmis INTEGER NOT NULL DEFAULT 0
+    )`
+  );
+  try {
+    await run(db, `ALTER TABLE sehir_hukum_odul ADD COLUMN puan_baslangic INTEGER NOT NULL DEFAULT 0`);
+  } catch (_) {}
+  try {
+    await run(db, `ALTER TABLE sehir_hukum_odul ADD COLUMN alinmis INTEGER NOT NULL DEFAULT 0`);
+  } catch (_) {}
+}
+
+/** Düşen hükümranı sakla — kademeli ele geçirmede toplam %5 tavanı için */
+async function dusenHukumdarKaydet(db, userId) {
+  if (!userId) return;
+  await ensureDusenHukumdarTable(db);
+  const mevcut = await get(db, `SELECT dusen_user_id FROM sehir_hukum_odul WHERE id = 1`);
+  if (mevcut?.dusen_user_id === userId) return;
+  const puanRow = await get(db, `SELECT puan FROM players WHERE user_id = ?`, [userId]);
+  const puanBaslangic = Math.max(0, puanRow?.puan || 0);
+  await run(
+    db,
+    `INSERT INTO sehir_hukum_odul (id, dusen_user_id, puan_baslangic, alinmis) VALUES (1, ?, ?, 0)
+     ON CONFLICT(id) DO UPDATE SET
+       dusen_user_id = excluded.dusen_user_id,
+       puan_baslangic = excluded.puan_baslangic,
+       alinmis = 0`,
+    [userId, puanBaslangic]
+  );
+}
+
+async function dusenHukumdarOku(db) {
+  await ensureDusenHukumdarTable(db);
+  const row = await get(
+    db,
+    `SELECT dusen_user_id, puan_baslangic, alinmis FROM sehir_hukum_odul WHERE id = 1`
+  );
+  return row || null;
+}
+
+async function dusenHukumdarAlinmisEkle(db, miktar) {
+  if (!miktar || miktar <= 0) return;
+  await ensureDusenHukumdarTable(db);
+  await run(db, `UPDATE sehir_hukum_odul SET alinmis = alinmis + ? WHERE id = 1`, [miktar]);
+}
+
+async function dusenHukumdarTemizle(db) {
+  await ensureDusenHukumdarTable(db);
+  await run(
+    db,
+    `UPDATE sehir_hukum_odul SET dusen_user_id = NULL, puan_baslangic = 0, alinmis = 0 WHERE id = 1`
+  );
+}
+
+/** Kazanan ← kaybeden saygınlık transferi (oran: 0.01 = %1) */
+async function sayginlikOranAktar(db, kazananId, kaybedenId, oran) {
+  if (!kazananId || !kaybedenId || kazananId === kaybedenId) return 0;
+  const r = Math.max(0, Number(oran) || 0);
+  if (r <= 0) return 0;
+  const row = await get(db, `SELECT puan FROM players WHERE user_id = ?`, [kaybedenId]);
+  const eskiPuan = Math.max(0, row?.puan || 0);
+  const miktar = Math.floor(eskiPuan * r);
+  if (miktar <= 0) return 0;
+  await run(db, `UPDATE players SET puan = puan + ? WHERE user_id = ?`, [miktar, kazananId]);
+  await run(db, `UPDATE players SET puan = ? WHERE user_id = ?`, [
+    Math.max(0, eskiPuan - miktar),
+    kaybedenId,
+  ]);
+  const { logStatHareket } = require("./statService");
+  await logStatHareket(db, kazananId, "sayginlik", miktar);
+  await logStatHareket(db, kaybedenId, "sayginlik", -miktar);
+  return miktar;
+}
+
 async function saatlikKazancHesapla(db, userId) {
   const { getLimanDurumu } = require("./worldService");
   const limanlar = await getLimanDurumu(db);
@@ -73,15 +156,21 @@ async function saatlikKazancHesapla(db, userId) {
   return limanSaatlikToplam(sahipLiman) + (sektorSaatlik || 0);
 }
 
-async function sehreHukmetGuncelle(db, yeniHukumdarId) {
+async function sehreHukmetGuncelle(db, yeniHukumdarId, opts = {}) {
   const yeni = await sehreHukmediyorMu(db, yeniHukumdarId);
   if (!yeni) return { ok: true, degisti: false };
 
-  const eski = await get(
+  const eskiKara = await get(
     db,
     `SELECT user_id FROM players WHERE kara_listede = 1 AND user_id <> ? LIMIT 1`,
     [yeniHukumdarId]
   );
+
+  let oncekiId = opts.oncekiHukumdarId || null;
+  const dusenRow = await dusenHukumdarOku(db);
+  if (!oncekiId && dusenRow?.dusen_user_id) oncekiId = dusenRow.dusen_user_id;
+  if (!oncekiId && eskiKara?.user_id) oncekiId = eskiKara.user_id;
+  if (oncekiId === yeniHukumdarId) oncekiId = null;
 
   // Kara liste tek kişi olsun
   await run(db, `UPDATE players SET kara_listede = 0 WHERE user_id <> ?`, [yeniHukumdarId]);
@@ -93,8 +182,7 @@ async function sehreHukmetGuncelle(db, yeniHukumdarId) {
     [yeniHukumdarId]
   );
 
-  // Ödül: yendiği rakibin saygınlığının %5'i
-  const oncekiId = eski?.user_id || null;
+  // Ödül: tüm liman + makamlar tamamlanınca önceki hükümranın saygınlığının %5'i (kademeli %1'ler düşülür)
   if (oncekiId) {
     await hukumdarligiBitir(db, oncekiId);
     const eskiU = await get(db, `SELECT reis_adi FROM users WHERE id = ?`, [oncekiId]);
@@ -103,34 +191,59 @@ async function sehreHukmetGuncelle(db, yeniHukumdarId) {
       const { hukumdarDegisimHaberleri } = require("./sehirGazeteService");
       await hukumdarDegisimHaberleri(db, eskiU.reis_adi, yeniU.reis_adi);
     }
-    const eskiPuanRow = await get(db, `SELECT puan FROM players WHERE user_id = ?`, [oncekiId]);
-    const eskiPuan = eskiPuanRow?.puan || 0;
-    const odulSayginlik = Math.max(0, Math.floor(eskiPuan * 0.05));
-    if (odulSayginlik > 0) {
-      await run(db, `UPDATE players SET puan = puan + ? WHERE user_id = ?`, [
-        odulSayginlik,
-        yeniHukumdarId,
-      ]);
-      const yeniKaybedenPuan = Math.max(0, eskiPuan - odulSayginlik);
-      await run(db, `UPDATE players SET puan = ? WHERE user_id = ?`, [yeniKaybedenPuan, oncekiId]);
-      const { logStatHareket } = require("./statService");
-      await logStatHareket(db, yeniHukumdarId, "sayginlik", odulSayginlik);
-      await logStatHareket(db, oncekiId, "sayginlik", -odulSayginlik);
+
+    const puanBaz =
+      dusenRow?.dusen_user_id === oncekiId && dusenRow.puan_baslangic > 0
+        ? dusenRow.puan_baslangic
+        : (await get(db, `SELECT puan FROM players WHERE user_id = ?`, [oncekiId]))?.puan || 0;
+    const hedefOdul = Math.max(0, Math.floor(puanBaz * SEHRE_HUKMET_SAYGINLIK_ORAN));
+    const alinmis = dusenRow?.dusen_user_id === oncekiId ? dusenRow.alinmis || 0 : 0;
+    const kalanOdul = Math.max(0, hedefOdul - alinmis);
+
+    let odulSayginlik = 0;
+    if (kalanOdul > 0) {
+      const kaybedenPuan =
+        (await get(db, `SELECT puan FROM players WHERE user_id = ?`, [oncekiId]))?.puan || 0;
+      odulSayginlik = Math.min(kalanOdul, Math.max(0, kaybedenPuan));
+      if (odulSayginlik > 0) {
+        await run(db, `UPDATE players SET puan = puan + ? WHERE user_id = ?`, [
+          odulSayginlik,
+          yeniHukumdarId,
+        ]);
+        await run(db, `UPDATE players SET puan = ? WHERE user_id = ?`, [
+          Math.max(0, kaybedenPuan - odulSayginlik),
+          oncekiId,
+        ]);
+        const { logStatHareket } = require("./statService");
+        await logStatHareket(db, yeniHukumdarId, "sayginlik", odulSayginlik);
+        await logStatHareket(db, oncekiId, "sayginlik", -odulSayginlik);
+      }
     }
+
+    await dusenHukumdarTemizle(db);
     await yeniHukumdarRejimBaslat(db, yeniHukumdarId, oncekiId);
     try {
       const { schedulePlayerSnapshotPersist } = require("./oyuncuSnapshotPersist");
       schedulePlayerSnapshotPersist(db, yeniHukumdarId, 8000);
-      if (oncekiId) schedulePlayerSnapshotPersist(db, oncekiId, 8000);
+      schedulePlayerSnapshotPersist(db, oncekiId, 8000);
     } catch (_) {}
-    return { ok: true, degisti: true, odulVar: true, odulSayginlik };
+    return {
+      ok: true,
+      degisti: true,
+      odulVar: odulSayginlik > 0 || hedefOdul > 0,
+      odulSayginlik: hedefOdul, // toplam fetih ödülü (gösterim); transfer kalan kadardı
+      odulSayginlikTransfer: odulSayginlik,
+      oncekiId,
+    };
   }
+
+  await dusenHukumdarTemizle(db);
   await yeniHukumdarRejimBaslat(db, yeniHukumdarId, null);
   try {
     const { schedulePlayerSnapshotPersist } = require("./oyuncuSnapshotPersist");
     schedulePlayerSnapshotPersist(db, yeniHukumdarId, 8000);
   } catch (_) {}
-  return { ok: true, degisti: true, odulVar: false };
+  return { ok: true, degisti: true, odulVar: false, odulSayginlik: 0 };
 }
 
 async function kaybedenHukumdariKontrol(db, userId) {
@@ -138,6 +251,7 @@ async function kaybedenHukumdariKontrol(db, userId) {
   const row = await get(db, `SELECT kara_listede FROM players WHERE user_id = ?`, [userId]);
   if (!row?.kara_listede) return;
   if (await sehreHukmediyorMu(db, userId)) return;
+  await dusenHukumdarKaydet(db, userId);
   await karaListedenCikar(db, userId);
   await hukumdarligiBitir(db, userId);
 }
@@ -160,6 +274,7 @@ async function karaListeSenkronize(db) {
   await run(db, `UPDATE players SET kara_listede = 0`);
   if (hukumdar) {
     await run(db, `UPDATE players SET kara_listede = 1 WHERE user_id = ?`, [hukumdar]);
+    await dusenHukumdarTemizle(db);
     if (!oncekiKara?.kara_listede) {
       await sehreHukmetGuncelle(db, hukumdar);
     }
@@ -176,4 +291,9 @@ module.exports = {
   sehreHukmetGuncelle,
   kaybedenHukumdariKontrol,
   karaListeSenkronize,
+  sayginlikOranAktar,
+  dusenHukumdarOku,
+  dusenHukumdarAlinmisEkle,
+  SEHRE_HUKMET_SAYGINLIK_ORAN,
+  MAKAM_LIMAN_SAYGINLIK_ORAN,
 };

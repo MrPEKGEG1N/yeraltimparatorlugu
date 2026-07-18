@@ -469,6 +469,7 @@ async function publicPlayerFull(db, userId, player, clientMeta = null) {
     vipPortreUyelikAcik: false,
     vipPortreUyelikKoleksiyonlari: [],
     vipPortrePremiumPaket: "",
+    vipPortreFiyatlar: {},
   };
   try {
     const { getVipPortreDurum, vipPortreClientOzet } = require("./vipPortreService");
@@ -531,6 +532,7 @@ async function publicPlayerFull(db, userId, player, clientMeta = null) {
     vipPortreUyelikAcik: vipPortreOzet.vipPortreUyelikAcik,
     vipPortreUyelikKoleksiyonlari: vipPortreOzet.vipPortreUyelikKoleksiyonlari,
     vipPortrePremiumPaket: vipPortreOzet.vipPortrePremiumPaket,
+    vipPortreFiyatlar: vipPortreOzet.vipPortreFiyatlar || {},
     basariRozetleri,
     basariRozetPinleri,
     devletIliskisi,
@@ -732,7 +734,13 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
     return {
       ok: true,
       player: await publicPlayerFull(db, userId, player),
-      effect: { type: "liman_cok", mesaj: sonuc.mesaj, limanId: key },
+      effect: {
+        type: "liman_cok",
+        mesaj: sonuc.mesaj,
+        limanId: key,
+        sayginlikOdul: sonuc.sayginlikOdul || 0,
+        sehreHukmet: !!sonuc.sehreHukmet,
+      },
     };
   }
 
@@ -743,7 +751,13 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
     return {
       ok: true,
       player: await publicPlayerFull(db, userId, player),
-      effect: { type: "baba_cok", mesaj: sonuc.mesaj, makam: key },
+      effect: {
+        type: "baba_cok",
+        mesaj: sonuc.mesaj,
+        makam: key,
+        sayginlikOdul: sonuc.sayginlikOdul || 0,
+        sehreHukmet: !!sonuc.sehreHukmet,
+      },
     };
   }
 
@@ -1972,6 +1986,54 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
       mesaj: sonuc.mesaj,
       player: await publicPlayerFull(db, userId, player),
       effect: { type: "premium_satin_al", paket: sonuc.paket, mesaj: sonuc.mesaj },
+    };
+  }
+
+  if (action === "vip_portre_tekil_satin_al") {
+    const { vipPortreTekilSatinAl } = require("./vipPortreService");
+    const sonuc = await vipPortreTekilSatinAl(db, userId, key);
+    if (!sonuc.ok) return sonuc;
+    player = await loadPlayer(db, userId);
+    return {
+      ok: true,
+      mesaj: sonuc.mesaj,
+      player: await publicPlayerFull(db, userId, player),
+      effect: {
+        type: "vip_portre_tekil_satin_al",
+        key: sonuc.key,
+        sahip: sonuc.sahip,
+        elmas: sonuc.elmas,
+        maliyet: sonuc.maliyet,
+        zaten: !!sonuc.zaten,
+        mesaj: sonuc.mesaj,
+      },
+    };
+  }
+
+  if (action === "vip_portre_koleksiyon_satin_al") {
+    const { vipPortreKoleksiyonSatinAl } = require("./vipPortreService");
+    const sonuc = await vipPortreKoleksiyonSatinAl(
+      db,
+      userId,
+      key || extra.koleksiyon,
+      extra.cinsiyet || extra.gender || ""
+    );
+    if (!sonuc.ok) return sonuc;
+    player = await loadPlayer(db, userId);
+    return {
+      ok: true,
+      mesaj: sonuc.mesaj,
+      player: await publicPlayerFull(db, userId, player),
+      effect: {
+        type: "vip_portre_koleksiyon_satin_al",
+        koleksiyon: sonuc.koleksiyon,
+        sahip: sonuc.sahip,
+        elmas: sonuc.elmas,
+        maliyet: sonuc.maliyet,
+        eklenen: sonuc.eklenen || [],
+        zaten: !!sonuc.zaten,
+        mesaj: sonuc.mesaj,
+      },
     };
   }
 

@@ -225,6 +225,13 @@ function createGameRouter(db) {
         vipPortreSahip = durum.sahip || [];
       } catch (_) {}
 
+      let premiumPaket = "";
+      try {
+        const { getPremiumStatus } = require("../game/premiumService");
+        const st = await getPremiumStatus(db, targetId);
+        if (st.aktif && st.paket) premiumPaket = st.paket;
+      } catch (_) {}
+
       let basariRozetleri = [];
       let basariRozetPinleri = [];
       try {
@@ -283,6 +290,7 @@ function createGameRouter(db) {
           mafyaDavetGoster,
           mafyaDavetBekliyor,
           vipPortreSahip,
+          premiumPaket,
           basariRozetleri,
           basariRozetPinleri,
           sagKol,

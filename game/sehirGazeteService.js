@@ -729,6 +729,61 @@ async function getGazetePanel(db, userId) {
     gunlukMafyaIs?.metin,
   ]);
 
+  let mansetPremiumPaket = "";
+  let mansetEskiHakimPremium = "";
+  try {
+    const { aktifPremiumPaketMap } = require("./premiumService");
+    const premIds = new Set();
+    const idEkle = (id) => {
+      if (id != null && id !== "") premIds.add(id);
+    };
+    oyuncuLinkleri.forEach((l) => idEkle(l.userId));
+    arananlar.forEach((r) => idEkle(r.userId));
+    hakimiyetSatirlari.forEach((h) => {
+      idEkle(h.userId);
+      idEkle(h.kazananUserId);
+      idEkle(h.kaybedenUserId);
+    });
+    yeraltiManse.forEach((h) => idEkle(h.userId));
+    limanDurumu.forEach((l) => idEkle(l.userId));
+    idEkle(mansetTpl.eskiHakimUserId);
+    idEkle(hukumdarUserId);
+    idEkle(gunlukKabus?.userId);
+    idEkle(aylikMafyaSampiyon?.userId);
+    (isIlanlari?.ilanlar || []).forEach((s) => idEkle(s.sahipUserId));
+    const premMap = await aktifPremiumPaketMap(db, [...premIds]);
+    const paketAta = (obj, idKey) => {
+      if (!obj) return;
+      const uid = obj[idKey];
+      const paket = premMap[String(uid)];
+      if (paket) obj.premiumPaket = paket;
+    };
+    oyuncuLinkleri.forEach((l) => paketAta(l, "userId"));
+    arananlar.forEach((r) => paketAta(r, "userId"));
+    hakimiyetSatirlari.forEach((h) => {
+      paketAta(h, "userId");
+      if (h.kazananUserId && premMap[String(h.kazananUserId)]) {
+        h.kazananPremiumPaket = premMap[String(h.kazananUserId)];
+      }
+      if (h.kaybedenUserId && premMap[String(h.kaybedenUserId)]) {
+        h.kaybedenPremiumPaket = premMap[String(h.kaybedenUserId)];
+      }
+    });
+    yeraltiManse.forEach((h) => paketAta(h, "userId"));
+    limanDurumu.forEach((l) => paketAta(l, "userId"));
+    if (gunlukKabus) paketAta(gunlukKabus, "userId");
+    if (aylikMafyaSampiyon) paketAta(aylikMafyaSampiyon, "userId");
+    (isIlanlari?.ilanlar || []).forEach((s) => paketAta(s, "sahipUserId"));
+    if (hukumdarUserId && premMap[String(hukumdarUserId)]) {
+      mansetPremiumPaket = premMap[String(hukumdarUserId)];
+    }
+    if (mansetTpl.eskiHakimUserId && premMap[String(mansetTpl.eskiHakimUserId)]) {
+      mansetEskiHakimPremium = premMap[String(mansetTpl.eskiHakimUserId)];
+    }
+  } catch (err) {
+    console.error("[gazete] premium paket map:", err?.message || err);
+  }
+
   return {
     tarihUst,
     sonDakika,
@@ -743,6 +798,8 @@ async function getGazetePanel(db, userId) {
       hukumdarUserId,
       eskiHakim: mansetTpl.eskiHakim || null,
       eskiHakimUserId: mansetTpl.eskiHakimUserId || null,
+      premiumPaket: mansetPremiumPaket || undefined,
+      eskiHakimPremiumPaket: mansetEskiHakimPremium || undefined,
     },
     sayginlikLiderleri,
     arananlar,

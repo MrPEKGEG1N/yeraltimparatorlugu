@@ -57,15 +57,15 @@
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,300;1,400&family=Oswald:wght@400;600;700&family=Roboto+Condensed:wght@300;400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="components/MasterLayout.module.css?v=136">
   <link rel="stylesheet" href="liderlik.css?v=109">
-  <link rel="stylesheet" href="ekran-icerik.css?v=121">
+  <link rel="stylesheet" href="ekran-icerik.css?v=122">
   <link rel="stylesheet" href="gazete.css?v=121">
-  <link rel="stylesheet" href="profil.css?v=170">
+  <link rel="stylesheet" href="profil.css?v=172">
   <link rel="stylesheet" href="menu-hub.css?v=107">
   <link rel="stylesheet" href="spor-salonu.css?v=12">
   <link rel="stylesheet" href="dusman.css?v=105">
   <link rel="stylesheet" href="banka.css?v=108">
   <link rel="stylesheet" href="gunluk-gorevler.css?v=112">
-  <link rel="stylesheet" href="racon-raporu.css?v=4">
+  <link rel="stylesheet" href="racon-raporu.css?v=5">
   <link rel="stylesheet" href="guvenli-yer.css?v=16">
   <link rel="stylesheet" href="sefirlik.css?v=1">
   <link rel="stylesheet" href="meslek.css?v=20">
@@ -344,6 +344,7 @@
 
 <div id="hosgeldinModal" class="racon-modal gizli" role="dialog" aria-modal="true" aria-labelledby="raconBaslik" data-i18n-aria="game.welcome.title">
   <div class="racon-kart">
+    <div class="racon-kart-isik" aria-hidden="true"></div>
     <div class="racon-kart-cerceve" aria-hidden="true"></div>
     <div class="racon-kart-kose racon-kart-kose--sol-ust" aria-hidden="true"></div>
     <div class="racon-kart-kose racon-kart-kose--sag-ust" aria-hidden="true"></div>
@@ -358,6 +359,7 @@
         </div>
       </div>
       <div class="racon-baslik-metin">
+        <p class="racon-baslik-ustetiket" data-i18n="game.welcome.stamp">Sokak Raporu</p>
         <h2 id="raconBaslik" class="racon-baslik-yazi" data-i18n="game.welcome.title">Racon Raporu</h2>
         <div class="racon-baslik-cizgi" aria-hidden="true"></div>
       </div>
@@ -375,6 +377,7 @@
           </svg>
         </div>
         <div class="racon-satir-icerik">
+          <p class="racon-satir-etiket" data-i18n="game.welcome.absence">Yokluğunda geçen süre:</p>
           <div class="racon-stat-blok">
             <span id="raconSaat" class="racon-stat-deger">0</span>
             <span class="racon-kirmizi racon-stat-birim" data-i18n="game.welcome.hoursLabel">Saat</span>
@@ -383,15 +386,16 @@
       </div>
 
       <div class="racon-satir racon-satir--kazanc">
-        <div class="racon-ikon-kapsul" aria-hidden="true">
+        <div class="racon-ikon-kapsul racon-ikon-kapsul--kazanc" aria-hidden="true">
           <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
             <circle cx="24" cy="21" r="9" stroke="currentColor" stroke-width="1.4"/>
             <path d="M24 15v6.5l3.5 2.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
-            <rect x="11" y="29" width="26" height="9" rx="1.5" stroke="currentColor" stroke-width="1.4" fill="rgba(201,168,76,0.1)"/>
+            <rect x="11" y="29" width="26" height="9" rx="1.5" stroke="currentColor" stroke-width="1.4" fill="rgba(232,74,58,0.12)"/>
             <path d="M15 33h5M24 33h3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
           </svg>
         </div>
         <div class="racon-satir-icerik">
+          <p class="racon-satir-etiket" data-i18n="game.welcome.earnings">Kazancın:</p>
           <p class="racon-satir-metin">
             <span data-i18n="game.welcome.earningsText">Mekanlar tam kapasite çalıştı, payımıza düşen</span>
             <span class="racon-deger-grup">
@@ -482,7 +486,7 @@
 <script src="security.js?v=1"></script>
 <script src="kurallar.js?v=2"></script>
 <script src="i18n/languages.js?v=3"></script>
-<script src="i18n/locales.js?v=118"></script>
+<script src="i18n/locales.js?v=120"></script>
 <script src="i18n/catalog.js?v=6"></script>
 <script src="i18n/i18n.js?v=9"></script>
 <script src="auth.js?v=106"></script>
@@ -495,7 +499,7 @@
 <script src="borsa.js?v=7"></script>
 <script src="kumarhane.js?v=28"></script>
 <script src="meslek.js?v=28"></script>
-<script src="script.js?v=393"></script>
+<script src="script.js?v=398"></script>
 <script src="bildirim.js?v=5"></script>
 <script src="capacitor-push.js?v=1"></script>
 </body>
