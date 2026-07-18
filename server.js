@@ -216,6 +216,61 @@ app.get("/api/ping", (req, res) => {
   res.json({ ok: true, pong: true, ts: Date.now() });
 });
 
+/** Render free: 15 dk inbound yoksa uyur. Public URL'e self-ping idle sayacini sifirlar. */
+function resolveKeepAliveBaseUrl() {
+  return String(
+    process.env.KEEP_ALIVE_SELF_URL ||
+      process.env.RENDER_EXTERNAL_URL ||
+      process.env.PUBLIC_BASE_URL ||
+      process.env.LIVE_URL ||
+      ""
+  )
+    .trim()
+    .replace(/\/$/, "");
+}
+
+function startSelfKeepAlive() {
+  if (process.env.KEEP_ALIVE_SELF === "0") {
+    console.log("[keep-alive] self-ping kapali (KEEP_ALIVE_SELF=0)");
+    return;
+  }
+  const onRender = !!(process.env.RENDER || process.env.RENDER_EXTERNAL_URL);
+  const forceOn = process.env.KEEP_ALIVE_SELF === "1";
+  if (!onRender && !forceOn) return;
+
+  const base = resolveKeepAliveBaseUrl();
+  if (!base) {
+    console.warn("[keep-alive] self-ping icin public URL yok (RENDER_EXTERNAL_URL)");
+    return;
+  }
+
+  const pathPing = process.env.KEEP_ALIVE_SELF_PATH || "/api/ping";
+  const intervalMs = Math.max(
+    60 * 1000,
+    Number(process.env.KEEP_ALIVE_SELF_MS || 4 * 60 * 1000) || 4 * 60 * 1000
+  );
+  const url = `${base}${pathPing.startsWith("/") ? pathPing : `/${pathPing}`}`;
+
+  const tick = () => {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 25000);
+    fetch(url, {
+      method: "GET",
+      signal: ctrl.signal,
+      headers: { "cache-control": "no-store", "user-agent": "yeralti-keepalive/1" },
+    })
+      .then((r) => {
+        if (!r.ok) console.warn(`[keep-alive] self-ping HTTP ${r.status}`);
+      })
+      .catch((err) => console.warn("[keep-alive] self-ping fail:", err.message || err))
+      .finally(() => clearTimeout(timer));
+  };
+
+  setTimeout(tick, 20 * 1000);
+  setInterval(tick, intervalMs);
+  console.log(`[keep-alive] self-ping her ${Math.round(intervalMs / 1000)}s -> ${url}`);
+}
+
 function registerIntervals() {
   setInterval(() => {
     savasiCoz(db).catch((err) => console.error("Mafya savaşı çözüm hatası:", err));
@@ -362,6 +417,7 @@ async function start() {
     });
   });
 
+  startSelfKeepAlive();
   bootDatabase();
 }
 

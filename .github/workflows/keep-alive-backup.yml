@@ -1,0 +1,41 @@
+# Yedek keep-alive: ana workflow gecikirse bu offset cron uyanik tutar.
+name: Keep server alive (backup)
+
+on:
+  schedule:
+    - cron: "1,6,11,16,21,26,31,36,41,46,51,56 * * * *"
+    - cron: "3,8,13,18,23,28,33,38,43,48,53,58 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: keep-alive-backup
+  cancel-in-progress: false
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Backup ping production
+        env:
+          KEEP_ALIVE_URL: ${{ secrets.KEEP_ALIVE_URL }}
+        run: |
+          BASE="${KEEP_ALIVE_URL:-https://yeralti-game.onrender.com}"
+          BASE="${BASE%/}"
+          echo "Backup ping ${BASE}"
+          for i in $(seq 1 10); do
+            code=$(curl -sS -o /tmp/ka-body.txt -w "%{http_code}" -m 95 \
+              -H "Cache-Control: no-store" \
+              -H "User-Agent: yeralti-gh-keepalive-backup/1" \
+              "${BASE}/api/ping" || echo "000")
+            echo "try ${i} -> HTTP ${code}"
+            if [ "$code" = "200" ]; then
+              echo "OK"
+              exit 0
+            fi
+            sleep 15
+          done
+          exit 1
