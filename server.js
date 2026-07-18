@@ -117,6 +117,7 @@ async function sendHealth(res) {
       name: "yeralti-imparatorlugu",
       version: require("./package.json").version,
       commit:
+        process.env.RENDER_GIT_COMMIT ||
         process.env.NORTHFLANK_GIT_COMMIT_SHA ||
         process.env.RAILWAY_GIT_COMMIT_SHA ||
         process.env.GIT_COMMIT ||
@@ -164,6 +165,7 @@ async function sendHealth(res) {
       name: "yeralti-imparatorlugu",
       version: require("./package.json").version,
       commit:
+        process.env.RENDER_GIT_COMMIT ||
         process.env.NORTHFLANK_GIT_COMMIT_SHA ||
         process.env.RAILWAY_GIT_COMMIT_SHA ||
         process.env.GIT_COMMIT ||

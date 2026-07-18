@@ -279,7 +279,18 @@ async function getSehirBanner(db) {
   }
   const uid = [...owners][0];
   const u = await get(db, `SELECT reis_adi FROM users WHERE id = ?`, [uid]);
-  return { tip: "tek", reisAdi: u?.reis_adi || "Bilinmeyen", reisUserId: uid };
+  let premiumPaket = "";
+  try {
+    const { getPremiumStatus } = require("./premiumService");
+    const st = await getPremiumStatus(db, uid);
+    if (st.aktif && st.paket) premiumPaket = st.paket;
+  } catch (_) {}
+  return {
+    tip: "tek",
+    reisAdi: u?.reis_adi || "Bilinmeyen",
+    reisUserId: uid,
+    premiumPaket: premiumPaket || undefined,
+  };
 }
 
 async function gunlukHaberUret(db) {

@@ -416,8 +416,8 @@ async function aktifPremiumPaketMap(db, userIds) {
     const paket = String(row.premium_paket || "").trim();
     const bitis = Number(row.premium_paket_bitis || 0);
     if (!uid || !paketTanim(paket)) continue;
+    // bitis<=0: eski kayit / admin atamasi — getPremiumStatus ile ayni: aktif say
     if (bitis > 0 && bitis <= simdi) continue;
-    if (bitis <= 0) continue;
     map[uid] = paket;
   }
   return map;

@@ -424,8 +424,10 @@ function sehirBannerGuncelle() {
   if (sehirBannerState.tip === 'tek' && sehirBannerState.reisAdi) {
     el.className = 'city-ruler-banner city-ruler-banner--reign';
     var isimHtml = sehirBannerState.reisUserId
-      ? oyuncuLink(sehirBannerState.reisUserId, sehirBannerState.reisAdi)
-      : escHtml(sehirBannerState.reisAdi);
+      ? oyuncuLink(sehirBannerState.reisUserId, sehirBannerState.reisAdi, sehirBannerState.premiumPaket)
+      : (sehirBannerState.premiumPaket
+        ? premiumLtIsimHtml(sehirBannerState.reisAdi, sehirBannerState.premiumPaket, false)
+        : escHtml(sehirBannerState.reisAdi));
     el.innerHTML = '<div class="city-ruler-banner__shine" aria-hidden="true"></div>'
       + '<div class="city-ruler-banner__frame">'
       + '<span class="city-ruler-banner__gem city-ruler-banner__gem--l" aria-hidden="true"></span>'
@@ -9878,8 +9880,7 @@ async function profilOyuncuAdiDegistir() {
   if (!ef) return;
   if (input) input.value = '';
   if (ef.mesaj) toast(tr(ef.mesaj), 'basari');
-  profilAlanGuncelle('profilOzOyuncu', aktifReisAdi);
-  profilAlanGuncelle('profilOyuncuIsmiDetay', aktifReisAdi);
+  profilIsimAlanlariGuncelle(aktifReisAdi, aktifPremiumPaketAl(), sehreHukmeden);
   profilOyuncuAdiUcretGuncelle();
 }
 

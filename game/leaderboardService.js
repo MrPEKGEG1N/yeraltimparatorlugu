@@ -7,7 +7,7 @@ async function getLeaderboard(db, currentUserId) {
   const oyuncular = await all(
     db,
     `SELECT u.reis_adi AS isim, u.username, u.grup, p.puan, u.id AS user_id, p.sehre_hukmet_sayisi,
-            u.kayit_ulkesi, u.oyun_dili, p.premium_paket,
+            u.kayit_ulkesi, u.oyun_dili, p.premium_paket, p.premium_paket_bitis,
             m.grup_id, mg.isim AS gercek_grup_adi
      FROM players p
      JOIN users u ON u.id = p.user_id
@@ -18,22 +18,29 @@ async function getLeaderboard(db, currentUserId) {
   );
 
   const hukmedenId = await getSehreHukmedenUserId(db);
+  const simdi = Math.floor(Date.now() / 1000);
 
-  return oyuncular.slice(0, 25).map((o) => ({
-    userId: o.user_id,
-    isim: o.isim,
-    username: o.username,
-    grup: gercekGrupAdi(o.gercek_grup_adi || o.grup, o.grup_id),
-    grupId: o.grup_id || null,
-    puan: o.puan,
-    sehreHukmetSayisi: o.sehre_hukmet_sayisi || 0,
-    sehreHukmeden: o.user_id === hukmedenId,
-    kayitUlkesi: o.kayit_ulkesi || "",
-    oyunDili: o.oyun_dili || "tr",
-    premiumPaket: o.premium_paket || "",
-    bot: false,
-    benim: o.user_id === currentUserId,
-  }));
+  return oyuncular.slice(0, 25).map((o) => {
+    const paket = String(o.premium_paket || "").trim();
+    const bitis = Number(o.premium_paket_bitis || 0);
+    const paketAktif =
+      paket && (bitis <= 0 || bitis > simdi) ? paket : "";
+    return {
+      userId: o.user_id,
+      isim: o.isim,
+      username: o.username,
+      grup: gercekGrupAdi(o.gercek_grup_adi || o.grup, o.grup_id),
+      grupId: o.grup_id || null,
+      puan: o.puan,
+      sehreHukmetSayisi: o.sehre_hukmet_sayisi || 0,
+      sehreHukmeden: o.user_id === hukmedenId,
+      kayitUlkesi: o.kayit_ulkesi || "",
+      oyunDili: o.oyun_dili || "tr",
+      premiumPaket: paketAktif,
+      bot: false,
+      benim: o.user_id === currentUserId,
+    };
+  });
 }
 
 async function getOyuncuSira(db, userId) {
