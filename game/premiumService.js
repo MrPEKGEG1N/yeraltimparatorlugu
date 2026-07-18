@@ -66,7 +66,7 @@ const PREMIUM_PAKETLER = {
     smsSinirsiz: false,
     bankaHakGunluk: 30,
     bankaHakSinirsiz: false,
-    faizOran: null,
+    faizOran: 0.005,
     mekanGelirBonus: 0,
     prestijRozet: "🥉",
     prestijEtiket: "Bronz Kurşun",

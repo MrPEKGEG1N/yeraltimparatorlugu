@@ -237,7 +237,10 @@ function registerIntervals() {
   }, 60 * 1000);
 
   setInterval(() => {
-    faizIsle(db).catch((err) => console.error("Banka faiz hatası:", err));
+    const { faizIsle, faizGunlukSnapshot } = require("./game/bankaService");
+    faizGunlukSnapshot(db)
+      .then(() => faizIsle(db))
+      .catch((err) => console.error("Banka faiz hatası:", err));
   }, 60 * 1000);
 
   setInterval(() => {

@@ -7,7 +7,7 @@ const FAIZ_ORAN = 0.005;
 const FAIZ_SAAT = 10;
 const FAIZ_YATIRIM_SAAT = 18;
 
-function turkeyNowParts() {
+function turkeyNowParts(date = new Date()) {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Europe/Istanbul",
     year: "numeric",
@@ -17,7 +17,7 @@ function turkeyNowParts() {
     minute: "numeric",
     hour12: false,
   })
-    .formatToParts(new Date())
+    .formatToParts(date)
     .reduce((acc, p) => {
       acc[p.type] = p.value;
       return acc;
@@ -27,6 +27,13 @@ function turkeyNowParts() {
     hour: parseInt(parts.hour, 10) || 0,
     minute: parseInt(parts.minute, 10) || 0,
   };
+}
+
+/** YYYY-MM-DD karşılaştırma: a < b ise negatif */
+function dayKeyCmp(a, b) {
+  if (!a || !b) return 0;
+  if (a === b) return 0;
+  return a < b ? -1 : 1;
 }
 
 async function ensureBankaRow(db, userId) {
@@ -122,42 +129,114 @@ async function getBankaPanel(db, userId) {
   };
 }
 
-async function faizYatirimKaydet(db, userId, miktar) {
+/**
+ * 18:00 öncesi yatırımlarda faiz matrahını güncel bakiyeye çeker.
+ * Ödenmemiş önceki gün matrahı varsa önce korur / birleştirmez — ertesi gün işlenir.
+ */
+async function faizYatirimKaydet(db, userId, _miktar) {
   const { dayKey, hour } = turkeyNowParts();
   if (hour >= FAIZ_YATIRIM_SAAT) return;
 
   const row = await ensureBankaRow(db, userId);
-  let bekleyen = row.faiz_bekleyen || 0;
-  if (row.faiz_gun !== dayKey) {
-    bekleyen = 0;
+  const bakiye = Number(row.yatirilan_miktar || 0);
+  if (bakiye < 1) return;
+
+  // Önceki günün ödenmemiş faizi varsa dokunma (faizIsle yakalasın)
+  if (
+    row.faiz_gun &&
+    dayKeyCmp(row.faiz_gun, dayKey) < 0 &&
+    row.faiz_islendi_gun !== row.faiz_gun &&
+    Number(row.faiz_bekleyen || 0) > 0
+  ) {
+    return;
   }
-  bekleyen += miktar;
+
   await run(
     db,
     `UPDATE banka_hesaplari SET faiz_bekleyen = ?, faiz_gun = ? WHERE user_id = ?`,
-    [bekleyen, dayKey, userId]
+    [bakiye, dayKey, userId]
   );
 }
 
-async function faizIsle(db) {
-  const { dayKey, hour, minute } = turkeyNowParts();
-  if (hour !== FAIZ_SAAT || minute > 5) return { processed: 0 };
+/**
+ * 18:00 sonrası: bugün henüz matrah yazılmamış bakiyeli hesapları bugünün faiz gününe yazar.
+ * Böylece sadece eski bakiyesi olan (bugün yatırım yapmayan) oyuncular da faiz alır.
+ */
+async function faizGunlukSnapshot(db) {
+  const { dayKey, hour } = turkeyNowParts();
+  if (hour < FAIZ_YATIRIM_SAAT) return { snapshotted: 0 };
 
   const rows = await all(
     db,
     `SELECT user_id, yatirilan_miktar, faiz_bekleyen, faiz_gun, faiz_islendi_gun
-     FROM banka_hesaplari WHERE faiz_bekleyen > 0`
+     FROM banka_hesaplari WHERE yatirilan_miktar > 0`
+  );
+  let snapshotted = 0;
+  for (const row of rows) {
+    const bakiye = Number(row.yatirilan_miktar || 0);
+    if (bakiye < 1) continue;
+
+    // Ödenmemiş geçmiş gün — faizIsle'a bırak
+    if (
+      row.faiz_gun &&
+      dayKeyCmp(row.faiz_gun, dayKey) < 0 &&
+      row.faiz_islendi_gun !== row.faiz_gun &&
+      Number(row.faiz_bekleyen || 0) > 0
+    ) {
+      continue;
+    }
+
+    // Bugün zaten yazılmışsa güncelle (bakiyeyi yansıt)
+    if (row.faiz_gun === dayKey) {
+      if (Number(row.faiz_bekleyen || 0) !== bakiye) {
+        await run(
+          db,
+          `UPDATE banka_hesaplari SET faiz_bekleyen = ? WHERE user_id = ?`,
+          [bakiye, row.user_id]
+        );
+        snapshotted++;
+      }
+      continue;
+    }
+
+    await run(
+      db,
+      `UPDATE banka_hesaplari SET faiz_bekleyen = ?, faiz_gun = ? WHERE user_id = ?`,
+      [bakiye, dayKey, row.user_id]
+    );
+    snapshotted++;
+  }
+  return { snapshotted };
+}
+
+/**
+ * Faiz ödemesi: faiz_gun < bugün ve henüz işlenmemiş kayıtlar.
+ * Saat ≥ 10:00 (İstanbul) — kaçırılan dakikalar için catch-up.
+ */
+async function faizIsle(db) {
+  const { dayKey, hour } = turkeyNowParts();
+  if (hour < FAIZ_SAAT) return { processed: 0 };
+
+  const rows = await all(
+    db,
+    `SELECT user_id, yatirilan_miktar, faiz_bekleyen, faiz_gun, faiz_islendi_gun
+     FROM banka_hesaplari
+     WHERE faiz_bekleyen > 0
+       AND faiz_gun IS NOT NULL
+       AND faiz_gun < ?
+       AND (faiz_islendi_gun IS NULL OR faiz_islendi_gun != faiz_gun)`,
+    [dayKey]
   );
   let processed = 0;
   for (const row of rows) {
-    if (!row.faiz_gun || row.faiz_islendi_gun === row.faiz_gun) continue;
     let faizOran = FAIZ_ORAN;
     try {
       const { getPremiumBonuses } = require("./premiumService");
       const premium = await getPremiumBonuses(db, row.user_id);
-      faizOran = premium.faizOran ?? FAIZ_ORAN;
+      faizOran = premium.faizOran != null ? premium.faizOran : FAIZ_ORAN;
     } catch (_) {}
-    const faiz = Math.floor((row.faiz_bekleyen || 0) * faizOran);
+    const matrah = Number(row.faiz_bekleyen || 0);
+    const faiz = Math.floor(matrah * faizOran);
     if (faiz < 1) {
       await run(
         db,
@@ -231,6 +310,16 @@ async function paraCek(db, userId, player, cekMiktari) {
   }
   await run(db, `UPDATE players SET kasa = ? WHERE user_id = ?`, [player.kasa, userId]);
 
+  // 18:00 öncesi çekimde bugünkü faiz matrahını bakiyeye göre güncelle
+  const { dayKey, hour } = turkeyNowParts();
+  if (hour < FAIZ_YATIRIM_SAAT && row.faiz_gun === dayKey) {
+    await run(
+      db,
+      `UPDATE banka_hesaplari SET faiz_bekleyen = ? WHERE user_id = ?`,
+      [Math.max(0, kalan), userId]
+    );
+  }
+
   return { ok: true, cekilen: cek, yeniKasa: player.kasa, bankaHakki: hak.kalan };
 }
 
@@ -248,10 +337,15 @@ async function bankaDogrudanYatir(db, userId, miktar) {
 module.exports = {
   BANKA_HAK_GUNLUK,
   FAIZ_ORAN,
+  FAIZ_SAAT,
+  FAIZ_YATIRIM_SAAT,
+  turkeyNowParts,
+  dayKeyCmp,
   getBanka,
   getBankaPanel,
   paraYatir,
   paraCek,
   faizIsle,
+  faizGunlukSnapshot,
   bankaDogrudanYatir,
 };
