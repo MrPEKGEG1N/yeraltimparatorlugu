@@ -370,6 +370,11 @@ module.exports = {
   "game.leaderboard.colInfo": ["Bilgi", "Info"],
   "game.leaderboard.points": ["Puan", "Pts"],
   "game.leaderboard.groupStat": ["Ev {level} · {members} üye · {wars} savaş", "House {level} · {members} members · {wars} wars"],
+  "game.leaderboard.sortHouse": ["Ev", "House"],
+  "game.leaderboard.sortMembers": ["Üye", "Members"],
+  "game.leaderboard.sortWarsWon": ["Kazanılan Savaş", "Wars Won"],
+  "game.leaderboard.sortWarsLost": ["Kaybedilen Savaş", "Wars Lost"],
+  "game.leaderboard.sortLabel": ["Grup sıralama", "Group sort"],
   "game.leaderboard.footer": ["Sıralama her saldırı ve mekan sonucunda anlık güncellenir.", "Rankings update instantly after every attack and venue result."],
 
   "game.gazete.rulerFull": ["👑 <strong>Şehre Hükmeden:</strong> ", "👑 <strong>City Ruler:</strong> "],

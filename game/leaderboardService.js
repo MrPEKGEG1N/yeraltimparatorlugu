@@ -76,7 +76,12 @@ async function getGrupLeaderboard(db) {
             COUNT(DISTINCT u.user_id) AS uye_sayisi,
             COALESCE(e.seviye, 1) AS ev_seviye,
             (SELECT COUNT(*) FROM mafya_savaslar s
-             WHERE s.durum = 'tamamlandi' AND s.kazanan_grup_id = g.id) AS kazanilan_savas
+             WHERE s.durum = 'tamamlandi' AND s.kazanan_grup_id = g.id) AS kazanilan_savas,
+            (SELECT COUNT(*) FROM mafya_savaslar s
+             WHERE s.durum = 'tamamlandi'
+               AND s.kazanan_grup_id IS NOT NULL
+               AND s.kazanan_grup_id != g.id
+               AND (s.saldiran_grup_id = g.id OR s.hedef_grup_id = g.id)) AS kaybedilen_savas
      FROM mafya_gruplari g
      LEFT JOIN mafya_uyeleri u ON u.grup_id = g.id
      LEFT JOIN players p ON p.user_id = u.user_id
@@ -93,6 +98,7 @@ async function getGrupLeaderboard(db) {
     uyeSayisi: r.uye_sayisi || 0,
     evSeviye: r.ev_seviye || 1,
     kazanilanSavas: r.kazanilan_savas || 0,
+    kaybedilenSavas: r.kaybedilen_savas || 0,
   }));
 }
 

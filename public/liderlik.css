@@ -1,39 +1,39 @@
-/* Liderlik tablosu — v3 mockup (madalyon + kapsül pill) */
+/* Liderlik tablosu — sade saloon / sıralama */
+
 #masterLayout .lt-panel {
-  --lt-gold: #b8924a;
-  --lt-gold-bright: #e3bd72;
-  --lt-gold-dim: #7a6038;
-  --lt-cream: #e7dcc0;
-  --lt-cream-dim: #a89a78;
-  --lt-wine-bright: #8a2424;
+  --lt-gold: #c9a84c;
+  --lt-gold-bright: #e8c878;
+  --lt-gold-dim: #7a6238;
+  --lt-cream: #ebe2ce;
+  --lt-cream-dim: #9a8f78;
+  --lt-wine: #6e1e1e;
+  --lt-wine-bright: #8a2828;
+  --lt-surface: rgba(12, 10, 8, 0.72);
   position: relative;
   width: 100%;
-  max-width: 900px;
+  max-width: 860px;
   margin: 0 auto;
-  border-radius: 6px;
+  border-radius: 4px;
   overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(184, 146, 74, 0.18);
+  border: 1px solid rgba(201, 168, 76, 0.28);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.5);
 }
 
 #masterLayout .lt-photo-bg {
   position: absolute;
   inset: 0;
   z-index: 0;
-  background: url('/static/img/arka_plan_resmi.png') center 30% / cover no-repeat;
-  filter: brightness(0.62) saturate(0.95);
+  background: url('/static/img/arka_plan_resmi.png') center 28% / cover no-repeat;
+  filter: brightness(0.42) saturate(0.8);
 }
 
 #masterLayout .lt-photo-bg::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    180deg,
-    rgba(8, 5, 3, 0.45) 0%,
-    rgba(8, 5, 3, 0.18) 28%,
-    rgba(8, 5, 3, 0.4) 65%,
-    rgba(8, 5, 3, 0.68) 100%
-  );
+  background:
+    linear-gradient(180deg, rgba(8, 6, 4, 0.55) 0%, rgba(8, 6, 4, 0.35) 35%, rgba(8, 6, 4, 0.78) 100%),
+    radial-gradient(ellipse 70% 40% at 50% 0%, rgba(110, 70, 20, 0.25), transparent 65%);
 }
 
 #masterLayout .lt-inner {
@@ -42,127 +42,116 @@
 }
 
 #masterLayout .lt-carved-bar {
-  height: 46px;
+  height: auto;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
   position: relative;
-  background:
-    repeating-linear-gradient(
-      90deg,
-      rgba(184, 146, 74, 0.16) 0,
-      rgba(184, 146, 74, 0.16) 1px,
-      transparent 1px,
-      transparent 7px
-    ),
-    linear-gradient(180deg, #1c1410, #100b08);
-  border-bottom: 1px solid rgba(184, 146, 74, 0.25);
+  background: rgba(8, 6, 4, 0.55);
+  border-bottom: 1px solid rgba(201, 168, 76, 0.22);
 }
 
 #masterLayout .lt-carved-bar::before,
 #masterLayout .lt-carved-bar::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 34px;
-  height: 18px;
-  opacity: 0.55;
-  background-image: radial-gradient(circle, var(--lt-gold-dim) 0 1.5px, transparent 1.6px);
-  background-size: 7px 7px;
+  display: none;
 }
 
-#masterLayout .lt-carved-bar::before { left: 18px; }
-#masterLayout .lt-carved-bar::after { right: 18px; }
-
 #masterLayout .lt-tab-floating {
-  position: absolute;
-  top: -2px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 2;
-  padding: 11px 30px;
-  border-radius: 5px;
+  position: static;
+  transform: none;
+  top: auto;
+  left: auto;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
   font-family: 'Cinzel', serif;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 2px;
-  color: var(--lt-cream);
+  letter-spacing: 0.2em;
+  color: var(--lt-gold);
   text-transform: uppercase;
-  background: linear-gradient(180deg, #7a2424, #4a1414);
-  border: 1px solid var(--lt-gold);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 #masterLayout .lt-side-tabs {
-  position: absolute;
-  top: 7px;
-  right: 18px;
+  position: static;
+  top: auto;
+  right: auto;
   display: flex;
-  gap: 8px;
+  gap: 6px;
   z-index: 2;
 }
 
 #masterLayout .lt-side-tab {
-  padding: 8px 18px;
-  border-radius: 4px;
-  font-family: 'Cinzel', serif;
+  padding: 7px 14px;
+  border-radius: 2px;
+  font-family: 'Oswald', sans-serif;
   font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 1.3px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
   color: var(--lt-cream-dim);
   text-transform: uppercase;
-  background: linear-gradient(180deg, #241b14, #16110b);
-  border: 1px solid rgba(184, 146, 74, 0.3);
+  background: transparent;
+  border: 1px solid rgba(201, 168, 76, 0.22);
   cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
 }
 
 #masterLayout .lt-side-tab:hover {
   color: var(--lt-cream);
-  border-color: rgba(184, 146, 74, 0.55);
+  border-color: rgba(201, 168, 76, 0.45);
 }
 
 #masterLayout .lt-side-tab--on {
   color: var(--lt-cream);
-  border-color: var(--lt-gold);
-  background: linear-gradient(180deg, #4a1414, #2a0c0c);
-  box-shadow: 0 0 10px rgba(138, 36, 36, 0.35);
+  border-color: rgba(201, 168, 76, 0.55);
+  background: rgba(110, 30, 30, 0.45);
+  box-shadow: none;
 }
 
 #masterLayout .lt-head {
-  padding: 20px 32px 14px;
+  padding: 22px 24px 10px;
+  text-align: center;
 }
 
 #masterLayout .lt-head-row {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
 }
 
 #masterLayout .lt-head-icon {
-  width: 26px;
-  height: 26px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
-  border: 1px solid var(--lt-gold-dim);
+  border: 1px solid rgba(201, 168, 76, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(circle at 35% 30%, #2a2018, #15100a 75%);
+  background: rgba(0, 0, 0, 0.35);
 }
 
 #masterLayout .lt-head-icon svg {
-  width: 13px;
-  height: 13px;
+  width: 11px;
+  height: 11px;
 }
 
 #masterLayout .lt-head-title {
-  font-family: 'Cinzel', serif;
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: 1.5px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(22px, 3.5vw, 28px);
+  font-weight: 600;
+  letter-spacing: 0.08em;
   color: var(--lt-cream);
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 #masterLayout .lt-head-quote {
-  margin-top: 6px;
+  margin-top: 8px;
   font-family: 'Cormorant Garamond', serif;
   font-style: italic;
   font-size: 13px;
@@ -170,58 +159,89 @@
 }
 
 #masterLayout .lt-colbar {
-  margin: 6px 24px 18px;
+  margin: 12px 20px 10px;
   display: grid;
-  grid-template-columns: 120px 1fr 280px 170px;
-  border-radius: 6px;
-  background: linear-gradient(180deg, #4a443c, #2a2620 45%, #1c1813);
-  border: 1px solid rgba(184, 146, 74, 0.3);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 -2px 4px rgba(0, 0, 0, 0.4);
-  overflow: hidden;
+  grid-template-columns: 64px minmax(0, 1.4fr) minmax(0, 1fr) 140px;
+  gap: 8px;
+  padding: 0 4px 8px;
+  border: none;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  border-bottom: 1px solid rgba(201, 168, 76, 0.18);
+  overflow: visible;
 }
 
 #masterLayout .lt-colbar--grup {
-  grid-template-columns: 120px 1.4fr 1fr 1.2fr;
+  grid-template-columns: 64px minmax(0, 1.6fr) 160px;
 }
 
 #masterLayout .lt-colbar span {
-  padding: 11px 0;
-  text-align: center;
-  font-family: 'Cinzel', serif;
-  font-size: 11.5px;
-  font-weight: 700;
-  letter-spacing: 1.3px;
-  color: #e8ddc4;
+  padding: 0;
+  text-align: left;
+  font-family: 'Oswald', sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  color: var(--lt-cream-dim);
   text-transform: uppercase;
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
+  text-shadow: none;
   position: relative;
 }
 
+#masterLayout .lt-colbar span:first-child {
+  text-align: center;
+}
+
+#masterLayout .lt-colbar span:last-child {
+  text-align: right;
+}
+
 #masterLayout .lt-colbar span + span::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 8px;
-  bottom: 8px;
-  width: 1px;
-  background: linear-gradient(180deg, transparent, rgba(184, 146, 74, 0.5), transparent);
+  display: none;
 }
 
 #masterLayout .lt-list {
-  padding: 0 24px 26px;
+  padding: 4px 16px 20px;
   display: flex;
   flex-direction: column;
-  gap: 9px;
+  gap: 6px;
 }
 
 #masterLayout .lt-row {
   display: grid;
-  grid-template-columns: 120px 1fr 280px 170px;
+  grid-template-columns: 64px minmax(0, 1.4fr) minmax(0, 1fr) 140px;
   align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 3px;
+  background: var(--lt-surface);
+  border: 1px solid rgba(201, 168, 76, 0.12);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+#masterLayout .lt-row:hover {
+  border-color: rgba(201, 168, 76, 0.28);
+  background: rgba(18, 14, 10, 0.82);
 }
 
 #masterLayout .lt-row--grup {
-  grid-template-columns: 120px 1.4fr 1fr 1.2fr;
+  grid-template-columns: 64px minmax(0, 1.6fr) 160px;
+}
+
+#masterLayout .lt-row--rank1 {
+  border-color: rgba(232, 200, 120, 0.4);
+  background: linear-gradient(90deg, rgba(201, 168, 76, 0.14) 0%, rgba(12, 10, 8, 0.75) 55%);
+}
+
+#masterLayout .lt-row--rank2 {
+  border-color: rgba(180, 190, 200, 0.28);
+  background: linear-gradient(90deg, rgba(160, 170, 180, 0.1) 0%, rgba(12, 10, 8, 0.75) 55%);
+}
+
+#masterLayout .lt-row--rank3 {
+  border-color: rgba(180, 120, 70, 0.3);
+  background: linear-gradient(90deg, rgba(160, 100, 50, 0.1) 0%, rgba(12, 10, 8, 0.75) 55%);
 }
 
 #masterLayout .lt-medal-wrap {
@@ -231,106 +251,82 @@
 }
 
 #masterLayout .lt-medal {
-  width: 46px;
-  height: 46px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: 'Cinzel', serif;
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 700;
-  background: radial-gradient(circle at 35% 30%, #2e261c, #120e09 78%);
-  border: 2px solid var(--lt-gold-dim);
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(201, 168, 76, 0.3);
   color: var(--lt-cream-dim);
   position: relative;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  box-shadow: none;
 }
 
 #masterLayout .lt-medal::before {
-  content: '';
-  position: absolute;
-  inset: 3px;
-  border-radius: 50%;
-  border: 1px solid rgba(0, 0, 0, 0.45);
+  display: none;
 }
 
 #masterLayout .lt-medal.r1 {
   border-color: var(--lt-gold-bright);
   color: var(--lt-gold-bright);
-  box-shadow: 0 0 16px rgba(227, 189, 114, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 12px rgba(232, 200, 120, 0.25);
 }
 
 #masterLayout .lt-medal.r2 {
-  border-color: #a9b0b8;
-  color: #a9b0b8;
+  border-color: #b8c0c8;
+  color: #c8d0d8;
 }
 
 #masterLayout .lt-medal.r3 {
-  border-color: #b3784a;
-  color: #b3784a;
+  border-color: #c08858;
+  color: #d4a070;
 }
 
 #masterLayout .lt-medal.r1::after {
   content: '';
   position: absolute;
-  top: -15px;
+  top: -12px;
   left: 50%;
   transform: translateX(-50%);
-  width: 24px;
-  height: 14px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 14'%3E%3Cpath d='M2 13 L2 7 L6 10 L9 4 L12 9 L15 4 L18 10 L22 7 L22 13 Z' fill='none' stroke='%23e3bd72' stroke-width='1.2' stroke-linejoin='round'/%3E%3Ccircle cx='9' cy='4' r='1.1' fill='%23e3bd72'/%3E%3Ccircle cx='15' cy='4' r='1.1' fill='%23e3bd72'/%3E%3Ccircle cx='12' cy='3' r='1.3' fill='%23e3bd72'/%3E%3C/svg%3E");
+  width: 18px;
+  height: 10px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 14'%3E%3Cpath d='M2 13 L2 7 L6 10 L9 4 L12 9 L15 4 L18 10 L22 7 L22 13 Z' fill='none' stroke='%23e8c878' stroke-width='1.2' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  filter: drop-shadow(0 0 4px rgba(227, 189, 114, 0.5));
+  background-size: contain;
+  filter: drop-shadow(0 0 3px rgba(232, 200, 120, 0.4));
 }
 
 #masterLayout .lt-cap {
-  margin: 0 10px;
-  padding: 9px 18px;
-  border-radius: 999px;
-  background: linear-gradient(180deg, #4a443c, #221d17 55%, #171310);
-  border: 1px solid rgba(184, 146, 74, 0.35);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.12),
-    inset 0 -3px 6px rgba(0, 0, 0, 0.45),
-    0 2px 6px rgba(0, 0, 0, 0.5);
+  margin: 0;
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  border: none;
+  box-shadow: none;
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 8px;
   min-width: 0;
 }
 
-#masterLayout .lt-cap.center { justify-content: center; }
+#masterLayout .lt-cap.center { justify-content: flex-start; }
 #masterLayout .lt-cap.right { justify-content: flex-end; }
 
 #masterLayout .lt-icon {
-  width: 15px;
-  height: 11px;
-  flex-shrink: 0;
-  opacity: 0.85;
-}
-
-#masterLayout .lt-icon.pistol {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 34 22'%3E%3Cpath d='M2 13 L20 13 L20 9 L31 9 L31 13 L26 13 L26 17 L20 17 L20 14 L9 14 L9 21 L4 21 L4 14 L2 14 Z' fill='%23b8924a'/%3E%3Crect x='20' y='6' width='5' height='4' fill='%23b8924a'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-size: contain;
-}
-
-#masterLayout .lt-icon.coin {
-  width: 13px;
-  height: 13px;
-  background-image: radial-gradient(circle, #d9b96a 0%, #8a6a2c 70%, #5c4310 100%);
-  border-radius: 50%;
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.4), inset 0 -1px 1px rgba(0, 0, 0, 0.4);
-  opacity: 1;
+  display: none;
 }
 
 #masterLayout .lt-name-txt {
   font-family: 'Cinzel', serif;
-  font-size: 14.5px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--lt-cream);
-  letter-spacing: 0.3px;
+  letter-spacing: 0.02em;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -341,7 +337,7 @@
   font-family: 'Cormorant Garamond', serif;
   font-style: italic;
   font-weight: 400;
-  font-size: 10.5px;
+  font-size: 11px;
   color: var(--lt-wine-bright);
 }
 
@@ -355,28 +351,27 @@
 
 #masterLayout .lt-name-txt--baron {
   color: #ffd76a !important;
-  text-shadow: 0 0 10px rgba(255, 215, 100, 0.35);
+  text-shadow: 0 0 8px rgba(255, 215, 100, 0.3);
 }
 
 #masterLayout .lt-name-txt--hukmeden .sehre-hukmeden-metin {
   color: #ffe08a !important;
-  text-shadow: 0 0 10px rgba(255, 215, 100, 0.45);
+  text-shadow: 0 0 8px rgba(255, 215, 100, 0.35);
 }
 
-/* Paket + hukumdar birlikte: kutu/tac kalsin, isim rengi pakete ait olsun */
 #masterLayout .lt-name-txt--tetikci.lt-name-txt--hukmeden .sehre-hukmeden-metin {
   color: #c9a227 !important;
-  text-shadow: 0 0 8px rgba(201, 162, 39, 0.4);
+  text-shadow: 0 0 6px rgba(201, 162, 39, 0.35);
 }
 
 #masterLayout .lt-name-txt--racon.lt-name-txt--hukmeden .sehre-hukmeden-metin {
   color: #5eb0ff !important;
-  text-shadow: 0 0 8px rgba(94, 176, 255, 0.4);
+  text-shadow: 0 0 6px rgba(94, 176, 255, 0.35);
 }
 
 #masterLayout .lt-name-txt--baron.lt-name-txt--hukmeden .sehre-hukmeden-metin {
   color: #ffd76a !important;
-  text-shadow: 0 0 12px rgba(255, 215, 100, 0.55);
+  text-shadow: 0 0 10px rgba(255, 215, 100, 0.45);
 }
 
 #masterLayout .sehre-hukmeden-isim-wrap {
@@ -384,19 +379,18 @@
   align-items: center;
   gap: 5px;
   padding: 2px 8px;
-  border: 1.5px solid #d4af37;
-  border-radius: 4px;
-  background: linear-gradient(135deg, rgba(212, 175, 55, 0.2) 0%, rgba(60, 40, 8, 0.4) 100%);
-  box-shadow: 0 0 10px rgba(212, 175, 55, 0.35), inset 0 0 6px rgba(212, 175, 55, 0.12);
+  border: 1px solid #d4af37;
+  border-radius: 3px;
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.18) 0%, rgba(60, 40, 8, 0.35) 100%);
+  box-shadow: 0 0 8px rgba(212, 175, 55, 0.25);
   vertical-align: middle;
   max-width: 100%;
 }
 
 #masterLayout .sehre-hukmeden-tac {
   flex-shrink: 0;
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1;
-  filter: drop-shadow(0 0 4px rgba(255, 215, 100, 0.65));
 }
 
 #masterLayout .sehre-hukmeden-metin {
@@ -408,7 +402,7 @@
 
 #masterLayout .premium-rozet {
   margin-left: 4px;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 #masterLayout .lt-cap .oyuncu-link.lt-group-txt {
@@ -419,7 +413,7 @@
   cursor: pointer;
   font: inherit;
   color: inherit;
-  text-align: center;
+  text-align: left;
   width: 100%;
   max-width: 100%;
   display: block;
@@ -436,47 +430,92 @@
   font-family: 'Cormorant Garamond', serif;
   font-style: italic;
   font-size: 13px;
-  color: #cfc3a0;
+  color: #c4b89a;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+#masterLayout .lt-pts-cap {
+  justify-content: flex-end;
+}
+
+#masterLayout .sayginlik-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+#masterLayout .sayginlik-rozet {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  flex-shrink: 0;
+  background: transparent;
+  border-radius: 50%;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.55));
+}
+
+#masterLayout .sayginlik-puan {
+  min-width: 0;
+}
+
 #masterLayout .lt-pts-txt {
   font-family: 'Cinzel', serif;
-  font-size: 14.5px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--lt-gold-bright);
   white-space: nowrap;
 }
 
-#masterLayout .lt-pts-txt .lt-lbl {
-  font-family: 'Cormorant Garamond', serif;
-  font-weight: 400;
-  font-size: 11px;
-  color: var(--lt-cream-dim);
-  margin-left: 4px;
+#masterLayout .lt-sort-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 16px 12px;
 }
 
-#masterLayout .lt-stat-txt {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 12px;
-  color: #cfc3a0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+#masterLayout .lt-sort-chip {
+  padding: 7px 12px;
+  border-radius: 2px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--lt-cream-dim);
+  background: rgba(10, 8, 6, 0.72);
+  border: 1px solid rgba(201, 168, 76, 0.28);
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+#masterLayout .lt-sort-chip:hover {
+  color: var(--lt-cream);
+  border-color: rgba(201, 168, 76, 0.5);
+}
+
+#masterLayout .lt-sort-chip.is-aktif {
+  color: var(--lt-gold-bright);
+  border-color: rgba(201, 168, 76, 0.7);
+  background: rgba(110, 30, 30, 0.35);
+}
+
+#masterLayout .lt-row.me {
+  border-color: rgba(138, 40, 40, 0.55);
+  box-shadow: inset 3px 0 0 var(--lt-wine-bright);
 }
 
 #masterLayout .lt-row.me .lt-cap {
-  border-color: rgba(138, 36, 36, 0.55);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.12),
-    inset 0 -3px 6px rgba(0, 0, 0, 0.45),
-    0 0 14px rgba(138, 36, 36, 0.25);
+  border: none;
+  box-shadow: none;
 }
 
 #masterLayout .lt-row.me .lt-medal {
   border-color: var(--lt-wine-bright);
+  color: #e8b0b0;
 }
 
 #masterLayout .lt-cap .oyuncu-link {
@@ -495,7 +534,6 @@
 
 #masterLayout .lt-cap .oyuncu-link:hover {
   color: var(--lt-gold-bright);
-  text-shadow: 0 0 6px rgba(184, 146, 74, 0.5);
 }
 
 #masterLayout .lt-locale {
@@ -506,9 +544,9 @@
 }
 
 #masterLayout .lt-locale-chip {
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1;
-  opacity: 0.95;
+  opacity: 0.9;
   cursor: default;
 }
 
@@ -517,37 +555,51 @@
 }
 
 #masterLayout .lt-foot {
-  padding: 14px 32px 22px;
+  padding: 14px 24px 20px;
   text-align: center;
   font-family: 'Cormorant Garamond', serif;
-  font-size: 11.5px;
+  font-size: 12px;
   color: var(--lt-cream-dim);
   font-style: italic;
-  border-top: 1px solid rgba(184, 146, 74, 0.12);
+  border-top: 1px solid rgba(201, 168, 76, 0.14);
 }
 
 #masterLayout .lt-empty {
   text-align: center;
   color: var(--lt-cream-dim);
-  padding: 24px;
+  padding: 28px;
   font-family: 'Cormorant Garamond', serif;
   font-style: italic;
 }
 
 @media (max-width: 760px) {
   #masterLayout .lt-colbar { display: none; }
+  #masterLayout .lt-carved-bar {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
   #masterLayout .lt-row,
   #masterLayout .lt-row--grup {
-    grid-template-columns: 54px 1fr;
+    grid-template-columns: 44px 1fr;
     grid-template-areas:
       'medal name'
       'medal group'
       'medal pts';
-    row-gap: 6px;
+    row-gap: 4px;
+    padding: 10px;
+  }
+  #masterLayout .lt-row--grup {
+    grid-template-areas:
+      'medal name'
+      'medal pts';
   }
   #masterLayout .lt-medal-wrap { grid-area: medal; }
   #masterLayout .lt-cap:nth-of-type(1) { grid-area: name; }
   #masterLayout .lt-group-cap { grid-area: group; }
-  #masterLayout .lt-pts-cap { grid-area: pts; }
-  #masterLayout .lt-medal { width: 38px; height: 38px; font-size: 13px; }
+  #masterLayout .lt-pts-cap { grid-area: pts; justify-content: flex-start; }
+  #masterLayout .lt-medal { width: 32px; height: 32px; font-size: 12px; }
+  #masterLayout .lt-sort-bar {
+    padding: 0 12px 10px;
+    justify-content: center;
+  }
 }

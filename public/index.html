@@ -56,7 +56,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,300;1,400&family=Oswald:wght@400;600;700&family=Roboto+Condensed:wght@300;400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="components/MasterLayout.module.css?v=136">
-  <link rel="stylesheet" href="liderlik.css?v=110">
+  <link rel="stylesheet" href="liderlik.css?v=113">
   <link rel="stylesheet" href="ekran-icerik.css?v=123">
   <link rel="stylesheet" href="gazete.css?v=122">
   <link rel="stylesheet" href="profil.css?v=174">
@@ -65,7 +65,7 @@
   <link rel="stylesheet" href="dusman.css?v=105">
   <link rel="stylesheet" href="banka.css?v=108">
   <link rel="stylesheet" href="gunluk-gorevler.css?v=112">
-  <link rel="stylesheet" href="racon-raporu.css?v=5">
+  <link rel="stylesheet" href="racon-raporu.css?v=9">
   <link rel="stylesheet" href="guvenli-yer.css?v=16">
   <link rel="stylesheet" href="sefirlik.css?v=1">
   <link rel="stylesheet" href="meslek.css?v=20">
@@ -344,18 +344,10 @@
 
 <div id="hosgeldinModal" class="racon-modal gizli" role="dialog" aria-modal="true" aria-labelledby="raconBaslik" data-i18n-aria="game.welcome.title">
   <div class="racon-kart">
-    <div class="racon-kart-isik" aria-hidden="true"></div>
-    <div class="racon-kart-cerceve" aria-hidden="true"></div>
-    <div class="racon-kart-kose racon-kart-kose--sol-ust" aria-hidden="true"></div>
-    <div class="racon-kart-kose racon-kart-kose--sag-ust" aria-hidden="true"></div>
-    <div class="racon-kart-kose racon-kart-kose--sol-alt" aria-hidden="true"></div>
-    <div class="racon-kart-kose racon-kart-kose--sag-alt" aria-hidden="true"></div>
-    <div class="racon-kart-parilti" aria-hidden="true"></div>
-
     <header class="racon-baslik">
       <div class="racon-emblem" aria-hidden="true">
         <div class="racon-emblem-ic">
-          <img src="/images/racon-raporu.png?v=2" alt="" class="racon-emblem-gorsel" width="96" height="96" decoding="async">
+          <img src="/images/racon/racon-portre.png?v=1" alt="" class="racon-emblem-gorsel" width="96" height="96" decoding="async">
         </div>
       </div>
       <div class="racon-baslik-metin">
@@ -368,53 +360,29 @@
     <p class="racon-ust-metin" data-i18n="game.welcome.intro">Sen yokken sokaklar hareketliydi.</p>
 
     <div class="racon-govde">
-      <div class="racon-satir racon-satir--saat">
-        <div class="racon-ikon-kapsul" aria-hidden="true">
-          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M14 8h20l-2 8H16L14 8z" stroke="currentColor" stroke-width="1.4" fill="rgba(201,168,76,0.18)"/>
-            <path d="M16 16h16v3c0 6-4 10-8 14-4-4-8-8-8-14v-3z" stroke="currentColor" stroke-width="1.4" fill="rgba(201,168,76,0.06)"/>
-            <path d="M20 34h8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
-          </svg>
+      <div class="racon-metrikler">
+        <div class="racon-satir racon-satir--saat">
+          <div class="racon-satir-icerik">
+            <p class="racon-satir-etiket" data-i18n="game.welcome.absence">Yokluğunda geçen süre</p>
+            <div class="racon-stat-blok">
+              <span id="raconSaat" class="racon-stat-deger">0</span>
+              <span class="racon-stat-birim" data-i18n="game.welcome.hoursLabel">Saat</span>
+            </div>
+          </div>
         </div>
-        <div class="racon-satir-icerik">
-          <p class="racon-satir-etiket" data-i18n="game.welcome.absence">Yokluğunda geçen süre:</p>
-          <div class="racon-stat-blok">
-            <span id="raconSaat" class="racon-stat-deger">0</span>
-            <span class="racon-kirmizi racon-stat-birim" data-i18n="game.welcome.hoursLabel">Saat</span>
+
+        <div class="racon-satir racon-satir--kazanc">
+          <div class="racon-satir-icerik">
+            <p class="racon-satir-etiket" data-i18n="game.welcome.earnings">Kazancın</p>
+            <div class="racon-deger-grup">
+              <span id="raconKazanc" class="racon-deger">0</span><span class="racon-kirmizi"> TL</span>
+            </div>
+            <p class="racon-satir-metin" data-i18n="game.welcome.earningsText">Mekanlar tam kapasite çalıştı.</p>
           </div>
         </div>
       </div>
 
-      <div class="racon-satir racon-satir--kazanc">
-        <div class="racon-ikon-kapsul racon-ikon-kapsul--kazanc" aria-hidden="true">
-          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="24" cy="21" r="9" stroke="currentColor" stroke-width="1.4"/>
-            <path d="M24 15v6.5l3.5 2.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
-            <rect x="11" y="29" width="26" height="9" rx="1.5" stroke="currentColor" stroke-width="1.4" fill="rgba(232,74,58,0.12)"/>
-            <path d="M15 33h5M24 33h3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
-          </svg>
-        </div>
-        <div class="racon-satir-icerik">
-          <p class="racon-satir-etiket" data-i18n="game.welcome.earnings">Kazancın:</p>
-          <p class="racon-satir-metin">
-            <span data-i18n="game.welcome.earningsText">Mekanlar tam kapasite çalıştı, payımıza düşen</span>
-            <span class="racon-deger-grup">
-              <span id="raconKazanc" class="racon-deger">0</span><span class="racon-kirmizi"> TL</span>
-            </span>
-            <span data-i18n="game.welcome.earningsSuffix">kasaya girdi.</span>
-          </p>
-        </div>
-      </div>
-
       <div class="racon-satir racon-satir--uyari">
-        <div class="racon-ikon-kapsul racon-ikon-kapsul--uyari" aria-hidden="true">
-          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <ellipse cx="24" cy="15" rx="9" ry="5.5" stroke="currentColor" stroke-width="1.4"/>
-            <circle cx="24" cy="15" r="2.5" fill="currentColor"/>
-            <path d="M15 28c2-3.5 5.5-5.5 9-5.5s7 2 9 5.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
-            <path d="M19 34c1.8 2.5 4 4 5 4s3.2-1.5 5-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
-          </svg>
-        </div>
         <div class="racon-satir-icerik">
           <p class="racon-satir-metin racon-satir-metin--uyari" data-i18n="game.welcome.warning">
             Yalnız, dikkat et; rakipler senin yokluğunu fırsat bilip mekanları yoklamışlar, gücünü artırman şart.
@@ -424,7 +392,7 @@
     </div>
 
     <div class="racon-alt-bolum">
-      <button type="button" id="raconDevamBtn" class="racon-devam-btn" onclick="hosgeldinKapat()" data-i18n="game.welcome.continue">[ DEVAM ET ]</button>
+      <button type="button" id="raconDevamBtn" class="racon-devam-btn" onclick="hosgeldinKapat()" data-i18n="game.welcome.continue">Devam Et</button>
     </div>
   </div>
 </div>
@@ -499,7 +467,7 @@
 <script src="borsa.js?v=7"></script>
 <script src="kumarhane.js?v=28"></script>
 <script src="meslek.js?v=28"></script>
-<script src="script.js?v=400"></script>
+<script src="script.js?v=403"></script>
 <script src="bildirim.js?v=5"></script>
 <script src="capacitor-push.js?v=1"></script>
 </body>

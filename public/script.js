@@ -96,6 +96,7 @@ var SES_DOSYALARI = {
 };
 var MUZIK_SEVIYE_ORANI = 0.38;
 var liderlikModu = 'oyuncu';
+var liderlikGrupSort = 'sayginlik';
 var hosgeldinBuOturum = false;
 var yeniGazeteHaber = false;
 var gunlukGorevBildirim = false;
@@ -9446,8 +9447,45 @@ async function liderlikYukle(mod) {
 
 function liderlikModDegistir(mod) {
   liderlikModu = mod;
+  if (mod !== 'grup') liderlikGrupSort = 'sayginlik';
   var ic = document.getElementById('anaIcerik');
   if (ic && aktifEkran === 'liderlik') liderlikTablosuCiz(ic);
+}
+
+function liderlikGrupSortSec(key) {
+  liderlikGrupSort = String(key || 'sayginlik');
+  liderlikModu = 'grup';
+  var ic = document.getElementById('anaIcerik');
+  if (ic && aktifEkran === 'liderlik') liderlikTablosuCiz(ic);
+}
+
+function ltGrupSortDeger(r, key) {
+  if (key === 'ev') return Number(r.evSeviye) || 0;
+  if (key === 'uye') return Number(r.uyeSayisi) || 0;
+  if (key === 'kazanilan') return Number(r.kazanilanSavas) || 0;
+  if (key === 'kaybedilen') return Number(r.kaybedilenSavas) || 0;
+  return Number(r.toplamPuan) || 0;
+}
+
+function ltGrupListeSirala(liste, sortKey) {
+  var key = sortKey || 'sayginlik';
+  return (liste || []).slice().sort(function(a, b) {
+    var diff = ltGrupSortDeger(b, key) - ltGrupSortDeger(a, key);
+    if (diff !== 0) return diff;
+    return (Number(b.toplamPuan) || 0) - (Number(a.toplamPuan) || 0);
+  });
+}
+
+function ltSortChip(key, label, aktif) {
+  return '<button type="button" class="lt-sort-chip' + (aktif ? ' is-aktif' : '') + '" onclick="liderlikGrupSortSec(\'' + key + '\')">'
+    + escHtml(label) + '</button>';
+}
+
+function ltSayginlikHtml(puan) {
+  return '<div class="sayginlik-container">'
+    + '<img src="/assets/images/sayginlik_rozet.png?v=2" alt="" class="sayginlik-rozet" width="24" height="24" loading="lazy" decoding="async">'
+    + '<span class="sayginlik-puan lt-pts-txt">' + fmt(puan) + '</span>'
+    + '</div>';
 }
 
 function liderlikTablosuCiz(ic) {
@@ -9479,31 +9517,39 @@ function liderlikTablosuCiz(ic) {
         html += '<p class="lt-empty">' + escHtml(t('game.empty.noRanking')) + '</p>';
       } else {
         liste.forEach(function(r, i) {
-          var cls = 'lt-row' + (r.benim ? ' me' : '');
+          var rankCls = i === 0 ? ' lt-row--rank1' : (i === 1 ? ' lt-row--rank2' : (i === 2 ? ' lt-row--rank3' : ''));
+          var cls = 'lt-row' + rankCls + (r.benim ? ' me' : '');
           html += '<div class="' + cls + '">'
             + '<div class="lt-medal-wrap"><div class="lt-medal ' + ltMedalClass(i) + '">' + (i + 1) + '</div></div>'
-            + '<div class="lt-cap"><span class="lt-icon pistol"></span>' + ltIsimHtml(r) + '</div>'
+            + '<div class="lt-cap">' + ltIsimHtml(r) + '</div>'
             + '<div class="lt-cap center lt-group-cap">' + ltGrupLinkHtml(r.grup, r.grupId, grupMap) + '</div>'
-            + '<div class="lt-cap right lt-pts-cap"><span class="lt-icon coin"></span>'
-            + '<span class="lt-pts-txt">' + fmt(r.puan) + '<span class="lt-lbl">' + escHtml(t('game.leaderboard.points')) + '</span></span></div>'
+            + '<div class="lt-cap right lt-pts-cap">'
+            + ltSayginlikHtml(r.puan) + '</div>'
             + '</div>';
         });
       }
       html += '</div>';
     } else {
-      html += '<div class="lt-colbar lt-colbar--grup"><span>' + escHtml(t('game.leaderboard.colRank')) + '</span><span>' + escHtml(t('game.leaderboard.colGroup')) + '</span><span>' + escHtml(t('game.leaderboard.colTotalRespect')) + '</span><span>' + escHtml(t('game.leaderboard.colInfo')) + '</span></div>'
+      var sortKey = liderlikGrupSort || 'sayginlik';
+      liste = ltGrupListeSirala(liste, sortKey);
+      html += '<div class="lt-sort-bar" role="group" aria-label="' + escHtml(t('game.leaderboard.sortLabel')) + '">'
+        + ltSortChip('ev', t('game.leaderboard.sortHouse'), sortKey === 'ev')
+        + ltSortChip('uye', t('game.leaderboard.sortMembers'), sortKey === 'uye')
+        + ltSortChip('kazanilan', t('game.leaderboard.sortWarsWon'), sortKey === 'kazanilan')
+        + ltSortChip('kaybedilen', t('game.leaderboard.sortWarsLost'), sortKey === 'kaybedilen')
+        + '</div>'
+        + '<div class="lt-colbar lt-colbar--grup"><span>' + escHtml(t('game.leaderboard.colRank')) + '</span><span>' + escHtml(t('game.leaderboard.colGroup')) + '</span><span>' + escHtml(t('game.leaderboard.colTotalRespect')) + '</span></div>'
         + '<div class="lt-list">';
       if (!liste.length) {
         html += '<p class="lt-empty">' + escHtml(t('game.empty.noGroupRanking')) + '</p>';
       } else {
         liste.forEach(function(r, i) {
-          var statTxt = t('game.leaderboard.groupStat', { level: r.evSeviye || 1, members: r.uyeSayisi || 0, wars: r.kazanilanSavas || 0 });
-          html += '<div class="lt-row lt-row--grup' + (i === 0 ? ' me' : '') + '">'
+          var rankCls = i === 0 ? ' lt-row--rank1' : (i === 1 ? ' lt-row--rank2' : (i === 2 ? ' lt-row--rank3' : ''));
+          html += '<div class="lt-row lt-row--grup' + rankCls + '">'
             + '<div class="lt-medal-wrap"><div class="lt-medal ' + ltMedalClass(i) + '">' + (i + 1) + '</div></div>'
-            + '<div class="lt-cap"><span class="lt-icon pistol"></span>' + ltGrupIsimHtml(r) + '</div>'
-            + '<div class="lt-cap right lt-pts-cap"><span class="lt-icon coin"></span>'
-            + '<span class="lt-pts-txt">' + fmt(r.toplamPuan || 0) + '<span class="lt-lbl">Puan</span></span></div>'
-            + '<div class="lt-cap center lt-group-cap"><span class="lt-stat-txt">' + statTxt + '</span></div>'
+            + '<div class="lt-cap">' + ltGrupIsimHtml(r) + '</div>'
+            + '<div class="lt-cap right lt-pts-cap">'
+            + ltSayginlikHtml(r.toplamPuan || 0) + '</div>'
             + '</div>';
         });
       }

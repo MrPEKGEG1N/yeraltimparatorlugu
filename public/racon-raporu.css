@@ -1,41 +1,28 @@
-/* Racon Raporu — giriş: yeraltı, altın-kızıl, heyecan */
+/* Racon Raporu — sade dosya / mühürlü rapor */
 
 .racon-modal {
+  --racon-gold: #d4b56a;
+  --racon-gold-soft: rgba(212, 181, 106, 0.55);
+  --racon-ink: #0c0a08;
+  --racon-paper: #e8dfc8;
+  --racon-muted: #9a8f78;
+  --racon-crimson: #c44a3a;
   position: fixed;
   inset: 0;
   z-index: 15000;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: max(14px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right))
-    max(14px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+    max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
   background:
-    radial-gradient(ellipse 55% 42% at 50% 28%, rgba(160, 48, 32, 0.22), transparent 70%),
-    radial-gradient(ellipse 70% 50% at 50% 40%, rgba(120, 78, 18, 0.32), transparent 68%),
-    radial-gradient(ellipse 100% 70% at 50% 110%, rgba(0, 0, 0, 0.75), transparent 50%),
-    rgba(3, 2, 1, 0.96);
-  backdrop-filter: blur(14px) saturate(0.9);
-  -webkit-backdrop-filter: blur(14px) saturate(0.9);
+    radial-gradient(ellipse 80% 55% at 50% 20%, rgba(90, 55, 18, 0.35), transparent 70%),
+    rgba(4, 3, 2, 0.94);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
-}
-
-.racon-modal::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgba(0, 0, 0, 0.03) 2px,
-      rgba(0, 0, 0, 0.03) 4px
-    );
-  opacity: 0.45;
-  mix-blend-mode: overlay;
 }
 
 .racon-modal.gizli {
@@ -48,186 +35,71 @@ html.racon-modal-acik body {
 }
 
 .racon-kart {
-  --racon-gold: #e8c86a;
-  --racon-gold-dim: #c9a84c;
-  --racon-crimson: #e84a3a;
-  --racon-ink: #0a0806;
   position: relative;
   flex-shrink: 0;
-  width: min(540px, 100%);
+  width: min(440px, 100%);
   margin: auto;
-  padding: clamp(26px, 5.2vw, 36px) clamp(22px, 4.5vw, 34px) clamp(24px, 4.2vw, 32px);
-  border: 1px solid rgba(201, 168, 76, 0.5);
-  border-radius: 16px;
+  padding: clamp(28px, 5vw, 36px) clamp(22px, 4.5vw, 32px) clamp(22px, 4vw, 28px);
+  border: 1px solid rgba(212, 181, 106, 0.38);
+  border-radius: 4px;
   background:
-    radial-gradient(ellipse 90% 55% at 50% -8%, rgba(180, 110, 36, 0.28), transparent 55%),
-    radial-gradient(ellipse 70% 45% at 80% 90%, rgba(120, 30, 20, 0.18), transparent 55%),
-    radial-gradient(ellipse 60% 40% at 10% 85%, rgba(80, 50, 12, 0.2), transparent 50%),
-    linear-gradient(168deg, #1f1810 0%, #100d0a 42%, #060504 100%);
+    linear-gradient(180deg, rgba(212, 181, 106, 0.06) 0%, transparent 28%),
+    linear-gradient(165deg, #1a1510 0%, #100d0a 48%, #080705 100%);
   box-shadow:
-    0 40px 90px rgba(0, 0, 0, 0.88),
-    0 0 0 1px rgba(0, 0, 0, 0.55) inset,
-    0 0 60px rgba(160, 90, 20, 0.18),
-    0 0 80px rgba(180, 40, 28, 0.08);
+    0 28px 64px rgba(0, 0, 0, 0.72),
+    0 0 0 1px rgba(0, 0, 0, 0.5) inset;
   overflow: hidden;
-  isolation: isolate;
 }
 
 .racon-modal:not(.gizli) .racon-kart {
-  animation: racon-kart-giris 0.55s cubic-bezier(0.18, 0.9, 0.28, 1);
+  animation: racon-giris 0.42s cubic-bezier(0.2, 0.85, 0.3, 1);
 }
 
-@keyframes racon-kart-giris {
+@keyframes racon-giris {
   from {
     opacity: 0;
-    transform: translateY(28px) scale(0.94);
-    filter: brightness(0.7);
+    transform: translateY(16px);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
-    filter: brightness(1);
+    transform: translateY(0);
   }
 }
 
-.racon-kart-cerceve {
+.racon-kart::before {
+  content: "";
   position: absolute;
-  inset: 11px;
-  border: 1px solid rgba(201, 168, 76, 0.2);
-  border-radius: 11px;
+  inset: 8px;
+  border: 1px solid rgba(212, 181, 106, 0.14);
+  border-radius: 2px;
   pointer-events: none;
-  box-shadow: inset 0 0 40px rgba(201, 168, 76, 0.04);
 }
 
-.racon-kart-kose {
-  position: absolute;
-  width: 18px;
-  height: 18px;
-  pointer-events: none;
-  border-color: rgba(232, 200, 106, 0.7);
-  border-style: solid;
-  opacity: 0.9;
-  z-index: 2;
-}
-
-.racon-kart-kose--sol-ust {
-  top: 6px;
-  left: 6px;
-  border-width: 2px 0 0 2px;
-}
-
-.racon-kart-kose--sag-ust {
-  top: 6px;
-  right: 6px;
-  border-width: 2px 2px 0 0;
-}
-
-.racon-kart-kose--sol-alt {
-  bottom: 6px;
-  left: 6px;
-  border-width: 0 0 2px 2px;
-}
-
-.racon-kart-kose--sag-alt {
-  bottom: 6px;
-  right: 6px;
-  border-width: 0 2px 2px 0;
-}
-
+.racon-kart-isik,
+.racon-kart-cerceve,
+.racon-kart-kose,
 .racon-kart-parilti {
-  position: absolute;
-  top: 0;
-  left: 6%;
-  right: 6%;
-  height: 2px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(232, 200, 106, 0.25),
-    rgba(255, 220, 140, 0.95),
-    rgba(232, 200, 106, 0.25),
-    transparent
-  );
-  pointer-events: none;
-  z-index: 2;
-  animation: racon-parilti-akis 3.2s ease-in-out infinite;
-}
-
-@keyframes racon-parilti-akis {
-  0%,
-  100% {
-    opacity: 0.55;
-    filter: brightness(1);
-  }
-  50% {
-    opacity: 1;
-    filter: brightness(1.35);
-  }
-}
-
-.racon-kart-isik {
-  position: absolute;
-  top: -20%;
-  left: 50%;
-  width: 140%;
-  height: 55%;
-  transform: translateX(-50%);
-  pointer-events: none;
-  background: radial-gradient(ellipse at 50% 0%, rgba(232, 180, 70, 0.16), transparent 68%);
-  animation: racon-isik-nefes 4s ease-in-out infinite;
-  z-index: 0;
-}
-
-@keyframes racon-isik-nefes {
-  0%,
-  100% {
-    opacity: 0.65;
-  }
-  50% {
-    opacity: 1;
-  }
+  display: none;
 }
 
 .racon-baslik {
   position: relative;
   z-index: 1;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: clamp(16px, 3.5vw, 22px);
-  margin-bottom: 14px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid rgba(201, 168, 76, 0.28);
+  text-align: center;
+  gap: 14px;
+  margin-bottom: 18px;
 }
 
 .racon-emblem {
-  flex-shrink: 0;
-  width: clamp(78px, 17vw, 96px);
-  height: clamp(78px, 17vw, 96px);
+  width: 92px;
+  height: 92px;
   border-radius: 50%;
-  padding: 3px;
-  background: linear-gradient(145deg, rgba(255, 220, 120, 0.85), rgba(120, 70, 20, 0.55) 55%, rgba(90, 30, 20, 0.5));
-  box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.4),
-    0 0 36px rgba(201, 168, 76, 0.42),
-    0 8px 22px rgba(0, 0, 0, 0.55);
-  animation: racon-emblem-parla 2.8s ease-in-out infinite;
-}
-
-@keyframes racon-emblem-parla {
-  0%,
-  100% {
-    box-shadow:
-      0 0 0 1px rgba(0, 0, 0, 0.4),
-      0 0 28px rgba(201, 168, 76, 0.32),
-      0 8px 22px rgba(0, 0, 0, 0.55);
-  }
-  50% {
-    box-shadow:
-      0 0 0 1px rgba(0, 0, 0, 0.4),
-      0 0 48px rgba(232, 180, 70, 0.55),
-      0 0 72px rgba(200, 60, 40, 0.18),
-      0 8px 22px rgba(0, 0, 0, 0.55);
-  }
+  padding: 2px;
+  background: linear-gradient(145deg, rgba(232, 200, 120, 0.85), rgba(90, 60, 20, 0.65));
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
 }
 
 .racon-emblem-ic {
@@ -235,75 +107,70 @@ html.racon-modal-acik body {
   height: 100%;
   border-radius: 50%;
   overflow: hidden;
-  background: radial-gradient(circle at 50% 28%, #241c12 0%, #080604 78%);
-  border: 1px solid rgba(201, 168, 76, 0.45);
+  background: #0a0806;
+  border: 1px solid rgba(212, 181, 106, 0.4);
 }
 
+/* Oyun eğitimi portresi — kırpılmış kare, daire içinde yüz */
 .racon-emblem-gorsel {
   display: block;
-  width: 168%;
-  height: 168%;
+  width: 100%;
+  height: 100%;
   max-width: none;
+  margin: 0;
   object-fit: cover;
-  object-position: 10% 42%;
-  margin: -34% 0 0 -18%;
-  filter: saturate(1.12) contrast(1.08);
+  object-position: 55% 28%;
+  transform: scale(1.18);
+  transform-origin: 55% 28%;
 }
 
 .racon-baslik-metin {
-  flex: 1;
-  min-width: 0;
+  width: 100%;
 }
 
 .racon-baslik-ustetiket {
   margin: 0 0 6px;
   font-family: "Oswald", sans-serif;
-  font-size: clamp(9px, 2.1vw, 10px);
-  font-weight: 600;
-  letter-spacing: 0.28em;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.32em;
   text-transform: uppercase;
-  color: rgba(201, 168, 76, 0.72);
+  color: var(--racon-muted);
 }
 
 .racon-baslik-yazi {
   margin: 0;
   font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: clamp(34px, 8vw, 48px);
+  font-size: clamp(30px, 7vw, 40px);
   font-weight: 600;
-  line-height: 0.98;
-  color: #f0d878;
-  letter-spacing: 0.03em;
-  text-shadow:
-    0 2px 16px rgba(0, 0, 0, 0.85),
-    0 0 32px rgba(200, 150, 40, 0.28),
-    0 0 2px rgba(255, 220, 140, 0.35);
+  line-height: 1;
+  color: var(--racon-gold);
+  letter-spacing: 0.04em;
 }
 
 .racon-baslik-cizgi {
-  width: min(140px, 60%);
-  height: 3px;
-  margin-top: 12px;
-  background: linear-gradient(90deg, rgba(232, 200, 106, 0.9), rgba(200, 60, 40, 0.45), transparent);
-  border-radius: 2px;
-  box-shadow: 0 0 12px rgba(232, 180, 70, 0.35);
+  width: 56px;
+  height: 1px;
+  margin: 12px auto 0;
+  background: linear-gradient(90deg, transparent, var(--racon-gold-soft), transparent);
 }
 
 .racon-ust-metin {
   position: relative;
   z-index: 1;
-  margin: 0 0 18px;
-  padding: 10px 12px;
+  margin: 0 0 20px;
   text-align: center;
-  font-family: "Oswald", sans-serif;
-  font-size: clamp(11px, 2.4vw, 12px);
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  line-height: 1.5;
-  text-transform: uppercase;
-  color: #d4b45a;
-  background: linear-gradient(90deg, transparent, rgba(201, 168, 76, 0.08), transparent);
-  border-top: 1px solid rgba(201, 168, 76, 0.12);
-  border-bottom: 1px solid rgba(201, 168, 76, 0.12);
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(15px, 3.4vw, 17px);
+  font-style: italic;
+  line-height: 1.45;
+  color: #cfc4ae;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  font-weight: 400;
+  background: none;
+  border: none;
+  padding: 0;
 }
 
 .racon-govde {
@@ -311,349 +178,194 @@ html.racon-modal-acik body {
   z-index: 1;
   display: flex;
   flex-direction: column;
-  gap: 11px;
+  gap: 12px;
+}
+
+.racon-metrikler {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
 }
 
 .racon-satir {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: center;
-  gap: clamp(14px, 3vw, 18px);
-  padding: clamp(14px, 3vw, 17px) clamp(14px, 2.8vw, 18px);
-  border-radius: 12px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.045) 0%, rgba(0, 0, 0, 0.32) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 220, 160, 0.07),
-    0 4px 16px rgba(0, 0, 0, 0.2);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 16px 14px 14px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(212, 181, 106, 0.16);
 }
 
-.racon-modal:not(.gizli) .racon-satir--saat {
-  animation: racon-satir-giris 0.5s 0.12s both cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.racon-modal:not(.gizli) .racon-satir--kazanc {
-  animation: racon-satir-giris 0.5s 0.22s both cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.racon-modal:not(.gizli) .racon-satir--uyari {
-  animation: racon-satir-giris 0.5s 0.32s both cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-@keyframes racon-satir-giris {
-  from {
-    opacity: 0;
-    transform: translateX(-12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-.racon-satir--saat {
-  background: linear-gradient(135deg, rgba(201, 168, 76, 0.14) 0%, rgba(0, 0, 0, 0.28) 100%);
-  border-color: rgba(201, 168, 76, 0.28);
+.racon-satir--saat,
+.racon-satir--kazanc {
+  /* metrik kart */
 }
 
 .racon-satir--kazanc {
-  align-items: flex-start;
-  background: linear-gradient(135deg, rgba(200, 55, 40, 0.12) 0%, rgba(20, 12, 8, 0.55) 55%, rgba(0, 0, 0, 0.3) 100%);
-  border-color: rgba(220, 80, 60, 0.28);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 180, 140, 0.08),
-    0 0 28px rgba(180, 40, 30, 0.12),
-    0 4px 16px rgba(0, 0, 0, 0.25);
+  border-color: rgba(196, 74, 58, 0.28);
+  background: linear-gradient(160deg, rgba(196, 74, 58, 0.1) 0%, rgba(255, 255, 255, 0.02) 100%);
 }
 
 .racon-satir--uyari {
+  flex-direction: row;
   align-items: flex-start;
-  background: linear-gradient(135deg, rgba(72, 36, 32, 0.22) 0%, rgba(0, 0, 0, 0.28) 100%);
-  border-color: rgba(180, 80, 60, 0.16);
-  border-left: 3px solid rgba(220, 90, 70, 0.65);
-  padding-left: clamp(12px, 2.5vw, 14px);
+  gap: 12px;
+  padding: 16px 18px 17px 20px;
+  border-color: rgba(196, 74, 58, 0.35);
+  background: linear-gradient(135deg, rgba(72, 32, 26, 0.72) 0%, rgba(22, 14, 12, 0.88) 100%);
+  border-left: 3px solid #e05545;
+}
+
+.racon-satir--uyari .racon-satir-metin,
+.racon-satir--uyari .racon-satir-metin--uyari {
+  margin: 0;
+  color: #f7f0e4;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-style: normal;
+  font-size: clamp(15px, 3.5vw, 17px);
+  font-weight: 600;
+  line-height: 1.6;
+  letter-spacing: 0.015em;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.65);
 }
 
 .racon-ikon-kapsul {
-  flex-shrink: 0;
-  width: clamp(50px, 11.5vw, 58px);
-  height: clamp(50px, 11.5vw, 58px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 14px;
-  color: #e0c060;
-  background: linear-gradient(160deg, rgba(201, 168, 76, 0.22) 0%, rgba(10, 8, 6, 0.85) 100%);
-  border: 1px solid rgba(201, 168, 76, 0.38);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 220, 160, 0.16),
-    0 6px 14px rgba(0, 0, 0, 0.35);
+  display: none;
 }
 
-.racon-ikon-kapsul--kazanc {
-  color: #f07060;
-  border-color: rgba(220, 90, 70, 0.42);
-  background: linear-gradient(160deg, rgba(160, 45, 35, 0.28) 0%, rgba(10, 8, 6, 0.85) 100%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 160, 140, 0.14),
-    0 0 18px rgba(200, 50, 40, 0.2),
-    0 6px 14px rgba(0, 0, 0, 0.35);
-}
-
-.racon-ikon-kapsul--uyari {
-  color: #d08068;
-  border-color: rgba(200, 100, 80, 0.32);
-  background: linear-gradient(160deg, rgba(120, 50, 40, 0.2) 0%, rgba(10, 8, 6, 0.78) 100%);
-}
-
-.racon-ikon-kapsul svg {
-  width: 62%;
-  height: 62%;
-  display: block;
+.racon-satir--uyari .racon-ikon-kapsul {
+  display: none;
 }
 
 .racon-satir-icerik {
+  width: 100%;
   min-width: 0;
 }
 
 .racon-satir-etiket {
-  margin: 0 0 4px;
+  margin: 0;
   font-family: "Oswald", sans-serif;
-  font-size: clamp(9px, 2.1vw, 10px);
-  font-weight: 600;
-  letter-spacing: 0.2em;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: rgba(201, 168, 76, 0.7);
+  color: var(--racon-muted);
+}
+
+.racon-stat-blok {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.racon-stat-deger {
+  font-family: "Cinzel", Georgia, serif;
+  font-size: clamp(28px, 6.5vw, 34px);
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: #f5ecd8;
+}
+
+.racon-stat-birim {
+  font-family: "Oswald", sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--racon-gold);
 }
 
 .racon-satir-metin {
   margin: 0;
   font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: clamp(15px, 3.5vw, 18px);
-  line-height: 1.58;
-  color: #ebe4d8;
+  font-size: 14px;
+  line-height: 1.45;
+  color: #d8d0c0;
 }
 
-.racon-satir-metin--uyari {
-  color: #c8b8ac;
-  font-style: italic;
-  font-size: clamp(14px, 3.3vw, 16px);
-  line-height: 1.55;
-}
-
-.racon-stat-blok {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
-}
-
-.racon-stat-deger {
-  font-family: "Cinzel", Georgia, serif;
-  font-size: clamp(32px, 7vw, 42px);
-  font-weight: 700;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-  color: #fff8ea;
-  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.6), 0 0 20px rgba(201, 168, 76, 0.15);
-}
-
-.racon-stat-birim {
-  font-size: clamp(13px, 3vw, 15px);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+.racon-satir--kazanc .racon-satir-metin {
+  display: none;
 }
 
 .racon-deger-grup {
-  display: inline-flex;
+  display: flex;
   align-items: baseline;
-  gap: 0;
-  margin: 8px 4px 4px 0;
-  padding: 6px 14px 7px;
-  border-radius: 8px;
-  background: linear-gradient(180deg, rgba(232, 74, 58, 0.2) 0%, rgba(80, 18, 12, 0.45) 100%);
-  border: 1px solid rgba(232, 74, 58, 0.4);
-  box-shadow:
-    0 0 24px rgba(200, 40, 30, 0.22),
-    inset 0 1px 0 rgba(255, 180, 160, 0.12);
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  box-shadow: none;
+  border-radius: 0;
   white-space: nowrap;
-}
-
-.racon-modal:not(.gizli) .racon-deger-grup {
-  animation: racon-kazanc-vurgu 0.7s 0.35s both cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-@keyframes racon-kazanc-vurgu {
-  from {
-    transform: scale(0.92);
-    box-shadow: 0 0 0 rgba(200, 40, 30, 0);
-  }
-  to {
-    transform: scale(1);
-    box-shadow: 0 0 24px rgba(200, 40, 30, 0.22), inset 0 1px 0 rgba(255, 180, 160, 0.12);
-  }
 }
 
 .racon-deger {
   font-family: "Cinzel", Georgia, serif;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  color: #fff6ee;
-  font-size: 1.22em;
-  letter-spacing: 0.02em;
+  color: #f5ecd8;
+  font-size: clamp(22px, 5vw, 28px);
+  letter-spacing: 0.01em;
+  line-height: 1;
 }
 
 .racon-kirmizi {
   color: var(--racon-crimson);
   font-family: "Oswald", sans-serif;
   font-weight: 600;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
+  font-size: 12px;
 }
 
 .racon-alt-bolum {
   position: relative;
   z-index: 1;
-  margin-top: 24px;
-  padding-top: 8px;
+  margin-top: 22px;
   text-align: center;
 }
 
 .racon-devam-btn {
   display: inline-block;
-  min-width: min(300px, 100%);
-  padding: 15px 36px;
-  border: 1px solid rgba(232, 200, 106, 0.72);
-  border-radius: 10px;
-  background:
-    linear-gradient(180deg, rgba(232, 200, 106, 0.28) 0%, rgba(80, 55, 18, 0.55) 38%, rgba(14, 11, 8, 0.96) 100%);
-  color: #ffe9a0;
+  width: 100%;
+  padding: 13px 24px;
+  border: 1px solid rgba(212, 181, 106, 0.55);
+  border-radius: 2px;
+  background: transparent;
+  color: var(--racon-gold);
   font-family: "Oswald", sans-serif;
-  font-size: clamp(14px, 3.2vw, 16px);
+  font-size: 13px;
   font-weight: 600;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.24em;
   text-transform: uppercase;
   cursor: pointer;
   touch-action: manipulation;
-  box-shadow:
-    0 8px 28px rgba(0, 0, 0, 0.45),
-    0 0 28px rgba(201, 168, 76, 0.18),
-    inset 0 1px 0 rgba(255, 230, 170, 0.28);
-  transition:
-    background 0.18s ease,
-    color 0.18s ease,
-    box-shadow 0.18s ease,
-    border-color 0.18s ease,
-    transform 0.12s ease;
-}
-
-.racon-modal:not(.gizli) .racon-devam-btn {
-  animation: racon-satir-giris 0.5s 0.42s both cubic-bezier(0.22, 1, 0.36, 1);
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
 
 .racon-devam-btn:hover,
 .racon-devam-btn:focus-visible {
-  background: linear-gradient(180deg, rgba(255, 220, 120, 0.38) 0%, rgba(100, 70, 22, 0.65) 40%, rgba(22, 18, 12, 0.98) 100%);
-  color: #fff8d8;
-  border-color: rgba(255, 220, 120, 0.95);
-  box-shadow:
-    0 10px 34px rgba(0, 0, 0, 0.5),
-    0 0 40px rgba(201, 168, 76, 0.35),
-    inset 0 1px 0 rgba(255, 240, 200, 0.35);
+  background: rgba(212, 181, 106, 0.12);
+  color: #f0e0b0;
+  border-color: rgba(232, 200, 120, 0.85);
   outline: none;
 }
 
 .racon-devam-btn:active {
   transform: translateY(1px);
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.4);
 }
 
-@media (max-width: 420px) {
-  .racon-baslik {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: 14px;
-  }
-
-  .racon-baslik-cizgi {
-    margin-left: auto;
-    margin-right: auto;
-  }
-
-  .racon-baslik-yazi {
-    font-size: clamp(32px, 9vw, 40px);
-  }
-
-  .racon-satir {
-    grid-template-columns: auto minmax(0, 1fr);
-    align-items: flex-start;
-  }
-
-  .racon-satir--saat {
-    align-items: center;
-  }
-
-  .racon-stat-blok {
-    align-items: flex-start;
-  }
-
-  .racon-satir-metin {
-    font-size: 15px;
-    line-height: 1.52;
-  }
-
-  .racon-ust-metin {
-    letter-spacing: 0.12em;
-  }
-
-  .racon-stat-deger {
-    font-size: 30px;
-  }
-}
-
-@media (max-height: 520px) {
-  .racon-kart {
-    padding-top: 18px;
-    padding-bottom: 18px;
-  }
-
-  .racon-govde {
-    gap: 8px;
-  }
-
-  .racon-satir {
-    padding-top: 10px;
-    padding-bottom: 10px;
-  }
-
-  .racon-alt-bolum {
-    margin-top: 14px;
-  }
-
-  .racon-emblem {
-    width: 64px;
-    height: 64px;
-  }
-
-  .racon-kart-isik {
-    display: none;
+@media (max-width: 380px) {
+  .racon-metrikler {
+    grid-template-columns: 1fr;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .racon-modal:not(.gizli) .racon-kart,
-  .racon-modal:not(.gizli) .racon-satir--saat,
-  .racon-modal:not(.gizli) .racon-satir--kazanc,
-  .racon-modal:not(.gizli) .racon-satir--uyari,
-  .racon-modal:not(.gizli) .racon-deger-grup,
-  .racon-modal:not(.gizli) .racon-devam-btn {
-    animation: none;
-  }
-
-  .racon-kart-parilti,
-  .racon-kart-isik,
-  .racon-emblem {
+  .racon-modal:not(.gizli) .racon-kart {
     animation: none;
   }
 
