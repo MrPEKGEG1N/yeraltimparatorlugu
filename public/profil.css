@@ -853,6 +853,19 @@
   text-shadow: 0 0 12px rgba(255, 215, 100, 0.55);
 }
 
+#masterLayout .profil-isim-script .lt-name-txt--tetikci.lt-name-txt--hukmeden .sehre-hukmeden-metin {
+  color: #c9a227 !important;
+}
+
+#masterLayout .profil-isim-script .lt-name-txt--racon.lt-name-txt--hukmeden .sehre-hukmeden-metin {
+  color: #5eb0ff !important;
+}
+
+#masterLayout .profil-isim-script .lt-name-txt--baron.lt-name-txt--hukmeden .sehre-hukmeden-metin {
+  color: #ffd76a !important;
+  text-shadow: 0 0 12px rgba(255, 215, 100, 0.55);
+}
+
 #masterLayout .profil-isim-script .premium-rozet {
   font-size: 0.85em;
   margin-left: 6px;

@@ -467,6 +467,27 @@
   min-width: 0;
 }
 
+#masterLayout .gazete-wrap .sehre-hukmeden-isim-wrap,
+#masterLayout .oyuncu-link-btn .sehre-hukmeden-isim-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+#masterLayout .gazete-wrap .sehre-hukmeden-tac,
+#masterLayout .oyuncu-link-btn .sehre-hukmeden-tac {
+  font-size: 12px;
+}
+
+#masterLayout .gazete-wrap .premium-rozet,
+#masterLayout .oyuncu-link-btn .premium-rozet {
+  font-size: 12px;
+  margin-left: 2px;
+}
+
 #masterLayout .gazete-artis {
   color: #f0f0f0;
   font-weight: 700;

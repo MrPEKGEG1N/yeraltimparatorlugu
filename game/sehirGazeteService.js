@@ -290,6 +290,7 @@ async function getSehirBanner(db) {
     reisAdi: u?.reis_adi || "Bilinmeyen",
     reisUserId: uid,
     premiumPaket: premiumPaket || undefined,
+    sehreHukmeden: true,
   };
 }
 
@@ -795,6 +796,26 @@ async function getGazetePanel(db, userId) {
     console.error("[gazete] premium paket map:", err?.message || err);
   }
 
+  /** Aktif sehre hukumdar — haber/linklerde tac+kare stil icin */
+  if (hukumdarUserId) {
+    const hid = String(hukumdarUserId);
+    const hukumdarIsaretle = (obj, idKey) => {
+      if (!obj) return;
+      if (String(obj[idKey]) === hid) obj.sehreHukmeden = true;
+    };
+    oyuncuLinkleri.forEach((l) => hukumdarIsaretle(l, "userId"));
+    arananlar.forEach((r) => hukumdarIsaretle(r, "userId"));
+    hakimiyetSatirlari.forEach((h) => {
+      hukumdarIsaretle(h, "userId");
+      if (h.tip === "hukumdar") h.sehreHukmeden = true;
+    });
+    yeraltiManse.forEach((h) => hukumdarIsaretle(h, "userId"));
+    limanDurumu.forEach((l) => hukumdarIsaretle(l, "userId"));
+    if (gunlukKabus) hukumdarIsaretle(gunlukKabus, "userId");
+    if (aylikMafyaSampiyon) hukumdarIsaretle(aylikMafyaSampiyon, "userId");
+    (isIlanlari?.ilanlar || []).forEach((s) => hukumdarIsaretle(s, "sahipUserId"));
+  }
+
   return {
     tarihUst,
     sonDakika,
@@ -811,7 +832,9 @@ async function getGazetePanel(db, userId) {
       eskiHakimUserId: mansetTpl.eskiHakimUserId || null,
       premiumPaket: mansetPremiumPaket || undefined,
       eskiHakimPremiumPaket: mansetEskiHakimPremium || undefined,
+      sehreHukmeden: !!hukumdarUserId,
     },
+    sehreHukmedenUserId: hukumdarUserId || null,
     sayginlikLiderleri,
     arananlar,
     gunlukKabus,

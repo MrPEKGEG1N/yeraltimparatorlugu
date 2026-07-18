@@ -363,6 +363,22 @@
   text-shadow: 0 0 10px rgba(255, 215, 100, 0.45);
 }
 
+/* Paket + hukumdar birlikte: kutu/tac kalsin, isim rengi pakete ait olsun */
+#masterLayout .lt-name-txt--tetikci.lt-name-txt--hukmeden .sehre-hukmeden-metin {
+  color: #c9a227 !important;
+  text-shadow: 0 0 8px rgba(201, 162, 39, 0.4);
+}
+
+#masterLayout .lt-name-txt--racon.lt-name-txt--hukmeden .sehre-hukmeden-metin {
+  color: #5eb0ff !important;
+  text-shadow: 0 0 8px rgba(94, 176, 255, 0.4);
+}
+
+#masterLayout .lt-name-txt--baron.lt-name-txt--hukmeden .sehre-hukmeden-metin {
+  color: #ffd76a !important;
+  text-shadow: 0 0 12px rgba(255, 215, 100, 0.55);
+}
+
 #masterLayout .sehre-hukmeden-isim-wrap {
   display: inline-flex;
   align-items: center;

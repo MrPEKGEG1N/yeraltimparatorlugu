@@ -424,10 +424,8 @@ function sehirBannerGuncelle() {
   if (sehirBannerState.tip === 'tek' && sehirBannerState.reisAdi) {
     el.className = 'city-ruler-banner city-ruler-banner--reign';
     var isimHtml = sehirBannerState.reisUserId
-      ? oyuncuLink(sehirBannerState.reisUserId, sehirBannerState.reisAdi, sehirBannerState.premiumPaket)
-      : (sehirBannerState.premiumPaket
-        ? premiumLtIsimHtml(sehirBannerState.reisAdi, sehirBannerState.premiumPaket, false)
-        : escHtml(sehirBannerState.reisAdi));
+      ? oyuncuLink(sehirBannerState.reisUserId, sehirBannerState.reisAdi, sehirBannerState.premiumPaket, true)
+      : premiumLtIsimHtml(sehirBannerState.reisAdi, sehirBannerState.premiumPaket, true);
     el.innerHTML = '<div class="city-ruler-banner__shine" aria-hidden="true"></div>'
       + '<div class="city-ruler-banner__frame">'
       + '<span class="city-ruler-banner__gem city-ruler-banner__gem--l" aria-hidden="true"></span>'
@@ -6935,9 +6933,11 @@ function escHtml(s) {
   return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
-function oyuncuLink(userId, isim, premiumPaket) {
-  if (!userId || !isim) return escHtml(isim || '—');
-  var icerik = premiumLtIsimHtml(isim, premiumPaket, false);
+function oyuncuLink(userId, isim, premiumPaket, sehreHukmeden) {
+  if (!userId || !isim) {
+    return premiumLtIsimHtml(isim || '—', premiumPaket, sehreHukmeden);
+  }
+  var icerik = premiumLtIsimHtml(isim, premiumPaket, !!sehreHukmeden);
   return '<button type="button" class="oyuncu-link-btn" onclick="oyuncuProfilGoster(' + userId + ')">' + icerik + '</button>';
 }
 
@@ -6983,7 +6983,7 @@ function metindeIsimLinkleri(metin, oyuncular) {
     if (!o.isim || !o.userId) return;
     var ad = escHtml(o.isim);
     var btn = '<button type="button" class="oyuncu-link-btn" onclick="oyuncuProfilGoster(' + o.userId + ')">'
-      + premiumLtIsimHtml(o.isim, o.premiumPaket, false) + '</button>';
+      + premiumLtIsimHtml(o.isim, o.premiumPaket, o.sehreHukmeden) + '</button>';
     s = s.split('[' + ad + ']').join(btn);
     s = s.split(ad).join(btn);
   });
@@ -7203,33 +7203,56 @@ function gazeteMetindenIsimler(metin, map) {
 
 function gazeteOyuncuListesi(data) {
   var map = {};
-  function ekle(id, isim, premiumPaket) {
+  var hukumdarId = data.sehreHukmedenUserId || (data.manset && data.manset.hukumdarUserId) || null;
+  function ekle(id, isim, premiumPaket, sehreHukmeden) {
     if (!id || !isim) return;
     if (!map[isim]) map[isim] = { userId: id, isim: isim };
     if (premiumPaket && !map[isim].premiumPaket) map[isim].premiumPaket = premiumPaket;
+    if (sehreHukmeden || (hukumdarId && String(id) === String(hukumdarId))) {
+      map[isim].sehreHukmeden = true;
+    }
   }
-  (data.oyuncuLinkleri || []).forEach(function(o) { ekle(o.userId, o.isim, o.premiumPaket); });
+  (data.oyuncuLinkleri || []).forEach(function(o) {
+    ekle(o.userId, o.isim, o.premiumPaket, o.sehreHukmeden);
+  });
   if (data.manset) {
-    ekle(data.manset.hukumdarUserId, data.manset.hukumdar, data.manset.premiumPaket);
-    ekle(data.manset.eskiHakimUserId, data.manset.eskiHakim, data.manset.eskiHakimPremiumPaket);
+    ekle(data.manset.hukumdarUserId, data.manset.hukumdar, data.manset.premiumPaket, true);
+    ekle(data.manset.eskiHakimUserId, data.manset.eskiHakim, data.manset.eskiHakimPremiumPaket, false);
     gazeteMetindenIsimler(data.manset.ozet, map);
     gazeteMetindenIsimler(data.manset.baslik, map);
     gazeteMetindenIsimler(data.manset.baslik2, map);
   }
-  (data.sayginlikLiderleri || []).forEach(function(r) { ekle(r.userId, r.isim, r.premiumPaket); });
-  (data.arananlar || []).forEach(function(r) { ekle(r.userId, r.isim, r.premiumPaket); });
-  if (data.gunlukKabus) ekle(data.gunlukKabus.userId, data.gunlukKabus.isim, data.gunlukKabus.premiumPaket);
+  (data.sayginlikLiderleri || []).forEach(function(r) {
+    ekle(r.userId, r.isim, r.premiumPaket, r.sehreHukmeden);
+  });
+  (data.arananlar || []).forEach(function(r) {
+    ekle(r.userId, r.isim, r.premiumPaket, r.sehreHukmeden);
+  });
+  if (data.gunlukKabus) {
+    ekle(data.gunlukKabus.userId, data.gunlukKabus.isim, data.gunlukKabus.premiumPaket, data.gunlukKabus.sehreHukmeden);
+  }
   if (data.gunlukMafyaIs) gazeteMetindenIsimler(data.gunlukMafyaIs.isim, map);
-  (data.efsaneler24 || []).forEach(function(r) { ekle(r.userId, r.isim, r.premiumPaket); });
-  (data.limanDurumu || []).forEach(function(l) { ekle(l.userId, l.sahipAdi, l.premiumPaket); });
-  (data.yeraltiManse || []).forEach(function(h) { ekle(h.userId, h.yazar, h.premiumPaket); });
+  (data.efsaneler24 || []).forEach(function(r) {
+    ekle(r.userId, r.isim, r.premiumPaket, r.sehreHukmeden);
+  });
+  (data.limanDurumu || []).forEach(function(l) {
+    ekle(l.userId, l.sahipAdi, l.premiumPaket, l.sehreHukmeden);
+  });
+  (data.yeraltiManse || []).forEach(function(h) {
+    ekle(h.userId, h.yazar, h.premiumPaket, h.sehreHukmeden);
+  });
   (data.hakimiyetSatirlari || []).forEach(function(h) {
-    ekle(h.userId, h.oyuncuAdi, h.premiumPaket);
-    ekle(h.kazananUserId, h.kazananAdi, h.kazananPremiumPaket);
-    ekle(h.kaybedenUserId, h.kaybedenAdi, h.kaybedenPremiumPaket);
+    ekle(h.userId, h.oyuncuAdi, h.premiumPaket, h.sehreHukmeden || h.tip === 'hukumdar');
+    ekle(h.kazananUserId, h.kazananAdi, h.kazananPremiumPaket, false);
+    ekle(h.kaybedenUserId, h.kaybedenAdi, h.kaybedenPremiumPaket, false);
   });
   (data.sonDakika || []).forEach(function(t) { gazeteMetindenIsimler(t, map); });
   (data.arsiv || []).forEach(function(h) { gazeteMetindenIsimler(h.mesaj, map); });
+  if (hukumdarId) {
+    Object.keys(map).forEach(function(k) {
+      if (String(map[k].userId) === String(hukumdarId)) map[k].sehreHukmeden = true;
+    });
+  }
   return Object.keys(map).map(function(k) { return map[k]; }).filter(function(o) { return o.userId; });
 }
 
@@ -7249,7 +7272,7 @@ function gazeteLiderSatir(r, i) {
   return '<div class="gazete-lider-satir' + (i === 0 ? ' gazete-lider-satir--bir' : '') + '">'
     + '<span class="gazete-sira">' + crown + (i + 1) + '</span>'
     + '<span class="gazete-avatar"><img class="gazete-avatar-img' + avatarCls + '" src="' + escHtml(avatarUrl) + '" alt="" loading="lazy" onerror="imgFallback(this)"></span>'
-    + '<span class="gazete-isim">' + oyuncuLink(r.userId, r.isim, r.premiumPaket) + '</span>'
+    + '<span class="gazete-isim">' + oyuncuLink(r.userId, r.isim, r.premiumPaket, r.sehreHukmeden) + '</span>'
     + '<span class="gazete-artis">' + artis + ' <span class="gazete-yukari">▲</span></span></div>';
 }
 
@@ -7301,7 +7324,7 @@ function gazeteIsIlanlariHTML(isIlanlari) {
     html += '<div class="gazete-is-kart-ozet">';
     html += sirketAdBtn;
     html += '<span class="gazete-is-meta">' + escHtml(gazeteSirketTurAd(s))
-      + ' · ' + escHtml(t('game.gazete.bossLabel')) + ' ' + oyuncuLink(s.sahipUserId, s.sahipAdi, s.premiumPaket)
+      + ' · ' + escHtml(t('game.gazete.bossLabel')) + ' ' + oyuncuLink(s.sahipUserId, s.sahipAdi, s.premiumPaket, s.sehreHukmeden)
       + ' · ' + s.calisanSayisi + '/' + s.maxCalisan + escHtml(t('game.gazete.workerLabel')) + '</span>';
     if (s.aciklama) html += '<p class="gazete-is-aciklama">' + escHtml(s.aciklama) + '</p>';
     if (basvuruGoster) {
@@ -7446,7 +7469,7 @@ async function gazeteEkranCiz(ic) {
 
     var manseHtml = '';
     (data.yeraltiManse || []).forEach(function(h) {
-      manseHtml += '<p><b class="gazete-yazar">' + oyuncuLink(h.userId, h.yazar, h.premiumPaket) + ':</b> '
+      manseHtml += '<p><b class="gazete-yazar">' + oyuncuLink(h.userId, h.yazar, h.premiumPaket, h.sehreHukmeden) + ':</b> '
         + metindeIsimLinkleri(h.metin, oyuncular) + '</p>';
     });
     if (!manseHtml) manseHtml = '<p class="gazete-bos">' + escHtml(t('game.gazete.noPrivateAds')) + '</p>';
@@ -7456,19 +7479,19 @@ async function gazeteEkranCiz(ic) {
     var hakimiyetHtml = '';
     (data.hakimiyetSatirlari || []).forEach(function(h) {
       if (h.tip === 'hukumdar') {
-        hakimiyetHtml += '<p class="gazete-hakim-satir">' + t('game.gazete.rulerFull') + oyuncuLink(h.userId, h.oyuncuAdi, h.premiumPaket) + escHtml(t('game.gazete.rulerFullSuffix')) + '</p>';
+        hakimiyetHtml += '<p class="gazete-hakim-satir">' + t('game.gazete.rulerFull') + oyuncuLink(h.userId, h.oyuncuAdi, h.premiumPaket, true) + escHtml(t('game.gazete.rulerFullSuffix')) + '</p>';
       } else if (h.tip === 'bos') {
         hakimiyetHtml += '<p class="gazete-hakim-satir">' + escHtml(t('game.gazete.dominanceVacuum')) + '</p>';
       } else if (h.tip === 'liman' && h.userId) {
-        hakimiyetHtml += '<p class="gazete-hakim-satir">⚓ ' + escHtml(gazeteLimanAdi(h.limanId, h.limanAd)) + ': ' + oyuncuLink(h.userId, h.oyuncuAdi, h.premiumPaket) + escHtml(t('game.gazete.controlledBy')) + '</p>';
+        hakimiyetHtml += '<p class="gazete-hakim-satir">⚓ ' + escHtml(gazeteLimanAdi(h.limanId, h.limanAd)) + ': ' + oyuncuLink(h.userId, h.oyuncuAdi, h.premiumPaket, h.sehreHukmeden) + escHtml(t('game.gazete.controlledBy')) + '</p>';
       } else if (h.tip === 'liman_bos') {
         hakimiyetHtml += '<p class="gazete-hakim-satir">⚓ ' + escHtml(gazeteLimanAdi(h.limanId, h.limanAd)) + escHtml(t('game.gazete.portUnowned')) + '</p>';
       } else if (h.tip === 'kontrol') {
-        hakimiyetHtml += '<p class="gazete-hakim-satir">' + t('game.gazete.portControlled') + oyuncuLink(h.userId, h.oyuncuAdi, h.premiumPaket) + t('game.gazete.portRules') + '</p>';
+        hakimiyetHtml += '<p class="gazete-hakim-satir">' + t('game.gazete.portControlled') + oyuncuLink(h.userId, h.oyuncuAdi, h.premiumPaket, h.sehreHukmeden) + t('game.gazete.portRules') + '</p>';
       } else if (h.tip === 'degisim' && h.kazananAdi) {
-        hakimiyetHtml += '<p class="gazete-hakim-satir">' + t('game.gazete.balanceChanged') + oyuncuLink(h.kazananUserId, h.kazananAdi, h.kazananPremiumPaket);
+        hakimiyetHtml += '<p class="gazete-hakim-satir">' + t('game.gazete.balanceChanged') + oyuncuLink(h.kazananUserId, h.kazananAdi, h.kazananPremiumPaket, false);
         if (h.kaybedenAdi) {
-          hakimiyetHtml += t('game.gazete.tookBack') + oyuncuLink(h.kaybedenUserId, h.kaybedenAdi, h.kaybedenPremiumPaket) + t('game.gazete.tookBackSuffix');
+          hakimiyetHtml += t('game.gazete.tookBack') + oyuncuLink(h.kaybedenUserId, h.kaybedenAdi, h.kaybedenPremiumPaket, false) + t('game.gazete.tookBackSuffix');
         } else {
           hakimiyetHtml += t('game.gazete.showedForce');
         }
