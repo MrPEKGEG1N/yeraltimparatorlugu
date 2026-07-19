@@ -364,8 +364,15 @@ async function panelGetir(db, userId) {
   }
   const yetenekler = await sagKolYetenekleriOku(db, userId);
   const ozet = sagKolOzeti(yetenekler);
-  const aktifAntrenman = await aktifAntrenmanOku(db, userId);
-  const icraatSync = await syncIcraatRegen(db, userId);
+  let aktifAntrenman = null;
+  try {
+    aktifAntrenman = await aktifAntrenmanOku(db, userId);
+  } catch (_) {}
+  let icraat = 0;
+  try {
+    const icraatSync = await syncIcraatRegen(db, userId);
+    icraat = icraatSync.icraat;
+  } catch (_) {}
   const profilResmi = await profilResmiOku(db, userId);
   const saglikDurum = await saglikOku(db, userId);
   const elmasRow = await get(db, `SELECT elmas FROM players WHERE user_id = ?`, [userId]);
@@ -378,7 +385,11 @@ async function panelGetir(db, userId) {
   const fullCikis = saglikDurum.hastanelik || saglikDurum.saglik <= 0;
   const statMaliyet = {};
   for (const key of YETENEK_ANAHTARLAR) {
-    statMaliyet[key] = sagKolAntrenmanMaliyetTam(yetenekler[key]);
+    try {
+      statMaliyet[key] = sagKolAntrenmanMaliyetTam(yetenekler[key]);
+    } catch (_) {
+      statMaliyet[key] = 0;
+    }
   }
   return {
     sahip: true,
@@ -388,7 +399,7 @@ async function panelGetir(db, userId) {
     aktifAntrenman,
     antrenmanSureDk: SAG_KOL_ANTRENMAN_SURE_SN / 60,
     icraatMaliyet: SAG_KOL_ICRAAT,
-    icraat: icraatSync.icraat,
+    icraat,
     statMaliyet,
     maliyetCarpan: 1.5,
     profilResmi,

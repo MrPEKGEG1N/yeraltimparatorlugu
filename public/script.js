@@ -199,6 +199,11 @@ function apiFetch(url, opts) {
     }
     o.body = JSON.stringify(o.body);
   }
+  var timeoutMs = o.timeoutMs;
+  if (timeoutMs) {
+    delete o.timeoutMs;
+    return fetchZamanli(url, o, timeoutMs);
+  }
   return fetch(url, o);
 }
 
@@ -4110,15 +4115,24 @@ function hastaneHTML(panel) {
 async function hastaneYukle() {
   var ic = document.getElementById('anaIcerik');
   if (!ic || aktifEkran !== 'hastane') return;
+  // Önce iskelet / önbellek — “yükleniyor”da takılmayı önler
+  if (!ic.querySelector('.hs-sayfa')) {
+    ic.innerHTML = hastaneHTML(window.__sonSagKolPanel || null);
+  }
   try {
-    var res = await apiFetch('/api/sag-kol/panel');
-    var data = await res.json().catch(function() { return {}; });
+    var res = await apiFetch('/api/sag-kol/panel', { timeoutMs: 12000 });
     if (aktifEkran !== 'hastane') return;
-    var panel = (res.ok && data.ok) ? (data.panel || null) : null;
-    window.__sonSagKolPanel = panel;
-    ic.innerHTML = hastaneHTML(panel);
+    if (res && res.status === 401) { cikisYap(); return; }
+    var data = res ? await res.json().catch(function() { return {}; }) : {};
+    if (aktifEkran !== 'hastane') return;
+    var panel = (res && res.ok && data.ok) ? (data.panel || null) : null;
+    if (panel) window.__sonSagKolPanel = panel;
+    ic.innerHTML = hastaneHTML(panel || window.__sonSagKolPanel || null);
   } catch (_) {
-    if (aktifEkran === 'hastane') ic.innerHTML = hastaneHTML(null);
+    if (aktifEkran === 'hastane') {
+      ic.innerHTML = hastaneHTML(window.__sonSagKolPanel || null);
+      toast(t('game.error.loadFailed'), 'hata');
+    }
   }
 }
 
@@ -8259,7 +8273,7 @@ function ekranDegistir(tip) {
   }
 
   if (tip === 'hastane') {
-    ic.innerHTML = '<p style="color:#888;">' + escHtml(t('game.loading')) + '</p>';
+    ic.innerHTML = hastaneHTML(window.__sonSagKolPanel || null);
     hastaneYukle();
     return;
   }
