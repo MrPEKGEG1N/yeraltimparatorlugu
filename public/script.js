@@ -658,7 +658,7 @@ async function sunucuAksiyon(action, key, adet, extra) {
 // ========================
 // GÖRSELLER — yerel (/public/images)
 // ========================
-var GORSEL_VERSIYON = '145';
+var GORSEL_VERSIYON = '146';
 var profilLiderlikOyunculari = [];
 var profilAktifSekme = 'karakter';
 var oyuncuYetenekler = null;
@@ -888,7 +888,7 @@ function mafyaGrupUstHTML(opts) {
     + '</div>';
   if (opts.sancakDegistirilebilir) {
     html += '<button type="button" class="mafya-sancak-btn" onclick="mafyaSancakSecModal()">'
-      + escHtml(t('game.mafya.changeBanner')) + '</button>';
+      + btnHtml(t('game.mafya.changeBanner')) + '</button>';
   }
   html += '</div>'
     + '<div class="mafya-grup-sag">'
@@ -897,12 +897,12 @@ function mafyaGrupUstHTML(opts) {
     + '<dd id="mafyaGrupIsimDetay">' + escHtml(isim) + '</dd></div>'
     + '<div class="mafya-grup-detay-satir"><dt>' + escHtml(t('game.mafya.labelMembers')) + '</dt>'
     + '<dd id="mafyaGrupUyeDetay"><button type="button" class="mafya-uye-sayi-btn" onclick="mafyaUyeListesiModalAc()" title="'
-    + escHtml(t('game.mafya.membersTitle')) + '">' + escHtml(uyeMetin) + '</button></dd></div>'
-    + '<div class="mafya-grup-detay-satir"><dt>' + escHtml(t('game.mafya.labelTotalRespect')) + '</dt>'
+    + btnHtml(t('game.mafya.membersTitle')) + '">' + escHtml(uyeMetin) + '</button></dd></div>'
+    + '<div class="mafya-grup-detay-satir"><dt>' + btnHtml(t('game.mafya.labelTotalRespect')) + '</dt>'
     + '<dd id="mafyaGrupSayginlikDetay" class="uye-puan">' + escHtml(sayginlik) + '</dd></div>'
-    + '<div class="mafya-grup-detay-satir"><dt>' + escHtml(t('game.mafya.labelWealth')) + '</dt>'
+    + '<div class="mafya-grup-detay-satir"><dt>' + btnHtml(t('game.mafya.labelWealth')) + '</dt>'
     + '<dd id="mafyaGrupServetDetay">' + escHtml(servet) + '</dd></div>'
-    + '<div class="mafya-grup-detay-satir"><dt>' + escHtml(t('game.mafya.labelRank')) + '</dt>'
+    + '<div class="mafya-grup-detay-satir"><dt>' + btnHtml(t('game.mafya.labelRank')) + '</dt>'
     + '<dd id="mafyaGrupRutbeDetay">' + escHtml(rutbe) + '</dd></div>'
     + '</dl>'
     + '</div></div>'
@@ -969,7 +969,7 @@ function mafyaSancakSecModal() {
     + '<h3>' + escHtml(t('game.mafya.changeBanner')) + '</h3>'
     + '<button type="button" class="mafya-sancak-kapat" onclick="mafyaSancakSecModalKapat()">×</button>'
     + '</div>'
-    + '<p class="mafya-sancak-aciklama">' + escHtml(t('game.mafya.changeBannerHint')) + '</p>'
+    + '<p class="mafya-sancak-aciklama">' + btnHtml(t('game.mafya.changeBannerHint')) + '</p>'
     + '<div class="mafya-sancak-grid">';
   MAFYA_SANCAK_LISTESI.forEach(function(id) {
     var aktif = id === aktifId ? ' is-aktif' : '';
@@ -1525,9 +1525,30 @@ function icraatModalYenile() {
   var s = icraatModalSon;
   if (!s) return;
   var jobAdi = isAdiLocale(s.gorselKey, s.isAdi);
-  document.getElementById('modalTebrik').innerHTML =
-    t('game.jobComplete', { boss: aktifReisAdi, job: jobAdi });
-  document.getElementById('modalPara').innerText = '+' + fmt(s.netKazanc) + ' TL';
+  var baslikEl = document.querySelector('#soygunModal .modal-baslik');
+  var tebrikEl = document.getElementById('modalTebrik');
+  var paraEl = document.getElementById('modalPara');
+  if (s.hapisGiris) {
+    if (baslikEl) baslikEl.textContent = t('game.job.modalTitlePrison');
+    if (tebrikEl) {
+      tebrikEl.innerHTML = t('game.jobCompletePrison', { boss: aktifReisAdi, job: jobAdi });
+    }
+    if (paraEl) {
+      paraEl.innerText = s.paraKaybi > 0
+        ? ('-' + fmt(s.paraKaybi) + ' TL')
+        : (s.netKazanc > 0 ? ('+' + fmt(s.netKazanc) + ' TL') : '0 TL');
+      paraEl.className = s.paraKaybi > 0 ? 'kazanc-kirmizi' : 'kazanc-yesil';
+    }
+  } else {
+    if (baslikEl) baslikEl.textContent = t('game.job.modalTitle');
+    if (tebrikEl) {
+      tebrikEl.innerHTML = t('game.jobComplete', { boss: aktifReisAdi, job: jobAdi });
+    }
+    if (paraEl) {
+      paraEl.innerText = '+' + fmt(s.netKazanc) + ' TL';
+      paraEl.className = 'kazanc-yesil';
+    }
+  }
   document.getElementById('modalIcraat').innerText = s.icraat > 0
     ? t('game.job.modalActionCost', { n: s.icraat })
     : '—';
@@ -1544,6 +1565,8 @@ function icraatModalYenile() {
       sayginlikEl.innerText = '';
     }
   }
+  var hapisSatir = document.getElementById('modalHapisSatir');
+  if (hapisSatir) hapisSatir.style.display = s.hapisGiris ? '' : 'none';
   var devSatir = document.getElementById('modalDevletSatir');
   var devEl = document.getElementById('modalDevlet');
   if (devSatir && devEl) {
@@ -1558,8 +1581,10 @@ function icraatModalYenile() {
   }
 }
 
-function pencereAc(gorselKey, isAdi, netKazanc, icraat, gorselUrl, devletDusus, yeniDevletIliski, sayginlik) {
-  sesCal('saldiri');
+function pencereAc(gorselKey, isAdi, netKazanc, icraat, gorselUrl, devletDusus, yeniDevletIliski, sayginlik, ekstra) {
+  ekstra = ekstra || {};
+  if (!ekstra.hapisGiris) sesCal('saldiri');
+  else sesCal('zayif');
   icraatModalSon = {
     gorselKey: gorselKey,
     isAdi: isAdi,
@@ -1568,7 +1593,9 @@ function pencereAc(gorselKey, isAdi, netKazanc, icraat, gorselUrl, devletDusus, 
     gorselUrl: gorselUrl,
     devletDusus: devletDusus,
     yeniDevletIliski: yeniDevletIliski,
-    sayginlik: sayginlik
+    sayginlik: sayginlik,
+    hapisGiris: !!ekstra.hapisGiris,
+    paraKaybi: ekstra.paraKaybi || 0
   };
   document.getElementById('modalResim').src = gorselUrl || isGorselleri.varsayilan;
   icraatModalYenile();
@@ -1647,30 +1674,30 @@ function jobOlayMetinleriGuncelle() {
     if (uyari) uyari.textContent = t('game.job.event.luckyIntro');
     if (baslik) baslik.textContent = t('game.job.event.luckyTitle');
     if (acik) acik.textContent = t('game.job.event.luckyDesc');
-    if (btn && !btn.disabled) btn.textContent = t('game.job.event.luckyRunBtn');
+    if (btn && !btn.disabled) btn.textContent = sadeBtnMetin(t('game.job.event.luckyRunBtn'));
   } else if (jobOlayTeknikMi()) {
     if (uyari) uyari.textContent = t('game.job.event.technicalIntro');
     if (baslik) baslik.textContent = t('game.job.event.technicalTitle');
     if (acik) acik.textContent = t('game.job.event.technicalDesc');
-    if (rusvetBtn) rusvetBtn.textContent = t('game.job.event.technicalRepairBtn');
-    if (kacBtn) kacBtn.textContent = t('game.job.event.technicalBreakBtn');
+    if (rusvetBtn) rusvetBtn.textContent = sadeBtnMetin(t('game.job.event.technicalRepairBtn'));
+    if (kacBtn) kacBtn.textContent = sadeBtnMetin(t('game.job.event.technicalBreakBtn'));
   } else if (jobOlayPolisMi()) {
     if (uyari) uyari.textContent = t('game.job.event.policeRaidIntro');
     if (baslik) baslik.textContent = t('game.job.event.policeRaidTitle');
     if (acik) acik.textContent = t('game.job.event.policeRaidDesc');
-    if (rusvetBtn) rusvetBtn.textContent = t('game.job.event.policeRaidRobRunBtn');
-    if (kacBtn) kacBtn.textContent = t('game.job.event.policeRaidRunBtn');
+    if (rusvetBtn) rusvetBtn.textContent = sadeBtnMetin(t('game.job.event.policeRaidRobRunBtn'));
+    if (kacBtn) kacBtn.textContent = sadeBtnMetin(t('game.job.event.policeRaidRunBtn'));
   } else if (jobOlayMuhbirMi()) {
     if (uyari) uyari.textContent = t('game.job.event.informantIntro');
     if (baslik) baslik.textContent = t('game.job.event.informantTitle');
     if (acik) acik.textContent = t('game.job.event.informantDesc');
-    if (rusvetBtn) rusvetBtn.textContent = t('game.job.event.informantBribeBtn');
-    if (kacBtn) kacBtn.textContent = t('game.job.event.informantFightBtn');
+    if (rusvetBtn) rusvetBtn.textContent = sadeBtnMetin(t('game.job.event.informantBribeBtn'));
+    if (kacBtn) kacBtn.textContent = sadeBtnMetin(t('game.job.event.informantFightBtn'));
   } else {
     if (uyari) uyari.textContent = t('game.job.event.ohNo');
     if (baslik) baslik.textContent = t('game.job.event.streetFightTitle');
     if (acik) acik.textContent = t('game.job.event.streetFightDesc');
-    if (btn && !btn.disabled) btn.textContent = t('game.job.event.defendBtn');
+    if (btn && !btn.disabled) btn.textContent = sadeBtnMetin(t('game.job.event.defendBtn'));
   }
 }
 
@@ -1688,6 +1715,8 @@ function jobOlaySureGuncelle() {
     else metin.classList.remove('job-olay-sure-metin--acil');
   }
   if (kalanMs <= 0) {
+    if (aktifJobOlay.timeoutGonderildi) return;
+    aktifJobOlay.timeoutGonderildi = true;
     if (jobOlaySecimliMi()) jobOlaySonucGonder(false, '');
     else jobOlaySonucGonder(false);
   }
@@ -1737,7 +1766,7 @@ function jobOlayModalAc(ef) {
     btn.disabled = false;
     btn.classList.toggle('job-olay-firsat-btn', firsat);
     btn.classList.toggle('gizli', secimli);
-    btn.textContent = firsat ? t('game.job.event.luckyRunBtn') : t('game.job.event.defendBtn');
+    btn.textContent = firsat ? sadeBtnMetin(t('game.job.event.luckyRunBtn')) : sadeBtnMetin(t('game.job.event.defendBtn'));
   }
   var rusvetBtn = document.getElementById('jobOlayRusvetBtn');
   var kacBtn = document.getElementById('jobOlayKacBtn');
@@ -1796,16 +1825,28 @@ async function jobOlaySonucGonder(savunuldu, secim) {
     olayId: olayId,
     secim: secim || ''
   });
+  if (!ef) {
+    // Hata: olayı açık tut ki süre dolunca tekrar denenebilsin / orphan kalmasın
+    aktifJobOlay.bekliyor = false;
+    if (btn) btn.disabled = false;
+    if (muhbirBtns) {
+      muhbirBtns.querySelectorAll('button').forEach(function (b) { b.disabled = false; });
+    }
+    if (aktifJobOlay && !jobOlayFirsatMi()) {
+      jobOlaySureTimer = setInterval(jobOlaySureGuncelle, 200);
+      jobOlaySureGuncelle();
+    }
+    return;
+  }
   jobOlayModalKapat();
   aktifJobOlay = null;
-  if (!ef) return;
   if (!ef.olayTipi) ef.olayTipi = olayTipi;
-  var secim = ef.olaySecim || ef.muhbirSecim || '';
-  if (ef.hapisGiris || secim === 'yakalandi' || secim === 'kir_yakalandi' || secim === 'soy_kac_yakalandi') {
+  var sonucSecim = ef.olaySecim || ef.muhbirSecim || '';
+  if (ef.hapisGiris || sonucSecim === 'yakalandi' || sonucSecim === 'kir_yakalandi' || sonucSecim === 'soy_kac_yakalandi') {
     toast(
-      secim === 'kir_yakalandi'
+      sonucSecim === 'kir_yakalandi'
         ? t('game.job.event.technicalBreakCaught')
-        : secim === 'soy_kac_yakalandi'
+        : sonucSecim === 'soy_kac_yakalandi'
           ? t('game.job.event.policeRaidCaught')
           : ef.olayTipi === 'teknik_ariza'
             ? t('game.job.event.technicalPrison')
@@ -1814,22 +1855,22 @@ async function jobOlaySonucGonder(savunuldu, secim) {
               : t('game.job.event.informantPrison'),
       'hata'
     );
-    if (ef.devletDusus) toast(t('game.toast.lawyerRelationDrop', { points: ef.devletDusus }), 'uyari');
+    isTamamlaPencereAc(ef);
     return;
   }
   if (ef.kazancBonusYuzde > 0) {
     toast(t('game.job.event.luckySuccess', { bonus: ef.kazancBonusYuzde }), 'basari');
-  } else if (secim === 'tamir' && ef.paraKaybi > 0) {
+  } else if (sonucSecim === 'tamir' && ef.paraKaybi > 0) {
     toast(t('game.job.event.technicalRepairDone', { kayip: fmt(ef.paraKaybi) }), 'uyari');
-  } else if (secim === 'kir') {
+  } else if (sonucSecim === 'kir') {
     toast(t('game.job.event.technicalBreakSuccess'), 'basari');
-  } else if (secim === 'soy_kac') {
+  } else if (sonucSecim === 'soy_kac') {
     toast(t('game.job.event.policeRaidRobRunSuccess'), 'basari');
-  } else if (secim === 'kac' && ef.olayTipi === 'polis_baskini') {
+  } else if (sonucSecim === 'kac' && ef.olayTipi === 'polis_baskini') {
     toast(t('game.job.event.policeRaidRunDone'), 'uyari');
-  } else if (secim === 'rusvet' && ef.paraKaybi > 0) {
+  } else if (sonucSecim === 'rusvet' && ef.paraKaybi > 0) {
     toast(t('game.job.event.informantBribeDone', { kayip: fmt(ef.paraKaybi) }), 'uyari');
-  } else if (secim === 'kac') {
+  } else if (sonucSecim === 'kac') {
     toast(t('game.job.event.informantFightDone', { guc: fmt(ef.gucKaybi || 0), icraat: ef.icraatKaybi || 1 }), 'uyari');
   } else if (ef.savunuldu) {
     toast(t('game.job.event.defendSuccess'), 'basari');
@@ -1863,7 +1904,8 @@ function isTamamlaPencereAc(ef) {
     isGorselleri[ef.gorselKey] || FALLBACK,
     ef.devletDusus,
     ef.yeniDevletIliski,
-    ef.puan
+    ef.puan,
+    { hapisGiris: !!ef.hapisGiris, paraKaybi: ef.paraKaybi || 0 }
   );
   if (ef.devletDusus) {
     toast(t('game.toast.lawyerRelationDrop', { points: ef.devletDusus }), 'uyari');
@@ -1931,13 +1973,13 @@ function babaMakamSayfaHTML(opts) {
   if (benim) {
     html += '<textarea id="babaDerki-' + makam + '" placeholder="' + escHtml(t('game.boss.wordPlaceholder')) + '" maxlength="500">'
       + escHtml(m.babaDerki || '') + '</textarea>'
-      + '<button type="button" class="btn-is mavi-btn sy-yazdir-btn" onclick="babaDerkiKaydet(\'' + makam + '\')">' + escHtml(t('game.boss.publish')) + '</button>';
+      + '<button type="button" class="btn-is mavi-btn sy-yazdir-btn" onclick="babaDerkiKaydet(\'' + makam + '\')">' + btnHtml(t('game.boss.publish')) + '</button>';
   } else {
     html += '<p class="sy-derki-metin">' + (m.babaDerki ? escHtml(m.babaDerki) : '—') + '</p>';
   }
 
   html += '</div>'
-    + '<button type="button" class="sy-makam-btn" onclick="babaCok(\'' + makam + '\')">' + escHtml(t('game.boss.seizeSeat')) + '</button>';
+    + '<button type="button" class="sy-makam-btn" onclick="babaCok(\'' + makam + '\')">' + btnHtml(t('game.boss.seizeSeat')) + '</button>';
 
   if (opts.altIcerik) html += opts.altIcerik;
 
@@ -1952,16 +1994,16 @@ function sadakatYeminiHTML() {
   var tanimayanSayi = sad.tanimayanlar.length;
 
   var altIcerik = '<div class="sy-oylar">'
-    + '<button type="button" class="sy-oy-btn sy-oy-btn--tani" onclick="sadakatOy(\'tani\')">' + escHtml(t('game.loyalty.recognize')) + '</button>'
-    + '<button type="button" class="sy-oy-btn sy-oy-btn--red" onclick="sadakatOy(\'red\')">' + escHtml(t('game.loyalty.reject')) + '</button>'
+    + '<button type="button" class="sy-oy-btn sy-oy-btn--tani" onclick="sadakatOy(\'tani\')">' + btnHtml(t('game.loyalty.recognize')) + '</button>'
+    + '<button type="button" class="sy-oy-btn sy-oy-btn--red" onclick="sadakatOy(\'red\')">' + btnHtml(t('game.loyalty.reject')) + '</button>'
     + '</div>'
     + '<div class="sy-listeler">'
     + '<div class="sy-liste-kart sy-liste-kart--tani">'
-    + '<div class="sy-liste-baslik"><h4>' + escHtml(t('game.loyalty.recognizers')) + '</h4><span class="sy-liste-sayi">' + taniyanSayi + '</span></div>'
+    + '<div class="sy-liste-baslik"><h4>' + btnHtml(t('game.loyalty.recognizers')) + '</h4><span class="sy-liste-sayi">' + taniyanSayi + '</span></div>'
     + taniyanHtml
     + '</div>'
     + '<div class="sy-liste-kart sy-liste-kart--red">'
-    + '<div class="sy-liste-baslik"><h4>' + escHtml(t('game.loyalty.rejecters')) + '</h4><span class="sy-liste-sayi">' + tanimayanSayi + '</span></div>'
+    + '<div class="sy-liste-baslik"><h4>' + btnHtml(t('game.loyalty.rejecters')) + '</h4><span class="sy-liste-sayi">' + tanimayanSayi + '</span></div>'
     + tanimayanHtml
     + '</div></div>';
 
@@ -2033,24 +2075,24 @@ function sehreHukmetHubHTML() {
     + '<div class="sh-kartlar">'
     + '<button type="button" class="sh-kart sh-kart--soz" onclick="ekranDegistir(\'baba_soz\')">'
     + '<span class="sh-kart-ikon" aria-hidden="true">📿</span>'
-    + '<div class="sh-kart-icerik"><h3>' + escHtml(t('game.sehre.wordTitle')) + '</h3>'
-    + '<p class="sh-kart-aciklama">' + escHtml(t('game.sehre.wordDesc')) + '</p>'
+    + '<div class="sh-kart-icerik"><h3>' + btnHtml(t('game.sehre.wordTitle')) + '</h3>'
+    + '<p class="sh-kart-aciklama">' + btnHtml(t('game.sehre.wordDesc')) + '</p>'
     + sehreHukmetSahipEtiket(soz)
     + '</div></button>'
     + '<button type="button" class="sh-kart sh-kart--sadakat" onclick="ekranDegistir(\'baba_sadakat\')">'
     + '<span class="sh-kart-ikon" aria-hidden="true">⚔️</span>'
-    + '<div class="sh-kart-icerik"><h3>' + escHtml(t('game.sehre.loyaltyTitle')) + '</h3>'
-    + '<p class="sh-kart-aciklama">' + escHtml(t('game.sehre.loyaltyDesc')) + '</p>'
+    + '<div class="sh-kart-icerik"><h3>' + btnHtml(t('game.sehre.loyaltyTitle')) + '</h3>'
+    + '<p class="sh-kart-aciklama">' + btnHtml(t('game.sehre.loyaltyDesc')) + '</p>'
     + sehreHukmetSahipEtiket(sadakat)
     + '</div></button>'
     + '<button type="button" class="sh-kart sh-kart--liman" onclick="ekranDegistir(\'liman\')">'
     + '<span class="sh-kart-ikon" aria-hidden="true">🚢</span>'
-    + '<div class="sh-kart-icerik"><h3>' + escHtml(t('game.sehre.portsTitle')) + '</h3>'
-    + '<p class="sh-kart-aciklama">' + escHtml(t('game.sehre.portsDesc')) + '</p>'
+    + '<div class="sh-kart-icerik"><h3>' + btnHtml(t('game.sehre.portsTitle')) + '</h3>'
+    + '<p class="sh-kart-aciklama">' + btnHtml(t('game.sehre.portsDesc')) + '</p>'
     + sehreHukmetLimanOzet()
     + '</div></button>'
     + '</div>'
-    + '<p class="sh-alt-not">' + escHtml(t('game.sehre.note')) + '</p>'
+    + '<p class="sh-alt-not">' + btnHtml(t('game.sehre.note')) + '</p>'
     + '</div></div>';
 }
 
@@ -2162,7 +2204,7 @@ function gunlukGorevElmasBtnHtml(slot, maliyet, labelKey) {
   var yeterli = (panel.oyuncuElmas != null ? panel.oyuncuElmas : oyuncuElmas) >= maliyet;
   return '<button type="button" class="gunluk-gorev-elmas"' + (yeterli ? '' : ' disabled')
     + ' onclick="gunlukGorevElmasTamamla(' + slot + ')">'
-    + escHtml(t(labelKey, { n: maliyet })) + '</button>';
+    + btnHtml(t(labelKey, { n: maliyet })) + '</button>';
 }
 
 function gunlukGorevAksiyonHTML(g) {
@@ -2173,9 +2215,9 @@ function gunlukGorevAksiyonHTML(g) {
       var yeterliClaim = (gunlukGorevPanel && gunlukGorevPanel.oyuncuElmas != null ? gunlukGorevPanel.oyuncuElmas : oyuncuElmas) >= teslimMaliyetClaim;
       return '<button type="button" class="gunluk-gorev-elmas"' + (yeterliClaim ? '' : ' disabled')
         + ' data-slot="' + g.slot + '" onclick="gunlukGorevOdulAl(' + g.slot + ')">'
-        + escHtml(t('game.tasks.diamondClaim', { n: teslimMaliyetClaim })) + '</button>';
+        + btnHtml(t('game.tasks.diamondClaim', { n: teslimMaliyetClaim })) + '</button>';
     }
-    return '<button type="button" class="gunluk-gorev-odul" data-slot="' + g.slot + '" onclick="gunlukGorevOdulAl(' + g.slot + ')">' + escHtml(t('game.tasks.claimReward')) + '</button>';
+    return '<button type="button" class="gunluk-gorev-odul" data-slot="' + g.slot + '" onclick="gunlukGorevOdulAl(' + g.slot + ')">' + btnHtml(t('game.tasks.claimReward')) + '</button>';
   }
   if (g.durum === 'teslim_edildi') {
     return '<span class="gg-durum gg-durum--teslim">' + escHtml(t('game.tasks.delivered')) + '</span>';
@@ -2193,7 +2235,7 @@ function gunlukGorevAksiyonHTML(g) {
     return '<span class="gg-durum gg-durum--aktif">' + escHtml(t('game.tasks.inProgressShort')) + '</span>';
   }
   if (!g.kabulEdildi && (g.durum === 'panoda' || g.durum === 'iptal')) {
-    return '<button type="button" class="gunluk-gorev-kabul" data-slot="' + g.slot + '" onclick="gunlukGorevKabul(' + g.slot + ')">' + escHtml(t('game.tasks.accept')) + '</button>';
+    return '<button type="button" class="gunluk-gorev-kabul" data-slot="' + g.slot + '" onclick="gunlukGorevKabul(' + g.slot + ')">' + btnHtml(t('game.tasks.accept')) + '</button>';
   }
   return '<span class="gg-durum gg-durum--iptal">—</span>';
 }
@@ -2285,7 +2327,7 @@ function gorusOneriHTML() {
     '<textarea id="gorusOneriMetin" class="gorus-oneri-textarea" maxlength="2000" rows="8" placeholder="' + escHtml(t('game.feedback.placeholder')) + '"></textarea>' +
     '<div class="gorus-oneri-alt">' +
     '<span id="gorusOneriSayac" class="gorus-oneri-sayac">0 / 2000</span>' +
-    '<button type="button" id="gorusOneriGonderBtn" class="gorus-oneri-gonder" onclick="gorusOneriGonder()">' + escHtml(t('game.feedback.send')) + '</button>' +
+    '<button type="button" id="gorusOneriGonderBtn" class="gorus-oneri-gonder" onclick="gorusOneriGonder()">' + btnHtml(t('game.feedback.send')) + '</button>' +
     '</div>' +
     '<div id="gorusOneriBasarili" class="gorus-oneri-basarili gizli" role="status"></div>' +
     '</div></div></div>';
@@ -2419,31 +2461,31 @@ function guvenliYerHTML() {
     + '<aside class="gy-asama-panel">'
     + '<h3 class="gy-asama-baslik">' + escHtml(t('game.gy.stagesTitle')) + '</h3>'
     + '<div class="gy-asama-liste" id="guvenliYerAsamalar"><p class="gy-yukleniyor">…</p></div>'
-    + '<button type="button" class="gy-asama-tumunu" id="guvenliYerAsamaToggle" onclick="guvenliYerAsamaToggle()">' + escHtml(t('game.gy.showAllStages')) + '</button>'
+    + '<button type="button" class="gy-asama-tumunu" id="guvenliYerAsamaToggle" onclick="guvenliYerAsamaToggle()">' + btnHtml(t('game.gy.showAllStages')) + '</button>'
     + '</aside>'
     + '<main class="gy-hero">'
     + '<div class="gy-hero-frame" id="guvenliYerKanvasWrap">'
     + '<div class="gy-katman-sahne" id="guvenliYerSahne"></div>'
     + '<div class="gy-hero-overlay">'
-    + '<div class="gy-hero-seviye" id="guvenliYerHeroSeviye">' + escHtml(t('game.gy.baseLevel')) + '</div>'
+    + '<div class="gy-hero-seviye" id="guvenliYerHeroSeviye">' + btnHtml(t('game.gy.baseLevel')) + '</div>'
     + '</div></div>'
     + '<div class="gy-kasa-satir" id="guvenliYerKasalar"><p class="gy-yukleniyor">…</p></div>'
     + '</main>'
-    + '<aside class="gy-durum-panel" id="guvenliYerPanel"><p class="gy-yukleniyor">' + escHtml(t('game.loading')) + '</p></aside>'
+    + '<aside class="gy-durum-panel" id="guvenliYerPanel"><p class="gy-yukleniyor">' + btnHtml(t('game.loading')) + '</p></aside>'
     + '</div>'
     + '<section class="gy-onizleme-bar">'
-    + '<h4 class="gy-onizleme-baslik">' + escHtml(t('game.gy.previewTitle')) + '</h4>'
+    + '<h4 class="gy-onizleme-baslik">' + btnHtml(t('game.gy.previewTitle')) + '</h4>'
     + '<div class="gy-onizleme-track" id="guvenliYerOnizleme"></div>'
     + '</section>'
     + '<footer class="gy-footer-perks">'
     + '<div class="gy-perk"><div class="gy-perk-ikon-wrap" aria-hidden="true">🛡️</div>'
-    + '<span class="gy-perk-baslik">' + escHtml(t('game.gy.perk.stronger')) + '</span><span class="gy-perk-alt">' + escHtml(t('game.gy.perk.defense')) + '</span></div>'
+    + '<span class="gy-perk-baslik">' + btnHtml(t('game.gy.perk.stronger')) + '</span><span class="gy-perk-alt">' + btnHtml(t('game.gy.perk.defense')) + '</span></div>'
     + '<div class="gy-perk"><div class="gy-perk-ikon-wrap" aria-hidden="true">💪</div>'
-    + '<span class="gy-perk-baslik">' + escHtml(t('game.gy.perk.power')) + '</span><span class="gy-perk-alt">' + escHtml(t('game.gy.perk.increase')) + '</span></div>'
+    + '<span class="gy-perk-baslik">' + btnHtml(t('game.gy.perk.power')) + '</span><span class="gy-perk-alt">' + btnHtml(t('game.gy.perk.increase')) + '</span></div>'
     + '<div class="gy-perk"><div class="gy-perk-ikon-wrap" aria-hidden="true">⭐</div>'
-    + '<span class="gy-perk-baslik">' + escHtml(t('game.gy.perk.prestige')) + '</span><span class="gy-perk-alt">' + escHtml(t('game.gy.perk.earnings')) + '</span></div>'
+    + '<span class="gy-perk-baslik">' + btnHtml(t('game.gy.perk.prestige')) + '</span><span class="gy-perk-alt">' + btnHtml(t('game.gy.perk.earnings')) + '</span></div>'
     + '<div class="gy-perk"><div class="gy-perk-ikon-wrap" aria-hidden="true">🔓</div>'
-    + '<span class="gy-perk-baslik">' + escHtml(t('game.gy.perk.new')) + '</span><span class="gy-perk-alt">' + escHtml(t('game.gy.perk.features')) + '</span></div>'
+    + '<span class="gy-perk-baslik">' + btnHtml(t('game.gy.perk.new')) + '</span><span class="gy-perk-alt">' + btnHtml(t('game.gy.perk.features')) + '</span></div>'
     + '</footer></div>';
 }
 
@@ -2596,7 +2638,7 @@ function guvenliYerKasalarCiz() {
         + '<div class="gy-kasa-alt">'
         + '<span class="gy-kasa-fiyat gy-kasa-fiyat--elmas">💎 ' + fmt(k.elmasMaliyet) + ' / ' + escHtml(t('game.gy.vaultDuration')) + '</span>'
         + '<button type="button" class="gy-kasa-btn gy-kasa-btn--yenile"' + (!k.yeterliElmas ? ' disabled' : '')
-        + ' onclick="guvenliYerKasaAl(\'' + k.id + '\')">' + escHtml(t('game.gy.vaultRenew')) + '</button>'
+        + ' onclick="guvenliYerKasaAl(\'' + k.id + '\')">' + btnHtml(t('game.gy.vaultRenew')) + '</button>'
         + '</div>';
     } else if (k.kilitli) {
       html += '<div class="gy-kasa-durum gy-kasa-durum--kilit">🔒 ' + escHtml(gyVaultKilitNedeni(k)) + '</div>';
@@ -2685,7 +2727,7 @@ function guvenliYerPanelCiz() {
       + '<span>' + escHtml(t('game.gy.after')) + ' <b>' + fmt(sonrakiGuc) + '</b></span>'
       + '</div>'
       + '<button type="button" class="gy-gelistir-btn" id="guvenliYerGelistirBtn"' + disabled
-      + ' onclick="guvenliYerGelistir()">' + escHtml(t('game.gy.upgradeBtn')) + '</button>'
+      + ' onclick="guvenliYerGelistir()">' + btnHtml(t('game.gy.upgradeBtn')) + '</button>'
       + '</div>';
   } else {
     html += '<div class="gy-tamamlandi">' + escHtml(t('game.gy.maxLevel')) + '</div>';
@@ -2786,14 +2828,14 @@ function istihbaratPanelHTML() {
     + '</ul>'
     + '<div class="istih-adet-satir"><label for="adet-istihbarat">' + escHtml(t('game.intel.qtyLabel')) + '</label>'
     + '<input type="number" id="adet-istihbarat" class="istih-adet-input" value="1" min="1" max="100"></div>'
-    + '<button type="button" class="istih-btn istih-btn--yesil" onclick="istihbaratAl()">' + escHtml(t('game.intel.hireBtn')) + '</button>'
+    + '<button type="button" class="istih-btn istih-btn--yesil" onclick="istihbaratAl()">' + btnHtml(t('game.intel.hireBtn')) + '</button>'
     + '</div></div></section>'
     + '<section class="istih-kart">'
-    + '<div class="istih-kart-sekme">' + escHtml(t('game.intel.rivalTab')) + '</div>'
-    + '<p class="istih-rakip-aciklama">' + escHtml(t('game.intel.rivalDesc')) + '</p>'
+    + '<div class="istih-kart-sekme">' + btnHtml(t('game.intel.rivalTab')) + '</div>'
+    + '<p class="istih-rakip-aciklama">' + btnHtml(t('game.intel.rivalDesc')) + '</p>'
     + '<div class="istih-rakip-satir">'
-    + '<input type="text" id="istihbaratHedef" class="istih-hedef-input" placeholder="' + escHtml(t('game.intel.rivalPlaceholder')) + '" maxlength="24" autocomplete="off">'
-    + '<button type="button" class="istih-btn istih-btn--mavi" onclick="istihbaratSpy()">' + escHtml(t('game.intel.learnPower')) + '</button>'
+    + '<input type="text" id="istihbaratHedef" class="istih-hedef-input" placeholder="' + btnHtml(t('game.intel.rivalPlaceholder')) + '" maxlength="24" autocomplete="off">'
+    + '<button type="button" class="istih-btn istih-btn--mavi" onclick="istihbaratSpy()">' + btnHtml(t('game.intel.learnPower')) + '</button>'
     + '</div></section>'
     + '<div id="istihbaratSonuc" class="istih-sonuc gizli"></div>'
     + '</div></div>';
@@ -2823,13 +2865,13 @@ function dusmanPanelHTML() {
     + '<img class="dusman-panel-img" src="/images/dusman/dusman-panel.png?v=' + GORSEL_VERSIYON + '" alt="' + escHtml(t('game.enemy.alt')) + '">'
     + '<div class="dusman-panel-input-ortu" aria-hidden="true"></div>'
     + '<input type="text" id="dusmanHedef" class="dusman-panel-input" placeholder="' + escHtml(t('game.enemy.placeholder')) + '" maxlength="24" autocomplete="off">'
-    + '<button type="button" id="dusmanAraBtn" class="dusman-panel-btn" onclick="dusmanAra()" aria-label="' + escHtml(t('game.enemy.searchLabel')) + '"></button>'
+    + '<button type="button" id="dusmanAraBtn" class="dusman-panel-btn" onclick="dusmanAra()" aria-label="' + btnHtml(t('game.enemy.searchLabel')) + '"></button>'
     + '</div>'
     + '<div id="dusmanSonuc" class="dusman-sonuc-alt"></div>'
     + '<div class="dusman-guc-alan is-kart">'
-    + '<h3 class="bolum-baslik">' + escHtml(t('game.enemy.powerTitle')) + '</h3>'
-    + '<p class="dusman-guc-aciklama">' + escHtml(t('game.enemy.powerDesc')) + '</p>'
-    + '<button type="button" class="btn-is mavi-btn" onclick="dusmanRakipAra()">' + escHtml(t('game.enemy.findRivals')) + '</button>'
+    + '<h3 class="bolum-baslik">' + btnHtml(t('game.enemy.powerTitle')) + '</h3>'
+    + '<p class="dusman-guc-aciklama">' + btnHtml(t('game.enemy.powerDesc')) + '</p>'
+    + '<button type="button" class="btn-is mavi-btn" onclick="dusmanRakipAra()">' + btnHtml(t('game.enemy.findRivals')) + '</button>'
     + '</div>'
     + '<div id="dusmanRakipKutu" class="gizli dusman-rakip-kutu"></div>'
     + '</div>';
@@ -2853,8 +2895,8 @@ function dusmanHedefKartHTML(o) {
     + '<p>🏷️ ' + escHtml(o.lakap || 'Mafya') + ' &nbsp;|&nbsp; ' + escHtml(t('game.enemy.respect')) + ' <b>' + fmt(o.puan || 0) + '</b></p>'
     + (o.grup ? '<p>' + escHtml(t('game.enemy.group')) + ' ' + escHtml(o.grup) + '</p>' : '')
     + '<div class="dusman-hedef-aksiyon">'
-    + '<button type="button" class="btn-is kirmizi-btn" onclick="dusmanaSaldir()">' + escHtml(t('game.enemy.attack')) + '</button>'
-    + '<button type="button" class="btn-is mavi-btn" onclick="oyuncuProfilGoster(' + o.userId + ')">' + escHtml(t('game.enemy.profile')) + '</button>'
+    + '<button type="button" class="btn-is kirmizi-btn" onclick="dusmanaSaldir()">' + btnHtml(t('game.enemy.attack')) + '</button>'
+    + '<button type="button" class="btn-is mavi-btn" onclick="oyuncuProfilGoster(' + o.userId + ')">' + btnHtml(t('game.enemy.profile')) + '</button>'
     + '</div></div>';
 }
 
@@ -2884,8 +2926,8 @@ function dusmanRakipKutuCiz() {
     kutu.innerHTML = '<div class="dusman-rakip-kart">'
       + '<p style="color:#888;text-align:center;">' + escHtml(t('game.enemy.noRivalsInRange')) + '</p>'
       + '<div class="dusman-hedef-aksiyon">'
-      + '<button type="button" class="btn-is" onclick="dusmanRakipAra()">' + escHtml(t('game.enemy.change')) + '</button>'
-      + '<button type="button" class="btn-is koyu-btn" onclick="dusmanRakipKapat()">' + escHtml(t('game.enemy.close')) + '</button>'
+      + '<button type="button" class="btn-is" onclick="dusmanRakipAra()">' + btnHtml(t('game.enemy.change')) + '</button>'
+      + '<button type="button" class="btn-is koyu-btn" onclick="dusmanRakipKapat()">' + btnHtml(t('game.enemy.close')) + '</button>'
       + '</div></div>';
     return;
   }
@@ -2898,12 +2940,12 @@ function dusmanRakipKutuCiz() {
       + '<span class="dusman-rakip-meta">🏷️ ' + escHtml(o.lakap || 'Mafya')
       + (o.grup ? ' · 🕶️ ' + escHtml(o.grup) : '')
       + ' · ' + fmt(o.puan || 0) + escHtml(t('game.enemy.respectShort')) + '</span></div>'
-      + '<button type="button" class="btn-is kirmizi-btn" onclick="dusmanaSaldirId(' + o.userId + ')">' + escHtml(t('game.enemy.attack')) + '</button>'
+      + '<button type="button" class="btn-is kirmizi-btn" onclick="dusmanaSaldirId(' + o.userId + ')">' + btnHtml(t('game.enemy.attack')) + '</button>'
       + '</div>';
   });
   html += '<div class="dusman-hedef-aksiyon">'
-    + '<button type="button" class="btn-is" onclick="dusmanRakipAra()">' + escHtml(t('game.enemy.change')) + '</button>'
-    + '<button type="button" class="btn-is koyu-btn" onclick="dusmanRakipKapat()">' + escHtml(t('game.enemy.close')) + '</button>'
+    + '<button type="button" class="btn-is" onclick="dusmanRakipAra()">' + btnHtml(t('game.enemy.change')) + '</button>'
+    + '<button type="button" class="btn-is koyu-btn" onclick="dusmanRakipKapat()">' + btnHtml(t('game.enemy.close')) + '</button>'
     + '</div></div>';
   kutu.innerHTML = html;
 }
@@ -2992,18 +3034,18 @@ function bankaPanelHTML() {
     + '<p>' + escHtml(t('game.bank.depositDesc')) + '</p>'
     + '<label for="bankaYatirMiktar">' + escHtml(t('game.bank.depositLabel')) + '</label>'
     + '<input type="text" id="bankaYatirMiktar" class="banka-miktar-input" inputmode="numeric" autocomplete="off" placeholder="0" value="' + yatirVars + '">'
-    + '<button type="button" id="bankaYatirBtn" class="banka-btn-yatir" onclick="bankaYatir()">' + escHtml(t('game.bank.depositBtn')) + '</button>'
+    + '<button type="button" id="bankaYatirBtn" class="banka-btn-yatir" onclick="bankaYatir()">' + btnHtml(t('game.bank.depositBtn')) + '</button>'
     + '</div>'
     + '<div class="banka-hesap-makinesi">'
     + '<div class="banka-calc-ekran" id="bankaCalcEkran">0</div>'
     + '<div class="banka-calc-grid">' + calcHtml + '</div>'
     + '</div></div>'
     + '<div class="banka-kart banka-kart--cek">'
-    + '<h3>' + escHtml(t('game.bank.withdrawTitle')) + '</h3>'
-    + '<p>' + escHtml(t('game.bank.withdrawDesc')) + '</p>'
-    + '<label for="bankaCekMiktar">' + escHtml(t('game.bank.withdrawLabel')) + '</label>'
+    + '<h3>' + btnHtml(t('game.bank.withdrawTitle')) + '</h3>'
+    + '<p>' + btnHtml(t('game.bank.withdrawDesc')) + '</p>'
+    + '<label for="bankaCekMiktar">' + btnHtml(t('game.bank.withdrawLabel')) + '</label>'
     + '<input type="text" id="bankaCekMiktar" class="banka-miktar-input" inputmode="numeric" autocomplete="off" placeholder="0" value="' + cekVars + '">'
-    + '<button type="button" id="bankaCekBtn" class="banka-btn-cek" onclick="bankaCek()">' + escHtml(t('game.bank.withdrawBtn')) + '</button>'
+    + '<button type="button" id="bankaCekBtn" class="banka-btn-cek" onclick="bankaCek()">' + btnHtml(t('game.bank.withdrawBtn')) + '</button>'
     + '</div></div>';
 }
 
@@ -3097,22 +3139,49 @@ async function guclenAltEkranCiz(tip, ic) {
   await elitFiyatDurumSenkronize();
   if (aktifEkran !== tip) return;
   if (tip === 'korumaEkibi') {
-    ic.innerHTML = '<h2>' + escHtml(t('game.hire.korumaTitle')) + '</h2><p>' + escHtml(t('game.hire.korumaQuote')) + '</p>'
-      + elitFiyatNotuHTML()
-      + guclenKartlariCiz(['delikanli', 'bodyguard', 'profesyonel', 'harekat'], koruyucuGorseller, 'vesikalik-resim', '#28a745', t('game.hire.hireMan'));
+    ic.innerHTML = guclenMagazaHTML(
+      'koruma',
+      t('game.hire.korumaTitle'),
+      t('game.hire.korumaQuote'),
+      guclenKartlariCiz(['delikanli', 'bodyguard', 'profesyonel', 'harekat'], koruyucuGorseller, 'yesil', t('game.hire.hireMan'))
+    );
     return;
   }
   if (tip === 'silahlan') {
-    ic.innerHTML = '<h2>' + escHtml(t('game.hire.silahTitle')) + '</h2><p>' + escHtml(t('game.hire.silahQuote')) + '</p>'
-      + elitFiyatNotuHTML()
-      + guclenKartlariCiz(['tabanca', 'pompali', 'ak47', 'agir_silah', 'sniper'], silahGorseller, 'vesikalik-resim', '#00e5ff', t('game.hire.buyWeapon'), 'mavi-btn');
+    ic.innerHTML = guclenMagazaHTML(
+      'silah',
+      t('game.hire.silahTitle'),
+      t('game.hire.silahQuote'),
+      guclenKartlariCiz(['tabanca', 'pompali', 'ak47', 'agir_silah', 'sniper'], silahGorseller, 'mavi', t('game.hire.buyWeapon'))
+    );
     return;
   }
   if (tip === 'luksYasam') {
-    ic.innerHTML = '<h2>' + escHtml(t('game.hire.luksTitle')) + '</h2><p>' + escHtml(t('game.hire.luksQuote')) + '</p>'
-      + elitFiyatNotuHTML()
-      + guclenKartlariCiz(['saat', 'motorsiklet', 'araba', 'yat', 'helikopter', 'jet'], luksGorseller, 'luks-resim', '#b8942a', t('game.hire.buyLuxury'), 'kirmizi-btn');
+    ic.innerHTML = guclenMagazaHTML(
+      'luks',
+      t('game.hire.luksTitle'),
+      t('game.hire.luksQuote'),
+      guclenKartlariCiz(['saat', 'motorsiklet', 'araba', 'yat', 'helikopter', 'jet'], luksGorseller, 'kirmizi', t('game.hire.buyLuxury'))
+    );
   }
+}
+
+function guclenMagazaHTML(mod, baslik, alinti, kartlarHtml) {
+  return '<div class="gk-sayfa gk-sayfa--' + escHtml(mod) + '">'
+    + '<header class="gk-banner">'
+    + '<p class="gk-banner-ustetiket">' + escHtml(t('game.hub.guclenSubtitle')) + '</p>'
+    + '<h2 class="gk-banner-baslik">' + escHtml(baslik) + '</h2>'
+    + '<div class="gk-banner-cizgi" aria-hidden="true"></div>'
+    + '<p class="gk-banner-alinti">' + escHtml(alinti) + '</p>'
+    + '</header>'
+    + '<div class="gk-elit-not">' + elitFiyatNotuMetin() + '</div>'
+    + '<div class="gk-grid">' + kartlarHtml + '</div>'
+    + '</div>';
+}
+
+function elitFiyatNotuMetin() {
+  if (elitFiyatX2) return t('game.elitePriceNote');
+  return t('game.elitePriceDefault');
 }
 
 function sporSalonuDots(n) {
@@ -3219,7 +3288,7 @@ function sporAktifAntrenmanHTML(aktif) {
     html += '<p class="spor-aktif-baslik">✅ ' + escHtml(t('game.spor.sessionReady')) + '</p>'
       + '<p class="meslek-dim">' + escHtml(aktif.yetenekAd) + ' · ' + escHtml(aktif.salonAd) + ' · +' + (aktif.kazanc || 1) + '</p>'
       + '<button type="button" class="meslek-btn meslek-btn--altin" onclick="sporSalonuAntrenmanTamamla()">'
-      + escHtml(t('game.spor.sessionCollect')) + '</button>';
+      + btnHtml(t('game.spor.sessionCollect')) + '</button>';
   } else {
     html += '<p class="spor-aktif-baslik">🏋️ ' + escHtml(t('game.spor.sessionActive', { stat: aktif.yetenekAd, salon: aktif.salonAd })) + '</p>'
       + '<p class="meslek-dim">' + escHtml(t('game.spor.sessionDuration')) + '</p>'
@@ -3264,7 +3333,7 @@ function sagKolAktifAntrenmanHTML(aktif) {
     html += '<p class="spor-aktif-baslik">✅ ' + escHtml(t('game.sagKol.sessionReady')) + '</p>'
       + '<p class="meslek-dim">' + escHtml(aktif.yetenekAd) + ' · +' + (aktif.kazanc || 1) + '</p>'
       + '<button type="button" class="meslek-btn meslek-btn--altin" onclick="sagKolAntrenmanTamamla()">'
-      + escHtml(t('game.sagKol.sessionCollect')) + '</button>';
+      + btnHtml(t('game.sagKol.sessionCollect')) + '</button>';
   } else {
     html += '<p class="spor-aktif-baslik">🤝 ' + escHtml(t('game.sagKol.sessionActive', { stat: aktif.yetenekAd })) + '</p>'
       + '<p class="meslek-dim">' + escHtml(t('game.sagKol.sessionDuration')) + '</p>'
@@ -3297,7 +3366,7 @@ function sagKolSatinAlHTML(fiyat) {
   return '<div class="profil-sagkol-satin-al">'
     + '<p class="profil-sagkol-aciklama">' + escHtml(t('game.sagKol.buyDesc')) + '</p>'
     + '<button type="button" class="profil-alt-btn kirmizi profil-sagkol-satin-btn" onclick="sagKolSatinAl()">'
-    + escHtml(t('game.sagKol.buyButton', { cost: fmt(fiyat) }))
+    + btnHtml(t('game.sagKol.buyButton', { cost: fmt(fiyat) }))
     + '</button>'
     + '</div>';
 }
@@ -3325,7 +3394,7 @@ function sagKolEgitPanelHTML(sk) {
       + '<span class="spor-sagkol-hastane-damga">' + escHtml(t('game.sagKol.inHospitalStamp')) + '</span>'
       + '<p class="spor-sagkol-hastane-metin">' + escHtml(t('game.sagKol.trainBlockedHospital')) + '</p>'
       + '<button type="button" class="meslek-btn meslek-btn--altin" onclick="ekranDegistir(\'hastane\')">'
-      + escHtml(t('game.sagKol.goHospital')) + '</button>'
+      + btnHtml(t('game.sagKol.goHospital')) + '</button>'
       + '</div></div></div></section>';
   }
   var keys = ['guc', 'zeka', 'dayaniklilik', 'beceri'];
@@ -3431,7 +3500,7 @@ function sporSalonAntrenmanGridHTML(s, statlar, aktifAntrenman) {
       + '<button type="button" class="meslek-btn meslek-btn--alt meslek-antrenman-btn"'
       + (pasif ? ' disabled' : '')
       + ' onclick="sporSalonuAntrenman(\'' + s.id + '\', \'' + k + '\')">'
-      + escHtml(t('game.spor.trainStart', { cost: fmt(maliyet), dk: 30 }))
+      + btnHtml(t('game.spor.trainStart', { cost: fmt(maliyet), dk: 30 }))
       + ' · ⚡' + s.icraatMaliyet
       + '</button></div>';
   }
@@ -3468,7 +3537,7 @@ function sporSalonuKartHTML(s, statlar, aktifAntrenman) {
   } else if (!s.kayitli) {
     html += '<p class="meslek-dim">' + escHtml(t('game.spor.membership')) + ': <b>' + kayitTxt + '</b></p>'
       + '<button type="button" class="meslek-btn meslek-btn--altin" onclick="sporSalonuKayit(\'' + s.id + '\')">'
-      + escHtml(t('game.spor.register')) + '</button>';
+      + btnHtml(t('game.spor.register')) + '</button>';
   } else {
     html += sporSalonAntrenmanGridHTML(s, statlar, aktifAntrenman);
   }
@@ -3491,9 +3560,9 @@ function sporSalonuPanelHTML(panel) {
     + '</div></header>'
     + '<div class="spor-sekmeler" role="tablist">'
     + '<button type="button" class="spor-sekme' + (sekme === 'salon' ? ' aktif' : '') + '" data-sekme="salon"'
-    + ' onclick="sporSalonuSekmeDegistir(\'salon\')">🏋️ ' + escHtml(t('game.spor.title')) + '</button>'
+    + ' onclick="sporSalonuSekmeDegistir(\'salon\')">🏋️ ' + btnHtml(t('game.spor.title')) + '</button>'
     + '<button type="button" class="spor-sekme' + (sekme === 'sagkol' ? ' aktif' : '') + '" data-sekme="sagkol"'
-    + ' onclick="sporSalonuSekmeDegistir(\'sagkol\')">🤝 ' + escHtml(t('game.sagKol.trainTitle')) + '</button>'
+    + ' onclick="sporSalonuSekmeDegistir(\'sagkol\')">🤝 ' + btnHtml(t('game.sagKol.trainTitle')) + '</button>'
     + '</div>'
     + '<div id="sporSekmeSalon" class="spor-sekme-panel' + (sekme !== 'salon' ? ' gizli' : '') + '" role="tabpanel">'
     + sporAktifAntrenmanHTML(aktif)
@@ -3603,18 +3672,28 @@ async function sagKolAntrenmanTamamla() {
   }
 }
 
-function guclenKartHTML(key, img, imgCls, baslik, alinti, bazMaliyet, guc, gucRenk, btnLabel, btnCls) {
+function guclenKartHTML(key, img, btnTema, baslik, alinti, bazMaliyet, guc, btnLabel) {
   var sahip = kiralamaEnvanter[key] || 0;
   var maliyetTxt = typeof bazMaliyet === 'number' ? elitFiyatGosterHtml(bazMaliyet) : bazMaliyet;
-  return '<div class="is-kart"><div class="is-yapi">'
-    + '<img src="' + img + '" class="' + imgCls + '" alt="" loading="lazy" onerror="imgFallback(this)">'
-    + '<div class="is-detay"><h3>' + baslik + '</h3><p>💬 ' + alinti + '</p>'
-    + '<p>' + escHtml(t('game.hire.owned')) + ' <b style="color:#ffd700;">' + sahip + escHtml(t('game.hire.units')) + '</b></p>'
-    + '<p>' + escHtml(t('game.hire.unitPrice')) + ' ' + maliyetTxt + ' &nbsp;|&nbsp; ' + escHtml(t('game.hire.unitPower')) + ' <b style="color:' + gucRenk + ';">' + guc + '</b></p>'
-    + '<div class="adet-satir"><label for="adet-' + key + '">' + escHtml(t('game.hire.qty')) + '</label>'
+  var btnCls = 'gk-btn';
+  if (btnTema === 'mavi') btnCls += ' gk-btn--mavi';
+  else if (btnTema === 'yesil') btnCls += ' gk-btn--yesil';
+  return '<article class="gk-kart">'
+    + '<div class="gk-medya"><img src="' + img + '" alt="" loading="lazy" decoding="async" onerror="imgFallback(this)"></div>'
+    + '<div class="gk-govde">'
+    + '<h3 class="gk-baslik">' + escHtml(baslik) + '</h3>'
+    + '<p class="gk-alinti">' + escHtml(alinti) + '</p>'
+    + '<div class="gk-metrikler">'
+    + '<div class="gk-metrik"><span class="gk-metrik-etiket">' + escHtml(t('game.hire.unitPrice')) + '</span>'
+    + '<div class="gk-metrik-deger">' + maliyetTxt + '</div></div>'
+    + '<div class="gk-metrik gk-metrik--guc"><span class="gk-metrik-etiket">' + escHtml(t('game.hire.unitPower')) + '</span>'
+    + '<div class="gk-metrik-deger">' + guc + '</div></div>'
+    + '</div>'
+    + '<p class="gk-sahip">' + escHtml(t('game.hire.owned')) + ' <b>' + sahip + escHtml(t('game.hire.units')) + '</b></p>'
+    + '<div class="gk-adet"><label for="adet-' + key + '">' + escHtml(t('game.hire.qty')) + '</label>'
     + '<input type="number" id="adet-' + key + '" class="adet-input" value="1" min="1" max="999"></div>'
-    + '<button type="button" class="btn-is ' + (btnCls || '') + '" onclick="adamKirala(\'' + key + '\')">[ ' + btnLabel + ' ]</button>'
-    + '</div></div></div>';
+    + '<button type="button" class="' + btnCls + '" onclick="adamKirala(\'' + key + '\')">' + btnHtml(btnLabel) + '</button>'
+    + '</div></article>';
 }
 
 function guclenBazBirimFiyat(baz, sahip) {
@@ -3636,16 +3715,24 @@ function guclenFiyatAdet(key) {
   return kiralamaEnvanter[key] || 0;
 }
 
-function guclenKartlariCiz(keys, gorseller, imgCls, gucRenk, btnLabel, btnCls) {
+function guclenKartlariCiz(keys, gorseller, btnTema, btnLabel) {
   var html = '';
   for (var i = 0; i < keys.length; i++) {
     var k = keys[i];
     var info = HIRE_BILGI[k];
     if (!info) continue;
-    var sahip = kiralamaEnvanter[k] || 0;
     var fiyatAdet = guclenFiyatAdet(k);
     var bazFiyat = guclenBazBirimFiyat(info.maliyet, fiyatAdet);
-    html += guclenKartHTML(k, gorseller[k], imgCls, t('game.hire.item.' + k + '.title'), t('game.hire.item.' + k + '.quote'), bazFiyat, '+' + fmt(info.guc), gucRenk, btnLabel, btnCls);
+    html += guclenKartHTML(
+      k,
+      gorseller[k],
+      btnTema,
+      t('game.hire.item.' + k + '.title'),
+      t('game.hire.item.' + k + '.quote'),
+      bazFiyat,
+      '+' + fmt(info.guc),
+      btnLabel
+    );
   }
   return html;
 }
@@ -3669,17 +3756,25 @@ var HIRE_BILGI = {
 };
 
 function isKartHTML(img, baslik, kazanc, icraat, guc, onclick, sayginlik) {
-  var sayginlikSatiri = (sayginlik != null)
-    ? '<p style="color:#c5a059;font-weight:600;">' + t('game.job.respectLine', { puan: sayginlik }) + '</p>'
-    : '';
-  return '<div class="is-kart"><div class="is-yapi">'
-    + '<img src="' + img + '" class="vesikalik-resim" onerror="imgFallback(this)">'
-    + '<div class="is-detay"><h3>' + baslik + '</h3>'
-    + '<p>' + escHtml(t('game.job.netGain')) + ' <b style="color:#28a745;">' + kazanc + '</b></p>'
-    + sayginlikSatiri
-    + '<p style="color:#00e5ff;font-weight:600;">' + t('game.job.requiredLine', { icraat: icraat, guc: guc }) + '</p>'
-    + '<button class="btn-is" onclick="' + onclick + '">' + escHtml(t('game.job.doIt')) + '</button>'
-    + '</div></div></div>';
+  var metrikHtml = '<div class="gk-metrikler">'
+    + '<div class="gk-metrik gk-metrik--kazanc"><span class="gk-metrik-etiket">' + escHtml(t('game.job.netGain')) + '</span>'
+    + '<div class="gk-metrik-deger">' + escHtml(String(kazanc)) + '</div></div>';
+  if (sayginlik != null) {
+    metrikHtml += '<div class="gk-metrik"><span class="gk-metrik-etiket">' + escHtml(t('game.profil.respect')) + '</span>'
+      + '<div class="gk-metrik-deger">+' + sayginlik + '</div></div>';
+  } else {
+    metrikHtml += '<div class="gk-metrik gk-metrik--guc"><span class="gk-metrik-etiket">' + escHtml(t('game.hire.unitPower')) + '</span>'
+      + '<div class="gk-metrik-deger">' + escHtml(String(guc)) + '</div></div>';
+  }
+  metrikHtml += '</div>'
+    + '<p class="gk-sahip gk-sahip--sart">' + t('game.job.requiredLine', { icraat: escHtml(String(icraat)), guc: escHtml(String(guc)) }) + '</p>';
+  return '<article class="gk-kart">'
+    + '<div class="gk-medya gk-medya--fit"><img src="' + img + '" alt="" loading="lazy" decoding="async" onerror="imgFallback(this)"></div>'
+    + '<div class="gk-govde">'
+    + '<h3 class="gk-baslik">' + escHtml(baslik) + '</h3>'
+    + metrikHtml
+    + '<button type="button" class="gk-btn gk-btn--mavi" onclick="' + onclick + '">' + btnHtml(t('game.job.doIt')) + '</button>'
+    + '</div></article>';
 }
 
 function buyumeIsKart(key, imgKey, kazanc, icraat, guc, sayginlik) {
@@ -3692,6 +3787,51 @@ function buyumeIsKart(key, imgKey, kazanc, icraat, guc, sayginlik) {
     "isYap('" + key + "')",
     sayginlik
   );
+}
+
+function isMagazaHTML(baslik, alinti, kartlarHtml) {
+  return '<div class="gk-sayfa gk-sayfa--is">'
+    + '<header class="gk-banner">'
+    + '<p class="gk-banner-ustetiket">' + escHtml(t('game.hub.buyumeSubtitle')) + '</p>'
+    + '<h2 class="gk-banner-baslik">' + escHtml(baslik) + '</h2>'
+    + '<div class="gk-banner-cizgi" aria-hidden="true"></div>'
+    + '<p class="gk-banner-alinti">' + escHtml(alinti) + '</p>'
+    + '</header>'
+    + '<div class="gk-grid">' + kartlarHtml + '</div>'
+    + '</div>';
+}
+
+function sektorMagazaHTML(baslik, kartlarHtml) {
+  return '<div class="gk-sayfa gk-sayfa--sektor">'
+    + '<header class="gk-banner">'
+    + '<p class="gk-banner-ustetiket">' + escHtml(t('screen.mekan')) + '</p>'
+    + '<h2 class="gk-banner-baslik">' + escHtml(baslik) + '</h2>'
+    + '<div class="gk-banner-cizgi" aria-hidden="true"></div>'
+    + '<p class="gk-banner-alinti">' + escHtml(t('game.sektor.quote')) + '</p>'
+    + '</header>'
+    + '<div class="gk-elit-not">' + elitFiyatNotuMetin() + '</div>'
+    + '<div class="gk-grid">' + kartlarHtml + '</div>'
+    + '</div>';
+}
+
+function sektorKartHTML(sektor, key, m, adet, bazFiyat, img) {
+  return '<article class="gk-kart">'
+    + '<div class="gk-medya gk-medya--fit"><img src="' + img + '" alt="" loading="lazy" decoding="async" onerror="imgFallback(this)"></div>'
+    + '<div class="gk-govde">'
+    + '<h3 class="gk-baslik">' + escHtml(tr(m.ad)) + '</h3>'
+    + '<p class="gk-alinti gk-alinti--kisit">' + escHtml(tr(m.aciklama)) + '</p>'
+    + '<div class="gk-metrikler">'
+    + '<div class="gk-metrik"><span class="gk-metrik-etiket">' + escHtml(t('game.sektor.buyPrice')) + '</span>'
+    + '<div class="gk-metrik-deger">' + elitFiyatGosterHtml(bazFiyat) + '</div></div>'
+    + '<div class="gk-metrik gk-metrik--kazanc"><span class="gk-metrik-etiket">' + escHtml(t('game.sektor.hourlyReturn')) + '</span>'
+    + '<div class="gk-metrik-deger">+' + fmt(m.saatlik) + ' TL</div></div>'
+    + '</div>'
+    + '<p class="gk-sahip">' + escHtml(t('game.sektor.owner')) + ' <b>' + adet + '</b>' + escHtml(t('game.sektor.unitWord'))
+    + ' · ' + escHtml(t('game.sektor.respectLabel')) + ' <b>+' + m.sayginlik + '</b></p>'
+    + '<div class="gk-adet"><label for="mekanAdetGir_' + sektor + '_' + key + '">' + escHtml(t('game.hire.qty')) + '</label>'
+    + '<input type="number" id="mekanAdetGir_' + sektor + '_' + key + '" class="adet-input" value="1" min="1" max="999" placeholder="' + escHtml(t('game.sektor.qtyPlaceholder')) + '"></div>'
+    + '<button type="button" class="gk-btn" onclick="mekanAl(\'' + sektor + '\', \'' + key + '\')">' + btnHtml(t('game.sektor.buyBtn')) + '</button>'
+    + '</div></article>';
 }
 
 function limanKartHTML(id) {
@@ -3754,7 +3894,7 @@ function mekanDevriMekanGridHTML() {
     html += '<button type="button" class="md-mekan-kart" data-sk="' + escHtml(it.sk) + '" data-adet="' + it.adet + '" onclick="mekanDevriMekanSec(this)">'
       + '<span class="md-mekan-kart-img"><img src="' + img + '" alt="" loading="lazy" onerror="imgFallback(this)"></span>'
       + '<span class="md-mekan-kart-ad">' + escHtml(ad) + '</span>'
-      + '<span class="md-mekan-kart-adet">' + it.adet + escHtml(t('game.transfer.qtyUnits')) + '</span>'
+      + '<span class="md-mekan-kart-adet">' + it.adet + btnHtml(t('game.transfer.qtyUnits')) + '</span>'
       + '</button>';
   });
 
@@ -3819,12 +3959,12 @@ function avukatHTML() {
       + '<p class="av-rusvet-aralik">' + escHtml(t('game.lawyer.range', { min: fmt(r.min), max: fmt(r.max), inc: RUSVET_ARTIS_MAX })) + '</p>'
       + '<div class="av-alan"><label for="rusvetMiktar">' + escHtml(t('game.lawyer.bribeLabel')) + '</label>'
       + '<input type="number" id="rusvetMiktar" class="av-input" value="' + onerilen + '" min="' + r.min + '" max="' + r.max + '"></div>'
-      + '<button type="button" class="av-btn" onclick="rusvetVer()">' + escHtml(t('game.lawyer.bribeBtn')) + '</button>'
-      + '<div class="av-rusvet-ayrac"><span>' + escHtml(t('game.lawyer.orDivider')) + '</span></div>'
+      + '<button type="button" class="av-btn" onclick="rusvetVer()">' + btnHtml(t('game.lawyer.bribeBtn')) + '</button>'
+      + '<div class="av-rusvet-ayrac"><span>' + btnHtml(t('game.lawyer.orDivider')) + '</span></div>'
       + '<div class="av-elmas-rusvet">'
-      + '<p class="av-elmas-rusvet-baslik">' + escHtml(t('game.lawyer.diamondBribeTitle')) + '</p>'
-      + '<p class="av-elmas-rusvet-aciklama">' + escHtml(t('game.lawyer.diamondBribeDesc', { elmas: ELMAS_RUSVET_MALIYET, max: AVUKAT_ILISKI_MAX })) + '</p>'
-      + '<button type="button" class="av-btn av-btn--elmas" onclick="rusvetElmasVer()">' + escHtml(t('game.lawyer.diamondBribeBtn', { n: ELMAS_RUSVET_MALIYET })) + ' · ' + fmt(oyuncuElmas) + '</button>'
+      + '<p class="av-elmas-rusvet-baslik">' + btnHtml(t('game.lawyer.diamondBribeTitle')) + '</p>'
+      + '<p class="av-elmas-rusvet-aciklama">' + btnHtml(t('game.lawyer.diamondBribeDesc', { elmas: ELMAS_RUSVET_MALIYET, max: AVUKAT_ILISKI_MAX })) + '</p>'
+      + '<button type="button" class="av-btn av-btn--elmas" onclick="rusvetElmasVer()">' + btnHtml(t('game.lawyer.diamondBribeBtn', { n: ELMAS_RUSVET_MALIYET })) + ' · ' + fmt(oyuncuElmas) + '</button>'
       + '</div>';
   }
   rusvetPanel += '</div>';
@@ -4039,8 +4179,8 @@ function hapishaneHTML(panel) {
       + '<p>' + escHtml(t('game.prison.guardBribeDesc', { saat: panel.rusvetSaat || 3 })) + '</p>'
       + '<div class="hp-bedel-satir"><span class="hp-bedel-etiket">' + escHtml(t('game.prison.bribeCostLabel')) + '</span><span class="hp-bedel">' + fmt(rusvet) + ' TL</span></div>'
       + '<div class="hp-btn-grup">'
-      + '<button type="button" class="hp-btn" onclick="hapishaneRusvetGardiyan()">' + escHtml(t('game.prison.guardBribeBtn')) + '</button>'
-      + '<button type="button" class="hp-btn hp-btn--elmas" onclick="hapishaneElmasCik()">' + escHtml(t('game.prison.diamondBtn', { n: elmasBedel })) + ' · ' + fmt(elmas) + '</button>'
+      + '<button type="button" class="hp-btn" onclick="hapishaneRusvetGardiyan()">' + btnHtml(t('game.prison.guardBribeBtn')) + '</button>'
+      + '<button type="button" class="hp-btn hp-btn--elmas" onclick="hapishaneElmasCik()">' + btnHtml(t('game.prison.diamondBtn', { n: elmasBedel })) + ' · ' + fmt(elmas) + '</button>'
       + '</div></div>';
   }
 
@@ -4051,7 +4191,7 @@ function hapishaneHTML(panel) {
       + '<p>' + escHtml(t('game.prison.rescueDesc')) + '</p>'
       + '<div class="hp-alan"><label for="hpHedefAd">' + escHtml(t('game.prison.rescueLabel')) + '</label>'
       + '<input type="text" id="hpHedefAd" class="hp-input" maxlength="24" placeholder="' + escHtml(t('game.prison.rescuePlaceholder')) + '"></div>'
-      + '<button type="button" class="hp-btn hp-btn--sorgu" onclick="hapishaneHedefSorgula()">' + escHtml(t('game.prison.rescueCheckBtn')) + '</button>'
+      + '<button type="button" class="hp-btn hp-btn--sorgu" onclick="hapishaneHedefSorgula()">' + btnHtml(t('game.prison.rescueCheckBtn')) + '</button>'
       + '<div id="hpHedefKart" class="hp-hedef-kart gizli"></div>'
       + '</div>';
   }
@@ -4145,12 +4285,12 @@ async function hapishaneHedefSorgula() {
     + '<div class="hp-secenek">'
     + '<span class="hp-bedel-etiket">' + escHtml(t('game.prison.bribeCostLabel')) + '</span>'
     + '<span class="hp-bedel">' + fmt(ef.hedef.rusvetBedeli) + ' TL</span>'
-    + '<button type="button" class="hp-btn hp-btn--kurtar" onclick="hapishaneOyuncuCikar()">' + escHtml(t('game.prison.rescueBtn')) + '</button>'
+    + '<button type="button" class="hp-btn hp-btn--kurtar" onclick="hapishaneOyuncuCikar()">' + btnHtml(t('game.prison.rescueBtn')) + '</button>'
     + '</div>'
     + '<div class="hp-secenek hp-secenek--elmas">'
-    + '<span class="hp-bedel-etiket">' + escHtml(t('game.prison.diamondCostLabel')) + '</span>'
+    + '<span class="hp-bedel-etiket">' + btnHtml(t('game.prison.diamondCostLabel')) + '</span>'
     + '<span class="hp-bedel hp-bedel--elmas">' + elmasBedel + ' 💎</span>'
-    + '<button type="button" class="hp-btn hp-btn--elmas" onclick="hapishaneOyuncuElmasCikar()">' + escHtml(t('game.prison.rescueDiamondBtn', { n: elmasBedel })) + '</button>'
+    + '<button type="button" class="hp-btn hp-btn--elmas" onclick="hapishaneOyuncuElmasCikar()">' + btnHtml(t('game.prison.rescueDiamondBtn', { n: elmasBedel })) + '</button>'
     + '</div></div>';
 }
 
@@ -4197,11 +4337,11 @@ function medyaHTML() {
     + '</div>'
     + '<div class="med-alan"><label for="medyaHaber">' + escHtml(t('game.media.newsLabel')) + '</label>'
     + '<textarea id="medyaHaber" class="med-textarea" rows="4" placeholder="' + escHtml(t('game.media.newsPlaceholder')) + '" maxlength="200"></textarea></div>'
-    + '<button type="button" class="med-btn" onclick="medyaHaberYayinla()">' + escHtml(t('game.media.publishBtn')) + '</button>'
+    + '<button type="button" class="med-btn" onclick="medyaHaberYayinla()">' + btnHtml(t('game.media.publishBtn')) + '</button>'
     + '<div id="medyaSonuc" class="med-sonuc gizli"></div>'
     + '</div>'
     + '<div class="med-panel med-panel--haberler">'
-    + '<div class="med-panel-baslik"><span class="med-panel-ikon" aria-hidden="true">📋</span><h3>' + escHtml(t('game.media.recentTitle')) + '</h3></div>'
+    + '<div class="med-panel-baslik"><span class="med-panel-ikon" aria-hidden="true">📋</span><h3>' + btnHtml(t('game.media.recentTitle')) + '</h3></div>'
     + '<div id="medyaHaberlerListesi" class="med-haber-liste"></div>'
     + '</div></div></div></div></div>';
 }
@@ -4229,7 +4369,7 @@ function mekanDevriHTML() {
 
   mekanPanel += '<div class="md-alan md-alan--adet"><label for="mekanDevriAdet">' + escHtml(t('game.transfer.qtyLabel')) + '</label>'
     + '<input type="number" id="mekanDevriAdet" value="1" min="1" max="999"' + (mekanSay < 1 ? ' disabled' : '') + '></div>'
-    + '<button type="button" class="md-btn md-btn--mavi"' + (mekanSay < 1 ? ' disabled' : ' onclick="mekanDevret()"') + '>' + escHtml(t('game.transfer.transferBtn')) + '</button>'
+    + '<button type="button" class="md-btn md-btn--mavi"' + (mekanSay < 1 ? ' disabled' : ' onclick="mekanDevret()"') + '>' + btnHtml(t('game.transfer.transferBtn')) + '</button>'
     + '<div id="mekanDevriSonuc" class="md-sonuc gizli"></div></div>';
 
   return '<div class="md-sayfa"><div class="md-cerceve">'
@@ -4251,7 +4391,7 @@ function mekanDevriHTML() {
     + '<input type="text" id="paraGonderHedef" placeholder="' + escHtml(t('game.transfer.buyerPlaceholder')) + '" maxlength="24"></div>'
     + '<div class="md-alan"><label for="paraGonderMiktar">' + escHtml(t('game.transfer.amountLabel')) + '</label>'
     + '<input type="number" id="paraGonderMiktar" value="100000" min="1" max="999999999"></div>'
-    + '<button type="button" class="md-btn md-btn--yesil" onclick="paraGonder()">' + escHtml(t('game.transfer.sendBtn')) + '</button>'
+    + '<button type="button" class="md-btn md-btn--yesil" onclick="paraGonder()">' + btnHtml(t('game.transfer.sendBtn')) + '</button>'
     + '<div id="paraGonderSonuc" class="md-sonuc gizli"></div>'
     + '</div></div></div></div></div>';
 }
@@ -4522,9 +4662,9 @@ function profilPremiumSayacBaslat() {
 function profilHizaAracHtml() {
   return '<div id="profilHizaArac" class="profil-hiza-arac">'
     + '<span class="profil-hiza-etiket">' + escHtml(t('game.profil.alignLabel')) + '</span>'
-    + '<button type="button" class="profil-hiza-btn aktif" data-hiza="left" title="' + escHtml(t('game.profil.alignLeftTitle')) + '">' + escHtml(t('game.profil.alignLeft')) + '</button>'
-    + '<button type="button" class="profil-hiza-btn" data-hiza="center" title="' + escHtml(t('game.profil.alignCenterTitle')) + '">' + escHtml(t('game.profil.alignCenter')) + '</button>'
-    + '<button type="button" class="profil-hiza-btn" data-hiza="right" title="' + escHtml(t('game.profil.alignRightTitle')) + '">' + escHtml(t('game.profil.alignRight')) + '</button>'
+    + '<button type="button" class="profil-hiza-btn aktif" data-hiza="left" title="' + btnHtml(t('game.profil.alignLeftTitle')) + '">' + btnHtml(t('game.profil.alignLeft')) + '</button>'
+    + '<button type="button" class="profil-hiza-btn" data-hiza="center" title="' + btnHtml(t('game.profil.alignCenterTitle')) + '">' + btnHtml(t('game.profil.alignCenter')) + '</button>'
+    + '<button type="button" class="profil-hiza-btn" data-hiza="right" title="' + btnHtml(t('game.profil.alignRightTitle')) + '">' + btnHtml(t('game.profil.alignRight')) + '</button>'
     + '</div>';
 }
 
@@ -4589,23 +4729,23 @@ function profilHizaAracBagla() {
 function profilQuillToolbarHtml() {
   return '<div id="profilAciklamaToolbar">'
     + '<span class="ql-formats">'
-    + '<button type="button" class="ql-bold" title="' + escHtml(t('game.profil.bold')) + '"></button>'
-    + '<button type="button" class="ql-italic" title="' + escHtml(t('game.profil.italic')) + '"></button>'
-    + '<button type="button" class="ql-undo" title="' + escHtml(t('game.profil.undo')) + '"></button>'
+    + '<button type="button" class="ql-bold" title="' + btnHtml(t('game.profil.bold')) + '"></button>'
+    + '<button type="button" class="ql-italic" title="' + btnHtml(t('game.profil.italic')) + '"></button>'
+    + '<button type="button" class="ql-undo" title="' + btnHtml(t('game.profil.undo')) + '"></button>'
     + '</span>'
     + '<span class="ql-formats">'
-    + '<button type="button" class="ql-align" value="" title="' + escHtml(t('game.profil.alignLeftTitle')) + '"></button>'
-    + '<button type="button" class="ql-align" value="center" title="' + escHtml(t('game.profil.alignCenterTitle')) + '"></button>'
-    + '<button type="button" class="ql-align" value="right" title="' + escHtml(t('game.profil.alignRightTitle')) + '"></button>'
+    + '<button type="button" class="ql-align" value="" title="' + btnHtml(t('game.profil.alignLeftTitle')) + '"></button>'
+    + '<button type="button" class="ql-align" value="center" title="' + btnHtml(t('game.profil.alignCenterTitle')) + '"></button>'
+    + '<button type="button" class="ql-align" value="right" title="' + btnHtml(t('game.profil.alignRightTitle')) + '"></button>'
     + '</span>'
-    + '<span class="ql-formats"><select class="ql-color" title="' + escHtml(t('game.profil.textColor')) + '"></select></span>'
-    + '<span class="ql-formats"><select class="ql-size" title="' + escHtml(t('game.profil.fontSize')) + '">'
-    + '<option value="10px">' + escHtml(t('game.profil.sizeSmall')) + '</option>'
-    + '<option value="14px" selected>' + escHtml(t('game.profil.sizeNormal')) + '</option>'
-    + '<option value="18px">' + escHtml(t('game.profil.sizeLarge')) + '</option>'
-    + '<option value="24px">' + escHtml(t('game.profil.sizeXLarge')) + '</option>'
+    + '<span class="ql-formats"><select class="ql-color" title="' + btnHtml(t('game.profil.textColor')) + '"></select></span>'
+    + '<span class="ql-formats"><select class="ql-size" title="' + btnHtml(t('game.profil.fontSize')) + '">'
+    + '<option value="10px">' + btnHtml(t('game.profil.sizeSmall')) + '</option>'
+    + '<option value="14px" selected>' + btnHtml(t('game.profil.sizeNormal')) + '</option>'
+    + '<option value="18px">' + btnHtml(t('game.profil.sizeLarge')) + '</option>'
+    + '<option value="24px">' + btnHtml(t('game.profil.sizeXLarge')) + '</option>'
     + '</select></span>'
-    + '<span class="ql-formats"><select class="ql-font" title="' + escHtml(t('game.profil.fontFamily')) + '">'
+    + '<span class="ql-formats"><select class="ql-font" title="' + btnHtml(t('game.profil.fontFamily')) + '">'
     + '<option selected>Sans</option>'
     + '<option value="roboto">Roboto</option>'
     + '<option value="oswald">Oswald</option>'
@@ -4792,23 +4932,23 @@ function mafyaAciklamaListeMetin(html) {
 function mafyaGrupQuillToolbarHtml() {
   return '<div id="mafyaGrupAciklamaToolbar">'
     + '<span class="ql-formats">'
-    + '<button type="button" class="ql-bold" title="' + escHtml(t('game.profil.bold')) + '"></button>'
-    + '<button type="button" class="ql-italic" title="' + escHtml(t('game.profil.italic')) + '"></button>'
-    + '<button type="button" class="ql-undo" title="' + escHtml(t('game.profil.undo')) + '"></button>'
+    + '<button type="button" class="ql-bold" title="' + btnHtml(t('game.profil.bold')) + '"></button>'
+    + '<button type="button" class="ql-italic" title="' + btnHtml(t('game.profil.italic')) + '"></button>'
+    + '<button type="button" class="ql-undo" title="' + btnHtml(t('game.profil.undo')) + '"></button>'
     + '</span>'
     + '<span class="ql-formats">'
-    + '<button type="button" class="ql-align" value="" title="' + escHtml(t('game.profil.alignLeftTitle')) + '"></button>'
-    + '<button type="button" class="ql-align" value="center" title="' + escHtml(t('game.profil.alignCenterTitle')) + '"></button>'
-    + '<button type="button" class="ql-align" value="right" title="' + escHtml(t('game.profil.alignRightTitle')) + '"></button>'
+    + '<button type="button" class="ql-align" value="" title="' + btnHtml(t('game.profil.alignLeftTitle')) + '"></button>'
+    + '<button type="button" class="ql-align" value="center" title="' + btnHtml(t('game.profil.alignCenterTitle')) + '"></button>'
+    + '<button type="button" class="ql-align" value="right" title="' + btnHtml(t('game.profil.alignRightTitle')) + '"></button>'
     + '</span>'
-    + '<span class="ql-formats"><select class="ql-color" title="' + escHtml(t('game.profil.textColor')) + '"></select></span>'
-    + '<span class="ql-formats"><select class="ql-size" title="' + escHtml(t('game.profil.fontSize')) + '">'
-    + '<option value="10px">' + escHtml(t('game.profil.sizeSmall')) + '</option>'
-    + '<option value="14px" selected>' + escHtml(t('game.profil.sizeNormal')) + '</option>'
-    + '<option value="18px">' + escHtml(t('game.profil.sizeLarge')) + '</option>'
-    + '<option value="24px">' + escHtml(t('game.profil.sizeXLarge')) + '</option>'
+    + '<span class="ql-formats"><select class="ql-color" title="' + btnHtml(t('game.profil.textColor')) + '"></select></span>'
+    + '<span class="ql-formats"><select class="ql-size" title="' + btnHtml(t('game.profil.fontSize')) + '">'
+    + '<option value="10px">' + btnHtml(t('game.profil.sizeSmall')) + '</option>'
+    + '<option value="14px" selected>' + btnHtml(t('game.profil.sizeNormal')) + '</option>'
+    + '<option value="18px">' + btnHtml(t('game.profil.sizeLarge')) + '</option>'
+    + '<option value="24px">' + btnHtml(t('game.profil.sizeXLarge')) + '</option>'
     + '</select></span>'
-    + '<span class="ql-formats"><select class="ql-font" title="' + escHtml(t('game.profil.fontFamily')) + '">'
+    + '<span class="ql-formats"><select class="ql-font" title="' + btnHtml(t('game.profil.fontFamily')) + '">'
     + '<option selected>Sans</option>'
     + '<option value="roboto">Roboto</option>'
     + '<option value="oswald">Oswald</option>'
@@ -4833,8 +4973,8 @@ function mafyaGrupAciklamaEditorHtml() {
     + '<label id="mafyaGrupAciklamaOnizlemeBaslik" class="profil-onizleme-baslik gizli">' + escHtml(t('game.profil.preview')) + '</label>'
     + '<div id="mafyaGrupAciklamaOnizleme" class="profil-aciklama-metin profil-aciklama-html gizli">—</div>'
     + '<div class="mafya-btn-satir" style="margin-top:10px;">'
-    + '<button type="button" class="btn-is" onclick="mafyaGrupAciklamaKaydet()">' + escHtml(t('game.profil.save')) + '</button>'
-    + '<button type="button" class="btn-is kirmizi-btn" onclick="mafyaGrupAciklamaIptal()">' + escHtml(t('game.profil.cancel')) + '</button>'
+    + '<button type="button" class="btn-is" onclick="mafyaGrupAciklamaKaydet()">' + btnHtml(t('game.profil.save')) + '</button>'
+    + '<button type="button" class="btn-is kirmizi-btn" onclick="mafyaGrupAciklamaIptal()">' + btnHtml(t('game.profil.cancel')) + '</button>'
     + '</div>';
 }
 
@@ -5275,7 +5415,7 @@ function profilSagKolPanelHTML(panel, opts) {
     + '</div>';
   if (duzenlenebilir) {
     html += '<button type="button" class="profil-resim-btn profil-sagkol-resim-btn" onclick="sagKolResmiSecModal()">'
-      + escHtml(t('game.profil.changePhoto')) + '</button>';
+      + btnHtml(t('game.profil.changePhoto')) + '</button>';
   }
   html += '</div>';
   if (!ziyaretci && statlar.length) {
@@ -5470,7 +5610,7 @@ function profilRozetYuvaHTML(pinler, duzenlenebilir) {
         + ' data-format="' + escHtml(r.format || '') + '"'
         + ' onmouseover="profilBasariTooltipGoster(this)" onmouseout="profilBasariTooltipGizle()"'
         + (duzenlenebilir
-          ? ' onclick="profilBasariPinSlotTikla(' + i + ')" title="' + escHtml(t('game.profil.featuredBadgeChange')) + '"'
+          ? ' onclick="profilBasariPinSlotTikla(' + i + ')" title="' + btnHtml(t('game.profil.featuredBadgeChange')) + '"'
           : ' title="' + escHtml(ad) + '"')
         + ' aria-label="' + escHtml(ad) + '">'
         + '<img src="' + escHtml(url) + '" alt="" loading="lazy">'
@@ -5479,9 +5619,9 @@ function profilRozetYuvaHTML(pinler, duzenlenebilir) {
       html += '<button type="button" class="profil-rozet-yuva is-empty"'
         + ' data-slot="' + i + '"'
         + (duzenlenebilir
-          ? ' onclick="profilBasariPinSlotTikla(' + i + ')" title="' + escHtml(t('game.profil.featuredBadgePick')) + '"'
-          : ' disabled title="' + escHtml(t('game.profil.featuredBadgeEmpty')) + '"')
-        + ' aria-label="' + escHtml(t('game.profil.featuredBadgeEmpty')) + '">'
+          ? ' onclick="profilBasariPinSlotTikla(' + i + ')" title="' + btnHtml(t('game.profil.featuredBadgePick')) + '"'
+          : ' disabled title="' + btnHtml(t('game.profil.featuredBadgeEmpty')) + '"')
+        + ' aria-label="' + btnHtml(t('game.profil.featuredBadgeEmpty')) + '">'
         + (duzenlenebilir
           ? '<span class="profil-rozet-yuva-arti">+</span>'
           : '<span class="profil-rozet-yuva-bos"></span>')
@@ -5564,7 +5704,7 @@ function profilBasariPinSeciciAc(slot) {
     + '<h3>' + escHtml(t('game.profil.featuredBadgePick')) + '</h3>'
     + '<button type="button" class="profil-basari-pin-kapat" onclick="profilBasariPinModalKapat()">×</button>'
     + '</div>'
-    + '<p class="profil-basari-pin-aciklama">' + escHtml(t('game.profil.featuredBadgePickHint')) + '</p>';
+    + '<p class="profil-basari-pin-aciklama">' + btnHtml(t('game.profil.featuredBadgePickHint')) + '</p>';
   if (!aciklar.length) {
     html += '<p class="profil-basari-pin-bos">' + escHtml(t('game.profil.featuredBadgeNone')) + '</p>';
   } else {
@@ -5670,7 +5810,7 @@ function profilBasariKoleksiyonHTML(liste) {
       + '<div class="profil-basari-grid">';
     arr.forEach(function(r) {
       var unlocked = !!r.unlocked;
-      var ad = r.name || profilBasariRozetAdi(r.id);
+      var ad = profilBasariRozetAdi(r.id) || r.name || r.id;
       var adet = Math.max(0, Math.floor(Number(r.count) || 0));
       var goal = r.goal || '+1';
       var format = r.format || '';
@@ -5770,9 +5910,9 @@ function profilKoleksiyonPanelHTML(sahipListe, basariListe) {
   return '<div class="profil-koleksiyon-wrap">'
     + '<div class="profil-koleksiyon-alt-sekmeler" role="tablist">'
     + '<button type="button" class="profil-koleksiyon-alt-btn' + (alt === 'resim' ? ' aktif' : '') + '" data-alt="resim" onclick="profilKoleksiyonAltSekmeDegistir(\'resim\')">'
-    + escHtml(t('game.profil.imageCollectionTab')) + '</button>'
+    + btnHtml(t('game.profil.imageCollectionTab')) + '</button>'
     + '<button type="button" class="profil-koleksiyon-alt-btn' + (alt === 'basari' ? ' aktif' : '') + '" data-alt="basari" onclick="profilKoleksiyonAltSekmeDegistir(\'basari\')">'
-    + escHtml(t('game.profil.achievementCollectionTab')) + '</button>'
+    + btnHtml(t('game.profil.achievementCollectionTab')) + '</button>'
     + '</div>'
     + '<div id="profilKoleksiyonResim" class="' + (alt === 'resim' ? '' : 'gizli') + '">'
     + profilResimKoleksiyonIcerikHTML(sahipListe)
@@ -5893,8 +6033,8 @@ function profilEkranSablonu(opts) {
       + '<button type="button" class="profil-adi-degistir-btn" onclick="profilOyuncuAdiDegistir()">'
       + '<span id="profilOyuncuAdiUcret">' + fmt(adDegistirUcret) + ' TL</span>'
       + '</button></div></div>'
-      + '<label>' + escHtml(t('game.profil.addDescription')) + '</label>'
-      + '<p class="profil-alan-not">' + escHtml(t('game.profil.asciiNote')) + '</p>'
+      + '<label>' + btnHtml(t('game.profil.addDescription')) + '</label>'
+      + '<p class="profil-alan-not">' + btnHtml(t('game.profil.asciiNote')) + '</p>'
       + profilHizaAracHtml()
       + '<div id="profilAciklamaKodAlani" class="gizli">'
       + '<textarea id="profilAciklamaKod" class="profil-kod-textarea" spellcheck="false" rows="14" '
@@ -5929,58 +6069,58 @@ function profilEkranSablonu(opts) {
   }
 
   var resimBtn = opts.duzenlenebilir
-    ? '<button type="button" class="profil-resim-btn" onclick="profilResmiSecModal()">' + escHtml(t('game.profil.changePhoto')) + '</button>'
+    ? '<button type="button" class="profil-resim-btn" onclick="profilResmiSecModal()">' + btnHtml(t('game.profil.changePhoto')) + '</button>'
     : '';
   var elmasBtn = opts.duzenlenebilir
-    ? '<button type="button" class="profil-elmas-btn" onclick="elmasMagazaAc()" aria-label="' + escHtml(t('game.profil.buyDiamonds')) + '">'
+    ? '<button type="button" class="profil-elmas-btn" onclick="elmasMagazaAc()" aria-label="' + btnHtml(t('game.profil.buyDiamonds')) + '">'
       + '<span class="profil-elmas-btn-parilti" aria-hidden="true"></span>'
       + '<span class="profil-elmas-btn-icerik"><span class="profil-elmas-ikon">💎</span>'
-      + escHtml(t('game.profil.buyDiamonds')) + '</span></button>'
+      + btnHtml(t('game.profil.buyDiamonds')) + '</span></button>'
       + '<div id="profilPremiumKalan" class="profil-premium-kalan gizli" role="status" aria-live="polite"></div>'
     : '';
 
   var altBtn = '';
   if (opts.duzenlenebilir) {
     altBtn = '<div class="profil-alt-butonlar">'
-      + '<button type="button" class="profil-alt-btn kirmizi" onclick="profilKaydet()">' + escHtml(t('game.profil.saveProfile')) + '</button>'
-      + '<button type="button" class="profil-alt-btn koyu" onclick="sifreDegistirModal()">' + escHtml(t('game.profil.changePassword')) + '</button>'
-      + '<button type="button" class="profil-alt-btn koyu" onclick="cikisYap()">' + escHtml(t('game.profil.logout')) + '</button>'
+      + '<button type="button" class="profil-alt-btn kirmizi" onclick="profilKaydet()">' + btnHtml(t('game.profil.saveProfile')) + '</button>'
+      + '<button type="button" class="profil-alt-btn koyu" onclick="sifreDegistirModal()">' + btnHtml(t('game.profil.changePassword')) + '</button>'
+      + '<button type="button" class="profil-alt-btn koyu" onclick="cikisYap()">' + btnHtml(t('game.profil.logout')) + '</button>'
       + '</div>'
       + '<div id="sifreAlan" class="gizli profil-sifre-kutu">'
-      + '<label for="eskiSifre">' + escHtml(t('game.profil.currentPassword')) + '</label>'
+      + '<label for="eskiSifre">' + btnHtml(t('game.profil.currentPassword')) + '</label>'
       + '<input type="password" id="eskiSifre" class="dusman-input">'
-      + '<label for="yeniSifre">' + escHtml(t('game.profil.newPassword')) + '</label>'
+      + '<label for="yeniSifre">' + btnHtml(t('game.profil.newPassword')) + '</label>'
       + '<input type="password" id="yeniSifre" class="dusman-input">'
-      + '<button type="button" class="profil-alt-btn kirmizi" onclick="sifreKaydet()">' + escHtml(t('game.profil.savePassword')) + '</button>'
+      + '<button type="button" class="profil-alt-btn kirmizi" onclick="sifreKaydet()">' + btnHtml(t('game.profil.savePassword')) + '</button>'
       + '</div>';
   } else if (opts.ziyaretciModu && opts.oyuncuAdi) {
     var hedefAdEsc = String(opts.oyuncuAdi).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
     altBtn = '<div class="profil-ziyaret-aksiyon">'
       + '<div class="profil-alt-butonlar">'
-      + '<button type="button" class="profil-alt-btn kirmizi" onclick="profilZiyaretSaldir(\'' + hedefAdEsc + '\')">' + escHtml(t('game.profil.attack')) + '</button>'
-      + '<button type="button" class="profil-alt-btn koyu" onclick="profilZiyaretIstihbarat(\'' + hedefAdEsc + '\')">' + escHtml(t('game.profil.sendIntel')) + '</button>'
-      + '<button type="button" class="profil-alt-btn mavi" onclick="profilZiyaretMesajAc()">' + escHtml(t('game.profil.sendMessage')) + '</button>';
+      + '<button type="button" class="profil-alt-btn kirmizi" onclick="profilZiyaretSaldir(\'' + hedefAdEsc + '\')">' + btnHtml(t('game.profil.attack')) + '</button>'
+      + '<button type="button" class="profil-alt-btn koyu" onclick="profilZiyaretIstihbarat(\'' + hedefAdEsc + '\')">' + btnHtml(t('game.profil.sendIntel')) + '</button>'
+      + '<button type="button" class="profil-alt-btn mavi" onclick="profilZiyaretMesajAc()">' + btnHtml(t('game.profil.sendMessage')) + '</button>';
     if (opts.mafyaDavetGoster) {
-      altBtn += '<button type="button" class="profil-alt-btn yesil" onclick="profilMafyaDavetGonder(' + opts.userId + ')">' + escHtml(t('game.profil.mafiaInvite')) + '</button>';
+      altBtn += '<button type="button" class="profil-alt-btn yesil" onclick="profilMafyaDavetGonder(' + opts.userId + ')">' + btnHtml(t('game.profil.mafiaInvite')) + '</button>';
     } else if (opts.mafyaDavetBekliyor) {
-      altBtn += '<button type="button" class="profil-alt-btn koyu" disabled>' + escHtml(t('game.profil.mafiaInvitePending')) + '</button>';
+      altBtn += '<button type="button" class="profil-alt-btn koyu" disabled>' + btnHtml(t('game.profil.mafiaInvitePending')) + '</button>';
     }
     altBtn += '</div>'
       + '<div id="profilSaldirSonuc" class="profil-saldir-sonuc"></div>'
       + '<div id="profilZiyaretMesajAlani" class="gizli profil-ziyaret-mesaj">'
       + '<label for="profilZiyaretMesajMetin">' + escHtml(t('game.profil.yourMessage')) + '</label>'
       + '<textarea id="profilZiyaretMesajMetin" class="profil-ziyaret-textarea" rows="4" maxlength="500" placeholder="' + escHtml(t('game.profil.messagePlaceholder')) + '"></textarea>'
-      + '<button type="button" class="profil-alt-btn kirmizi" onclick="profilZiyaretMesajGonder()">' + escHtml(t('game.profil.sendMessageBtn')) + '</button>'
+      + '<button type="button" class="profil-alt-btn kirmizi" onclick="profilZiyaretMesajGonder()">' + btnHtml(t('game.profil.sendMessageBtn')) + '</button>'
       + '</div></div>';
   }
 
   var sekmelerHtml = '<div class="profil-sekmeler">'
-    + '<button type="button" class="profil-sekme aktif" data-sekme="karakter" onclick="profilSekmeDegistir(\'karakter\')">' + escHtml(t('game.profil.characterTab')) + '</button>';
+    + '<button type="button" class="profil-sekme aktif" data-sekme="karakter" onclick="profilSekmeDegistir(\'karakter\')">' + btnHtml(t('game.profil.characterTab')) + '</button>';
   if (opts.duzenlenebilir) {
-    sekmelerHtml += '<button type="button" class="profil-sekme" data-sekme="yetenekler" onclick="profilSekmeDegistir(\'yetenekler\')">' + escHtml(t('game.profil.skillsTab')) + '</button>';
+    sekmelerHtml += '<button type="button" class="profil-sekme" data-sekme="yetenekler" onclick="profilSekmeDegistir(\'yetenekler\')">' + btnHtml(t('game.profil.skillsTab')) + '</button>';
   }
-  sekmelerHtml += '<button type="button" class="profil-sekme" data-sekme="koleksiyon" onclick="profilSekmeDegistir(\'koleksiyon\')">' + escHtml(t('game.profil.collectionTab')) + '</button>';
-  sekmelerHtml += '<button type="button" class="profil-sekme" data-sekme="sagkol" onclick="profilSekmeDegistir(\'sagkol\')">' + escHtml(t('game.profil.rightHandTab')) + '</button>';
+  sekmelerHtml += '<button type="button" class="profil-sekme" data-sekme="koleksiyon" onclick="profilSekmeDegistir(\'koleksiyon\')">' + btnHtml(t('game.profil.collectionTab')) + '</button>';
+  sekmelerHtml += '<button type="button" class="profil-sekme" data-sekme="sagkol" onclick="profilSekmeDegistir(\'sagkol\')">' + btnHtml(t('game.profil.rightHandTab')) + '</button>';
   sekmelerHtml += '</div>';
 
   var yeteneklerSekmeHtml = opts.duzenlenebilir
@@ -6082,7 +6222,7 @@ function elmasMagazaTlKartHtml(p) {
     + '</div>'
     + '<button type="button" class="elmas-vip-tl-btn" onclick="elmasTlPaketSatinAl(\'' + p.id + '\')">'
     + '<span class="elmas-vip-tl-btn-parilti" aria-hidden="true"></span>'
-    + '<span>' + escHtml(t('game.premium.buy')) + '</span>'
+    + '<span>' + btnHtml(t('game.premium.buy')) + '</span>'
     + '</button>'
     + '</article>';
 }
@@ -6118,7 +6258,7 @@ function elmasMagazaKasaKartHtml(k) {
       + '<span>' + escHtml(t('game.gy.vaultExpires', { date: gyVaultBitisMetni(k.bitisAt) })) + '</span></div>';
     btnHtml = '<button type="button" class="elmas-vip-kasa-btn elmas-vip-kasa-btn--yenile"' + (!k.yeterliElmas ? ' disabled' : '')
       + ' onclick="guvenliYerKasaAl(\'' + k.id + '\')"><span class="elmas-vip-kasa-btn-parilti" aria-hidden="true"></span>'
-      + '<span>' + escHtml(t('game.gy.vaultRenew')) + '</span></button>';
+      + '<span>' + btnHtml(t('game.gy.vaultRenew')) + '</span></button>';
   } else if (k.kilitli) {
     durumHtml = '<div class="elmas-vip-kasa-durum elmas-vip-kasa-durum--kilit">🔒 ' + escHtml(gyVaultKilitNedeni(k)) + '</div>';
   } else {
@@ -6196,14 +6336,14 @@ function elmasMagazaPaketKart(p) {
     return '<li>' + escHtml(line) + '</li>';
   }).join('');
   var btn = ustAktif
-    ? '<button type="button" class="elmas-paket-btn elmas-paket-btn--aktif" disabled><span>' + escHtml(t('game.premium.active')) + '</span></button>'
+    ? '<button type="button" class="elmas-paket-btn elmas-paket-btn--aktif" disabled><span>' + btnHtml(t('game.premium.active')) + '</span></button>'
     : ayniAktif
       ? '<button type="button" class="elmas-paket-btn elmas-paket-btn--' + p.id + '" onclick="premiumPaketSatinAl(\'' + p.id + '\')">'
         + '<span class="elmas-paket-btn-parilti" aria-hidden="true"></span>'
-        + '<span>💎 ' + fmt(p.elmasMaliyet) + ' — ' + escHtml(t('game.premium.extend')) + '</span></button>'
+        + '<span>💎 ' + fmt(p.elmasMaliyet) + ' — ' + btnHtml(t('game.premium.extend')) + '</span></button>'
       : '<button type="button" class="elmas-paket-btn elmas-paket-btn--' + p.id + '" onclick="premiumPaketSatinAl(\'' + p.id + '\')">'
         + '<span class="elmas-paket-btn-parilti" aria-hidden="true"></span>'
-        + '<span>💎 ' + fmt(p.elmasMaliyet) + ' / ' + escHtml(t('game.premium.month')) + ' — ' + escHtml(t('game.premium.buy')) + '</span></button>';
+        + '<span>💎 ' + fmt(p.elmasMaliyet) + ' / ' + btnHtml(t('game.premium.month')) + ' — ' + btnHtml(t('game.premium.buy')) + '</span></button>';
   return '<article class="' + tierCls + '">'
     + (p.id === 'baron' ? '<span class="elmas-paket-vip-etiket">' + escHtml(t('game.premium.vipBadge')) + '</span>' : '')
     + '<div class="elmas-paket-ust">'
@@ -6247,7 +6387,7 @@ function elmasMagazaIcraatPaketHtml() {
   + durumHtml
     + '<button type="button" class="elmas-icraat-paket-btn"' + (disabled ? ' disabled' : '') + ' onclick="icraatPaketSatinAl()">'
     + '<span class="elmas-icraat-paket-btn-parilti" aria-hidden="true"></span>'
-    + '<span>' + escHtml(t('game.premium.icraatPackBuy')) + '</span></button>'
+    + '<span>' + btnHtml(t('game.premium.icraatPackBuy')) + '</span></button>'
     + '</div></div></section>';
 }
 
@@ -6269,14 +6409,14 @@ function elmasMagazaIcerikHtml() {
     : '';
   return '<div class="elmas-magaza-modal-ic elmas-magaza-modal-ic--genis elmas-magaza-modal-ic--vip">'
     + '<div class="elmas-vip-arkaplan" aria-hidden="true"><span class="elmas-vip-parilti"></span></div>'
-    + '<button type="button" class="elmas-magaza-x" onclick="elmasMagazaKapat()" aria-label="' + escHtml(t('game.welcome.close')) + '">×</button>'
+    + '<button type="button" class="elmas-magaza-x" onclick="elmasMagazaKapat()" aria-label="' + btnHtml(t('game.welcome.close')) + '">×</button>'
     + '<header class="elmas-vip-hero">'
-    + '<span class="elmas-vip-rozet">' + escHtml(t('game.premium.vipBadge')) + '</span>'
+    + '<span class="elmas-vip-rozet">' + btnHtml(t('game.premium.vipBadge')) + '</span>'
     + '<div class="elmas-magaza-baslik"><span class="elmas-magaza-ikon" aria-hidden="true">💎</span>'
-    + escHtml(t('game.profil.buyDiamonds')) + '</div>'
-    + '<p class="elmas-magaza-metin">' + escHtml(t('game.premium.vipTagline')) + '</p>'
+    + btnHtml(t('game.profil.buyDiamonds')) + '</div>'
+    + '<p class="elmas-magaza-metin">' + btnHtml(t('game.premium.vipTagline')) + '</p>'
     + '<div class="elmas-vip-bakiye-pil">'
-    + '<span class="elmas-vip-bakiye-etiket">' + escHtml(t('game.premium.balance')) + '</span>'
+    + '<span class="elmas-vip-bakiye-etiket">' + btnHtml(t('game.premium.balance')) + '</span>'
     + '<strong class="elmas-vip-bakiye-deger"><span aria-hidden="true">💎</span> ' + fmt(oyuncuElmas) + '</strong>'
     + '</div>'
     + '</header>'
@@ -6285,15 +6425,15 @@ function elmasMagazaIcerikHtml() {
     + '<section class="elmas-magaza-bolum elmas-magaza-bolum--aylik">'
     + '<div class="elmas-vip-bolum-baslik">'
     + '<span class="elmas-vip-bolum-ikon elmas-vip-bolum-ikon--altin" aria-hidden="true">👑</span>'
-    + '<div><h3 class="elmas-magaza-bolum-baslik">' + escHtml(t('game.premium.monthlyTitle')) + '</h3>'
-    + '<p class="elmas-magaza-bolum-alt">' + escHtml(t('game.premium.monthlyDesc')) + '</p></div>'
+    + '<div><h3 class="elmas-magaza-bolum-baslik">' + btnHtml(t('game.premium.monthlyTitle')) + '</h3>'
+    + '<p class="elmas-magaza-bolum-alt">' + btnHtml(t('game.premium.monthlyDesc')) + '</p></div>'
     + '</div>'
     + aktifMetin
     + '<div class="elmas-paket-grid">' + paketler.map(elmasMagazaPaketKart).join('') + '</div>'
     + '</section>'
     + elmasMagazaIcraatPaketHtml()
     + elmasMagazaKasalarHtml()
-    + '<p class="elmas-magaza-not">' + escHtml(t('game.premium.paymentNote')) + '</p>'
+    + '<p class="elmas-magaza-not">' + btnHtml(t('game.premium.paymentNote')) + '</p>'
     + '</div></div>';
 }
 
@@ -6592,7 +6732,7 @@ function profilResimVipSatinSlotHtml(koleksiyon, cinsiyet) {
     return '<span class="profil-elmas-koleksiyon-satin-alindi">' + escHtml(t('game.profil.vipCollectionOwned')) + '</span>';
   }
   return '<button type="button" class="profil-elmas-koleksiyon-satin-btn" data-koleksiyon="' + escHtml(koleksiyon) + '" data-cinsiyet="' + escHtml(cinsiyet) + '" onclick="vipPortreKoleksiyonSatinAlBtn(this)">'
-    + '<span class="profil-elmas-koleksiyon-satin-etiket">' + escHtml(t('game.profil.vipBuyCollection')) + '</span>'
+    + '<span class="profil-elmas-koleksiyon-satin-etiket">' + btnHtml(t('game.profil.vipBuyCollection')) + '</span>'
     + '<span class="profil-elmas-koleksiyon-satin-fiyat">💎 ' + fmt(fiyat.koleksiyon) + '</span>'
     + '</button>';
 }
@@ -6710,16 +6850,16 @@ function profilResmiSecModal(opts) {
       + '<h3 id="profilResimModalBaslik">' + escHtml(t('game.profil.selectPhoto')) + '</h3>'
       + '<p id="profilResimModalAciklama">' + escHtml(t('game.profil.selectPortrait')) + '</p>'
       + '<div class="profil-resim-sekmeler">'
-      + '<button type="button" class="profil-resim-sekme aktif" data-sekme="kadin" onclick="profilResimSekmeDegistir(\'kadin\')">' + escHtml(t('game.profil.female')) + '</button>'
-      + '<button type="button" class="profil-resim-sekme" data-sekme="erkek" onclick="profilResimSekmeDegistir(\'erkek\')">' + escHtml(t('game.profil.male')) + '</button>'
-      + '<button type="button" class="profil-resim-sekme profil-resim-sekme--vip" data-sekme="vip-erkek" onclick="profilResimSekmeDegistir(\'vip-erkek\')">' + escHtml(t('game.profil.vipMale')) + '</button>'
-      + '<button type="button" class="profil-resim-sekme profil-resim-sekme--vip" data-sekme="vip-kadin" onclick="profilResimSekmeDegistir(\'vip-kadin\')">' + escHtml(t('game.profil.vipFemale')) + '</button>'
+      + '<button type="button" class="profil-resim-sekme aktif" data-sekme="kadin" onclick="profilResimSekmeDegistir(\'kadin\')">' + btnHtml(t('game.profil.female')) + '</button>'
+      + '<button type="button" class="profil-resim-sekme" data-sekme="erkek" onclick="profilResimSekmeDegistir(\'erkek\')">' + btnHtml(t('game.profil.male')) + '</button>'
+      + '<button type="button" class="profil-resim-sekme profil-resim-sekme--vip" data-sekme="vip-erkek" onclick="profilResimSekmeDegistir(\'vip-erkek\')">' + btnHtml(t('game.profil.vipMale')) + '</button>'
+      + '<button type="button" class="profil-resim-sekme profil-resim-sekme--vip" data-sekme="vip-kadin" onclick="profilResimSekmeDegistir(\'vip-kadin\')">' + btnHtml(t('game.profil.vipFemale')) + '</button>'
       + '</div>'
       + '<div id="profilResimGridKadin" class="profil-resim-grid"></div>'
       + '<div id="profilResimGridErkek" class="profil-resim-grid gizli"></div>'
       + profilResimVipPanelHtml('profilResimVipErkekPanel', 'profilResimGridVipErkekElmas', 'profilResimGridVipErkekMafya', 'profilResimGridVipErkekKral', 'profilResimGridVipErkekIhtisam', 'profilResimGridVipErkekKaranlik', 'profilResimGridVipErkekAslan', 'profilResimGridVipErkekOperasyon', 'profilResimGridVipErkekVip', true, 'erkek')
       + profilResimVipPanelHtml('profilResimVipKadinPanel', 'profilResimGridVipKadinElmas', 'profilResimGridVipKadinMafya', 'profilResimGridVipKadinKral', 'profilResimGridVipKadinIhtisam', 'profilResimGridVipKadinKaranlik', 'profilResimGridVipKadinAslan', 'profilResimGridVipKadinOperasyon', 'profilResimGridVipKadinVip', true, 'kadin')
-      + '<button type="button" class="profil-resim-modal-kapat" onclick="profilResmiModalKapat()">' + escHtml(t('game.welcome.close')) + '</button>'
+      + '<button type="button" class="profil-resim-modal-kapat" onclick="profilResmiModalKapat()">' + btnHtml(t('game.welcome.close')) + '</button>'
       + '</div>';
     document.body.appendChild(modal);
     modal.addEventListener('click', function(e) {
@@ -6932,6 +7072,26 @@ async function profilResmiUygula(btn) {
 
 function escHtml(s) {
   return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+/** Buton metninden [ … ] ve baştaki emoji süsünü temizler. */
+function sadeBtnMetin(s) {
+  var t = String(s == null ? '' : s).trim();
+  if (t.length >= 2 && t.charAt(0) === '[' && t.charAt(t.length - 1) === ']') {
+    if (!/^\[\s*\{[^}]+\}\s*\]$/.test(t) && t.length < 120) {
+      t = t.slice(1, -1).trim();
+    }
+  }
+  try {
+    t = t.replace(/^(?:\p{Extended_Pictographic})\uFE0F?(?:\u200D(?:\p{Extended_Pictographic})\uFE0F?)*\s+/u, '');
+  } catch (e) {
+    t = t.replace(/^[\uD800-\uDBFF][\uDC00-\uDFFF]\uFE0F?\s+/, '');
+  }
+  return t;
+}
+
+function btnHtml(s) {
+  return escHtml(sadeBtnMetin(s));
 }
 
 function oyuncuLink(userId, isim, premiumPaket, sehreHukmeden) {
@@ -7299,7 +7459,7 @@ function gazeteIsIlanlariHTML(isIlanlari) {
   if (isIlanlari.sahipSirket && !isIlanlari.sahipSirket.iseAlimAcik) {
     html += '<div class="gazete-is-patron-cta">';
     html += '<strong>👔 ' + escHtml(isIlanlari.sahipSirket.isim) + '</strong> — ' + escHtml(t('game.gazete.jobClosed'));
-    html += ' <button type="button" class="gazete-is-patron-btn" onclick="meslekSirketimAc()">' + escHtml(t('game.gazete.postJob')) + '</button>';
+    html += ' <button type="button" class="gazete-is-patron-btn" onclick="meslekSirketimAc()">' + btnHtml(t('game.gazete.postJob')) + '</button>';
     html += '</div>';
   }
   if (!ilanlar.length) {
@@ -7350,7 +7510,7 @@ function gazeteIsIlanlariHTML(isIlanlari) {
           html += '<span class="gazete-is-etiket-basvuru">' + escHtml(t('game.gazete.applied')) + '</span>';
         } else if (p.uygun) {
           html += '<button type="button" class="gazete-is-btn" onclick="gazeteIsBasvur('
-            + s.id + ',\'' + pozIdEsc + '\')">' + escHtml(t('game.gazete.apply')) + '</button>';
+            + s.id + ',\'' + pozIdEsc + '\')">' + btnHtml(t('game.gazete.apply')) + '</button>';
         } else {
           html += '<span class="gazete-is-etiket-yetersiz">' + escHtml(t('game.gazete.insufficientSkill')) + '</span>';
         }
@@ -7560,7 +7720,7 @@ async function gazeteEkranCiz(ic) {
       piyangoHtml += '</p>'
         + '<p class="gazete-piyango-meta">' + escHtml(t('game.gazete.lotteryBoxDraw')) + ': ' + escHtml(py.cekilisMetin || '—')
         + ' · ' + escHtml(t('game.gazete.lotteryBoxTickets', { n: fmt(py.biletAdet || 0) })) + '</p>'
-        + '<button type="button" class="gazete-piyango-btn" onclick="gazetePiyangoAc()">' + escHtml(t('game.kumarhane.lotteryBuy')) + '</button>'
+        + '<button type="button" class="gazete-piyango-btn" onclick="gazetePiyangoAc()">' + btnHtml(t('game.kumarhane.lotteryBuy')) + '</button>'
         + '</div></section>';
     }
 
@@ -8150,29 +8310,38 @@ function ekranDegistir(tip) {
   if (tip === 'sporSalonu') { sporSalonuEkranCiz(ic); return; }
 
   if (tip === 'mahalle') {
-    ic.innerHTML = '<h2>' + escHtml(t('game.buyume.mahalleTitle')) + '</h2><p>' + escHtml(t('game.buyume.mahalleQuote')) + '</p>'
-      + buyumeIsKart('market', 'market', '+800 TL', '1', '300', 1)
+    ic.innerHTML = isMagazaHTML(
+      t('game.buyume.mahalleTitle'),
+      t('game.buyume.mahalleQuote'),
+      buyumeIsKart('market', 'market', '+800 TL', '1', '300', 1)
       + buyumeIsKart('tamirhane', 'tamirhane', '+950 TL', '1', '580', 2)
       + buyumeIsKart('esnafa_guvence', 'koruma', '+2.200 TL', '2', '1.110', 4)
-      + buyumeIsKart('zar_salonu', 'kumarhane', '+2.600 TL', '2', '2.135', 6);
+      + buyumeIsKart('zar_salonu', 'kumarhane', '+2.600 TL', '2', '2.135', 6)
+    );
     return;
   }
 
   if (tip === 'semt') {
-    ic.innerHTML = '<h2>' + escHtml(t('game.buyume.semtTitle')) + '</h2><p>' + escHtml(t('game.buyume.semtQuote')) + '</p>'
-      + buyumeIsKart('gece_kulubu', 'gece_kulubu', '+4.600 TL', '3', '4.106', 9)
+    ic.innerHTML = isMagazaHTML(
+      t('game.buyume.semtTitle'),
+      t('game.buyume.semtQuote'),
+      buyumeIsKart('gece_kulubu', 'gece_kulubu', '+4.600 TL', '3', '4.106', 9)
       + buyumeIsKart('kumarhane_agi', 'kumarhane_agi', '+5.400 TL', '3', '7.899', 14)
       + buyumeIsKart('kara_para', 'kara_para', '+8.500 TL', '4', '15.193', 21)
-      + buyumeIsKart('semt_galeri', 'galeri', '+10.000 TL', '4', '29.223', 33);
+      + buyumeIsKart('semt_galeri', 'galeri', '+10.000 TL', '4', '29.223', 33)
+    );
     return;
   }
 
   if (tip === 'sehir') {
-    ic.innerHTML = '<h2>' + escHtml(t('game.buyume.sehirTitle')) + '</h2><p>' + escHtml(t('game.buyume.sehirQuote')) + '</p>'
-      + buyumeIsKart('lojistik', 'lojistik', '+14.700 TL', '5', '56.209', 51)
+    ic.innerHTML = isMagazaHTML(
+      t('game.buyume.sehirTitle'),
+      t('game.buyume.sehirQuote'),
+      buyumeIsKart('lojistik', 'lojistik', '+14.700 TL', '5', '56.209', 51)
       + buyumeIsKart('gumruk', 'gumruk', '+20.800 TL', '6', '108.116', 79)
       + buyumeIsKart('belediye', 'belediye', '+32.700 TL', '8', '207.958', 90)
-      + buyumeIsKart('buyuk_holding', 'holding', '+48.000 TL', '10', '400.000', 100);
+      + buyumeIsKart('buyuk_holding', 'holding', '+48.000 TL', '10', '400.000', 100)
+    );
     return;
   }
 
@@ -8468,6 +8637,9 @@ async function isYap(key) {
     jobOlayModalAc(ef);
     return;
   }
+  if (ef.hapisGiris) {
+    toast(t('game.job.event.informantPrison'), 'hata');
+  }
   isTamamlaPencereAc(ef);
 }
 
@@ -8746,10 +8918,10 @@ function mafyaAltEkran(mod, zatenUye) {
       + '<h3 class="bolum-baslik">' + escHtml(t('game.mafya.createTitle')) + '</h3>'
       + '<p class="mafya-metin-dim">' + escHtml(t('game.mafya.createDesc')) + '</p>'
       + '<input type="text" id="mafyaIsim" placeholder="' + escHtml(t('game.mafya.groupNamePlaceholder')) + '" maxlength="32">'
-      + '<button type="button" class="btn-is" onclick="mafyaOlusturAdim1()">' + escHtml(t('game.mafya.createBtn')) + '</button>'
-      + '<div id="mafyaAciklamaAlan" class="gizli"><label>' + escHtml(t('game.mafya.descLabel')) + '</label>'
-      + '<textarea id="mafyaAciklama" rows="3" maxlength="200" placeholder="' + escHtml(t('game.mafya.descPlaceholder')) + '"></textarea>'
-      + '<button type="button" class="btn-is kirmizi-btn" onclick="mafyaOlusturAdim2()">' + escHtml(t('game.mafya.createGroupFinalBtn')) + '</button></div></div>'
+      + '<button type="button" class="btn-is" onclick="mafyaOlusturAdim1()">' + btnHtml(t('game.mafya.createBtn')) + '</button>'
+      + '<div id="mafyaAciklamaAlan" class="gizli"><label>' + btnHtml(t('game.mafya.descLabel')) + '</label>'
+      + '<textarea id="mafyaAciklama" rows="3" maxlength="200" placeholder="' + btnHtml(t('game.mafya.descPlaceholder')) + '"></textarea>'
+      + '<button type="button" class="btn-is kirmizi-btn" onclick="mafyaOlusturAdim2()">' + btnHtml(t('game.mafya.createGroupFinalBtn')) + '</button></div></div>'
       + '<div id="mafyaGurupListeEk" class="mafya-grup-liste" style="margin-top:16px;"></div>';
     mafyaTumGuruplariGoster('mafyaGurupListeEk');
     return;
@@ -8759,7 +8931,7 @@ function mafyaAltEkran(mod, zatenUye) {
       + '<h3 class="bolum-baslik">' + escHtml(t('game.mafya.joinTitle')) + '</h3>'
       + '<p class="mafya-metin-dim">' + escHtml(t('game.mafya.joinDesc')) + '</p>'
       + '<input type="text" id="mafyaAra" placeholder="' + escHtml(t('game.mafya.searchPlaceholder')) + '">'
-      + '<button type="button" class="btn-is mavi-btn" onclick="mafyaAra()">' + escHtml(t('game.mafya.searchBtn')) + '</button>'
+      + '<button type="button" class="btn-is mavi-btn" onclick="mafyaAra()">' + btnHtml(t('game.mafya.searchBtn')) + '</button>'
       + '<div id="mafyaAraSonuc" style="margin-top:14px;"></div></div>'
       + '<div id="mafyaGurupListeEk" class="mafya-grup-liste" style="margin-top:16px;"></div>';
     mafyaTumGuruplariGoster('mafyaGurupListeEk');
@@ -8775,53 +8947,86 @@ function mafyaAltEkran(mod, zatenUye) {
 }
 
 async function mafyaIslerCiz(box) {
-  box.innerHTML = '<p class="mafya-yukleniyor">' + escHtml(t('game.loading')) + '</p>';
-  if (!sunucuBagli) { box.innerHTML = '<p class="mafya-bos-metin" style="color:#c00;">' + escHtml(t('game.error.serverOffline')) + '</p>'; return; }
+  box.innerHTML = '<div class="gk-sayfa gk-sayfa--mafya"><p class="mafya-yukleniyor">' + escHtml(t('game.loading')) + '</p></div>';
+  if (!sunucuBagli) {
+    box.innerHTML = '<div class="gk-sayfa gk-sayfa--mafya">'
+      + '<header class="gk-banner"><h2 class="gk-banner-baslik">' + escHtml(t('game.mafya.jobsTitle')) + '</h2></header>'
+      + '<p class="mafya-bos-metin">' + escHtml(t('game.error.serverOffline')) + '</p></div>';
+    return;
+  }
   try {
     var res = await apiFetch('/api/mafya/isler');
     var data = await res.json().catch(function() { return {}; });
     if (!res.ok || !data.ok || !data.panel) throw new Error(data.error || t('game.error.loadFailed'));
     var panel = data.panel;
     if (!panel.grup) {
-      box.innerHTML = '<div class="mafya-isler-wrap"><h2>' + escHtml(t('game.mafya.jobsTitle')) + '</h2><p class="mafya-metin">' + escHtml(t('game.mafya.jobsNeedMember')) + '</p></div>';
+      box.innerHTML = '<div class="gk-sayfa gk-sayfa--mafya">'
+        + '<header class="gk-banner">'
+        + '<h2 class="gk-banner-baslik">' + escHtml(t('game.mafya.jobsTitle')) + '</h2>'
+        + '<div class="gk-banner-cizgi" aria-hidden="true"></div>'
+        + '<p class="gk-banner-alinti">' + escHtml(t('game.mafya.jobsQuote')) + '</p>'
+        + '</header>'
+        + '<p class="gk-elit-not">' + escHtml(t('game.mafya.jobsNeedMember')) + '</p></div>';
       return;
     }
     var aktif = panel.aktifIs;
     var aktifKey = aktif ? aktif.isTuru : null;
-    var html = '<div class="mafya-isler-wrap"><h2>' + escHtml(t('game.mafya.jobsTitle')) + '</h2>'
-      + '<p>' + escHtml(t('game.mafya.jobsQuote')) + '</p>'
-      + '<div class="is-kart mafya-isler-ozet">'
-      + '<p><b>' + escHtml(t('game.mafya.groupOnline')) + '</b> ' + panel.grup.onlineSayisi + ' / ' + panel.grup.uyeSayisi + '</p>'
-      + (aktif ? ('<p><b>' + escHtml(t('game.mafya.activePrep')) + '</b> ' + escHtml(tr(aktif.isTuru)) + '</p>') : '<p class="mafya-metin-dim">' + escHtml(t('game.mafya.noActivePrep')) + '</p>')
-      + '</div>';
+    var html = '<div class="gk-sayfa gk-sayfa--mafya">'
+      + '<header class="gk-banner">'
+      + '<h2 class="gk-banner-baslik">' + escHtml(t('game.mafya.jobsTitle')) + '</h2>'
+      + '<div class="gk-banner-cizgi" aria-hidden="true"></div>'
+      + '<p class="gk-banner-alinti">' + escHtml(t('game.mafya.jobsQuote')) + '</p>'
+      + '</header>'
+      + '<div class="gk-elit-not">'
+      + '<b>' + escHtml(t('game.mafya.groupOnline')) + '</b> ' + panel.grup.onlineSayisi + ' / ' + panel.grup.uyeSayisi
+      + ' · '
+      + (aktif
+        ? ('<b>' + escHtml(t('game.mafya.activePrep')) + '</b> ' + escHtml(tr(aktif.isTuru)))
+        : escHtml(t('game.mafya.noActivePrep')))
+      + '</div><div class="gk-grid mafya-is-grid">';
 
     (panel.isler || []).forEach(function(isDef) {
       var img = mafyaIsGorseller[isDef.gorselKey] || FALLBACK;
       var aktifMi = aktifKey === isDef.key;
-      html += '<div class="is-kart"><div class="is-yapi">'
-        + '<img src="' + img + '" class="vesikalik-resim" onerror="imgFallback(this)">'
-        + '<div class="is-detay"><h3>' + escHtml(tr(isDef.ad)) + '</h3>'
-        + '<p>' + escHtml(t('game.mafya.reqOnline')) + ' <b>' + isDef.minOnline + '</b>' + escHtml(t('game.mafya.onlineMembers')) + ' &nbsp;|&nbsp; ' + escHtml(t('game.mafya.eachMinPower')) + ' <b>' + fmt(isDef.minGuc) + '</b>' + escHtml(t('game.mafya.powerWord')) + '</p>'
-        + '<p>' + escHtml(t('game.mafya.earnPerPerson')) + ' <b style="color:#28a745;">' + fmt(isDef.kazancKisi) + ' TL</b> &nbsp;|&nbsp; ' + escHtml(t('game.mafya.respectGain')) + ' <b>+' + isDef.sayginlikKisi + '</b> &nbsp;|&nbsp; ' + escHtml(t('game.mafya.icraatCost')) + ' <b>' + isDef.icraat + '</b></p>'
-        + '<p>' + escHtml(t('game.mafya.powerLossRisk')) + ' <b>%' + Math.round((Number(isDef.gucRisk) || 0) * 100) + '</b></p>'
-        + '<button class="btn-is" onclick="mafyaIsKatil(\'' + isDef.key + '\')">' + escHtml(t('game.mafya.joinHeist')) + '</button>';
+      var riskPct = Math.round((Number(isDef.gucRisk) || 0) * 100);
+      var kartCls = 'gk-kart mafya-is-kart' + (aktifMi ? ' mafya-is-kart--aktif' : '');
+      html += '<article class="' + kartCls + '">'
+        + '<div class="gk-medya gk-medya--fit"><img src="' + img + '" alt="" loading="lazy" decoding="async" onerror="imgFallback(this)"></div>'
+        + '<div class="gk-govde">'
+        + '<h3 class="gk-baslik">' + escHtml(tr(isDef.ad))
+        + (aktifMi ? ' <span class="gk-rozet">' + escHtml(t('game.mafya.activePrep')) + '</span>' : '')
+        + '</h3>'
+        + '<div class="gk-metrikler">'
+        + '<div class="gk-metrik gk-metrik--kazanc"><span class="gk-metrik-etiket">' + escHtml(t('game.mafya.earnPerPerson')) + '</span>'
+        + '<div class="gk-metrik-deger">' + fmt(isDef.kazancKisi) + ' TL</div></div>'
+        + '<div class="gk-metrik"><span class="gk-metrik-etiket">' + escHtml(t('game.mafya.respectGain')) + '</span>'
+        + '<div class="gk-metrik-deger">+' + isDef.sayginlikKisi + '</div></div>'
+        + '</div>'
+        + '<p class="gk-sahip gk-sahip--sart">'
+        + escHtml(t('game.mafya.reqOnline')) + ' <b>' + isDef.minOnline + '</b>'
+        + ' · ' + escHtml(t('game.mafya.eachMinPower')) + ' <b>' + fmt(isDef.minGuc) + '</b>'
+        + ' · ⚡ <b>' + isDef.icraat + '</b>'
+        + ' · ' + escHtml(t('game.mafya.powerLossRisk')) + ' <b>%' + riskPct + '</b></p>'
+        + '<div class="mafya-is-btns">'
+        + '<button type="button" class="gk-btn" onclick="mafyaIsKatil(\'' + isDef.key + '\')">' + btnHtml(t('game.mafya.joinHeist')) + '</button>';
       if (aktifMi) {
-        html += '<button class="btn-is kirmizi-btn" style="margin-left:8px;" onclick="mafyaIsGerceklestir(' + aktif.id + ')">' + escHtml(t('game.mafya.executeHeist')) + '</button>';
-      }
-      html += '</div></div>';
-
-      if (aktifMi) {
-        var list = panel.katilanlar || [];
-        html += '<div class="mafya-metin" style="margin-top:10px;"><b>' + escHtml(t('game.mafya.participants')) + '</b> '
-          + (list.length ? list.map(function(k) { return (k.online ? '🟢 ' : '⚫ ') + k.reisAdi; }).join(' , ') : escHtml(t('game.empty.noneYet')))
-          + '</div>';
+        html += '<button type="button" class="gk-btn gk-btn--kirmizi" onclick="mafyaIsGerceklestir(' + aktif.id + ')">' + btnHtml(t('game.mafya.executeHeist')) + '</button>';
       }
       html += '</div>';
+      if (aktifMi) {
+        var list = panel.katilanlar || [];
+        html += '<p class="gk-sahip mafya-is-katilimcilar"><b>' + escHtml(t('game.mafya.participants')) + '</b> '
+          + (list.length ? list.map(function(k) { return (k.online ? '🟢 ' : '⚫ ') + escHtml(k.reisAdi); }).join(', ') : escHtml(t('game.empty.noneYet')))
+          + '</p>';
+      }
+      html += '</div></article>';
     });
-    html += '</div>';
+    html += '</div></div>';
     box.innerHTML = html;
   } catch (e) {
-    box.innerHTML = '<div class="mafya-isler-wrap"><h2>' + escHtml(t('game.mafya.jobsTitle')) + '</h2><p class="mafya-bos-metin" style="color:#c00;">' + (e.message || t('game.error.loadFailed')) + '</p></div>';
+    box.innerHTML = '<div class="gk-sayfa gk-sayfa--mafya">'
+      + '<header class="gk-banner"><h2 class="gk-banner-baslik">' + escHtml(t('game.mafya.jobsTitle')) + '</h2></header>'
+      + '<p class="mafya-bos-metin">' + escHtml(e.message || t('game.error.loadFailed')) + '</p></div>';
   }
 }
 
@@ -8863,9 +9068,9 @@ async function mafyaEviCiz(box) {
     html += '<div class="is-kart mafya-evi-alt" style="max-width:520px;margin:0 auto;">'
       + '<h3 class="bolum-baslik">' + escHtml(t('game.mafya.donation')) + '</h3>'
       + '<input type="number" id="mafyaHibe" class="dusman-input" placeholder="' + escHtml(t('game.mafya.donatePlaceholder')) + '" style="width:100%;margin-bottom:8px;">'
-      + '<button class="btn-is" onclick="mafyaEviHibe()">' + escHtml(t('game.mafya.donateBtn')) + '</button>';
+      + '<button class="btn-is" onclick="mafyaEviHibe()">' + btnHtml(t('game.mafya.donateBtn')) + '</button>';
     if (data.benLiderim) {
-      html += '<button class="btn-is kirmizi-btn" style="margin-left:8px;" onclick="mafyaEviSeviye()">' + escHtml(t('game.mafya.levelUpBtn')) + '</button>';
+      html += '<button class="btn-is kirmizi-btn" style="margin-left:8px;" onclick="mafyaEviSeviye()">' + btnHtml(t('game.mafya.levelUpBtn')) + '</button>';
     }
     html += '</div>';
     box.innerHTML = html;
@@ -8912,7 +9117,7 @@ async function mafyaSavaslarCiz(box) {
       html += '<div class="is-kart" style="padding:14px;max-width:520px;margin:0 auto 14px;">'
         + '<p style="color:#888;margin-bottom:8px;">' + escHtml(t('game.mafya.warsDesc')) + '</p>'
         + '<input type="text" id="mafyaSavasHedef" class="dusman-input" placeholder="' + escHtml(t('game.mafya.warsTargetPlaceholder')) + '" style="width:100%;margin-bottom:8px;">'
-        + '<button class="btn-is kirmizi-btn" onclick="mafyaSavasIlan()">' + escHtml(t('game.mafya.declareWar')) + '</button>'
+        + '<button class="btn-is kirmizi-btn" onclick="mafyaSavasIlan()">' + btnHtml(t('game.mafya.declareWar')) + '</button>'
         + '</div>';
     }
     data.savaslar.forEach(function(s) {
@@ -8926,7 +9131,7 @@ async function mafyaSavaslarCiz(box) {
         if (s.ben_katildim) {
           html += '<p style="color:#888;">' + escHtml(t('game.mafya.warAlreadyJoined')) + '</p>';
         } else {
-          html += '<button class="btn-is" onclick="mafyaSavasaKatil(' + s.id + ')">' + escHtml(t('game.mafya.joinWar')) + '</button>';
+          html += '<button class="btn-is" onclick="mafyaSavasaKatil(' + s.id + ')">' + btnHtml(t('game.mafya.joinWar')) + '</button>';
         }
       }
       html += '</div>';
@@ -8999,7 +9204,7 @@ function mafyaGurupListesiHTML(gruplar, basvuruModu) {
     if (g.uye_sayisi != null) html += '<p class="mafya-metin-dim">' + g.uye_sayisi + escHtml(t('game.mafya.membersCount')) + '</p>';
     html += '<p>' + escHtml(mafyaAciklamaListeMetin(g.aciklama)) + '</p>';
     if (basvuruModu) {
-      html += '<button class="btn-is" onclick="mafyaBasvur(' + g.id + ')">' + escHtml(t('game.mafya.applyBtn')) + '</button>';
+      html += '<button class="btn-is" onclick="mafyaBasvur(' + g.id + ')">' + btnHtml(t('game.mafya.applyBtn')) + '</button>';
     }
     html += '</div>';
   });
@@ -9072,8 +9277,8 @@ async function mafyaGurubumCiz(box) {
       + '</div></div>';
     if (data.uyelik.benLiderim) {
       html += '<div class="mafya-btn-satir">'
-        + '<button type="button" class="btn-is" onclick="mafyaGrupIsimDegistir()">' + escHtml(t('game.mafya.renameBtn')) + '</button>'
-        + '<button type="button" class="btn-is" onclick="mafyaGrupAciklamaDegistir()">' + escHtml(t('game.mafya.editDescBtn')) + '</button>'
+        + '<button type="button" class="btn-is" onclick="mafyaGrupIsimDegistir()">' + btnHtml(t('game.mafya.renameBtn')) + '</button>'
+        + '<button type="button" class="btn-is" onclick="mafyaGrupAciklamaDegistir()">' + btnHtml(t('game.mafya.editDescBtn')) + '</button>'
         + '</div>';
     }
     html += '</div>';
@@ -9098,12 +9303,12 @@ async function mafyaGurubumCiz(box) {
       var offlineColor = offlineHours > 24 ? '#f08080' : (offlineHours > 1 ? '#ffa500' : '#90ee90');
       html += '<div class="tablo-izgara"><span class="uye-isim">' + u.reis_adi + '</span><span class="uye-rutbe">' + u.rutbe + '</span><span class="uye-puan">' + fmt(u.puan) + '</span><span style="color:' + offlineColor + ';">' + offlineStr + '</span><span>';
       if (liderSatir) {
-        html += '<button type="button" class="btn-is" style="padding:4px 8px;font-size:11px;" onclick="mafyaRutbe(' + u.user_id + ')">' + escHtml(t('game.mafya.editRank')) + '</button> '
-          + '<button type="button" class="btn-is mavi-btn" style="padding:4px 8px;font-size:11px;" onclick="mafyaDevret(' + u.user_id + ')">' + escHtml(t('game.mafya.transferCrown')) + '</button>';
+        html += '<button type="button" class="btn-is" style="padding:4px 8px;font-size:11px;" onclick="mafyaRutbe(' + u.user_id + ')">' + btnHtml(t('game.mafya.editRank')) + '</button> '
+          + '<button type="button" class="btn-is mavi-btn" style="padding:4px 8px;font-size:11px;" onclick="mafyaDevret(' + u.user_id + ')">' + btnHtml(t('game.mafya.transferCrown')) + '</button>';
       } else html += '—';
       html += '</span><span>';
       if (liderSatir) {
-        html += '<button type="button" class="btn-is kirmizi-btn" style="padding:4px 8px;font-size:11px;" onclick="mafyaCikar(' + u.user_id + ')">' + escHtml(t('game.mafya.kick')) + '</button>';
+        html += '<button type="button" class="btn-is kirmizi-btn" style="padding:4px 8px;font-size:11px;" onclick="mafyaCikar(' + u.user_id + ')">' + btnHtml(t('game.mafya.kick')) + '</button>';
       } else html += '—';
       html += '</span></div>';
     });
@@ -9114,17 +9319,17 @@ async function mafyaGurubumCiz(box) {
           + '<h3 class="bolum-baslik">' + escHtml(t('game.mafya.applications')) + '</h3>';
         data.basvurular.forEach(function(b) {
           html += '<p class="mafya-basvuru-satir"><span>' + escHtml(b.reis_adi) + '</span>'
-            + '<button type="button" class="btn-is" onclick="mafyaKabul(' + b.id + ')">' + escHtml(t('game.mafya.accept')) + '</button>'
-            + '<button type="button" class="btn-is kirmizi-btn" onclick="mafyaRed(' + b.id + ')">' + escHtml(t('game.mafya.reject')) + '</button></p>';
+            + '<button type="button" class="btn-is" onclick="mafyaKabul(' + b.id + ')">' + btnHtml(t('game.mafya.accept')) + '</button>'
+            + '<button type="button" class="btn-is kirmizi-btn" onclick="mafyaRed(' + b.id + ')">' + btnHtml(t('game.mafya.reject')) + '</button></p>';
         });
         html += '</div>';
       }
-      html += '<div class="mafya-alt-aksiyon"><button type="button" class="btn-is kirmizi-btn" onclick="mafyaDagit()">' + escHtml(t('game.mafya.disbandBtn')) + '</button></div>';
+      html += '<div class="mafya-alt-aksiyon"><button type="button" class="btn-is kirmizi-btn" onclick="mafyaDagit()">' + btnHtml(t('game.mafya.disbandBtn')) + '</button></div>';
     } else {
-      html += '<div class="mafya-alt-aksiyon"><button type="button" class="btn-is kirmizi-btn" onclick="mafyaCik()">' + escHtml(t('game.mafya.leaveBtn')) + '</button></div>';
+      html += '<div class="mafya-alt-aksiyon"><button type="button" class="btn-is kirmizi-btn" onclick="mafyaCik()">' + btnHtml(t('game.mafya.leaveBtn')) + '</button></div>';
     }
     html += '<div class="mafya-grup-mesaj-alan">'
-      + '<button type="button" class="btn-is mavi-btn mafya-grup-mesaj-btn" onclick="mafyaGrupMesajModal()">' + escHtml(t('game.mafya.groupMsgBtn')) + '</button>'
+      + '<button type="button" class="btn-is mavi-btn mafya-grup-mesaj-btn" onclick="mafyaGrupMesajModal()">' + btnHtml(t('game.mafya.groupMsgBtn')) + '</button>'
       + '</div></div>';
     box.innerHTML = html;
     window.__mafyaGrupAciklamaHtml = data.uyelik.aciklama || '';
@@ -9159,11 +9364,11 @@ function mafyaEviBolumHTML(ev, grupAdi, benLiderim) {
     + '<div class="mafya-hibe-form">'
     + '<input type="number" id="mafyaHibe" class="dusman-input" placeholder="' + escHtml(t('game.mafya.donatePlaceholder')) + '">'
     + '<div class="mafya-btn-satir">'
-    + '<button class="btn-is" onclick="mafyaEviHibe()">' + escHtml(t('game.mafya.donateBtn')) + '</button>';
+    + '<button class="btn-is" onclick="mafyaEviHibe()">' + btnHtml(t('game.mafya.donateBtn')) + '</button>';
   if (benLiderim) {
-    html += '<button class="btn-is kirmizi-btn" onclick="mafyaEviSeviye()">' + escHtml(t('game.mafya.levelUpBtn')) + '</button>';
+    html += '<button class="btn-is kirmizi-btn" onclick="mafyaEviSeviye()">' + btnHtml(t('game.mafya.levelUpBtn')) + '</button>';
   }
-  html += '<button type="button" class="btn-is mavi-btn" onclick="mafyaHibeGecmisiGoster()">' + escHtml(t('game.mafya.viewDonations')) + '</button>'
+  html += '<button type="button" class="btn-is mavi-btn" onclick="mafyaHibeGecmisiGoster()">' + btnHtml(t('game.mafya.viewDonations')) + '</button>'
     + '</div></div>'
     + '<div id="mafyaHibeGecmisi" class="gizli mafya-hibe-tablo" style="margin-top:12px;"></div>'
     + '</div></div>';
@@ -9179,7 +9384,7 @@ function mafyaSavasBolumHTML(mafyaData, savasData) {
       + '<p class="mafya-metin-dim">' + escHtml(t('game.mafya.warsDesc')) + '</p>'
       + '<div class="mafya-hibe-form">'
       + '<input type="text" id="mafyaSavasHedef" class="dusman-input" placeholder="' + escHtml(t('game.mafya.warsTargetPlaceholder')) + '">'
-      + '<div class="mafya-btn-satir"><button class="btn-is kirmizi-btn" onclick="mafyaSavasIlan()">' + escHtml(t('game.mafya.declareWar')) + '</button></div>'
+      + '<div class="mafya-btn-satir"><button class="btn-is kirmizi-btn" onclick="mafyaSavasIlan()">' + btnHtml(t('game.mafya.declareWar')) + '</button></div>'
       + '</div></div>';
   }
   if (!savasData.ok || !savasData.savaslar || !savasData.savaslar.length) {
@@ -9198,7 +9403,7 @@ function mafyaSavasBolumHTML(mafyaData, savasData) {
       if (s.ben_katildim) {
         html += '<p class="mafya-metin-dim">' + escHtml(t('game.mafya.warAlreadyJoined')) + '</p>';
       } else {
-        html += '<button class="btn-is" onclick="mafyaSavasaKatil(' + s.id + ')">' + escHtml(t('game.mafya.joinWar')) + '</button>';
+        html += '<button class="btn-is" onclick="mafyaSavasaKatil(' + s.id + ')">' + btnHtml(t('game.mafya.joinWar')) + '</button>';
       }
     }
     html += '</div>';
@@ -9304,7 +9509,7 @@ async function mafyaAra() {
     html += '<div class="is-kart" style="text-align:center;padding:14px;margin-top:10px;"><b><button type="button" class="btn-is mavi-btn" style="margin:0;padding:4px 12px;" onclick="mafyaGrupGoster(' + g.id + ')">' + escHtml(g.isim) + '</button></b>'
       + '<p class="mafya-metin-dim" style="margin-top:8px;">' + escHtml(t('game.mafya.leaderLabel')) + ' <b style="color:#e8dcc0;">' + escHtml(g.lider_adi) + '</b></p>'
       + '<p class="mafya-metin">' + escHtml(mafyaAciklamaListeMetin(g.aciklama)) + '</p>'
-      + '<button class="btn-is" onclick="mafyaBasvur(' + g.id + ')">' + escHtml(t('game.mafya.applyBtn')) + '</button></div>';
+      + '<button class="btn-is" onclick="mafyaBasvur(' + g.id + ')">' + btnHtml(t('game.mafya.applyBtn')) + '</button></div>';
   });
   box.innerHTML = html;
 }
@@ -9352,9 +9557,9 @@ async function mafyaGrupGoster(grupId) {
       + '<p class="mafya-stat"><b>' + escHtml(t('game.mafya.memberBonus')) + '</b> +' + fmt(g.evUyeGucBonusu || 0) + '</p>'
       + '<div class="mafya-alt-aksiyon">';
     if (g.savasIlanEdilebilir) {
-      html += '<button type="button" class="btn-is kirmizi-btn" onclick="mafyaSavasIlanGrup(' + g.id + ', \'' + String(g.isim || '').replace(/'/g, "\\'") + '\')">' + escHtml(t('game.mafya.declareWarShort')) + '</button>';
+      html += '<button type="button" class="btn-is kirmizi-btn" onclick="mafyaSavasIlanGrup(' + g.id + ', \'' + String(g.isim || '').replace(/'/g, "\\'") + '\')">' + btnHtml(t('game.mafya.declareWarShort')) + '</button>';
     }
-    html += '<button type="button" class="btn-is" onclick="mafyaMenuSec(\'gurubum\')">' + escHtml(t('game.mafya.backBtn')) + '</button>'
+    html += '<button type="button" class="btn-is" onclick="mafyaMenuSec(\'gurubum\')">' + btnHtml(t('game.mafya.backBtn')) + '</button>'
       + '</div>'
       + '</div></div>';
     document.getElementById('anaIcerik').innerHTML = html;
@@ -9464,7 +9669,24 @@ function ltGrupSortDeger(r, key) {
   if (key === 'uye') return Number(r.uyeSayisi) || 0;
   if (key === 'kazanilan') return Number(r.kazanilanSavas) || 0;
   if (key === 'kaybedilen') return Number(r.kaybedilenSavas) || 0;
+  if (key === 'aylik') return Number(r.aylikSampiyonSayisi) || 0;
   return Number(r.toplamPuan) || 0;
+}
+
+function ltGrupMetrikBaslik(key) {
+  if (key === 'ev') return t('game.leaderboard.sortHouse');
+  if (key === 'uye') return t('game.leaderboard.sortMembers');
+  if (key === 'kazanilan') return t('game.leaderboard.sortWarsWon');
+  if (key === 'kaybedilen') return t('game.leaderboard.sortWarsLost');
+  if (key === 'aylik') return t('game.leaderboard.sortMonthlyChamp');
+  return t('game.leaderboard.colTotalRespect');
+}
+
+function ltGrupMetrikHtml(r, key) {
+  if (key === 'ev' || key === 'uye' || key === 'kazanilan' || key === 'kaybedilen' || key === 'aylik') {
+    return '<div class="lt-metrik-deger"><span class="lt-pts-txt">' + fmt(ltGrupSortDeger(r, key)) + '</span></div>';
+  }
+  return ltSayginlikHtml(r.toplamPuan || 0);
 }
 
 function ltGrupListeSirala(liste, sortKey) {
@@ -9533,12 +9755,14 @@ function liderlikTablosuCiz(ic) {
       var sortKey = liderlikGrupSort || 'sayginlik';
       liste = ltGrupListeSirala(liste, sortKey);
       html += '<div class="lt-sort-bar" role="group" aria-label="' + escHtml(t('game.leaderboard.sortLabel')) + '">'
+        + ltSortChip('sayginlik', t('game.leaderboard.sortRespect'), sortKey === 'sayginlik')
         + ltSortChip('ev', t('game.leaderboard.sortHouse'), sortKey === 'ev')
         + ltSortChip('uye', t('game.leaderboard.sortMembers'), sortKey === 'uye')
         + ltSortChip('kazanilan', t('game.leaderboard.sortWarsWon'), sortKey === 'kazanilan')
         + ltSortChip('kaybedilen', t('game.leaderboard.sortWarsLost'), sortKey === 'kaybedilen')
+        + ltSortChip('aylik', t('game.leaderboard.sortMonthlyChamp'), sortKey === 'aylik')
         + '</div>'
-        + '<div class="lt-colbar lt-colbar--grup"><span>' + escHtml(t('game.leaderboard.colRank')) + '</span><span>' + escHtml(t('game.leaderboard.colGroup')) + '</span><span>' + escHtml(t('game.leaderboard.colTotalRespect')) + '</span></div>'
+        + '<div class="lt-colbar lt-colbar--grup"><span>' + escHtml(t('game.leaderboard.colRank')) + '</span><span>' + escHtml(t('game.leaderboard.colGroup')) + '</span><span>' + escHtml(ltGrupMetrikBaslik(sortKey)) + '</span></div>'
         + '<div class="lt-list">';
       if (!liste.length) {
         html += '<p class="lt-empty">' + escHtml(t('game.empty.noGroupRanking')) + '</p>';
@@ -9549,7 +9773,7 @@ function liderlikTablosuCiz(ic) {
             + '<div class="lt-medal-wrap"><div class="lt-medal ' + ltMedalClass(i) + '">' + (i + 1) + '</div></div>'
             + '<div class="lt-cap">' + ltGrupIsimHtml(r) + '</div>'
             + '<div class="lt-cap right lt-pts-cap">'
-            + ltSayginlikHtml(r.toplamPuan || 0) + '</div>'
+            + ltGrupMetrikHtml(r, sortKey) + '</div>'
             + '</div>';
         });
       }
@@ -9613,14 +9837,14 @@ function profilZiyaretciDefteriHTML(kayitlar, yazabilir) {
         + '<p class="profil-defter-metin">' + escHtml(k.metin || '') + '</p>'
         + '<div class="profil-defter-oylar">'
         + '<button type="button" class="profil-defter-oy begen' + begenAktif + '" title="'
-        + escHtml(t('game.profil.guestbookLike')) + '" aria-label="'
-        + escHtml(t('game.profil.guestbookLike')) + '" onclick="profilZiyaretciDefteriOy(' + kid + ',\'begen\')">'
+        + btnHtml(t('game.profil.guestbookLike')) + '" aria-label="'
+        + btnHtml(t('game.profil.guestbookLike')) + '" onclick="profilZiyaretciDefteriOy(' + kid + ',\'begen\')">'
         + '<span class="profil-defter-oy-ikon" aria-hidden="true">👍</span>'
         + '<span class="profil-defter-oy-say" data-oy="begeni">' + escHtml(String(k.begeni || 0)) + '</span>'
         + '</button>'
         + '<button type="button" class="profil-defter-oy begenme' + begenmeAktif + '" title="'
-        + escHtml(t('game.profil.guestbookDislike')) + '" aria-label="'
-        + escHtml(t('game.profil.guestbookDislike')) + '" onclick="profilZiyaretciDefteriOy(' + kid + ',\'begenme\')">'
+        + btnHtml(t('game.profil.guestbookDislike')) + '" aria-label="'
+        + btnHtml(t('game.profil.guestbookDislike')) + '" onclick="profilZiyaretciDefteriOy(' + kid + ',\'begenme\')">'
         + '<span class="profil-defter-oy-ikon" aria-hidden="true">👎</span>'
         + '<span class="profil-defter-oy-say" data-oy="begenme">' + escHtml(String(k.begenme || 0)) + '</span>'
         + '</button>'
@@ -9637,7 +9861,7 @@ function profilZiyaretciDefteriHTML(kayitlar, yazabilir) {
       + '<textarea id="profilDefterMetin" class="profil-ziyaret-textarea" rows="3" maxlength="280" placeholder="'
       + escHtml(t('game.profil.guestbookPlaceholder')) + '"></textarea>'
       + '<button type="button" class="profil-alt-btn kirmizi" onclick="profilZiyaretciDefteriYaz()">'
-      + escHtml(t('game.profil.guestbookSend')) + '</button>'
+      + btnHtml(t('game.profil.guestbookSend')) + '</button>'
       + '</div>';
   }
   return html;
@@ -9856,13 +10080,13 @@ function icerikRaporlaAlaniHTML(opts) {
   return '<div class="icerik-rapor-wrap" data-rapor-tip="' + escHtml(opts.tip || 'profil') + '"'
     + ' data-rapor-hedef-user="' + escHtml(String(opts.hedefUserId || '')) + '"'
     + ' data-rapor-hedef-grup="' + escHtml(String(opts.hedefGrupId || '')) + '">'
-    + '<button type="button" class="icerik-rapor-btn" onclick="icerikRaporlaAc(this)">' + escHtml(t('game.report.btn')) + '</button>'
+    + '<button type="button" class="icerik-rapor-btn" onclick="icerikRaporlaAc(this)">' + btnHtml(t('game.report.btn')) + '</button>'
     + '<div class="icerik-rapor-panel gizli">'
-    + '<p class="icerik-rapor-baslik">' + escHtml(t('game.report.title')) + '</p>'
-    + '<textarea class="icerik-rapor-textarea" rows="4" maxlength="500" placeholder="' + escHtml(t('game.report.placeholder')) + '"></textarea>'
+    + '<p class="icerik-rapor-baslik">' + btnHtml(t('game.report.title')) + '</p>'
+    + '<textarea class="icerik-rapor-textarea" rows="4" maxlength="500" placeholder="' + btnHtml(t('game.report.placeholder')) + '"></textarea>'
     + '<div class="icerik-rapor-aksiyon">'
-    + '<button type="button" class="icerik-rapor-gonder-btn" onclick="icerikRaporlaGonder(this)">' + escHtml(t('game.report.send')) + '</button>'
-    + '<button type="button" class="icerik-rapor-iptal-btn" onclick="icerikRaporlaKapat(this)">' + escHtml(t('game.report.cancel')) + '</button>'
+    + '<button type="button" class="icerik-rapor-gonder-btn" onclick="icerikRaporlaGonder(this)">' + btnHtml(t('game.report.send')) + '</button>'
+    + '<button type="button" class="icerik-rapor-iptal-btn" onclick="icerikRaporlaKapat(this)">' + btnHtml(t('game.report.cancel')) + '</button>'
     + '</div></div></div>';
 }
 
@@ -10180,7 +10404,7 @@ function sektorMekanlar(sektor) {
 }
 
 function sektorEkranCiz(ic, sektor, baslik) {
-  ic.innerHTML = '<h2>🏢 ' + baslik + '</h2><p style="color:#888;">' + escHtml(t('game.loading')) + '</p>';
+  ic.innerHTML = sektorMagazaHTML(baslik, '<p class="gk-alinti" style="padding:12px;">' + escHtml(t('game.loading')) + '</p>');
   elitFiyatDurumSenkronize().then(function() {
     if (aktifEkran !== 'sektor_' + sektor) return;
     sektorEkranCizIcerik(ic, sektor, baslik);
@@ -10189,16 +10413,16 @@ function sektorEkranCiz(ic, sektor, baslik) {
 
 function sektorEkranCizIcerik(ic, sektor, baslik) {
   var mekanlar = sektorMekanlar(sektor);
-  var html = '<h2>🏢 ' + baslik + '</h2><p>' + escHtml(t('game.sektor.quote')) + '</p>' + elitFiyatNotuHTML();
   if (!Object.keys(mekanlar).length) {
-    ic.innerHTML = html + '<p style="color:#888;">' + escHtml(t('game.loadingSector')) + '</p>';
+    ic.innerHTML = sektorMagazaHTML(baslik, '<p class="gk-alinti" style="padding:12px;">' + escHtml(t('game.loadingSector')) + '</p>');
     sunucudanYukle().then(function() {
       if (aktifEkran === 'sektor_' + sektor) sektorEkranCizIcerik(ic, sektor, baslik);
     }).catch(function() {
-      ic.innerHTML = html + '<p style="color:#c00;">' + escHtml(t('game.sektor.listFailed')) + '</p>';
+      ic.innerHTML = sektorMagazaHTML(baslik, '<p class="gk-alinti" style="padding:12px;color:#c66;">' + escHtml(t('game.sektor.listFailed')) + '</p>');
     });
     return;
   }
+  var kartlar = '';
   Object.keys(mekanlar).forEach(function(key) {
     var m = mekanlar[key];
     var sk = sektor + ':' + key;
@@ -10206,19 +10430,9 @@ function sektorEkranCizIcerik(ic, sektor, baslik) {
     var adet = sahip.adet || 0;
     var bazFiyat = Math.floor(m.fiyat * Math.pow(1.05, adet));
     var img = mekanGorseller[m.gorsel] || FALLBACK;
-    html += '<div class="is-kart"><div class="is-yapi">'
-      + '<img src="' + img + '" class="vesikalik-resim" onerror="imgFallback(this)">'
-      + '<div class="is-detay"><h3>' + escHtml(tr(m.ad)) + '</h3><p style="color:#888;">' + escHtml(tr(m.aciklama)) + '</p>'
-      + '<p>' + escHtml(t('game.sektor.buyPrice')) + ' ' + elitFiyatGosterHtml(bazFiyat) + ' &nbsp;|&nbsp; ' + escHtml(t('game.sektor.owner')) + ' <b>' + adet + '</b>' + escHtml(t('game.sektor.unitWord')) + '</p>'
-      + '<p>' + escHtml(t('game.sektor.hourlyReturn')) + ' <b style="color:#28a745;">' + fmt(m.saatlik) + ' TL</b>' + escHtml(t('game.sektor.perUnit')) + '</p>'
-      + '<p>' + escHtml(t('game.sektor.respectLabel')) + ' <b>+' + m.sayginlik + '</b>' + escHtml(t('game.sektor.respectFixed')) + '</p>'
-      + '<div style="margin-top:8px;">'
-      + '<input type="number" id="mekanAdetGir_' + sektor + '_' + key + '" placeholder="' + escHtml(t('game.sektor.qtyPlaceholder')) + '" value="1" min="1" max="999" style="width:60px;padding:4px;margin-right:8px;background:#222;color:#ffd700;border:1px solid #555;">'
-      + '<button class="btn-is" onclick="mekanAl(\'' + sektor + '\', \'' + key + '\')">' + escHtml(t('game.sektor.buyBtn')) + '</button>'
-      + '</div>'
-      + '</div></div></div>';
+    kartlar += sektorKartHTML(sektor, key, m, adet, bazFiyat, img);
   });
-  ic.innerHTML = html;
+  ic.innerHTML = sektorMagazaHTML(baslik, kartlar);
 }
 
 async function mekanAl(sektor, key) {
@@ -10331,16 +10545,16 @@ function sbMesajKartHTML(m) {
     + '<div class="sb-mesaj-icerik">' + escHtml(m.icerik) + '</div>'
     + '<div class="sb-mesaj-aksiyonlar">';
   if (m.tip === 'ozel' && m.gonderenAdi !== 'Sistem') {
-    html += '<button type="button" class="sb-btn sb-btn--gri sb-btn-kucuk" onclick="mesajCevapla(' + m.id + ', \'' + String(m.gonderenAdi || '').replace(/'/g, "\\'") + '\')">' + escHtml(t('game.chat.reply')) + '</button>';
+    html += '<button type="button" class="sb-btn sb-btn--gri sb-btn-kucuk" onclick="mesajCevapla(' + m.id + ', \'' + String(m.gonderenAdi || '').replace(/'/g, "\\'") + '\')">' + btnHtml(t('game.chat.reply')) + '</button>';
   }
   if (m.tip === 'mafya_grup') {
-    html += '<button type="button" class="sb-btn sb-btn--gri sb-btn-kucuk" onclick="mesajCevapla(' + m.id + ', \'Mafya Grubu\')">' + escHtml(t('game.chat.reply')) + '</button>';
+    html += '<button type="button" class="sb-btn sb-btn--gri sb-btn-kucuk" onclick="mesajCevapla(' + m.id + ', \'Mafya Grubu\')">' + btnHtml(t('game.chat.reply')) + '</button>';
   }
   if (m.tip === 'mafya_davet' && m.davetAktif && m.davetId) {
-    html += '<button type="button" class="sb-btn sb-btn--yesil sb-btn-kucuk" onclick="mafyaDavetKabul(' + m.davetId + ')">' + escHtml(t('game.chat.inviteAccept')) + '</button>';
-    html += '<button type="button" class="sb-btn sb-btn--kirmizi sb-btn-kucuk" onclick="mafyaDavetRed(' + m.davetId + ')">' + escHtml(t('game.chat.inviteReject')) + '</button>';
+    html += '<button type="button" class="sb-btn sb-btn--yesil sb-btn-kucuk" onclick="mafyaDavetKabul(' + m.davetId + ')">' + btnHtml(t('game.chat.inviteAccept')) + '</button>';
+    html += '<button type="button" class="sb-btn sb-btn--kirmizi sb-btn-kucuk" onclick="mafyaDavetRed(' + m.davetId + ')">' + btnHtml(t('game.chat.inviteReject')) + '</button>';
   }
-  html += '<button type="button" class="sb-btn sb-btn--kirmizi sb-btn-kucuk" onclick="mesajSil(' + m.id + ')">' + escHtml(t('game.chat.delete')) + '</button>'
+  html += '<button type="button" class="sb-btn sb-btn--kirmizi sb-btn-kucuk" onclick="mesajSil(' + m.id + ')">' + btnHtml(t('game.chat.delete')) + '</button>'
     + '</div></article>';
   return html;
 }
@@ -10360,10 +10574,10 @@ function mesajKutusuGovdeHTML(liste) {
     + '<input type="text" id="mesajHedef" class="sb-input" placeholder="' + escHtml(t('game.chat.playerPlaceholder')) + '" maxlength="24"></div>'
     + '<div class="sb-alan"><label for="mesajMetin">' + escHtml(t('game.profil.yourMessage')) + '</label>'
     + '<textarea id="mesajMetin" class="sb-textarea" rows="3" placeholder="' + escHtml(t('game.profil.messagePlaceholder')) + '" maxlength="500"></textarea></div>'
-    + '<button type="button" class="sb-btn sb-btn--mavi" onclick="mesajGonder()">' + escHtml(t('game.chat.sendMessageBtn')) + '</button>'
+    + '<button type="button" class="sb-btn sb-btn--mavi" onclick="mesajGonder()">' + btnHtml(t('game.chat.sendMessageBtn')) + '</button>'
     + '</div>'
     + '<div class="sb-panel sb-panel--liste">'
-    + '<div class="sb-panel-baslik"><span class="sb-panel-ikon" aria-hidden="true">📥</span><h3>' + escHtml(t('game.chat.incomingTitle')) + '</h3></div>'
+    + '<div class="sb-panel-baslik"><span class="sb-panel-ikon" aria-hidden="true">📥</span><h3>' + btnHtml(t('game.chat.incomingTitle')) + '</h3></div>'
     + '<div class="sb-mesaj-liste">' + listeHtml + '</div>'
     + '</div></div>';
 }
@@ -10390,7 +10604,7 @@ function mafyaSohbetGovdeHTML(liste) {
     + '<div class="sb-panel-baslik"><span class="sb-panel-ikon" aria-hidden="true">✍️</span><h3>' + escHtml(t('game.chat.writeToLounge')) + '</h3></div>'
     + '<div class="sb-alan"><label for="mafyaSohbetMetin">' + escHtml(t('game.profil.yourMessage')) + '</label>'
     + '<textarea id="mafyaSohbetMetin" class="sb-textarea" rows="3" placeholder="' + escHtml(t('game.chat.mafiaChatPlaceholder')) + '" maxlength="400"></textarea></div>'
-    + '<button type="button" class="sb-btn sb-btn--yesil" onclick="mafyaSohbetGonder()">' + escHtml(t('game.chat.sendChatBtn')) + '</button>'
+    + '<button type="button" class="sb-btn sb-btn--yesil" onclick="mafyaSohbetGonder()">' + btnHtml(t('game.chat.sendChatBtn')) + '</button>'
     + '</div>';
 }
 

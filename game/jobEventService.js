@@ -189,20 +189,30 @@ function jobOlayEffectFromSession(job, session) {
   };
 }
 
-async function bekleyenOlayTemizle(db, userId) {
+async function bekleyenOlayTemizle(db, userId, player) {
   const bekleyen = await jobOlayOku(db, userId);
-  if (!bekleyen) return null;
-  if (olaySuresiDoldu(bekleyen)) {
-    if (secimliOlayMi(bekleyen.olayTipi)) {
-      try {
-        const { hapseGir } = require("./hapishaneService");
-        await hapseGir(db, userId);
-      } catch (_) {}
+  if (!bekleyen) return { durum: "yok" };
+  if (!olaySuresiDoldu(bekleyen)) return { durum: "bekliyor", session: bekleyen };
+
+  if (secimliOlayMi(bekleyen.olayTipi)) {
+    const job = JOBS[bekleyen.jobKey];
+    if (job && player) {
+      const sonuc = await olayYakalandiHapis(db, userId, player, job, bekleyen, "yakalandi");
+      await jobOlayTemizle(db, userId);
+      return {
+        durum: "hapis",
+        effect: sonuc.effect,
+        gorevSonuc: sonuc.gorevSonuc,
+        yeniDevletIliski: sonuc.yeniDevletIliski,
+      };
     }
-    await jobOlayTemizle(db, userId);
-    return null;
+    try {
+      const { hapseGir } = require("./hapishaneService");
+      await hapseGir(db, userId);
+    } catch (_) {}
   }
-  return bekleyen;
+  await jobOlayTemizle(db, userId);
+  return { durum: "temizlendi" };
 }
 
 async function olayYakalandiHapis(db, userId, player, job, session, olaySecim) {
@@ -248,9 +258,17 @@ async function jobBaslat(db, userId, player, jobKey) {
     };
   }
 
-  const bekleyen = await bekleyenOlayTemizle(db, userId);
-  if (bekleyen) {
+  const bekleyenDurum = await bekleyenOlayTemizle(db, userId, player);
+  if (bekleyenDurum.durum === "bekliyor") {
     return { ok: false, error: "Önce bekleyen icraat olayını tamamlamalısın." };
+  }
+  if (bekleyenDurum.durum === "hapis") {
+    return {
+      ok: true,
+      effect: bekleyenDurum.effect,
+      gorevSonuc: bekleyenDurum.gorevSonuc,
+      yeniDevletIliski: bekleyenDurum.yeniDevletIliski,
+    };
   }
 
   const icraatSonuc = await icraatHarca(db, userId, job.icraat);
@@ -370,7 +388,7 @@ async function jobOlaySonuc(db, userId, player, { savunuldu, olayId, secim }) {
     const simdi = Date.now();
     const tercih = secim === "kac" ? "kac" : secim === "rusvet" ? "rusvet" : "";
     if (!tercih) {
-      if (simdi <= session.bitisMs + GRACE_MS) {
+      if (simdi <= session.bitisMs) {
         return { ok: false, error: "Kaçmak için 30 saniye içinde bir seçenek belirlemelisin." };
       }
       await jobOlayTemizle(db, userId);
@@ -391,7 +409,7 @@ async function jobOlaySonuc(db, userId, player, { savunuldu, olayId, secim }) {
     const simdi = Date.now();
     const tercih = secim === "kir" ? "kir" : secim === "tamir" ? "tamir" : "";
     if (!tercih) {
-      if (simdi <= session.bitisMs + GRACE_MS) {
+      if (simdi <= session.bitisMs) {
         return { ok: false, error: "Kilitli kapı için 30 saniye içinde bir seçenek belirlemelisin." };
       }
       await jobOlayTemizle(db, userId);
@@ -414,7 +432,7 @@ async function jobOlaySonuc(db, userId, player, { savunuldu, olayId, secim }) {
     const simdi = Date.now();
     const tercih = secim === "soy_kac" ? "soy_kac" : secim === "kac" ? "kac" : "";
     if (!tercih) {
-      if (simdi <= session.bitisMs + GRACE_MS) {
+      if (simdi <= session.bitisMs) {
         return { ok: false, error: "Polis baskınında 30 saniye içinde bir seçenek belirlemelisin." };
       }
       await jobOlayTemizle(db, userId);

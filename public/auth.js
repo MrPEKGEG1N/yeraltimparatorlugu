@@ -186,10 +186,10 @@ function authSekmeDegistir(mod, sessiz) {
   if (passEl) passEl.setAttribute("autocomplete", mod === "kayit" ? "new-password" : "current-password");
   document.getElementById("authGonder").textContent =
     typeof t === "function"
-      ? t(mod === "giris" ? "auth.submitLogin" : "auth.submitRegister")
+      ? (typeof sadeBtnMetin === "function" ? sadeBtnMetin(t(mod === "giris" ? "auth.submitLogin" : "auth.submitRegister")) : t(mod === "giris" ? "auth.submitLogin" : "auth.submitRegister"))
       : mod === "giris"
-        ? "[ ⚔️ GİRİŞ YAP ]"
-        : "[ 👑 REİS OL ]";
+        ? "GİRİŞ YAP"
+        : "REİS OL";
   authHataGoster("");
   if (!sessiz) authTaslakKaydet();
 }

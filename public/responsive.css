@@ -42,9 +42,9 @@
 
   #masterLayout {
     font-size: 13px;
-    line-height: 1.3;
-    transform: scale(0.94);
-    transform-origin: top center;
+    line-height: 1.35;
+    width: 100%;
+    max-width: 100%;
   }
 
   #masterLayout *,

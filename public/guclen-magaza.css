@@ -1,0 +1,451 @@
+/* Güçlen alt mağazalar — Silahlan / Koruma / Lüks (saloon altın) */
+#masterLayout #anaIcerik .gk-sayfa {
+  --gk-gold: #c9a84c;
+  --gk-gold-bright: #e8c878;
+  --gk-cream: #ebe2ce;
+  --gk-muted: #9a8f78;
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 4px 4px 20px;
+}
+
+#masterLayout #anaIcerik .gk-banner {
+  position: relative;
+  margin: 0 0 14px;
+  padding: 18px 16px 16px;
+  text-align: center;
+  border: 1px solid rgba(201, 168, 76, 0.32);
+  border-radius: 4px;
+  background:
+    radial-gradient(ellipse 80% 120% at 50% 0%, rgba(110, 70, 20, 0.35), transparent 55%),
+    linear-gradient(180deg, rgba(18, 12, 10, 0.95), rgba(10, 8, 6, 0.98));
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+}
+
+#masterLayout #anaIcerik .gk-banner-ustetiket {
+  margin: 0 0 6px;
+  font-family: "Oswald", sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--gk-muted);
+}
+
+#masterLayout #anaIcerik .gk-banner-baslik {
+  margin: 0;
+  font-family: "Cinzel", Georgia, serif;
+  font-size: clamp(20px, 4.5vw, 28px);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--gk-gold-bright);
+  line-height: 1.15;
+}
+
+#masterLayout #anaIcerik .gk-banner-cizgi {
+  width: 48px;
+  height: 1px;
+  margin: 12px auto 0;
+  background: linear-gradient(90deg, transparent, var(--gk-gold), transparent);
+}
+
+#masterLayout #anaIcerik .gk-banner-alinti {
+  margin: 12px 0 0;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(14px, 3.2vw, 16px);
+  font-style: italic;
+  color: #cfc4ae;
+  line-height: 1.4;
+}
+
+#masterLayout #anaIcerik .gk-elit-not {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border-left: 3px solid rgba(196, 74, 58, 0.65);
+  background: rgba(55, 28, 22, 0.35);
+  border-radius: 0 3px 3px 0;
+  color: #e8ddd0;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+#masterLayout #anaIcerik .gk-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+@media (min-width: 720px) {
+  #masterLayout #anaIcerik .gk-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  #masterLayout #anaIcerik .gk-sayfa--koruma .gk-grid {
+    grid-template-columns: 1fr 1fr;
+    max-width: 780px;
+    margin: 0 auto;
+  }
+
+  #masterLayout #anaIcerik .gk-sayfa--koruma .gk-medya {
+    max-height: 380px;
+  }
+}
+
+#masterLayout #anaIcerik .gk-kart {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(201, 168, 76, 0.26);
+  border-radius: 4px;
+  overflow: hidden;
+  background: linear-gradient(165deg, rgba(18, 14, 11, 0.96), rgba(8, 6, 5, 0.98));
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.38);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+#masterLayout #anaIcerik .gk-kart:hover {
+  border-color: rgba(201, 168, 76, 0.48);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.46);
+}
+
+#masterLayout #anaIcerik .gk-medya {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 7;
+  background: #0a0806;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(201, 168, 76, 0.2);
+}
+
+#masterLayout #anaIcerik .gk-sayfa--koruma .gk-medya {
+  aspect-ratio: 3 / 4;
+  max-height: 340px;
+}
+
+#masterLayout #anaIcerik .gk-sayfa--luks .gk-medya {
+  aspect-ratio: 16 / 9;
+}
+
+#masterLayout #anaIcerik .gk-medya img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  max-width: none;
+  image-rendering: auto;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+#masterLayout #anaIcerik .gk-sayfa--silah .gk-medya img {
+  object-position: center 42%;
+}
+
+#masterLayout #anaIcerik .gk-sayfa--koruma .gk-medya img {
+  object-fit: cover;
+  object-position: center 18%;
+  filter: contrast(1.08) brightness(1.06) saturate(1.05);
+}
+
+#masterLayout #anaIcerik .gk-medya::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 42%;
+  background: linear-gradient(180deg, transparent, rgba(8, 6, 4, 0.75));
+  pointer-events: none;
+}
+
+#masterLayout #anaIcerik .gk-sayfa--koruma .gk-medya::after {
+  height: 22%;
+  background: linear-gradient(180deg, transparent, rgba(8, 6, 4, 0.35));
+}
+
+#masterLayout #anaIcerik .gk-govde {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 14px 16px;
+  flex: 1;
+}
+
+#masterLayout #anaIcerik .gk-baslik {
+  margin: 0;
+  font-family: "Cinzel", Georgia, serif;
+  font-size: clamp(15px, 3.2vw, 17px);
+  font-weight: 700;
+  color: var(--gk-gold-bright);
+  letter-spacing: 0.03em;
+  line-height: 1.25;
+}
+
+#masterLayout #anaIcerik .gk-alinti {
+  margin: 0;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 14px;
+  font-style: italic;
+  color: var(--gk-muted);
+  line-height: 1.4;
+}
+
+#masterLayout #anaIcerik .gk-metrikler {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+#masterLayout #anaIcerik .gk-metrik {
+  padding: 8px 10px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(201, 168, 76, 0.16);
+}
+
+#masterLayout #anaIcerik .gk-metrik--guc {
+  border-color: rgba(196, 74, 58, 0.28);
+  background: linear-gradient(160deg, rgba(196, 74, 58, 0.1), rgba(255, 255, 255, 0.02));
+}
+
+#masterLayout #anaIcerik .gk-metrik-etiket {
+  display: block;
+  margin: 0 0 4px;
+  font-family: "Oswald", sans-serif;
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gk-muted);
+}
+
+#masterLayout #anaIcerik .gk-metrik-deger {
+  font-family: "Cinzel", Georgia, serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--gk-cream);
+  line-height: 1.1;
+}
+
+#masterLayout #anaIcerik .gk-metrik--guc .gk-metrik-deger {
+  color: #7dcea0;
+}
+
+#masterLayout #anaIcerik .gk-sayfa--silah .gk-metrik--guc .gk-metrik-deger {
+  color: #7ec8e8;
+}
+
+#masterLayout #anaIcerik .gk-sayfa--luks .gk-metrik--guc .gk-metrik-deger {
+  color: var(--gk-gold-bright);
+}
+
+#masterLayout #anaIcerik .gk-sahip {
+  margin: 0;
+  font-size: 12px;
+  color: #c4b89a;
+}
+
+#masterLayout #anaIcerik .gk-sahip b {
+  color: var(--gk-gold-bright);
+  font-weight: 700;
+}
+
+#masterLayout #anaIcerik .gk-adet {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#masterLayout #anaIcerik .gk-adet label {
+  font-family: "Oswald", sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gk-muted);
+}
+
+#masterLayout #anaIcerik .gk-adet .adet-input {
+  width: 72px;
+  padding: 6px 8px;
+  border-radius: 2px;
+  border: 1px solid rgba(201, 168, 76, 0.35);
+  background: rgba(0, 0, 0, 0.45);
+  color: var(--gk-cream);
+  font-family: "Cinzel", Georgia, serif;
+  font-size: 14px;
+}
+
+#masterLayout #anaIcerik .gk-btn {
+  margin-top: auto;
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: 2px;
+  border: 1px solid rgba(201, 168, 76, 0.55);
+  background: linear-gradient(180deg, rgba(90, 30, 28, 0.85), rgba(40, 14, 12, 0.95));
+  color: var(--gk-gold-bright);
+  font-family: "Oswald", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+#masterLayout #anaIcerik .gk-btn:hover {
+  border-color: rgba(232, 200, 120, 0.75);
+  background: linear-gradient(180deg, rgba(110, 38, 34, 0.9), rgba(50, 18, 14, 0.98));
+}
+
+#masterLayout #anaIcerik .gk-btn--mavi {
+  border-color: rgba(80, 140, 180, 0.55);
+  background: linear-gradient(180deg, rgba(28, 48, 70, 0.9), rgba(12, 22, 36, 0.96));
+  color: #9fd4f0;
+}
+
+#masterLayout #anaIcerik .gk-btn--mavi:hover {
+  border-color: rgba(120, 180, 220, 0.7);
+}
+
+#masterLayout #anaIcerik .gk-btn--yesil {
+  border-color: rgba(60, 140, 90, 0.55);
+  background: linear-gradient(180deg, rgba(24, 55, 40, 0.9), rgba(10, 28, 20, 0.96));
+  color: #9ee0b8;
+}
+
+#masterLayout #anaIcerik .gk-btn--yesil:hover {
+  border-color: rgba(90, 180, 120, 0.7);
+}
+
+#masterLayout #anaIcerik .gk-metrik--kazanc .gk-metrik-deger {
+  color: #7dcea0;
+}
+
+#masterLayout #anaIcerik .gk-medya--fit {
+  aspect-ratio: 16 / 9;
+  padding: 10px 12px;
+  box-sizing: border-box;
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 45%, rgba(70, 52, 28, 0.28), transparent 72%),
+    linear-gradient(180deg, #12100c 0%, #0a0806 100%);
+}
+
+#masterLayout #anaIcerik .gk-medya--fit img {
+  object-fit: contain;
+  object-position: center center;
+  filter: none;
+}
+
+#masterLayout #anaIcerik .gk-sayfa--is .gk-medya::after,
+#masterLayout #anaIcerik .gk-sayfa--sektor .gk-medya::after,
+#masterLayout #anaIcerik .gk-sayfa--mafya .gk-medya::after {
+  display: none;
+}
+
+#masterLayout #anaIcerik .gk-sayfa--is .gk-medya--fit,
+#masterLayout #anaIcerik .gk-sayfa--sektor .gk-medya--fit,
+#masterLayout #anaIcerik .gk-sayfa--mafya .gk-medya--fit {
+  max-height: 210px;
+}
+
+#masterLayout #anaIcerik .gk-alinti--kisit {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 2.8em;
+}
+
+#masterLayout #anaIcerik .gk-sahip--sart {
+  padding: 8px 10px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(201, 168, 76, 0.12);
+  line-height: 1.45;
+}
+
+#masterLayout #anaIcerik .gk-rozet {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 7px;
+  border: 1px solid rgba(201, 168, 76, 0.4);
+  border-radius: 2px;
+  font-family: "Oswald", sans-serif;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gk-gold-bright);
+  vertical-align: middle;
+}
+
+#masterLayout #anaIcerik .gk-btn--kirmizi {
+  border-color: rgba(180, 60, 60, 0.55);
+  background: linear-gradient(180deg, rgba(70, 20, 18, 0.9), rgba(30, 8, 6, 0.96));
+  color: #f0a8a0;
+}
+
+#masterLayout #anaIcerik .gk-btn--kirmizi:hover {
+  border-color: rgba(220, 80, 70, 0.7);
+}
+
+#masterLayout #anaIcerik .gk-sayfa--mafya .mafya-is-kart--aktif {
+  border-color: rgba(201, 168, 76, 0.55);
+}
+
+#masterLayout #anaIcerik .gk-sayfa--mafya .mafya-is-btns {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+#masterLayout #anaIcerik .gk-sayfa--mafya .mafya-is-btns .gk-btn {
+  margin-top: 0;
+}
+
+#masterLayout #anaIcerik .gk-sayfa--mafya .mafya-is-katilimcilar {
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(201, 168, 76, 0.14);
+}
+
+#masterLayout #anaIcerik .gk-sayfa--mafya .mafya-bos-metin,
+#masterLayout #anaIcerik .gk-sayfa--mafya .mafya-yukleniyor {
+  margin: 0;
+  padding: 16px 8px;
+  color: #c44;
+  font-size: 13px;
+  text-align: center;
+}
+
+#masterLayout #anaIcerik .gk-sayfa--mafya .mafya-yukleniyor {
+  color: #9a8f78;
+}
+
+@media (min-width: 720px) {
+  #masterLayout #anaIcerik .gk-sayfa--is .gk-medya--fit,
+  #masterLayout #anaIcerik .gk-sayfa--sektor .gk-medya--fit,
+  #masterLayout #anaIcerik .gk-sayfa--mafya .gk-medya--fit {
+    max-height: 190px;
+  }
+
+  #masterLayout #anaIcerik .gk-grid {
+    gap: 16px;
+  }
+}
+
+@media (max-width: 719px) {
+  #masterLayout #anaIcerik .gk-medya {
+    aspect-ratio: 2 / 1;
+  }
+
+  #masterLayout #anaIcerik .gk-medya--fit {
+    aspect-ratio: 16 / 9;
+    max-height: 200px;
+    padding: 8px 10px;
+  }
+
+  #masterLayout #anaIcerik .gk-govde {
+    padding: 12px;
+    gap: 9px;
+  }
+}

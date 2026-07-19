@@ -205,12 +205,31 @@
     return val;
   }
 
+  function sadeBtnMetin(s) {
+    var t = String(s == null ? '' : s).trim();
+    if (t.length >= 2 && t.charAt(0) === '[' && t.charAt(t.length - 1) === ']') {
+      if (!/^\[\s*\{[^}]+\}\s*\]$/.test(t) && t.length < 120) {
+        t = t.slice(1, -1).trim();
+      }
+    }
+    try {
+      t = t.replace(/^(?:\p{Extended_Pictographic})\uFE0F?(?:\u200D(?:\p{Extended_Pictographic})\uFE0F?)*\s+/u, '');
+    } catch (e) {
+      t = t.replace(/^[\uD800-\uDBFF][\uDC00-\uDFFF]\uFE0F?\s+/, '');
+    }
+    return t;
+  }
+
   function applyNode(el) {
     var key = el.getAttribute('data-i18n');
     if (key) {
       var html = el.getAttribute('data-i18n-html') === '1';
       var val = t(key);
       val = menuLabelFallback(el, key, val);
+      var tag = (el.tagName || '').toUpperCase();
+      if (!html && (tag === 'BUTTON' || /(?:^|\s)(?:btn|auth-btn|kapat-btn|gk-btn)(?:\s|$)/.test(el.className || ''))) {
+        val = sadeBtnMetin(val);
+      }
       if (html) el.innerHTML = val;
       else el.textContent = val;
     }
@@ -439,6 +458,8 @@
     }
   }
 
+  global.sadeBtnMetin = sadeBtnMetin;
+
   global.I18n = {
     t: t,
     tr: trPhrase,
@@ -448,6 +469,7 @@
     getLang: getLang,
     screenTitle: screenTitle,
     mafyaTitle: mafyaTitle,
+    sadeBtnMetin: sadeBtnMetin,
     redrawActiveScreen: redrawActiveScreen,
     countryFlag: countryFlag,
     countryLabel: countryLabel,

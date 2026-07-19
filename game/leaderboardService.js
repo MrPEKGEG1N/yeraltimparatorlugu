@@ -69,6 +69,9 @@ async function getGrupSira(db, userId, grupAdiFallback) {
 }
 
 async function getGrupLeaderboard(db) {
+  const { ensureSampiyonTable } = require("./aylikMafyaSampiyonService");
+  await ensureSampiyonTable(db);
+
   const rows = await all(
     db,
     `SELECT g.id AS grup_id, g.isim,
@@ -81,7 +84,9 @@ async function getGrupLeaderboard(db) {
              WHERE s.durum = 'tamamlandi'
                AND s.kazanan_grup_id IS NOT NULL
                AND s.kazanan_grup_id != g.id
-               AND (s.saldiran_grup_id = g.id OR s.hedef_grup_id = g.id)) AS kaybedilen_savas
+               AND (s.saldiran_grup_id = g.id OR s.hedef_grup_id = g.id)) AS kaybedilen_savas,
+            (SELECT COUNT(*) FROM mafya_aylik_sampiyon a
+             WHERE a.grup_id = g.id) AS aylik_sampiyon_sayisi
      FROM mafya_gruplari g
      LEFT JOIN mafya_uyeleri u ON u.grup_id = g.id
      LEFT JOIN players p ON p.user_id = u.user_id
@@ -99,6 +104,7 @@ async function getGrupLeaderboard(db) {
     evSeviye: r.ev_seviye || 1,
     kazanilanSavas: r.kazanilan_savas || 0,
     kaybedilenSavas: r.kaybedilen_savas || 0,
+    aylikSampiyonSayisi: r.aylik_sampiyon_sayisi || 0,
   }));
 }
 

@@ -1,4 +1,4 @@
-/* Kumarhane — Diamond Casino / Torn tarzı görsel efektler */
+/* Kumarhane — saloon / altın yeraltı teması */
 #masterLayout #anaIcerik .km-sayfa {
   display: flex;
   justify-content: center;
@@ -7,11 +7,11 @@
 
 #masterLayout #anaIcerik .km-cerceve {
   width: min(980px, 100%);
-  border: 2px solid rgba(255, 80, 160, 0.35);
+  border: 2px solid rgba(201, 168, 76, 0.35);
   border-radius: 10px;
-  background: linear-gradient(175deg, rgba(18, 8, 16, 0.98), rgba(6, 2, 8, 0.99));
+  background: linear-gradient(175deg, rgba(18, 12, 10, 0.98), rgba(12, 10, 8, 0.99));
   box-shadow:
-    0 0 40px rgba(255, 50, 120, 0.12),
+    0 0 40px rgba(201, 168, 76, 0.12),
     0 20px 50px rgba(0, 0, 0, 0.75);
   overflow: hidden;
   position: relative;
@@ -23,7 +23,7 @@
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(circle at 20% 10%, rgba(255, 60, 140, 0.08), transparent 40%),
+    radial-gradient(circle at 20% 10%, rgba(201, 168, 76, 0.08), transparent 40%),
     radial-gradient(circle at 80% 20%, rgba(255, 200, 80, 0.06), transparent 35%);
   z-index: 0;
 }
@@ -37,9 +37,9 @@
   padding: 22px 22px 16px;
   text-align: center;
   background:
-    radial-gradient(ellipse 90% 140% at 50% 100%, rgba(120, 20, 70, 0.45), transparent 55%),
-    linear-gradient(180deg, rgba(40, 12, 28, 0.95), rgba(8, 2, 6, 0.98));
-  border-bottom: 1px solid rgba(255, 120, 180, 0.25);
+    radial-gradient(ellipse 90% 140% at 50% 100%, rgba(110, 70, 20, 0.45), transparent 55%),
+    linear-gradient(180deg, rgba(18, 12, 10, 0.95), rgba(12, 10, 8, 0.98));
+  border-bottom: 1px solid rgba(201, 168, 76, 0.25);
   overflow: hidden;
 }
 
@@ -50,8 +50,8 @@
     90deg,
     transparent,
     transparent 48px,
-    rgba(255, 100, 180, 0.03) 48px,
-    rgba(255, 100, 180, 0.03) 49px
+    rgba(201, 168, 76, 0.03) 48px,
+    rgba(201, 168, 76, 0.03) 49px
   );
   animation: kmNeonScan 4s linear infinite;
   pointer-events: none;
@@ -66,11 +66,11 @@
   margin: 0;
   font-family: 'Cinzel', Georgia, serif;
   font-size: clamp(22px, 3.8vw, 32px);
-  color: #ffb8e0;
+  color: #e8c878;
   letter-spacing: 0.12em;
   text-shadow:
-    0 0 12px rgba(255, 100, 180, 0.6),
-    0 0 28px rgba(255, 60, 120, 0.35);
+    0 0 12px rgba(201, 168, 76, 0.6),
+    0 0 28px rgba(201, 168, 76, 0.35);
   animation: kmBaslikParla 2.8s ease-in-out infinite;
 }
 
@@ -82,7 +82,7 @@
 #masterLayout #anaIcerik .km-banner-alt {
   margin: 10px 0 0;
   font-size: 12px;
-  color: #b090a0;
+  color: #9a8f78;
 }
 
 #masterLayout #anaIcerik .km-ozet-satir {
@@ -122,7 +122,7 @@
   font-size: 9px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #907080;
+  color: #9a8f78;
   margin-bottom: 4px;
 }
 
@@ -130,7 +130,7 @@
   font-family: 'Oswald', sans-serif;
   font-size: clamp(15px, 2.6vw, 20px);
   font-weight: 600;
-  color: #e8d0dc;
+  color: #ebe2ce;
 }
 
 #masterLayout #anaIcerik .km-ozet-deger--altin {
@@ -228,7 +228,7 @@
   border-radius: 10px;
   border: 1px solid rgba(255, 180, 100, 0.25);
   background:
-    linear-gradient(135deg, rgba(40, 20, 30, 0.6), rgba(10, 5, 10, 0.8));
+    linear-gradient(135deg, rgba(18, 12, 10, 0.6), rgba(10, 5, 10, 0.8));
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
@@ -236,7 +236,7 @@
 #masterLayout #anaIcerik .km-bolum-baslik {
   margin: 0 0 8px;
   font-family: 'Cinzel', serif;
-  color: #f0c0d8;
+  color: #ebe2ce;
   font-size: 15px;
 }
 
@@ -254,7 +254,7 @@
   border-radius: 6px;
   border: 1px solid rgba(255, 255, 255, 0.14);
   background: rgba(0, 0, 0, 0.4);
-  color: #f0e0e8;
+  color: #ebe2ce;
   font-size: 12px;
 }
 
@@ -262,8 +262,8 @@
   padding: 8px 16px;
   border-radius: 6px;
   border: 1px solid rgba(255, 255, 255, 0.15);
-  background: linear-gradient(180deg, #5a3050, #301828);
-  color: #f0d8e4;
+  background: linear-gradient(180deg, #4a3810, #2a1810);
+  color: #ebe2ce;
   font-family: 'Oswald', sans-serif;
   font-size: 11px;
   letter-spacing: 0.06em;
@@ -274,7 +274,7 @@
 
 #masterLayout #anaIcerik .km-btn:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(255, 80, 140, 0.25);
+  box-shadow: 0 4px 14px rgba(201, 168, 76, 0.25);
 }
 
 #masterLayout #anaIcerik .km-btn:active:not(:disabled) {
@@ -321,7 +321,7 @@
 #masterLayout #anaIcerik .km-oyun-kart {
   padding: 0;
   border-radius: 10px;
-  border: 1px solid rgba(255, 120, 180, 0.22);
+  border: 1px solid rgba(201, 168, 76, 0.22);
   background: rgba(255, 255, 255, 0.03);
   cursor: pointer;
   transition: transform 0.18s, border-color 0.18s, box-shadow 0.18s;
@@ -337,7 +337,7 @@
   width: 100%;
   height: 132px;
   overflow: hidden;
-  background: #0a0810;
+  background: #0c0a08;
   border-radius: 9px 9px 0 0;
 }
 
@@ -660,8 +660,8 @@
 
 #masterLayout #anaIcerik .km-oyun-kart:hover {
   transform: translateY(-3px) scale(1.01);
-  border-color: rgba(255, 160, 200, 0.5);
-  box-shadow: 0 8px 24px rgba(255, 60, 120, 0.2);
+  border-color: rgba(232, 200, 120, 0.5);
+  box-shadow: 0 8px 24px rgba(201, 168, 76, 0.2);
 }
 
 #masterLayout #anaIcerik .km-oyun-kart:hover::after {
@@ -686,7 +686,7 @@
 
 #masterLayout #anaIcerik .km-oyun-kart h4 {
   margin: 10px 0 6px;
-  color: #ffc8e0;
+  color: #ebe2ce;
   font-size: 14px;
   font-family: 'Cinzel', serif;
 }
@@ -694,7 +694,7 @@
 #masterLayout #anaIcerik .km-oyun-kart p {
   margin: 0;
   font-size: 11px;
-  color: #908088;
+  color: #c4b89a;
   line-height: 1.45;
 }
 
@@ -726,7 +726,7 @@
 
 #masterLayout #anaIcerik .km-oyun-ust h3 {
   margin: 0;
-  color: #ffb8d8;
+  color: #e8c878;
   font-family: 'Cinzel', serif;
 }
 
@@ -735,7 +735,7 @@
   border-radius: 6px;
   padding: 6px 10px;
   background: rgba(0, 0, 0, 0.3);
-  color: #b0a0b0;
+  color: #c4b89a;
   cursor: pointer;
   font-size: 11px;
   transition: background 0.15s;
@@ -743,12 +743,12 @@
 
 #masterLayout #anaIcerik .km-geri-btn:hover {
   background: rgba(255, 255, 255, 0.08);
-  color: #e8d8e0;
+  color: #ebe2ce;
 }
 
 #masterLayout #anaIcerik .km-ipucu {
   font-size: 12px;
-  color: #908088;
+  color: #c4b89a;
   margin: 0 0 12px;
 }
 
@@ -898,7 +898,7 @@
 }
 
 #masterLayout #anaIcerik .km-felt-masa--koyu {
-  background: linear-gradient(145deg, #1a1820, #0a0810);
+  background: linear-gradient(145deg, #1a1820, #0c0a08);
   border: 4px solid #3a3038;
 }
 
@@ -940,7 +940,7 @@
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  color: #807080;
+  color: #9a8f78;
   margin-bottom: 8px;
 }
 
@@ -1746,7 +1746,7 @@
 #masterLayout #anaIcerik .km-revolver-durum {
   min-height: 26px;
   font-size: 14px;
-  color: #d0a8b0;
+  color: #c4b89a;
   text-align: center;
   font-family: 'Oswald', sans-serif;
   letter-spacing: 0.06em;
@@ -1808,7 +1808,7 @@
   margin: 0 auto 14px;
   border-radius: 18px;
   border: 4px solid #9a7028;
-  background: linear-gradient(180deg, #422038 0%, #1e0c1c 38%, #100610 100%);
+  background: linear-gradient(180deg, #2a2010 0%, #140e08 38%, #0c0a08 100%);
   box-shadow:
     0 18px 44px rgba(0, 0, 0, 0.7),
     inset 0 2px 0 rgba(255, 220, 140, 0.18),
@@ -1820,7 +1820,7 @@
 #masterLayout #anaIcerik .km-slot-kabin-ust {
   padding: 12px 10px 8px;
   text-align: center;
-  background: linear-gradient(180deg, #5a2848, #2a1020);
+  background: linear-gradient(180deg, #4a3810, #2a1810);
   border-bottom: 2px solid rgba(255, 200, 80, 0.2);
 }
 
@@ -2004,7 +2004,7 @@
   gap: 10px;
   align-items: end;
   padding: 12px 12px 14px 14px;
-  background: linear-gradient(180deg, #1a0818, #08040a);
+  background: linear-gradient(180deg, #140e08, #0c0a08);
   border-top: 2px solid rgba(255, 200, 80, 0.14);
   border-radius: 0 0 14px 14px;
 }
@@ -2645,7 +2645,7 @@
   padding: 12px;
   border-radius: 8px;
   background: rgba(0, 0, 0, 0.35);
-  color: #d8c8d0;
+  color: #c4b89a;
   font-size: 13px;
   text-align: center;
   border: 1px solid rgba(255, 255, 255, 0.06);
@@ -2857,7 +2857,7 @@
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(0, 0, 0, 0.25);
-  color: #b0a0b0;
+  color: #c4b89a;
   cursor: pointer;
   font-size: 12px;
 }
@@ -2903,7 +2903,7 @@
 
 #masterLayout #anaIcerik .km-pvp-koltuk--bos {
   justify-content: center;
-  color: #807080;
+  color: #9a8f78;
   font-size: 12px;
 }
 
@@ -2922,7 +2922,7 @@
 
 #masterLayout #anaIcerik .km-pvp-ad {
   font-size: 12px;
-  color: #e8d8e8;
+  color: #ebe2ce;
   text-align: center;
   word-break: break-word;
 }

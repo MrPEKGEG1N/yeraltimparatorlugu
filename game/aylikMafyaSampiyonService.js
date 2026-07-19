@@ -37,6 +37,12 @@ function ayEtiket(yil, ay) {
   return `${ad} ${yil}`;
 }
 
+function istanbulAyBaslangicUnix(yil, ay) {
+  const m = String(ay || 1).padStart(2, "0");
+  const { istanbulGunBaslangicUnix } = require("./turkiyeSaati");
+  return istanbulGunBaslangicUnix(`${yil}-${m}-01`);
+}
+
 async function ensureSampiyonTable(db) {
   await run(
     db,
@@ -97,9 +103,27 @@ async function aySonuKontrol(db) {
   const { gazeteEkle } = require("./sehirGazeteService");
   await gazeteEkle(
     db,
-    `AYIN EN GÜÇLÜ MAFYA GRUBU: [${kazanan.isim}] — ${etiket} döneminde şehrin en güçlü ailesi seçildi. (Toplam Güç: ${gucStr})`,
+    `AYIN EN YÜKSEK TOPLAM GÜCÜ: [${kazanan.isim}] — ${etiket} döneminde şehrin en güçlü ailesi seçildi. (Toplam Güç: ${gucStr})`,
     ts
   );
+
+  // Aynı ay: en çok tamamlanan mafya grubu işi
+  try {
+    const { gunAraligiEnCokIsYapanGrup } = require("./mafyaIsService");
+    const ayBas = istanbulAyBaslangicUnix(hedef.yil, hedef.ay);
+    const ayBit = istanbulAyBaslangicUnix(yil, ay);
+    const isLider = await gunAraligiEnCokIsYapanGrup(db, ayBas, ayBit);
+    if (isLider?.isim && isLider.isSayisi > 0) {
+      const isStr = Number(isLider.isSayisi || 0).toLocaleString("tr-TR");
+      await gazeteEkle(
+        db,
+        `AYIN EN ÇOK GRUP İŞİ YAPAN AİLESİ: [${isLider.isim}] — ${etiket} döneminde ${isStr} grup işi tamamlayarak sokakları domine etti.`,
+        ts + 1
+      );
+    }
+  } catch (err) {
+    console.warn("[aylik-sampiyon] grup isi haberi:", err?.message || err);
+  }
 
   return {
     yil: hedef.yil,
@@ -136,8 +160,8 @@ async function getGazeteSampiyonu(db) {
     ay: row.ay,
     ayEtiket: etiket,
     toplamGuc: row.toplam_guc || 0,
-    baslik: `${etiket} Ayının En Güçlü Mafya Grubu`,
-    ozet: `[${row.isim}], ${etiket} sonunda tüm rakiplerini geride bırakarak ayın en güçlü mafya ailesi seçildi. Toplam güç: ${gucStr}.`,
+    baslik: `${etiket} Ayının En Yüksek Toplam Gücü`,
+    ozet: `[${row.isim}], ${etiket} sonunda en yüksek toplam güçle ayın en güçlü mafya ailesi seçildi. Toplam güç: ${gucStr}.`,
   };
 }
 

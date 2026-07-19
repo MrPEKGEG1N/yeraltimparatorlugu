@@ -374,6 +374,8 @@ module.exports = {
   "game.leaderboard.sortMembers": ["Üye", "Members"],
   "game.leaderboard.sortWarsWon": ["Kazanılan Savaş", "Wars Won"],
   "game.leaderboard.sortWarsLost": ["Kaybedilen Savaş", "Wars Lost"],
+  "game.leaderboard.sortRespect": ["Saygınlık", "Respect"],
+  "game.leaderboard.sortMonthlyChamp": ["Ayın En Güçlü Mafya Grubu", "Strongest Mafia of the Month"],
   "game.leaderboard.sortLabel": ["Grup sıralama", "Group sort"],
   "game.leaderboard.footer": ["Sıralama her saldırı ve mekan sonucunda anlık güncellenir.", "Rankings update instantly after every attack and venue result."],
 
