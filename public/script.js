@@ -663,7 +663,7 @@ async function sunucuAksiyon(action, key, adet, extra) {
 // ========================
 // GÖRSELLER — yerel (/public/images)
 // ========================
-var GORSEL_VERSIYON = '146';
+var GORSEL_VERSIYON = '147';
 var profilLiderlikOyunculari = [];
 var profilAktifSekme = 'karakter';
 var oyuncuYetenekler = null;
