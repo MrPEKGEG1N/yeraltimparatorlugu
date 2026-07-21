@@ -1,4 +1,6 @@
 const { run, get, all } = require("../db/database");
+const { fmtDateTime } = require("./localeFormat");
+const { normalizeSohbetKanal } = require("./sohbetKanal");
 
 const SMS_GUNLUK = 50;
 
@@ -39,6 +41,9 @@ async function ensureMessagingTables(db) {
       await run(db, `ALTER TABLE oyuncu_mesajlari ADD COLUMN ${col} ${def}`);
     } catch (_) {}
   }
+  try {
+    await run(db, `ALTER TABLE mafya_sohbet ADD COLUMN kanal TEXT NOT NULL DEFAULT 'global'`);
+  } catch (_) {}
 }
 
 function turkeyDayKey() {
@@ -346,18 +351,20 @@ async function okunmamisSayisi(db, userId) {
   return row ? row.n : 0;
 }
 
-async function mafyaSohbetListe(db, limit = 60) {
+async function mafyaSohbetListe(db, limit = 60, kanal = "global", lang = "tr") {
+  await ensureMessagingTables(db);
+  const k = normalizeSohbetKanal(kanal);
   const rows = await all(
     db,
-    `SELECT s.id, s.user_id, s.mesaj, s.created_at, u.reis_adi, p.profil_resmi, p.premium_paket
+    `SELECT s.id, s.user_id, s.mesaj, s.kanal, s.created_at, u.reis_adi, u.oyun_dili, p.profil_resmi, p.premium_paket
      FROM mafya_sohbet s
      JOIN users u ON u.id = s.user_id
      JOIN players p ON p.user_id = s.user_id
+     WHERE s.kanal = ?
      ORDER BY s.created_at DESC
      LIMIT ?`,
-    [limit]
+    [k, limit]
   );
-  // En yeni mesaj en üstte (ORDER BY created_at DESC)
   return rows.map((r) => ({
     id: r.id,
     userId: r.user_id,
@@ -365,9 +372,9 @@ async function mafyaSohbetListe(db, limit = 60) {
     profilResmi: r.profil_resmi || "",
     premiumPaket: r.premium_paket || "",
     mesaj: r.mesaj,
-    tarih: new Date(r.created_at * 1000).toLocaleString("tr-TR", {
-      timeZone: "Europe/Istanbul",
-    }),
+    kanal: r.kanal || k,
+    oyunDili: r.oyun_dili || "tr",
+    tarih: fmtDateTime(r.created_at, lang),
   }));
 }
 
@@ -429,17 +436,19 @@ async function mafyaGrupMesajGonder(db, userId, metin, grupIdOverride, parentMes
   return { ok: true, grupMesajId, aliciSayisi: aliciIds.size };
 }
 
-async function mafyaSohbetGonder(db, userId, metin) {
+async function mafyaSohbetGonder(db, userId, metin, kanal) {
+  await ensureMessagingTables(db);
   const sms = await smsHarca(db, userId);
   if (!sms.ok) return sms;
   const temiz = String(metin || "").trim().slice(0, 400);
   if (!temiz) return { ok: false, error: "Mesaj boş olamaz." };
+  const k = normalizeSohbetKanal(kanal);
   await run(
     db,
-    `INSERT INTO mafya_sohbet (user_id, mesaj, created_at) VALUES (?, ?, strftime('%s','now'))`,
-    [userId, temiz]
+    `INSERT INTO mafya_sohbet (user_id, mesaj, kanal, created_at) VALUES (?, ?, ?, strftime('%s','now'))`,
+    [userId, temiz, k]
   );
-  return { ok: true };
+  return { ok: true, kanal: k };
 }
 
 async function sabotajMesajiEkle(

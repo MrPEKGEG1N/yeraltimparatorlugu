@@ -36,7 +36,7 @@ const MEKANLAR = {
       gorsel: "lunapark",
     },
     kumarhane: {
-      ad: "Kumarhane",
+      ad: "Şans Oyunları",
       aciklama: "Masaların kralı; en yüksek yeraltı getirisi.",
       fiyat: 15000000,
       saatlik: 250000,

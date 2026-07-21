@@ -72,7 +72,7 @@ function sabotajTurKartHTML(tur) {
       + ' onclick="sabotajBaslat(\'' + tur.id + '\',' + plan.seviye + ')">'
       + escHtml(plan.etiket)
       + '<span class="sb-plan-maliyet sb-plan-maliyet--ucret">'
-      + escHtml(t('game.sabotaj.planCost')) + ' ' + fmt(plan.kasaMaliyet) + ' TL · '
+      + escHtml(t('game.sabotaj.planCost')) + ' ' + fmtMoney(plan.kasaMaliyet) + ' · '
       + plan.icraat + ' ' + t('game.sabotaj.icraatShort')
       + ' · ' + sabotajSureMetin(plan.sureSn)
       + '</span>'

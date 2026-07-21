@@ -147,10 +147,13 @@
 
   function trPhrase(phrase, vars) {
     if (!phrase) return '';
-    if (currentLang === 'tr') return interpolate(phrase, vars);
-    var fromCatalog = catalogLookup(phrase, currentLang);
-    if (fromCatalog) return interpolate(fromCatalog, vars);
-    return interpolate(phrase, vars);
+    var out;
+    if (currentLang === 'tr') out = interpolate(phrase, vars);
+    else {
+      var fromCatalog = catalogLookup(phrase, currentLang);
+      out = fromCatalog ? interpolate(fromCatalog, vars) : interpolate(phrase, vars);
+    }
+    return localizeMoneyInText(out);
   }
 
   function t(key, vars) {
@@ -445,6 +448,149 @@
     return currentLang;
   }
 
+  var INTL_LOCALE = {
+    tr: 'tr-TR',
+    en: 'en-US',
+    'en-US': 'en-US',
+    de: 'de-DE',
+    fr: 'fr-FR',
+    es: 'es-ES',
+    it: 'it-IT',
+    pt: 'pt-PT',
+    'pt-BR': 'pt-BR',
+    nl: 'nl-NL',
+    ro: 'ro-RO',
+    cs: 'cs-CZ',
+    pl: 'pl-PL',
+    el: 'el-GR',
+    ru: 'ru-RU',
+    zh: 'zh-CN',
+    ar: 'ar-SA',
+    ja: 'ja-JP',
+  };
+
+  var GAME_TZ = 'Europe/Istanbul';
+
+  function intlLocale(lang) {
+    var code = lang || currentLang;
+    return INTL_LOCALE[code] || INTL_LOCALE.en;
+  }
+
+  function parseMoneyNumber(raw) {
+    var s = String(raw || '').trim();
+    if (!s) return 0;
+    if (s.indexOf(',') >= 0 && s.indexOf('.') >= 0) {
+      if (s.lastIndexOf(',') > s.lastIndexOf('.')) {
+        s = s.replace(/\./g, '').replace(',', '.');
+      } else {
+        s = s.replace(/,/g, '');
+      }
+    } else if (s.indexOf(',') >= 0) {
+      var parts = s.split(',');
+      if (parts.length === 2 && parts[1].length <= 2) s = parts[0].replace(/\./g, '') + '.' + parts[1];
+      else s = s.replace(/,/g, '');
+    } else {
+      s = s.replace(/\./g, '');
+    }
+    var n = Number(s);
+    return isFinite(n) ? n : 0;
+  }
+
+  function localizeMoneyInText(text) {
+    if (text == null || text === '') return text;
+    var out = String(text);
+    out = out.replace(/(\d[\d.,]*)\s*TL\b/g, function (_, num) {
+      return fmtMoney(parseMoneyNumber(num));
+    });
+    out = out.replace(/(\d[\d.,]*)\s*YC\b/g, function (_, num) {
+      return fmtMoney(parseMoneyNumber(num));
+    });
+    return out;
+  }
+
+  function fmtNumber(n, lang, opts) {
+    var num = Number(n) || 0;
+    var extra = opts && typeof opts === 'object' ? opts : {};
+    try {
+      return new Intl.NumberFormat(intlLocale(lang), extra).format(num);
+    } catch (_) {
+      return String(num);
+    }
+  }
+
+  function fmtMoney(n, lang) {
+    return fmtNumber(n, lang) + ' 🪙';
+  }
+
+  function fmtMoneyHtml(n, lang) {
+    var tip = t('game.currency.tooltip');
+    return '<span class="yc-amount" title="' + tip.replace(/"/g, '&quot;') + '">' + fmtMoney(n, lang) + '</span>';
+  }
+
+  function formatCurrency(n, lang) {
+    return fmtMoney(n, lang);
+  }
+
+  function fmtGucLocale(n, lang) {
+    var num = Math.max(0, Math.floor(Number(n) || 0));
+    if (num >= 1000000000) {
+      var b = num / 1000000000;
+      return (b >= 10 ? b.toFixed(0) : b.toFixed(1).replace(/\.0$/, '')) + 'B';
+    }
+    if (num >= 1000000) {
+      var m = num / 1000000;
+      return (m >= 10 ? m.toFixed(0) : m.toFixed(1).replace(/\.0$/, '')) + 'M';
+    }
+    if (num >= 10000) {
+      var k = num / 1000;
+      return (k >= 10 ? k.toFixed(0) : k.toFixed(1).replace(/\.0$/, '')) + 'K';
+    }
+    return fmtNumber(num, lang);
+  }
+
+  function fmtDateTime(ts, lang, extra) {
+    var n = Number(ts);
+    if (!n) return '';
+    var ms = n < 1e12 ? n * 1000 : n;
+    var lc = intlLocale(lang);
+    var base = String(lang || currentLang).split('-')[0];
+    var hour12 = base === 'en';
+    var opts = {
+      timeZone: GAME_TZ,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: hour12,
+    };
+    if (extra && typeof extra === 'object') {
+      Object.keys(extra).forEach(function (k) { opts[k] = extra[k]; });
+    }
+    try {
+      return new Date(ms).toLocaleString(lc, opts);
+    } catch (_) {
+      return '';
+    }
+  }
+
+  function fmtDate(ts, lang) {
+    var n = Number(ts);
+    if (!n) return '';
+    var ms = n < 1e12 ? n * 1000 : n;
+    var lc = intlLocale(lang);
+    try {
+      return new Date(ms).toLocaleDateString(lc, {
+        timeZone: GAME_TZ,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      });
+    } catch (_) {
+      return '';
+    }
+  }
+
   function init() {
     currentLang = normalizeLang(getStoredLang());
     mountPickers();
@@ -474,6 +620,15 @@
     countryFlag: countryFlag,
     countryLabel: countryLabel,
     langMeta: meta,
+    fmtNumber: fmtNumber,
+    fmtMoney: fmtMoney,
+    fmtMoneyHtml: fmtMoneyHtml,
+    formatCurrency: formatCurrency,
+    localizeMoneyInText: localizeMoneyInText,
+    fmtGuc: fmtGucLocale,
+    fmtDateTime: fmtDateTime,
+    fmtDate: fmtDate,
+    intlLocale: intlLocale,
   };
   global.t = t;
   global.tr = trPhrase;

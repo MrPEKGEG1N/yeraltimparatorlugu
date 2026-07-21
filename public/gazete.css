@@ -936,6 +936,27 @@
   #masterLayout .gazete-dekor {
     height: 40px;
   }
+
+  #masterLayout .gazete-aylik-sampiyon {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 16px 14px;
+  }
+
+  #masterLayout .gazete-aylik-sampiyon-rozet {
+    width: min(148px, 38vw);
+    aspect-ratio: 283 / 469;
+    height: auto;
+    overflow: visible;
+    padding: 8px 6px;
+  }
+
+  #masterLayout .gazete-aylik-sampiyon-sancak {
+    width: 100%;
+    height: auto;
+    max-height: none;
+  }
 }
 
 #masterLayout .gazete-aylik-sampiyon {
@@ -952,12 +973,13 @@
 #masterLayout .gazete-aylik-sampiyon-rozet {
   position: relative;
   flex: 0 0 auto;
-  width: 112px;
-  height: 112px;
+  width: 104px;
+  aspect-ratio: 283 / 469;
+  height: auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 4px;
+  padding: 6px 5px;
   border-radius: 4px;
   overflow: hidden;
   border: 1px solid rgba(197, 160, 89, 0.65);
@@ -968,7 +990,8 @@
 #masterLayout .gazete-aylik-sampiyon-sancak {
   display: block;
   width: 100%;
-  height: 100%;
+  height: auto;
+  max-height: 100%;
   object-fit: contain;
   object-position: center;
 }
@@ -1033,16 +1056,8 @@
 }
 
 @media (max-width: 640px) {
-  #masterLayout .gazete-aylik-sampiyon {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    padding: 16px 14px;
-  }
-
   #masterLayout .gazete-aylik-sampiyon-rozet {
-    width: 120px;
-    height: 120px;
+    width: min(168px, 44vw);
   }
 }
 

@@ -105,7 +105,12 @@ async function registerUser(db, { username, password, reisAdi, lakap, website, u
   return { ok: true, user, token: signToken(user) };
 }
 
-async function loginUser(db, { username, password, oyunDili }, clientMeta = {}) {
+async function loginUser(db, { username, password, oyunDili, website }, clientMeta = {}) {
+  if (String(website || "").trim()) {
+    await logSecurityEvent(db, null, "honeypot_login", { ip: clientMeta.ip });
+    return { ok: false, error: "Giriş reddedildi." };
+  }
+
   const u = String(username || "").trim().toLowerCase();
   const p = String(password || "");
 
@@ -172,7 +177,10 @@ async function changePassword(db, userId, { eskiSifre, yeniSifre }) {
   const match = await bcrypt.compare(eski, user.password_hash);
   if (!match) return { ok: false, error: "Mevcut şifre hatalı." };
   const hash = await bcrypt.hash(yeni, 10);
-  await run(db, "UPDATE users SET password_hash = ? WHERE id = ?", [hash, userId]);
+  await run(db, "UPDATE users SET password_hash = ?, token_version = token_version + 1 WHERE id = ?", [
+    hash,
+    userId,
+  ]);
   return { ok: true };
 }
 

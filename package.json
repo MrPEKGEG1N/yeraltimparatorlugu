@@ -36,7 +36,10 @@
     "deploy:railway": "powershell -ExecutionPolicy Bypass -File tools/deploy-railway.ps1",
     "deploy:apk": "powershell -ExecutionPolicy Bypass -File tools/deploy-railway.ps1 && npm run android:apk",
     "i18n:complete": "node scripts/apply-manual-missing.js && node scripts/seed-message-templates.js && node scripts/generate-errors-module.js",
-    "i18n:generate": "node scripts/generate-errors-module.js"
+    "i18n:generate": "node scripts/generate-errors-module.js",
+    "images:webp": "node tools/convert-images-webp.js",
+    "security:obfuscate": "node tools/obfuscate-client.js",
+    "security:sri": "node tools/compute-sri.js"
   },
   "keywords": [],
   "author": "",
@@ -48,6 +51,7 @@
     "@capacitor/push-notifications": "^8.1.2",
     "@supabase/supabase-js": "^2.110.0",
     "bcryptjs": "^3.0.3",
+    "compression": "^1.8.1",
     "cookie-parser": "^1.4.7",
     "express": "^5.2.1",
     "express-rate-limit": "^8.5.2",
@@ -62,6 +66,7 @@
   "devDependencies": {
     "@capacitor/assets": "^3.0.5",
     "@capacitor/cli": "^8.4.1",
-    "google-translate-api-x": "^10.7.3"
+    "google-translate-api-x": "^10.7.3",
+    "sharp": "^0.35.3"
   }
 }

@@ -30,10 +30,19 @@
   }
 
   function api(url, body) {
+    var headers = { "Content-Type": "application/json" };
+    if (typeof guvenlikMeta !== "undefined") {
+      Object.assign(headers, guvenlikMeta.securityHeaders());
+    } else {
+      try {
+        var m = document.cookie.match(/(?:^|;\s*)yi_csrf=([^;]+)/);
+        if (m) headers["X-CSRF-Token"] = decodeURIComponent(m[1]);
+      } catch (_) {}
+    }
     return fetch(url, {
       method: "POST",
       credentials: "include",
-      headers: { "Content-Type": "application/json" },
+      headers: headers,
       body: JSON.stringify(body || {}),
     }).then(function (r) {
       return r.json().catch(function () {

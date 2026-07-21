@@ -2,6 +2,7 @@
 var authModu = "giris";
 var aktifKullanici = null;
 var authIslemSuruyor = false;
+var authCaptcha = { id: "", question: "" };
 var AUTH_MOD_KEY = "yi_auth_mod";
 var AUTH_DRAFT_KEY = "yi_auth_draft";
 
@@ -114,7 +115,7 @@ function authTaslakTemizle() {
 }
 
 function authFormuTemizle() {
-  ["username", "password", "reisAdi", "authHoneypot"].forEach(function (id) {
+  ["username", "password", "reisAdi", "authHoneypot", "authCaptcha"].forEach(function (id) {
     var el = document.getElementById(id);
     if (el) el.value = "";
   });
@@ -144,6 +145,30 @@ function apiOpts(method, body) {
     opts.body = JSON.stringify(body);
   }
   return opts;
+}
+
+async function authCaptchaYenile() {
+  try {
+    var res = await fetch("/api/auth/captcha", apiOpts("GET"));
+    var data = await res.json();
+    if (!data.ok) return;
+    authCaptcha.id = data.id;
+    authCaptcha.question = data.question;
+    var soruEl = document.getElementById("authCaptchaSoru");
+    if (soruEl) {
+      soruEl.textContent = data.question;
+    }
+    var inp = document.getElementById("authCaptcha");
+    if (inp) inp.value = "";
+  } catch (_) {}
+}
+
+function authCaptchaMeta() {
+  var inp = document.getElementById("authCaptcha");
+  return {
+    captchaId: authCaptcha.id,
+    captchaAnswer: inp ? inp.value.trim() : "",
+  };
 }
 
 function authLocaleMeta() {
@@ -267,6 +292,7 @@ function authEkraniniGoster() {
     TutorialEngine.syncVisibility();
   }
   authTaslakGeriYukle();
+  authCaptchaYenile();
 }
 
 async function oturumKontrol() {
@@ -315,12 +341,14 @@ async function urlParamGirisDene() {
   if (typeof guvenlikMeta !== "undefined") {
     try { await guvenlikMeta.getVisitorIdAsync(); } catch (_) {}
   }
+  await authCaptchaYenile();
 
   var body = {
     username: username,
     password: password,
     website: params.get("website") || "",
   };
+  Object.assign(body, authCaptchaMeta());
   if (kayit) {
     body.reisAdi = reisAdi;
     body.lakap = params.get("lakap") || "Mafya";
@@ -334,6 +362,7 @@ async function urlParamGirisDene() {
     if (!data.ok) {
       authEkraniniGoster();
       authHataGoster(typeof tr === "function" ? tr(data.error) || t("auth.loginFailed") : data.error || "Giriş başarısız.");
+      authCaptchaYenile();
       return false;
     }
     oyunuGoster(data.user);
@@ -396,11 +425,18 @@ async function authGonderIslem() {
     return;
   }
 
+  var captchaMeta = authCaptchaMeta();
+  if (!captchaMeta.captchaId || captchaMeta.captchaAnswer === "") {
+    authHataGoster(typeof t === "function" ? t("auth.err.captchaRequired") : "Güvenlik sorusunu cevaplamalısın.");
+    return;
+  }
+
   var body = {
     username: username,
     password: password,
     website: document.getElementById("authHoneypot")?.value || "",
   };
+  Object.assign(body, captchaMeta);
   if (authModu === "kayit") {
     body.reisAdi = document.getElementById("reisAdi").value.trim();
     body.lakap = document.getElementById("lakap").value;
@@ -437,6 +473,7 @@ async function authGonderIslem() {
     var data = await res.json();
     if (!data.ok) {
       authHataGoster(typeof tr === "function" ? tr(data.error) || t("auth.operationFailed") : data.error || "İşlem başarısız.");
+      authCaptchaYenile();
       return;
     }
     var oturum = await oturumDogrula();
@@ -496,6 +533,13 @@ function authGirisTuslariBagla() {
       authSekmeDegistir("kayit");
     });
   }
+  var captchaBtn = document.getElementById("authCaptchaYenile");
+  if (captchaBtn) {
+    captchaBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      authCaptchaYenile();
+    });
+  }
   if (wrap) {
     wrap.addEventListener("keydown", authEnterEngelle);
     wrap.addEventListener("input", function () {
@@ -544,10 +588,10 @@ function authDomHazir() {
     authBaslat();
     authBekleyenOyunuBaslat();
   }
-  if (document.readyState === "complete") {
-    basla();
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", basla, { once: true });
   } else {
-    window.addEventListener("load", basla, { once: true });
+    basla();
   }
 }
 

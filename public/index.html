@@ -9,58 +9,36 @@
   <meta name="theme-color" content="#040302">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
+  <meta name="description" content="Yeraltı İmparatorluğu — Tarayıcı tabanlı mafya strateji oyunu. Şehre hükmet, sektörleri ele geçir, mafya kur ve yeraltı imparatorluğunu inşa et.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://yeralti-game.onrender.com/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Yeraltı İmparatorluğu">
+  <meta property="og:url" content="https://yeralti-game.onrender.com/">
+  <meta property="og:title" content="Yeraltı İmparatorluğu">
+  <meta property="og:description" content="Tarayıcı tabanlı mafya strateji oyunu. Şehre hükmet, sektörleri ele geçir, mafya kur ve yeraltı imparatorluğunu inşa et.">
+  <meta property="og:image" content="https://yeralti-game.onrender.com/images/ui/sm-title-plaque.png">
+  <meta property="og:locale" content="tr_TR">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Yeraltı İmparatorluğu">
+  <meta name="twitter:description" content="Tarayıcı tabanlı mafya strateji oyunu. Şehre hükmet, sektörleri ele geçir, mafya kur ve yeraltı imparatorluğunu inşa et.">
+  <meta name="twitter:image" content="https://yeralti-game.onrender.com/images/ui/sm-title-plaque.png">
   <title>Yeraltı İmparatorluğu</title>
   <link rel="manifest" href="/manifest.json">
   <link rel="stylesheet" href="/bildirim.css?v=4">
-  <script>
-    (function () {
-      function authAktifMi() {
-        var auth = document.getElementById("authEkran");
-        return auth && !auth.classList.contains("gizli");
-      }
-      function authFormIcinde(el) {
-        return el && el.closest && (el.closest("#authForm") || el.closest("#authEkran"));
-      }
-      function authGonderCagir() {
-        if (typeof window.authGonderIslem === "function") {
-          window.authGonderIslem();
-        }
-      }
-      document.addEventListener(
-        "submit",
-        function (e) {
-          if (!authAktifMi()) return;
-          if (!authFormIcinde(e.target)) return;
-          e.preventDefault();
-          e.stopImmediatePropagation();
-          authGonderCagir();
-          return false;
-        },
-        true
-      );
-      document.addEventListener(
-        "keydown",
-        function (e) {
-          if (e.key !== "Enter") return;
-          if (!authAktifMi()) return;
-          if (!authFormIcinde(e.target)) return;
-          e.preventDefault();
-          e.stopImmediatePropagation();
-          authGonderCagir();
-        },
-        true
-      );
-    })();
-  </script>
+  <script src="auth-inline.js?v=1"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" href="components/MasterLayout.module.css?v=136" as="style">
+  <link rel="preload" href="i18n/locales.js?v=128" as="script">
+  <link rel="preload" href="script.js?v=422" as="script">
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,300;1,400&family=Oswald:wght@400;600;700&family=Roboto+Condensed:wght@300;400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="components/MasterLayout.module.css?v=136">
   <link rel="stylesheet" href="liderlik.css?v=115">
   <link rel="stylesheet" href="guclen-magaza.css?v=5">
   <link rel="stylesheet" href="ekran-icerik.css?v=123">
-  <link rel="stylesheet" href="gazete.css?v=122">
-  <link rel="stylesheet" href="profil.css?v=174">
+  <link rel="stylesheet" href="gazete.css?v=123">
+  <link rel="stylesheet" href="profil.css?v=175">
   <link rel="stylesheet" href="menu-hub.css?v=107">
   <link rel="stylesheet" href="spor-salonu.css?v=15">
   <link rel="stylesheet" href="dusman.css?v=105">
@@ -68,28 +46,22 @@
   <link rel="stylesheet" href="gunluk-gorevler.css?v=112">
   <link rel="stylesheet" href="racon-raporu.css?v=9">
   <link rel="stylesheet" href="guvenli-yer.css?v=16">
-  <link rel="stylesheet" href="sefirlik.css?v=1">
-  <link rel="stylesheet" href="meslek.css?v=20">
   <link rel="stylesheet" href="istihbarat.css?v=102">
   <link rel="stylesheet" href="sadakat-yemini.css?v=3">
   <link rel="stylesheet" href="sehre-hukmet.css?v=3">
   <link rel="stylesheet" href="mekan-devri.css?v=2">
   <link rel="stylesheet" href="medya.css?v=2">
-  <link rel="stylesheet" href="sohbet.css?v=4">
+  <link rel="stylesheet" href="sohbet.css?v=5">
   <link rel="stylesheet" href="avukat.css?v=3">
-  <link rel="stylesheet" href="hastane.css?v=7">
+  <link rel="stylesheet" href="hastane.css?v=8">
   <link rel="stylesheet" href="hapishane.css?v=2">
   <link rel="stylesheet" href="kara-liste.css?v=6">
   <link rel="stylesheet" href="sehir-tarihi.css?v=1">
-  <link rel="stylesheet" href="sabotaj.css?v=4">
-  <link rel="stylesheet" href="borsa.css?v=4">
-  <link rel="stylesheet" href="kumarhane.css?v=24">
   <link rel="stylesheet" href="egitim.css?v=11">
   <link rel="stylesheet" href="kurallar.css?v=1">
   <link rel="stylesheet" href="gorus-oneri.css?v=1">
   <link rel="stylesheet" href="responsive.css?v=122">
   <link rel="stylesheet" href="i18n/lang-picker.css?v=3">
-  <link href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css" rel="stylesheet">
 </head>
 <body>
 
@@ -101,6 +73,7 @@
     <header class="auth-baslik">
       <h1 class="auth-logo" data-i18n="auth.title">👑 YERALTİ İMPARATORLUĞU</h1>
       <p class="auth-alt" data-i18n="auth.subtitle">Hesabınla giriş yap veya yeni reis olarak kayıt ol.</p>
+      <p class="auth-uyari" data-i18n="auth.disclaimer">18+ · Kurgusal mafya evreni · Şiddet temaları içerebilir · Gerçek para ile kumar oynanmaz</p>
     </header>
 
     <div class="auth-sekmeler">
@@ -128,6 +101,14 @@
         <input type="password" id="password" minlength="6" placeholder="••••••" autocomplete="new-password">
       </div>
       <input type="text" id="authHoneypot" tabindex="-1" autocomplete="off" class="gizli" aria-hidden="true">
+      <div class="auth-alan auth-captcha-alan">
+        <label for="authCaptcha" data-i18n="auth.captcha">Güvenlik sorusu</label>
+        <div class="auth-captcha-satir">
+          <span id="authCaptchaSoru" class="auth-captcha-soru" aria-live="polite">…</span>
+          <button type="button" id="authCaptchaYenile" class="auth-captcha-yenile" title="Yenile" data-i18n-title="auth.captchaRefresh" aria-label="Yenile">↻</button>
+        </div>
+        <input type="number" id="authCaptcha" inputmode="numeric" autocomplete="off" data-i18n-placeholder="auth.captchaPlaceholder" placeholder="Cevabını yaz">
+      </div>
       <div id="kurallarKabulAlan" class="auth-alan auth-kural-kabul gizli">
         <label class="auth-kural-kabul-label" for="kurallarKabul">
           <input type="checkbox" id="kurallarKabul">
@@ -175,8 +156,8 @@
       <div class="ml-stat-chip ml-stat-chip--tip" id="chipSayginlik" data-i18n-tip="header.tip.respect"><span>🕶️</span><span class="ml-stat-label" data-i18n="header.respect">Saygınlık:</span><span class="ml-stat-val" id="puan">1.500</span></div>
       <div class="ml-stat-chip"><span>⚔️</span><span class="ml-stat-label" data-i18n="header.power">Güç:</span><span class="ml-stat-val" id="guc">500</span></div>
       <div class="ml-stat-chip ml-stat-chip--tip" id="chipBonusGuc" data-i18n-tip="header.tip.bonusPower"><span>🛡️</span><span class="ml-stat-label" data-i18n="header.bonusPower">Bonus Güç:</span><span class="ml-stat-val" id="bonusGuc">0</span></div>
-      <div class="ml-stat-chip"><span>💵</span><span class="ml-stat-label" data-i18n="header.cash">Kasa:</span><span class="ml-stat-val kasa-val" id="kasa">10.000 TL</span></div>
-      <button type="button" class="ml-stat-chip ml-stat-chip--banka ml-stat-chip--tip" onclick="ekranDegistir('banka')" data-i18n-tip="header.tip.bank"><span>🏦</span><span class="ml-stat-label" data-i18n="header.bank">Banka:</span><span class="ml-stat-val" id="bankaUst">0 TL</span></button>
+      <div class="ml-stat-chip ml-stat-chip--tip" data-i18n-tip="game.currency.tooltip"><span>💵</span><span class="ml-stat-label" data-i18n="header.cash">Kasa:</span><span class="ml-stat-val kasa-val" id="kasa">10.000 🪙</span></div>
+      <button type="button" class="ml-stat-chip ml-stat-chip--banka ml-stat-chip--tip" onclick="ekranDegistir('banka')" data-i18n-tip="header.tip.bank"><span>🏦</span><span class="ml-stat-label" data-i18n="header.bank">Banka:</span><span class="ml-stat-val" id="bankaUst">0 🪙</span></button>
       <div class="ml-stat-chip ml-stat-chip--tip ml-stat-chip--elmas" id="chipElmas" data-i18n-tip="header.tip.diamond"><span>💎</span><span class="ml-stat-label" data-i18n="header.diamond">Elmas:</span><span class="ml-stat-val elmas-val" id="elmas">0</span></div>
       <span class="gizli" id="onlineSayisi">0</span>
     </div>
@@ -216,7 +197,7 @@
       <li><button type="button" class="ml-menu-item" id="profilMenuBtn" onclick="ekranDegistir('profilim')"><span class="ml-menu-emoji" aria-hidden="true">👤</span><span class="ml-menu-label" data-i18n="menu.profilim" data-i18n-fallback="Profilim">Profilim</span></button></li>
       <li><button type="button" class="ml-menu-item" id="guvenliYerMenuBtn" onclick="ekranDegistir('guvenliYer')"><span class="ml-menu-emoji" aria-hidden="true">🏠</span><span class="ml-menu-label" data-i18n="menu.guvenliYer" data-i18n-fallback="Güvenli Yer">Güvenli Yer</span></button></li>
       <li><button type="button" class="ml-menu-item" id="gunlukGorevlerMenuBtn" onclick="ekranDegistir('gunlukGorevler')"><span class="ml-menu-emoji" aria-hidden="true">📜</span><span class="ml-menu-label ml-menu-label--long" data-i18n="menu.gunlukGorevler" data-i18n-fallback="Günlük Görevler">Günlük Görevler</span><span class="ml-menu-label ml-menu-label--short" data-i18n="menu.gunlukShort" data-i18n-fallback="Günlük" aria-hidden="true">Günlük</span></button></li>
-      <li><button type="button" class="ml-menu-item" id="guclenMenuBtn" onclick="ekranDegistir('guclen')"><span class="ml-menu-emoji" aria-hidden="true">💪</span><span class="ml-menu-label" data-i18n="menu.guclen" data-i18n-fallback="Güçlen/Silahlan">Güçlen/Silahlan</span></button></li>
+      <li><button type="button" class="ml-menu-item" id="guclenMenuBtn" onclick="ekranDegistir('guclen')"><span class="ml-menu-emoji" aria-hidden="true">💪</span><span class="ml-menu-label ml-menu-label--long" data-i18n="menu.guclen" data-i18n-fallback="Güçlen/Silahlan">Güçlen/Silahlan</span><span class="ml-menu-label ml-menu-label--short" data-i18n="menu.guclenShort" data-i18n-fallback="Güçlen" aria-hidden="true">Güçlen</span></button></li>
       <li><button type="button" class="ml-menu-item" id="sporSalonuMenuBtn" onclick="ekranDegistir('sporSalonu')"><span class="ml-menu-emoji" aria-hidden="true">🏋️</span><span class="ml-menu-label" data-i18n="menu.sporSalonu" data-i18n-fallback="Spor Salonu">Spor Salonu</span></button></li>
       <li><button type="button" class="ml-menu-item" id="buyumeMenuBtn" onclick="ekranDegistir('buyume')"><span class="ml-menu-emoji" aria-hidden="true">⭐</span><span class="ml-menu-label" data-i18n="menu.buyume" data-i18n-fallback="İcraat İşleri" data-menu-text="İcraat İşleri">İcraat İşleri</span></button></li>
       <li><button type="button" class="ml-menu-item" id="mekanMenuBtn" onclick="ekranDegistir('mekan')"><span class="ml-menu-emoji" aria-hidden="true">🏢</span><span class="ml-menu-label" data-i18n="menu.sektorler" data-i18n-fallback="Sektörler">Sektörler</span></button></li>
@@ -277,6 +258,7 @@
         <div class="g2-body ui-frame-inner">
           <div id="oyunEkran">
             <div id="sehirBanner" class="gizli"></div>
+            <p id="oyunTemaUyari" class="oyun-tema-uyari" data-i18n="game.theme.disclaimer">18+ · Kurgusal · Şiddet temaları içerebilir</p>
             <div id="anaIcerik"></div>
           </div>
         </div>
@@ -380,7 +362,7 @@
           <div class="racon-satir-icerik">
             <p class="racon-satir-etiket" data-i18n="game.welcome.earnings">Kazancın</p>
             <div class="racon-deger-grup">
-              <span id="raconKazanc" class="racon-deger">0</span><span class="racon-kirmizi"> TL</span>
+              <span id="raconKazanc" class="racon-deger">0</span><span class="racon-kirmizi"> 🪙</span>
             </div>
             <p class="racon-satir-metin" data-i18n="game.welcome.earningsText">Mekanlar tam kapasite çalıştı.</p>
           </div>
@@ -454,26 +436,22 @@
 </div>
 <button type="button" id="tutorialResumeBtn" class="eg-devam-btn gizli" data-i18n-title="tutorial.resumeTitle" title="Eğitime kaldığın yerden devam et">📖 Eğitime Devam</button>
 
-<script src="mobile-immersive.js?v=8"></script>
-<script src="https://openfpcdn.io/fingerprintjs/v4/iife.min.js"></script>
-<script src="security.js?v=1"></script>
-<script src="kurallar.js?v=2"></script>
-<script src="i18n/languages.js?v=3"></script>
-<script src="i18n/locales.js?v=123"></script>
-<script src="i18n/catalog.js?v=6"></script>
-<script src="i18n/i18n.js?v=10"></script>
-<script src="auth.js?v=107"></script>
-<script src="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js"></script>
-<script src="profilFFormat.js?v=3"></script>
-<script src="mekanlar-data.js?v=85"></script>
-<script src="tutorialEngine.js?v=10"></script>
-<script src="sefirlik.js?v=3"></script>
-<script src="sabotaj.js?v=5"></script>
-<script src="borsa.js?v=7"></script>
-<script src="kumarhane.js?v=28"></script>
-<script src="meslek.js?v=28"></script>
-<script src="script.js?v=415"></script>
-<script src="bildirim.js?v=5"></script>
-<script src="capacitor-push.js?v=1"></script>
+<script src="perf-loader.js?v=1"></script>
+<script defer src="mobile-immersive.js?v=8"></script>
+<script defer src="security.js?v=3"></script>
+<script defer src="kurallar.js?v=2"></script>
+<script defer src="i18n/languages.js?v=3"></script>
+<script defer src="i18n/locales.js?v=128"></script>
+<script defer src="i18n/catalog.js?v=6"></script>
+<script defer src="i18n/mekanlar-i18n.js?v=1"></script>
+<script defer src="i18n/i18n.js?v=12"></script>
+<script defer src="auth.js?v=109"></script>
+<script defer src="profilFFormat.js?v=3"></script>
+<script defer src="mekanlar-data.js?v=85"></script>
+<script defer src="tutorialEngine.js?v=10"></script>
+<script defer src="script.js?v=422"></script>
+<script defer src="security-guard.js?v=2"></script>
+<script defer src="bildirim.js?v=6"></script>
+<script defer src="capacitor-push.js?v=1"></script>
 </body>
 </html>

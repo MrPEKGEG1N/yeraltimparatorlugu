@@ -1,5 +1,6 @@
 const express = require("express");
 const path = require("path");
+const compression = require("compression");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 const cookieParser = require("cookie-parser");
@@ -17,6 +18,7 @@ const { gunlukMaasIsle } = require("./game/gunlukMaasService");
 const { saatlikGelirIsle } = require("./game/saatlikGelirService");
 const { JWT_SECRET } = require("./config");
 const { attachLang, localizeResponse } = require("./middleware/lang");
+const { ensureCsrfCookie, csrfProtect } = require("./middleware/csrf");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -32,46 +34,57 @@ if (process.env.NODE_ENV === "production" && JWT_SECRET.includes("dev-gizli")) {
 app.set("trust proxy", 1);
 
 app.use(
+  compression({
+    threshold: 1024,
+    level: 6,
+  })
+);
+
+app.use(
   helmet({
     contentSecurityPolicy: {
       useDefaults: true,
       directives: {
+        "default-src": ["'self'"],
         "script-src": [
           "'self'",
-          "'unsafe-inline'",
           "https://cdn.jsdelivr.net",
           "https://openfpcdn.io",
-          "https://cdn.tailwindcss.com",
         ],
         "script-src-attr": ["'unsafe-inline'"],
         "img-src": ["'self'", "data:", "blob:"],
-        "connect-src": ["'self'", "https://openfpcdn.io", "https://cdn.tailwindcss.com"],
+        "connect-src": ["'self'", "https://openfpcdn.io"],
         "font-src": ["'self'", "https://fonts.gstatic.com", "data:"],
         "style-src": [
           "'self'",
           "'unsafe-inline'",
           "https://fonts.googleapis.com",
           "https://cdn.jsdelivr.net",
-          "https://cdn.tailwindcss.com",
         ],
+        "frame-ancestors": ["'self'"],
+        "base-uri": ["'self'"],
+        "form-action": ["'self'"],
       },
     },
     crossOriginResourcePolicy: { policy: "same-origin" },
+    referrerPolicy: { policy: "strict-origin-when-cross-origin" },
   })
 );
 
 app.use(express.json({ limit: "1mb" }));
 app.use(cookieParser());
+app.use(ensureCsrfCookie);
 
 const globalApiLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 300,
+  max: 240,
   standardHeaders: true,
   legacyHeaders: false,
   message: { ok: false, error: "Sunucu yoğun. Lütfen kısa süre sonra tekrar dene." },
 });
 
 app.use("/api", globalApiLimiter);
+app.use("/api", csrfProtect);
 app.use("/api", attachLang);
 app.use("/api", localizeResponse);
 
@@ -103,6 +116,10 @@ function registerStaticRoutes() {
           res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
           res.setHeader("Pragma", "no-cache");
           res.setHeader("Expires", "0");
+          return;
+        }
+        if (/\.(js|css|png|jpe?g|webp|gif|svg|ico|woff2?|ttf|eot|mp3|json)$/i.test(filePath)) {
+          res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
         }
       },
     })
@@ -171,6 +188,14 @@ async function sendHealth(res) {
         process.env.GIT_COMMIT ||
         null,
       auth: true,
+      security: {
+        jwt: true,
+        csrf: true,
+        captcha: true,
+        rateLimit: true,
+        csp: true,
+        sri: true,
+      },
       mafya: true,
       oyuncular: row?.n || 0,
       db: DB_PATH,

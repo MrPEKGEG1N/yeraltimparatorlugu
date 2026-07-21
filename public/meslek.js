@@ -606,12 +606,12 @@ function meslekSonRaporOzetHTML(y) {
     t("meslek.reports.gross") +
     "<b>" +
     fmt(son.brutGelir) +
-    " TL</b></span>" +
+    " 🪙</b></span>" +
     "<span>" +
     t("meslek.reports.net") +
     "<b>" +
     fmt(son.netKar) +
-    " TL</b></span>" +
+    " 🪙</b></span>" +
     "</div>" +
     (son.notlar ? '<p class="meslek-dim meslek-son-rapor-not">' + escHtml(son.notlar) + "</p>" : "") +
     "</div>"

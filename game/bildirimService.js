@@ -30,7 +30,7 @@ const BILDIRIM_TURLERI = {
   zam_onay: "Zam talebin onaylandı",
   zam_red: "Zam talebin reddedildi",
   sirket_kapandi: "Şirket kapandı",
-  kumarhane_pvp: "Kumarhane masası",
+  kumarhane_pvp: "Şans oyunları masası",
   ozel_mesaj: "Özel mesaj",
 };
 

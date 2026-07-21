@@ -52,6 +52,9 @@
     opts = opts || {};
     opts.credentials = "include";
     opts.headers = Object.assign({ "Content-Type": "application/json" }, opts.headers || {});
+    if (typeof guvenlikMeta !== "undefined") {
+      Object.assign(opts.headers, guvenlikMeta.securityHeaders());
+    }
     if (opts.body && typeof opts.body === "object") opts.body = JSON.stringify(opts.body);
     return fetch(url, opts).then(function (r) {
       return r.json().then(function (d) {

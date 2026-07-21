@@ -58,6 +58,20 @@ var HAPSE_GIR_ESIK = 15;
 var BARON_HAPIS_UYARI_ESIK = 30;
 var mekanTanimlari = {};
 var aktifEkran = '';
+var aktifSohbetKanal = 'global';
+var SOHBET_KANALLARI = ['global', 'tr', 'de', 'fr', 'es', 'it', 'pt', 'pl', 'ru', 'ar', 'zh', 'ja'];
+var LANG_TO_SOHBET_KANAL = {
+  tr: 'tr', en: 'global', 'en-US': 'global', de: 'de', fr: 'fr', es: 'es', it: 'it',
+  pt: 'pt', 'pt-BR': 'pt', pl: 'pl', ru: 'ru', ar: 'ar', zh: 'zh', ja: 'ja',
+  nl: 'global', ro: 'global', cs: 'global', el: 'global'
+};
+
+function sohbetVarsayilanKanal() {
+  var lang = (typeof I18n !== 'undefined' && I18n.getLang) ? I18n.getLang() : 'tr';
+  if (LANG_TO_SOHBET_KANAL[lang]) return LANG_TO_SOHBET_KANAL[lang];
+  var base = String(lang).split('-')[0];
+  return LANG_TO_SOHBET_KANAL[base] || 'global';
+}
 var aktifLakap = 'Mafya';
 var istihbaratEleman = 0;
 var istihbaratBirimMaliyet = 50000;
@@ -353,18 +367,18 @@ function oyuncuUygula(p, secenekler) {
   meslekBildirim = !!p.meslekBildirim;
   if (p.meslekGelirBilgi && p.meslekGelirBilgi.gelir > 0 && !secenekler.poll) {
     var mg = p.meslekGelirBilgi;
-    toast(t('game.toast.jobSalaryPaid', { amount: fmt(mg.gelir), days: mg.gun > 1 ? t('game.days', { n: mg.gun }) : '' }), 'basari');
+    toast(t('game.toast.jobSalaryPaid', { amount: fmtMoney(mg.gelir), days: mg.gun > 1 ? t('game.days', { n: mg.gun }) : '' }), 'basari');
   }
   if (p.sirketMaasBilgi && p.sirketMaasBilgi.gelir > 0 && !secenekler.poll) {
     var sm = p.sirketMaasBilgi;
     var maasAntrenmanNot = sm.maasAntrenmanPuani > 0 ? t('game.toast.trainingPoints', { n: sm.maasAntrenmanPuani }) : '';
-    toast(t('game.toast.companySalaryPaid', { company: sm.sirketAdi || t('game.toast.jobFallback'), amount: fmt(sm.gelir), days: sm.gun > 1 ? t('game.days', { n: sm.gun }) : '', training: maasAntrenmanNot }), 'basari');
+    toast(t('game.toast.companySalaryPaid', { company: sm.sirketAdi || t('game.toast.jobFallback'), amount: fmtMoney(sm.gelir), days: sm.gun > 1 ? t('game.days', { n: sm.gun }) : '', training: maasAntrenmanNot }), 'basari');
   } else if (p.sirketMaasBilgi && p.sirketMaasBilgi.odemeYapilamadi && !secenekler.poll) {
     toast(tr(p.sirketMaasBilgi.mesaj) || t('game.toast.companySalaryFailed'), 'hata');
   }
   if (p.sirketGelirBilgi && p.sirketGelirBilgi.gelir > 0 && !secenekler.poll) {
     var sg = p.sirketGelirBilgi;
-    toast(t('game.toast.companyReport', { company: sg.sirketAdi || '', amount: fmt(sg.gelir), days: sg.gun > 1 ? t('game.days', { n: sg.gun }) : '' }), 'basari');
+    toast(t('game.toast.companyReport', { company: sg.sirketAdi || '', amount: fmtMoney(sg.gelir), days: sg.gun > 1 ? t('game.days', { n: sg.gun }) : '' }), 'basari');
   }
   if (p.yetenekler) oyuncuYetenekler = p.yetenekler;
   if (p.yetenekOzeti) oyuncuYetenekOzeti = p.yetenekOzeti;
@@ -395,6 +409,7 @@ function oyuncuUygula(p, secenekler) {
   // Liderlik ekranı kullanıcı tab/sekme değiştirmedikçe yeniden çizilmez.
   profilOyuncuAdiUcretGuncelle();
   guncelleBgIsim();
+  if (!secenekler.poll) ycMigrationBildir();
 }
 
 async function elitFiyatDurumSenkronize() {
@@ -492,13 +507,13 @@ async function sunucuHazirBekle(maxMs) {
   var bas = Date.now();
   while (Date.now() - bas < maxMs) {
     try {
-      var res = await fetch('/api/health', { credentials: 'include' });
+      var res = await fetch('/api/health', { credentials: 'include', cache: 'no-store' });
       if (res.ok) {
         var data = await res.json().catch(function() { return {}; });
         if (data.status === 'ready') return true;
       }
     } catch (_) {}
-    await new Promise(function(resolve) { setTimeout(resolve, 400); });
+    await new Promise(function(resolve) { setTimeout(resolve, 180); });
   }
   return false;
 }
@@ -663,7 +678,15 @@ async function sunucuAksiyon(action, key, adet, extra) {
 // ========================
 // GÖRSELLER — yerel (/public/images)
 // ========================
-var GORSEL_VERSIYON = '147';
+var GORSEL_VERSIYON = '149';
+
+function yerelGorsel(klasor, dosya) {
+  return '/images/' + klasor + '/' + dosya + '.jpg?v=' + GORSEL_VERSIYON;
+}
+
+function yerelGorselPng(klasor, dosya) {
+  return '/images/' + klasor + '/' + dosya + '.png?v=' + GORSEL_VERSIYON;
+}
 var profilLiderlikOyunculari = [];
 var profilAktifSekme = 'karakter';
 var oyuncuYetenekler = null;
@@ -757,15 +780,7 @@ function mafyaSampiyonRozetleriHTML(sampiyonluklar) {
 var MEDYA_BANNER = '/images/is/medya_banner.png?v=' + GORSEL_VERSIYON;
 var GAZETE_SAYFA_GORSEL = '/images/gazete/gazete-sayfa.png?v=' + GORSEL_VERSIYON;
 var GAZETE_AYLIK_KUPA = '/images/gazete/aylik-sampiyon-kupa.png?v=2';
-  var ARKA_PLAN_GORSEL = '/images/bg-masa.png?v=' + GORSEL_VERSIYON;
-
-function yerelGorsel(klasor, dosya) {
-  return '/images/' + klasor + '/' + dosya + '.jpg?v=' + GORSEL_VERSIYON;
-}
-
-function yerelGorselPng(klasor, dosya) {
-  return '/images/' + klasor + '/' + dosya + '.png?v=' + GORSEL_VERSIYON;
-}
+var ARKA_PLAN_GORSEL = '/images/bg-masa.png?v=' + GORSEL_VERSIYON;
 
 function cdnGorsel(photoId) {
   return 'https://images.unsplash.com/' + photoId + '?w=400&h=300&fit=crop&q=80&v=' + GORSEL_VERSIYON;
@@ -876,7 +891,7 @@ function mafyaGrupUstHTML(opts) {
   var uyeSayisi = opts.uyeSayisi != null ? opts.uyeSayisi : 0;
   var kapasite = opts.kapasite != null ? opts.kapasite : '—';
   var uyeMetin = uyeSayisi + '/' + kapasite;
-  var servet = opts.birikmisPara != null ? fmt(opts.birikmisPara) + ' TL' : '—';
+  var servet = opts.birikmisPara != null ? fmtMoney(opts.birikmisPara) : '—';
   var sayginlik = opts.toplamSayginlik != null ? fmt(opts.toplamSayginlik) : '—';
   var rutbe = opts.rutbe && String(opts.rutbe).trim() ? opts.rutbe : '—';
   var isim = opts.isim || '—';
@@ -1133,7 +1148,57 @@ function limanMeta(id) {
 // ========================
 // YARDIMCI
 // ========================
-function fmt(sayi) { return sayi.toLocaleString('tr-TR'); }
+function fmt(sayi) {
+  if (typeof I18n !== 'undefined' && I18n.fmtNumber) return I18n.fmtNumber(sayi);
+  return Number(sayi || 0).toLocaleString('tr-TR');
+}
+
+function fmtMoney(sayi) {
+  if (typeof I18n !== 'undefined' && I18n.fmtMoney) return I18n.fmtMoney(sayi);
+  return fmt(sayi) + ' 🪙';
+}
+
+function formatCurrency(sayi) {
+  return fmtMoney(sayi);
+}
+
+function fmtMoneyHtml(sayi) {
+  if (typeof I18n !== 'undefined' && I18n.fmtMoneyHtml) return I18n.fmtMoneyHtml(sayi);
+  return fmtMoney(sayi);
+}
+
+function ycMigrationBildir() {
+  try {
+    if (localStorage.getItem('yi_yc_migration_v1')) return;
+    localStorage.setItem('yi_yc_migration_v1', '1');
+    if (typeof toast === 'function') toast(t('game.currency.migrationNotice'), 'basari');
+  } catch (_) {}
+}
+
+function fmtDateLocale(ts) {
+  if (typeof I18n !== 'undefined' && I18n.fmtDateTime) return I18n.fmtDateTime(ts);
+  var n = Number(ts);
+  if (!n) return '';
+  return new Date(n < 1e12 ? n * 1000 : n).toLocaleString('tr-TR', { timeZone: 'Europe/Istanbul' });
+}
+
+function fmtGuc(sayi) {
+  if (typeof I18n !== 'undefined' && I18n.fmtGuc) return I18n.fmtGuc(sayi);
+  var n = Math.max(0, Math.floor(Number(sayi) || 0));
+  if (n >= 1000000000) {
+    var b = n / 1000000000;
+    return (b >= 10 ? b.toFixed(0) : b.toFixed(1).replace(/\.0$/, '')) + 'B';
+  }
+  if (n >= 1000000) {
+    var m = n / 1000000;
+    return (m >= 10 ? m.toFixed(0) : m.toFixed(1).replace(/\.0$/, '')) + 'M';
+  }
+  if (n >= 10000) {
+    var k = n / 1000;
+    return (k >= 10 ? k.toFixed(0) : k.toFixed(1).replace(/\.0$/, '')) + 'K';
+  }
+  return fmt(n);
+}
 
 function fmtSinirsiz(sayi, sinirsiz) {
   return sinirsiz ? '∞' : fmt(sayi);
@@ -1170,14 +1235,7 @@ function premiumKalanMetinClient(kalanSn) {
 
 function premiumBitisMetinClient(bitisUnix) {
   if (!bitisUnix) return '';
-  return new Date(bitisUnix * 1000).toLocaleString('tr-TR', {
-    timeZone: 'Europe/Istanbul',
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
+  return fmtDateLocale(bitisUnix);
 }
 
 function premiumRozetHtml(paket) {
@@ -1272,11 +1330,16 @@ function statTooltipBagla() {
 
 function arayuzGuncelle() {
   var kasaEl = document.getElementById('kasa');
-  if (kasaEl) kasaEl.innerText = fmt(oyuncuKasa) + ' TL';
+  var ycTip = t('game.currency.tooltip');
+  if (kasaEl) {
+    kasaEl.innerText = fmtMoney(oyuncuKasa);
+    kasaEl.title = ycTip;
+    kasaEl.setAttribute('data-tip', ycTip);
+  }
   var gucEl = document.getElementById('guc');
-  if (gucEl) gucEl.innerText = fmt(oyuncuGuc);
+  if (gucEl) gucEl.innerText = fmtGuc(oyuncuGuc);
   var bonusGucEl = document.getElementById('bonusGuc');
-  if (bonusGucEl) bonusGucEl.innerText = fmt(oyuncuBonusGuc);
+  if (bonusGucEl) bonusGucEl.innerText = fmtGuc(oyuncuBonusGuc);
   var puanEl = document.getElementById('puan');
   if (puanEl) puanEl.innerText = fmt(oyuncuPuan);
   var icraatEl = document.getElementById('icraat');
@@ -1303,7 +1366,11 @@ function arayuzGuncelle() {
   var kasaEl2 = document.getElementById('kasa');
   if (kasaEl2) kasaEl2.style.color = '#ffffff';
   var bankaEl = document.getElementById('bankaUst');
-  if (bankaEl) bankaEl.innerText = fmt(bankaBakiye) + ' TL';
+  if (bankaEl) {
+    bankaEl.innerText = fmtMoney(bankaBakiye);
+    bankaEl.title = ycTip;
+    bankaEl.setAttribute('data-tip', ycTip);
+  }
   var elmasEl = document.getElementById('elmas');
   if (elmasEl) elmasEl.innerText = fmt(oyuncuElmas);
   var onlineEl = document.getElementById('onlineSayisi');
@@ -1500,6 +1567,9 @@ function makamBos(m) {
 function toast(mesaj, tip) {
   var renkler = { hata: '#cc0000', basari: '#1a7a35', altin: '#b8942a' };
   var renk = renkler[tip] || renkler.altin;
+  var text = mesaj;
+  if (typeof tr === 'function') text = tr(text);
+  if (typeof I18n !== 'undefined' && I18n.localizeMoneyInText) text = I18n.localizeMoneyInText(text);
   var div = document.createElement('div');
   div.style.cssText = [
     'position:fixed', 'bottom:30px', 'right:30px', 'z-index:99999',
@@ -1508,7 +1578,7 @@ function toast(mesaj, tip) {
     'font-weight:600', 'max-width:360px', 'line-height:1.4',
     'box-shadow:0 4px 20px rgba(0,0,0,0.6)'
   ].join(';');
-  div.innerText = mesaj;
+  div.innerText = text;
   document.body.appendChild(div);
   setTimeout(function() {
     div.style.transition = 'opacity 0.4s';
@@ -1540,8 +1610,8 @@ function icraatModalYenile() {
     }
     if (paraEl) {
       paraEl.innerText = s.paraKaybi > 0
-        ? ('-' + fmt(s.paraKaybi) + ' TL')
-        : (s.netKazanc > 0 ? ('+' + fmt(s.netKazanc) + ' TL') : '0 TL');
+        ? ('-' + fmtMoney(s.paraKaybi))
+        : (s.netKazanc > 0 ? ('+' + fmtMoney(s.netKazanc)) : fmtMoney(0));
       paraEl.className = s.paraKaybi > 0 ? 'kazanc-kirmizi' : 'kazanc-yesil';
     }
   } else {
@@ -1550,7 +1620,7 @@ function icraatModalYenile() {
       tebrikEl.innerHTML = t('game.jobComplete', { boss: aktifReisAdi, job: jobAdi });
     }
     if (paraEl) {
-      paraEl.innerText = '+' + fmt(s.netKazanc) + ' TL';
+      paraEl.innerText = '+' + fmtMoney(s.netKazanc);
       paraEl.className = 'kazanc-yesil';
     }
   }
@@ -1916,6 +1986,14 @@ function isTamamlaPencereAc(ef) {
     toast(t('game.toast.lawyerRelationDrop', { points: ef.devletDusus }), 'uyari');
   }
 }
+
+document.addEventListener('yi:langchange', function () {
+  arayuzGuncelle();
+  if (aktifEkran === 'mafyaSohbet') {
+    var ic = document.getElementById('anaIcerik');
+    if (ic) mafyaSohbetCiz(ic);
+  }
+});
 
 document.addEventListener('yi:langchange', function () {
   var modal = document.getElementById('jobOlayModal');
@@ -2710,9 +2788,9 @@ function guvenliYerPanelCiz() {
     + '<div class="gy-stat-kart"><span class="gy-stat-ikon">🛡️</span><div class="gy-stat-metin">'
     + '<small>' + escHtml(t('game.gy.stat.bonusPower')) + '</small><b class="gy-yesil">' + fmt(bonus) + '</b></div></div>'
     + '<div class="gy-stat-kart"><span class="gy-stat-ikon">💪</span><div class="gy-stat-metin">'
-    + '<small>' + escHtml(t('game.gy.stat.totalPower')) + '</small><b>' + fmt(toplamGucDeger) + '</b></div></div>'
+    + '<small>' + escHtml(t('game.gy.stat.totalPower')) + '</small><b>' + fmtGuc(toplamGucDeger) + '</b></div></div>'
     + '<div class="gy-stat-kart"><span class="gy-stat-ikon">💵</span><div class="gy-stat-metin">'
-    + '<small>' + escHtml(t('game.gy.stat.cash')) + '</small><b class="gy-yesil">' + fmt(oyuncuKasa) + ' TL</b></div></div>';
+    + '<small>' + escHtml(t('game.gy.stat.cash')) + '</small><b class="gy-yesil">' + fmtMoney(oyuncuKasa) + '</b></div></div>';
   if (b.kasaKorumaOrani > 0) {
     html += '<div class="gy-stat-kart"><span class="gy-stat-ikon">🔒</span><div class="gy-stat-metin">'
       + '<small>' + escHtml(t('game.gy.stat.vaultProtection')) + '</small><b class="gy-yesil">' + escHtml(t('game.gy.stat.cashPct', { pct: Math.round(b.kasaKorumaOrani * 100) })) + '</b></div></div>';
@@ -2725,9 +2803,9 @@ function guvenliYerPanelCiz() {
       + '<h4>' + escHtml(t('game.gy.next', { name: gyKisaAd(sonraki) })) + '</h4>'
       + '<p style="margin:0 0 8px;color:#888;font-size:12px;">' + escHtml(tr(sonraki.aciklama)) + '</p>'
       + '<div class="gy-yukselt-satir"><span>' + escHtml(t('game.gy.powerGain')) + '</span><b class="gy-arti">+' + fmt(sonraki.gucBonus || 0) + '</b></div>'
-      + '<div class="gy-yukselt-satir"><span>' + escHtml(t('game.gy.cost')) + '</span><b>' + fmt(sonraki.maliyet) + ' TL</b></div>'
+      + '<div class="gy-yukselt-satir"><span>' + escHtml(t('game.gy.cost')) + '</span><b>' + fmtMoney(sonraki.maliyet) + '</b></div>'
       + '<div class="gy-guc-karsilastir">'
-      + '<span>' + escHtml(t('game.gy.current')) + ' <b>' + fmt(toplamGucDeger) + '</b></span>'
+      + '<span>' + escHtml(t('game.gy.current')) + ' <b>' + fmtGuc(toplamGucDeger) + '</b></span>'
       + '<span class="gy-ok">→</span>'
       + '<span>' + escHtml(t('game.gy.after')) + ' <b>' + fmt(sonrakiGuc) + '</b></span>'
       + '</div>'
@@ -2827,7 +2905,7 @@ function istihbaratPanelHTML() {
     + '<h3>' + escHtml(t('game.intel.agentsTitle')) + '</h3>'
     + '<ul class="istih-stat-list">'
     + '<li>' + escHtml(t('game.intel.currentAgents')) + ' <b id="istihbaratElemanSayi">' + istihbaratEleman + '</b></li>'
-    + '<li>' + escHtml(t('game.intel.unitCost')) + ' <b id="istihbaratBirimMaliyet">' + fmt(istihbaratBirimMaliyetHesap(istihbaratEleman)) + ' TL</b></li>'
+    + '<li>' + escHtml(t('game.intel.unitCost')) + ' <b id="istihbaratBirimMaliyet">' + fmtMoney(istihbaratBirimMaliyetHesap(istihbaratEleman)) + '</b></li>'
     + '<li class="istih-zam-not">' + escHtml(t('game.intel.priceNote')) + '</li>'
     + '<li>' + escHtml(t('game.intel.unitPower')) + ' <b>+' + ISTIHBARAT_ELEMAN_GUC + '</b></li>'
     + '</ul>'
@@ -3025,8 +3103,8 @@ function bankaPanelHTML() {
   return '<div class="banka-sayfa">'
     + '<div class="banka-bakiye-kart">'
     + '<span class="banka-bakiye-etiket">' + escHtml(t('game.bank.accountLabel')) + '</span>'
-    + '<span class="banka-bakiye-tutar" id="bankaBakiyeGoster">💰 ' + fmt(bankaBakiye) + ' TL</span>'
-    + '<span class="banka-kasa-not">' + escHtml(t('game.bank.cashNote')) + ' <b>' + fmt(oyuncuKasa) + ' TL</b></span>'
+    + '<span class="banka-bakiye-tutar" id="bankaBakiyeGoster">💰 ' + fmtMoney(bankaBakiye) + '</span>'
+    + '<span class="banka-kasa-not">' + escHtml(t('game.bank.cashNote')) + ' <b>' + fmtMoney(oyuncuKasa) + '</b></span>'
     + '<span class="banka-kasa-not">' + escHtml(t('game.bank.rightsNote')) + ' <b style="color:#ffd76a;">' + fmtSinirsiz(bankaHakki, bankaHakSinirsiz) + '</b> <span style="color:#777;">' + escHtml(t('game.bank.rightsHelp')) + '</span></span>'
     + '</div>'
     + '<div class="banka-bilgi-kart">'
@@ -3112,11 +3190,11 @@ function elitFiyatUygula(bazFiyat) {
 
 function elitFiyatGosterHtml(bazFiyat) {
   var baz = Math.floor(bazFiyat || 0);
-  if (!elitFiyatX2) return '<b>' + fmt(baz) + ' TL</b>';
+  if (!elitFiyatX2) return '<b>' + fmtMoney(baz) + '</b>';
   var uygulanmis = elitFiyatUygula(baz);
   return '<span class="elit-fiyat-wrap">'
-    + '<span class="elit-fiyat-normal">' + fmt(baz) + ' TL</span> '
-    + '<b class="elit-fiyat-x2-deger">' + fmt(uygulanmis) + ' TL</b> '
+    + '<span class="elit-fiyat-normal">' + fmtMoney(baz) + '</span> '
+    + '<b class="elit-fiyat-x2-deger">' + fmtMoney(uygulanmis) + '</b> '
     + '<span class="elit-fiyat-badge">x2</span></span>';
 }
 
@@ -3529,7 +3607,7 @@ function sporSalonuKartHTML(s, statlar, aktifAntrenman) {
   var cls = 'meslek-panel spor-salon-panel spor-salon-panel--' + s.id;
   if (s.aktif) cls += ' spor-salon-panel--aktif';
   if (!s.acik) cls += ' spor-salon-panel--kilitli';
-  var kayitTxt = s.kayitUcret > 0 ? fmt(s.kayitUcret) + ' TL' : t('game.spor.free');
+  var kayitTxt = s.kayitUcret > 0 ? fmtMoney(s.kayitUcret) : t('game.spor.free');
   var html = '<section class="' + cls + '">'
     + sporSalonuBannerHTML(s)
     + '<div class="spor-salon-panel-govde">'
@@ -3823,13 +3901,13 @@ function sektorKartHTML(sektor, key, m, adet, bazFiyat, img) {
   return '<article class="gk-kart">'
     + '<div class="gk-medya gk-medya--fit"><img src="' + img + '" alt="" loading="lazy" decoding="async" onerror="imgFallback(this)"></div>'
     + '<div class="gk-govde">'
-    + '<h3 class="gk-baslik">' + escHtml(tr(m.ad)) + '</h3>'
-    + '<p class="gk-alinti gk-alinti--kisit">' + escHtml(tr(m.aciklama)) + '</p>'
+    + '<h3 class="gk-baslik">' + escHtml(typeof mekanAd === 'function' ? mekanAd(key, m.ad) : tr(m.ad)) + '</h3>'
+    + '<p class="gk-alinti gk-alinti--kisit">' + escHtml(typeof mekanAciklama === 'function' ? mekanAciklama(key, m.aciklama) : tr(m.aciklama)) + '</p>'
     + '<div class="gk-metrikler">'
     + '<div class="gk-metrik"><span class="gk-metrik-etiket">' + escHtml(t('game.sektor.buyPrice')) + '</span>'
     + '<div class="gk-metrik-deger">' + elitFiyatGosterHtml(bazFiyat) + '</div></div>'
     + '<div class="gk-metrik gk-metrik--kazanc"><span class="gk-metrik-etiket">' + escHtml(t('game.sektor.hourlyReturn')) + '</span>'
-    + '<div class="gk-metrik-deger">+' + fmt(m.saatlik) + ' TL</div></div>'
+    + '<div class="gk-metrik-deger">+' + fmtMoney(m.saatlik) + '</div></div>'
     + '</div>'
     + '<p class="gk-sahip">' + escHtml(t('game.sektor.owner')) + ' <b>' + adet + '</b>' + escHtml(t('game.sektor.unitWord'))
     + ' · ' + escHtml(t('game.sektor.respectLabel')) + ' <b>+' + m.sayginlik + '</b></p>'
@@ -3960,7 +4038,7 @@ function avukatHTML() {
     rusvetPanel += '<p class="av-rusvet-max">' + escHtml(t('game.lawyer.bribeMax', { max: AVUKAT_ILISKI_MAX })) + '</p>';
   } else {
     rusvetPanel += '<div class="av-rusvet-oneri"><span class="av-rusvet-oneri-etiket">' + escHtml(t('game.lawyer.recommended')) + '</span>'
-      + '<span class="av-rusvet-oneri-tutar">' + fmt(onerilen) + ' TL</span></div>'
+      + '<span class="av-rusvet-oneri-tutar">' + fmtMoney(onerilen) + '</span></div>'
       + '<p class="av-rusvet-aralik">' + escHtml(t('game.lawyer.range', { min: fmt(r.min), max: fmt(r.max), inc: RUSVET_ARTIS_MAX })) + '</p>'
       + '<div class="av-alan"><label for="rusvetMiktar">' + escHtml(t('game.lawyer.bribeLabel')) + '</label>'
       + '<input type="number" id="rusvetMiktar" class="av-input" value="' + onerilen + '" min="' + r.min + '" max="' + r.max + '"></div>'
@@ -4023,7 +4101,7 @@ function hastaneHTML(panel) {
     opts = opts || {};
     var vip = !!opts.vip;
     var html = '<div class="hs-tedavi' + (vip ? ' hs-tedavi--vip' : '') + '">'
-      + '<div class="hs-tedavi-saglik' + (hastanelik ? ' is-hastane' : '') + '">'
+      + '<div class="hs-tedavi-saglik' + (hastanelik ? ' is-hastane' : '') + (saglikYuzde > 0 && saglikYuzde < 50 ? ' is-dusuk' : '') + '">'
       + '<span class="hs-tedavi-etiket">' + escHtml(t('game.sagKol.healthLabel')) + '</span>'
       + '<div class="hs-tedavi-bar"><i style="width:' + saglikYuzde + '%"></i></div>'
       + '<span class="hs-tedavi-deger">' + saglik + '/' + saglikMax + '</span>'
@@ -4191,7 +4269,7 @@ function hapishaneHTML(panel) {
     gardiyanPanel = '<div class="hp-panel">'
       + '<div class="hp-panel-baslik"><span class="hp-panel-ikon" aria-hidden="true">💵</span><h3>' + escHtml(t('game.prison.guardBribeTitle')) + '</h3></div>'
       + '<p>' + escHtml(t('game.prison.guardBribeDesc', { saat: panel.rusvetSaat || 3 })) + '</p>'
-      + '<div class="hp-bedel-satir"><span class="hp-bedel-etiket">' + escHtml(t('game.prison.bribeCostLabel')) + '</span><span class="hp-bedel">' + fmt(rusvet) + ' TL</span></div>'
+      + '<div class="hp-bedel-satir"><span class="hp-bedel-etiket">' + escHtml(t('game.prison.bribeCostLabel')) + '</span><span class="hp-bedel">' + fmtMoney(rusvet) + '</span></div>'
       + '<div class="hp-btn-grup">'
       + '<button type="button" class="hp-btn" onclick="hapishaneRusvetGardiyan()">' + btnHtml(t('game.prison.guardBribeBtn')) + '</button>'
       + '<button type="button" class="hp-btn hp-btn--elmas" onclick="hapishaneElmasCik()">' + btnHtml(t('game.prison.diamondBtn', { n: elmasBedel })) + ' · ' + fmt(elmas) + '</button>'
@@ -4298,7 +4376,7 @@ async function hapishaneHedefSorgula() {
     + '<div class="hp-hedef-secenekler">'
     + '<div class="hp-secenek">'
     + '<span class="hp-bedel-etiket">' + escHtml(t('game.prison.bribeCostLabel')) + '</span>'
-    + '<span class="hp-bedel">' + fmt(ef.hedef.rusvetBedeli) + ' TL</span>'
+    + '<span class="hp-bedel">' + fmtMoney(ef.hedef.rusvetBedeli) + '</span>'
     + '<button type="button" class="hp-btn hp-btn--kurtar" onclick="hapishaneOyuncuCikar()">' + btnHtml(t('game.prison.rescueBtn')) + '</button>'
     + '</div>'
     + '<div class="hp-secenek hp-secenek--elmas">'
@@ -4346,7 +4424,7 @@ function medyaHTML() {
     + '<div class="med-panel med-panel--yayin">'
     + '<div class="med-panel-baslik"><span class="med-panel-ikon" aria-hidden="true">📢</span><h3>' + escHtml(t('game.media.publishTitle')) + '</h3></div>'
     + '<div class="med-meta">'
-    + '<span class="med-meta-etiket">' + escHtml(t('game.media.cost')) + '</span><strong>100.000 TL</strong>'
+    + '<span class="med-meta-etiket">' + escHtml(t('game.media.cost')) + '</span><strong>' + fmtMoney(100000) + '</strong>'
     + '<span class="med-meta-etiket">' + escHtml(t('game.media.duration')) + '</span><span>' + escHtml(t('game.media.durationValue')) + '</span>'
     + '</div>'
     + '<div class="med-alan"><label for="medyaHaber">' + escHtml(t('game.media.newsLabel')) + '</label>'
@@ -4793,42 +4871,49 @@ function profilQuillYokEt() {
 }
 
 function profilQuillBaslat() {
-  profilQuillKayitlari();
-  profilHizaAracBagla();
-  if (typeof Quill === 'undefined') return;
-  if (!document.getElementById('profilAciklamaWrap')) return;
+  var baslatIc = function () {
+    profilQuillKayitlari();
+    profilHizaAracBagla();
+    if (typeof Quill === 'undefined') return;
+    if (!document.getElementById('profilAciklamaWrap')) return;
 
-  profilQuill = null;
-  profilQuillDomSifirla();
+    profilQuill = null;
+    profilQuillDomSifirla();
 
-  if (!document.getElementById('profilAciklamaEditor')) return;
+    if (!document.getElementById('profilAciklamaEditor')) return;
 
-  profilQuill = new Quill('#profilAciklamaEditor', {
-    theme: 'snow',
-    placeholder: t('game.profil.descPlaceholder'),
-    modules: {
-      toolbar: {
-        container: '#profilAciklamaToolbar',
-        handlers: {
-          undo: function() {
-            this.quill.history.undo();
+    profilQuill = new Quill('#profilAciklamaEditor', {
+      theme: 'snow',
+      placeholder: t('game.profil.descPlaceholder'),
+      modules: {
+        toolbar: {
+          container: '#profilAciklamaToolbar',
+          handlers: {
+            undo: function() {
+              this.quill.history.undo();
+            }
           }
+        },
+        history: {
+          delay: 400,
+          maxStack: 100,
+          userOnly: true
         }
-      },
-      history: {
-        delay: 400,
-        maxStack: 100,
-        userOnly: true
       }
-    }
-  });
-  profilQuill.on('text-change', function() {
-    if (!profilQuill) return;
-    var html = profilQuill.root.innerHTML || '';
-    if (typeof profilFFormat !== 'undefined' && profilFFormat.profilAciklamaFFormatMi(html)) {
-      profilAciklamaModuUygula(profilFFormat.htmlToPlainText(html));
-    }
-  });
+    });
+    profilQuill.on('text-change', function() {
+      if (!profilQuill) return;
+      var html = profilQuill.root.innerHTML || '';
+      if (typeof profilFFormat !== 'undefined' && profilFFormat.profilAciklamaFFormatMi(html)) {
+        profilAciklamaModuUygula(profilFFormat.htmlToPlainText(html));
+      }
+    });
+  };
+  if (typeof Quill === 'undefined' && typeof yiModulYukle === 'function') {
+    yiModulYukle('quill').then(baslatIc).catch(function () {});
+    return;
+  }
+  baslatIc();
 }
 
 function profilAciklamaAl() {
@@ -4997,40 +5082,47 @@ function mafyaGrupQuillYokEt() {
 }
 
 function mafyaGrupQuillBaslat() {
-  profilQuillKayitlari();
-  profilHizaAracBagla();
-  if (typeof Quill === 'undefined') return;
-  if (!document.getElementById('mafyaGrupAciklamaWrap')) return;
-  mafyaGrupQuill = null;
-  var wrap = document.getElementById('mafyaGrupAciklamaWrap');
-  wrap.innerHTML = mafyaGrupQuillToolbarHtml();
-  if (!document.getElementById('mafyaGrupAciklamaEditor')) return;
-  mafyaGrupQuill = new Quill('#mafyaGrupAciklamaEditor', {
-    theme: 'snow',
-    placeholder: t('game.profil.mafiaDescPlaceholder'),
-    modules: {
-      toolbar: {
-        container: '#mafyaGrupAciklamaToolbar',
-        handlers: {
-          undo: function() {
-            this.quill.history.undo();
+  var baslatIc = function () {
+    profilQuillKayitlari();
+    profilHizaAracBagla();
+    if (typeof Quill === 'undefined') return;
+    if (!document.getElementById('mafyaGrupAciklamaWrap')) return;
+    mafyaGrupQuill = null;
+    var wrap = document.getElementById('mafyaGrupAciklamaWrap');
+    wrap.innerHTML = mafyaGrupQuillToolbarHtml();
+    if (!document.getElementById('mafyaGrupAciklamaEditor')) return;
+    mafyaGrupQuill = new Quill('#mafyaGrupAciklamaEditor', {
+      theme: 'snow',
+      placeholder: t('game.profil.mafiaDescPlaceholder'),
+      modules: {
+        toolbar: {
+          container: '#mafyaGrupAciklamaToolbar',
+          handlers: {
+            undo: function() {
+              this.quill.history.undo();
+            }
           }
+        },
+        history: {
+          delay: 400,
+          maxStack: 100,
+          userOnly: true
         }
-      },
-      history: {
-        delay: 400,
-        maxStack: 100,
-        userOnly: true
       }
-    }
-  });
-  mafyaGrupQuill.on('text-change', function() {
-    if (!mafyaGrupQuill) return;
-    var html = mafyaGrupQuill.root.innerHTML || '';
-    if (typeof profilFFormat !== 'undefined' && profilFFormat.profilAciklamaFFormatMi(html)) {
-      mafyaGrupAciklamaModuUygula(profilFFormat.htmlToPlainText(html));
-    }
-  });
+    });
+    mafyaGrupQuill.on('text-change', function() {
+      if (!mafyaGrupQuill) return;
+      var html = mafyaGrupQuill.root.innerHTML || '';
+      if (typeof profilFFormat !== 'undefined' && profilFFormat.profilAciklamaFFormatMi(html)) {
+        mafyaGrupAciklamaModuUygula(profilFFormat.htmlToPlainText(html));
+      }
+    });
+  };
+  if (typeof Quill === 'undefined' && typeof yiModulYukle === 'function') {
+    yiModulYukle('quill').then(baslatIc).catch(function () {});
+    return;
+  }
+  baslatIc();
 }
 
 function mafyaGrupAciklamaAl() {
@@ -5238,6 +5330,53 @@ function sagKolRutbeRozetleriHTML(panel) {
   return html + '</div>';
 }
 
+function sagKolGenelRutbeIlerleme(panel) {
+  panel = panel || {};
+  var statlar = (panel.ozet && panel.ozet.statlar) || panel.statlar || [];
+  if (!statlar.length) return null;
+  var min = statlar[0];
+  for (var i = 1; i < statlar.length; i++) {
+    if ((statlar[i].deger || 0) < (min.deger || 0)) min = statlar[i];
+  }
+  return min;
+}
+
+function sagKolSonrakiRutbeBonusMetni(sonrakiRutbeId) {
+  if (!sonrakiRutbeId) return '';
+  var esikMap = { bronz: 101, gumus: 201, altin: 301 };
+  var esik = esikMap[sonrakiRutbeId];
+  if (!esik) return '';
+  var guc = Math.floor(esik / 10) * 1;
+  var zeka = (Math.floor(esik / 10) * 1.5).toFixed(1).replace(/\.0$/, '');
+  var beceri = Math.floor(esik / 10) * 1;
+  var dayaniklilik = (Math.floor(esik / 10) * 1.5).toFixed(1).replace(/\.0$/, '');
+  var rankKey = 'game.sagKol.rank.' + sonrakiRutbeId;
+  var rankAd = t(rankKey);
+  if (rankAd === rankKey) rankAd = sonrakiRutbeId;
+  return t('game.sagKol.rankProgressTip', {
+    rank: rankAd,
+    guc: guc,
+    zeka: zeka,
+    beceri: beceri,
+    dayaniklilik: dayaniklilik
+  });
+}
+
+function sagKolRutbeProgressHTML(panel) {
+  var min = sagKolGenelRutbeIlerleme(panel);
+  if (!min) return '';
+  var yuzde = min.yuzde != null ? Math.max(0, Math.min(100, Number(min.yuzde) || 0)) : 0;
+  var sonrakiId = null;
+  if (min.rutbeId === 'demir') sonrakiId = 'bronz';
+  else if (min.rutbeId === 'bronz') sonrakiId = 'gumus';
+  else if (min.rutbeId === 'gumus') sonrakiId = 'altin';
+  var tip = sonrakiId ? sagKolSonrakiRutbeBonusMetni(sonrakiId) : t('game.sagKol.maxReached');
+  return '<div class="profil-sagkol-rutbe-ilerleme" title="' + escHtml(tip) + '">'
+    + '<div class="profil-sagkol-rutbe-bar"><i style="width:' + yuzde + '%"></i></div>'
+    + '<span class="profil-sagkol-rutbe-yuzde">' + yuzde + '%</span>'
+    + '</div>';
+}
+
 function profilSagKolStatHTML(s) {
   s = s || {};
   var key = s.key || '';
@@ -5307,7 +5446,7 @@ function profilYetenekleriPanelHTML(yetenekler, aktifMeslek, ozet) {
     html += '<div class="profil-meslek-kart" id="profilAktifMeslekKart">'
       + '<h4>' + escHtml(t('game.profil.activeJob')) + '</h4>'
       + '<p><b id="profilMeslekIsyeri">' + escHtml(aktifMeslek.isyeriAd) + '</b> — <span id="profilMeslekUnvan">' + escHtml(aktifMeslek.unvan) + '</span></p>'
-      + '<p>' + escHtml(t('game.profil.dailySalary')) + ' <b id="profilMeslekMaas">' + fmt(aktifMeslek.gunlukGelir) + ' TL</b></p>'
+      + '<p>' + escHtml(t('game.profil.dailySalary')) + ' <b id="profilMeslekMaas">' + fmtMoney(aktifMeslek.gunlukGelir) + '</b></p>'
       + '</div>';
   } else {
     html += '<div class="profil-meslek-kart" id="profilAktifMeslekKart" style="border-color:rgba(140,140,140,.35);background:rgba(0,0,0,.25);">'
@@ -5415,6 +5554,7 @@ function profilSagKolPanelHTML(panel, opts) {
     html += '<p class="profil-sagkol-aciklama">' + escHtml(t('game.sagKol.profilHint')) + '</p>';
   }
   html += '<p class="profil-sagkol-rutbe-metin">' + escHtml(t('game.sagKol.rankLabel', { rank: rutbeAd })) + '</p>'
+    + sagKolRutbeProgressHTML(panel)
     + '<div class="profil-sagkol-govde'
     + (ziyaretci ? ' profil-sagkol-govde--ziyaret' : '')
     + (hastanelik ? ' profil-sagkol-govde--hastane' : '')
@@ -5434,7 +5574,7 @@ function profilSagKolPanelHTML(panel, opts) {
   html += '</div>';
   if (!ziyaretci && statlar.length) {
     html += '<div class="profil-sagkol-stat-grid' + (hastanelik ? ' profil-sagkol-stat-grid--hastane' : '') + '">'
-      + '<div class="profil-sagkol-saglik' + (hastanelik ? ' is-hastane is-bos' : '') + '" title="'
+      + '<div class="profil-sagkol-saglik' + (hastanelik ? ' is-hastane is-bos' : '') + (saglikYuzde > 0 && saglikYuzde < 50 ? ' is-dusuk' : '') + '" title="'
       + escHtml(hastanelik ? t('game.sagKol.healthHospital') : t('game.sagKol.healthLabel')) + '">'
       + '<span class="profil-sagkol-saglik-etiket">' + escHtml(t('game.sagKol.healthLabel')) + '</span>'
       + '<div class="profil-sagkol-saglik-bar"><i style="width:' + saglikYuzde + '%"></i></div>'
@@ -5560,7 +5700,7 @@ function profilBasariAdetFormat(adet, format) {
       var txt = (Math.round(m * 10) / 10).toString().replace('.', ',');
       return txt + 'M';
     }
-    return fmt(n) + ' TL';
+    return fmtMoney(n);
   }
   return String(n);
 }
@@ -6011,20 +6151,23 @@ function profilEkranSablonu(opts) {
   var ozetHtml = '<div class="profil-ozet-hucre"><span>' + escHtml(t('game.profil.player')) + '</span><strong id="profilOzOyuncu">' + isimIcerik + '</strong></div>'
     + '<div class="profil-ozet-hucre"><span>🏷️ Lakap</span><strong id="profilOzLakap">' + escHtml(opts.lakap || 'Mafya') + '</strong></div>';
   if (opts.guc != null) {
-    ozetHtml += '<div class="profil-ozet-hucre"><span>' + escHtml(t('game.profil.power')) + '</span><strong id="profilOzGuc">' + fmt(opts.guc) + '</strong></div>';
+    ozetHtml += '<div class="profil-ozet-hucre"><span>' + escHtml(t('game.profil.power')) + '</span><strong id="profilOzGuc">' + fmtGuc(opts.guc) + '</strong></div>';
     if (opts.bonusGuc > 0) {
-      ozetHtml += '<div class="profil-ozet-hucre"><span>' + escHtml(t('game.profil.bonusPower')) + '</span><strong id="profilOzBonusGuc">' + fmt(opts.bonusGuc) + '</strong></div>';
-      ozetHtml += '<div class="profil-ozet-hucre"><span>' + escHtml(t('game.profil.totalPower')) + '</span><strong id="profilOzToplamGuc">' + fmt(opts.toplamGuc != null ? opts.toplamGuc : opts.guc + opts.bonusGuc) + '</strong></div>';
+      ozetHtml += '<div class="profil-ozet-hucre"><span>' + escHtml(t('game.profil.bonusPower')) + '</span><strong id="profilOzBonusGuc">' + fmtGuc(opts.bonusGuc) + '</strong></div>';
+      ozetHtml += '<div class="profil-ozet-hucre"><span>' + escHtml(t('game.profil.totalPower')) + '</span><strong id="profilOzToplamGuc">' + fmtGuc(opts.toplamGuc != null ? opts.toplamGuc : opts.guc + opts.bonusGuc) + '</strong></div>';
     }
   } else {
     ozetHtml += '<div class="profil-ozet-hucre"><span>' + escHtml(t('game.profil.power')) + '</span><strong id="profilOzGuc">—</strong></div>';
   }
   if (opts.saatlik != null) {
-    ozetHtml += '<div class="profil-ozet-hucre"><span>' + escHtml(t('game.profil.hourlyIncome')) + '</span><strong class="yesil" id="profilOzSaatlik">' + fmt(opts.saatlik) + ' TL</strong></div>';
+    ozetHtml += '<div class="profil-ozet-hucre"><span>' + escHtml(t('game.profil.hourlyIncome')) + '</span><strong class="yesil" id="profilOzSaatlik">' + fmtMoney(opts.saatlik) + '</strong></div>';
   } else {
     ozetHtml += '<div class="profil-ozet-hucre"><span>' + escHtml(t('game.profil.hourlyIncome')) + '</span><strong class="yesil" id="profilOzSaatlik">—</strong></div>';
   }
 
+  var icraatDetay = (opts.ziyaretciModu && !opts.duzenlenebilir)
+    ? escHtml(t('game.profil.actionHidden'))
+    : (opts.icraatKalan || '—');
   var detayHtml = '<dl class="profil-detay-liste">'
     + '<div class="profil-detay-satir"><dt>' + escHtml(t('game.profil.playerName')) + '</dt><dd id="profilOyuncuIsmiDetay">' + isimIcerik + '</dd></div>'
     + '<div class="profil-detay-satir"><dt>' + escHtml(t('game.profil.company')) + '</dt><dd id="profilSirketDetay">' + profilSirketDetayHTML(opts.isDurumu, opts.userId || userId) + '</dd></div>'
@@ -6033,7 +6176,7 @@ function profilEkranSablonu(opts) {
     + '<div class="profil-detay-satir"><dt>' + escHtml(t('game.profil.groupRank')) + '</dt><dd id="profilGrupSiraDetay">' + profilGrupSiraDetayHTML(opts.grupSira, opts.grup, opts.grupId) + '</dd></div>'
     + '<div class="profil-detay-satir"><dt>' + escHtml(t('game.profil.regCountry')) + '</dt><dd id="profilKayitUlkeDetay">' + profilLocaleMetinHtml(opts.kayitUlkesi) + '</dd></div>'
     + '<div class="profil-detay-satir"><dt>' + escHtml(t('game.profil.gameLang')) + '</dt><dd id="profilOyunDiliDetay">' + profilDilMetinHtml(opts.oyunDili) + '</dd></div>'
-    + '<div class="profil-detay-satir"><dt>' + escHtml(t('game.profil.actionRegen')) + '</dt><dd id="profilIcraatKalan">' + (opts.icraatKalan || '—') + '</dd></div>'
+    + '<div class="profil-detay-satir"><dt>' + escHtml(t('game.profil.actionRegen')) + '</dt><dd id="profilIcraatKalan">' + icraatDetay + '</dd></div>'
     + '</dl>';
 
   var formHtml;
@@ -6045,7 +6188,7 @@ function profilEkranSablonu(opts) {
       + '<div class="profil-adi-degistir-satir">'
       + '<input type="text" id="profilYeniOyuncuAdi" maxlength="24" placeholder="' + escHtml(t('game.profil.newNamePlaceholder')) + '" autocomplete="nickname">'
       + '<button type="button" class="profil-adi-degistir-btn" onclick="profilOyuncuAdiDegistir()">'
-      + '<span id="profilOyuncuAdiUcret">' + fmt(adDegistirUcret) + ' TL</span>'
+      + '<span id="profilOyuncuAdiUcret">' + fmtMoney(adDegistirUcret) + '</span>'
       + '</button></div></div>'
       + '<label>' + btnHtml(t('game.profil.addDescription')) + '</label>'
       + '<p class="profil-alan-not">' + btnHtml(t('game.profil.asciiNote')) + '</p>'
@@ -6946,6 +7089,62 @@ function profilResmiModalKapat() {
   if (modal) modal.classList.add('gizli');
 }
 
+function confettiPatlat() {
+  var wrap = document.getElementById('confettiKatman');
+  if (!wrap) {
+    wrap = document.createElement('div');
+    wrap.id = 'confettiKatman';
+    wrap.className = 'confetti-katman';
+    wrap.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(wrap);
+  }
+  wrap.innerHTML = '';
+  var renkler = ['#e8c96a', '#c43a3a', '#4caf50', '#2196f3', '#ff9800', '#9c27b0'];
+  for (var i = 0; i < 72; i++) {
+    var p = document.createElement('span');
+    p.className = 'confetti-parca';
+    p.style.left = (Math.random() * 100) + '%';
+    p.style.background = renkler[i % renkler.length];
+    p.style.animationDelay = (Math.random() * 0.6) + 's';
+    p.style.animationDuration = (1.8 + Math.random() * 1.4) + 's';
+    wrap.appendChild(p);
+  }
+  setTimeout(function() {
+    if (wrap) wrap.innerHTML = '';
+  }, 3200);
+}
+
+function koleksiyonTamamPopupGoster(koleksiyonKey) {
+  var ad = profilKoleksiyonBaslikMetin(koleksiyonKey);
+  var rozet = profilKoleksiyonRozetUrl(koleksiyonKey);
+  var modal = document.getElementById('koleksiyonTamamModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'koleksiyonTamamModal';
+    modal.className = 'koleksiyon-tamam-modal gizli';
+    modal.innerHTML = '<div class="koleksiyon-tamam-ortu" onclick="koleksiyonTamamPopupKapat()"></div>'
+      + '<div class="koleksiyon-tamam-panel" role="dialog" aria-modal="true">'
+      + '<button type="button" class="koleksiyon-tamam-kapat" onclick="koleksiyonTamamPopupKapat()" aria-label="×">×</button>'
+      + '<div id="koleksiyonTamamIcerik"></div>'
+      + '</div>';
+    document.body.appendChild(modal);
+  }
+  var ic = document.getElementById('koleksiyonTamamIcerik');
+  if (ic) {
+    ic.innerHTML = '<h3>' + escHtml(t('game.profil.collectionCompleteTitle')) + '</h3>'
+      + '<img class="koleksiyon-tamam-rozet" src="' + escHtml(rozet) + '" alt="">'
+      + '<p>' + escHtml(t('game.profil.collectionCompleteBody', { name: ad })) + '</p>'
+      + '<button type="button" class="btn-is" onclick="koleksiyonTamamPopupKapat()">' + escHtml(t('auth.rules.close')) + '</button>';
+  }
+  modal.classList.remove('gizli');
+  confettiPatlat();
+}
+
+function koleksiyonTamamPopupKapat() {
+  var modal = document.getElementById('koleksiyonTamamModal');
+  if (modal) modal.classList.add('gizli');
+}
+
 async function vipPortreKoleksiyonSatinAlBtn(btn) {
   if (!btn) return;
   var koleksiyon = btn.getAttribute('data-koleksiyon');
@@ -6972,6 +7171,9 @@ async function vipPortreKoleksiyonSatinAlBtn(btn) {
   }
   toast(tr(ef.mesaj) || t('game.profil.vipBuyCollectionOk'), 'basari');
   sesCal('para');
+  if (vipPortreKoleksiyonTamamenSahipMi(koleksiyon, cinsiyet)) {
+    koleksiyonTamamPopupGoster(koleksiyon);
+  }
   profilResmiSecModal({
     hedef: window.__profilResimHedef,
     aktifKey: window.__profilResimHedef === 'sagkol'
@@ -7198,8 +7400,7 @@ function gazeteAyEtiket(yil, ay) {
 }
 
 function gazeteTarihUstLokal() {
-  var lang = (typeof I18N !== 'undefined' && I18N.getLang) ? I18N.getLang() : 'tr';
-  var locale = lang === 'tr' ? 'tr-TR' : (lang === 'de' ? 'de-DE' : 'en-US');
+  var locale = (typeof I18n !== 'undefined' && I18n.intlLocale) ? I18n.intlLocale() : 'tr-TR';
   var now = new Date();
   var tz = 'Europe/Istanbul';
   var tarih = now.toLocaleDateString(locale, { timeZone: tz, day: 'numeric', month: 'long', year: 'numeric' });
@@ -7251,7 +7452,7 @@ function gazeteSampiyonLokal(s) {
   if (!s || !s.grupId) return { baslik: '', ozet: '', ticker: '' };
   var ayEtiket = s.ayEtiket;
   if (s.yil && s.ay) ayEtiket = gazeteAyEtiket(s.yil, s.ay);
-  var guc = fmt(s.toplamGuc || 0);
+  var guc = fmtGuc(s.toplamGuc || 0);
   return {
     baslik: t('game.gazete.monthly.title', { month: ayEtiket }),
     ozet: t('game.gazete.monthly.summary', { name: s.isim, month: ayEtiket, power: guc }),
@@ -7282,8 +7483,8 @@ function gazeteHaberCevir(metin) {
   if ((m = s.match(/^Şehrin Yeni Kabusu: (.+?)!?$/))) {
     return t('game.gazete.news.kabusHeadline', { name: m[1] });
   }
-  if ((m = s.match(/^Dün gece ülke sınırlarında tek başına (\d+) mekana saldırı düzenleyerek (\d+) saygınlıkla öne çıkan (.+?), emniyet güçlerini alarma geçirdi\./))) {
-    return t('game.gazete.news.kabusBody', { name: m[3], icraat: m[1], sayginlik: m[2] });
+  if ((m = s.match(/^Dün gece ülke sınırlarında tek başına (\d+|birkaç) mekana saldırı düzenleyerek (\d+) saygınlıkla öne çıkan (.+?), emniyet güçlerini alarma geçirdi\./))) {
+    return t('game.gazete.news.kabusBody', { name: m[3], mekan: m[1], sayginlik: m[2] });
   }
   if ((m = s.match(/^Dün gece ülke sınırlarında tek başına birden çok farklı mekanı ele geçiren (.+?), emniyet güçlerini alarma geçirdi\./))) {
     return t('game.gazete.news.kabusBodyLegacy', { name: m[1] });
@@ -8169,6 +8370,22 @@ function sidebarMenuAktif(tip) {
   }
 }
 
+function ekranModulYukleniyor(ic) {
+  ic.innerHTML = '<p style="color:#888;text-align:center;padding:28px 16px;">' + escHtml(t('game.loading')) + '</p>';
+}
+
+function ekranModulYukleVeDevam(tip, modulAdi, devamFn) {
+  var ic = document.getElementById('anaIcerik');
+  if (!ic) return;
+  ekranModulYukleniyor(ic);
+  var yukle = typeof yiModulYukle === 'function' ? yiModulYukle(modulAdi) : Promise.reject();
+  yukle.then(function () {
+    devamFn(ic);
+  }).catch(function () {
+    ic.innerHTML = '<p style="color:#f08080;text-align:center;padding:24px;">' + escHtml(t('game.loadingModuleFailed')) + '</p>';
+  });
+}
+
 function ekranDegistir(tip) {
   if (tip !== 'profilim' && tip !== 'profil_ziyaret') {
     profilIcraatTimerDurdur();
@@ -8238,6 +8455,13 @@ function ekranDegistir(tip) {
   }
 
   if (tip === 'turkiyeSefirlik') {
+    if (typeof sefirlikHTML !== 'function') {
+      ekranModulYukleVeDevam(tip, 'sefirlik', function (ic) {
+        ic.innerHTML = sefirlikHTML();
+        sefirlikYukle();
+      });
+      return;
+    }
     ic.innerHTML = sefirlikHTML();
     sefirlikYukle();
     return;
@@ -8246,7 +8470,10 @@ function ekranDegistir(tip) {
   if (tip === 'meslekler') {
     if (!ic) return;
     if (typeof meslekHTML !== 'function') {
-      ic.innerHTML = '<p style="color:#f08080;text-align:center;padding:24px;">' + escHtml(t('game.loadingModuleFailed')) + '</p>';
+      ekranModulYukleVeDevam(tip, 'meslek', function (ic) {
+        ic.innerHTML = meslekHTML();
+        meslekYukle();
+      });
       return;
     }
     ic.innerHTML = meslekHTML();
@@ -8327,10 +8554,10 @@ function ekranDegistir(tip) {
     ic.innerHTML = isMagazaHTML(
       t('game.buyume.mahalleTitle'),
       t('game.buyume.mahalleQuote'),
-      buyumeIsKart('market', 'market', '+800 TL', '1', '300', 1)
-      + buyumeIsKart('tamirhane', 'tamirhane', '+950 TL', '1', '580', 2)
-      + buyumeIsKart('esnafa_guvence', 'koruma', '+2.200 TL', '2', '1.110', 4)
-      + buyumeIsKart('zar_salonu', 'kumarhane', '+2.600 TL', '2', '2.135', 6)
+      buyumeIsKart('market', 'market', '+' + fmtMoney(800), '1', '300', 1)
+      + buyumeIsKart('tamirhane', 'tamirhane', '+' + fmtMoney(950), '1', '580', 2)
+      + buyumeIsKart('esnafa_guvence', 'koruma', '+' + fmtMoney(2200), '2', '1.110', 4)
+      + buyumeIsKart('zar_salonu', 'kumarhane', '+' + fmtMoney(2600), '2', '2.135', 6)
     );
     return;
   }
@@ -8339,10 +8566,10 @@ function ekranDegistir(tip) {
     ic.innerHTML = isMagazaHTML(
       t('game.buyume.semtTitle'),
       t('game.buyume.semtQuote'),
-      buyumeIsKart('gece_kulubu', 'gece_kulubu', '+4.600 TL', '3', '4.106', 9)
-      + buyumeIsKart('kumarhane_agi', 'kumarhane_agi', '+5.400 TL', '3', '7.899', 14)
-      + buyumeIsKart('kara_para', 'kara_para', '+8.500 TL', '4', '15.193', 21)
-      + buyumeIsKart('semt_galeri', 'galeri', '+10.000 TL', '4', '29.223', 33)
+      buyumeIsKart('gece_kulubu', 'gece_kulubu', '+' + fmtMoney(4600), '3', '4.106', 9)
+      + buyumeIsKart('kumarhane_agi', 'kumarhane_agi', '+' + fmtMoney(5400), '3', '7.899', 14)
+      + buyumeIsKart('kara_para', 'kara_para', '+' + fmtMoney(8500), '4', '15.193', 21)
+      + buyumeIsKart('semt_galeri', 'galeri', '+' + fmtMoney(10000), '4', '29.223', 33)
     );
     return;
   }
@@ -8351,10 +8578,10 @@ function ekranDegistir(tip) {
     ic.innerHTML = isMagazaHTML(
       t('game.buyume.sehirTitle'),
       t('game.buyume.sehirQuote'),
-      buyumeIsKart('lojistik', 'lojistik', '+14.700 TL', '5', '56.209', 51)
-      + buyumeIsKart('gumruk', 'gumruk', '+20.800 TL', '6', '108.116', 79)
-      + buyumeIsKart('belediye', 'belediye', '+32.700 TL', '8', '207.958', 90)
-      + buyumeIsKart('buyuk_holding', 'holding', '+48.000 TL', '10', '400.000', 100)
+      buyumeIsKart('lojistik', 'lojistik', '+' + fmtMoney(14700), '5', '56.209', 51)
+      + buyumeIsKart('gumruk', 'gumruk', '+' + fmtMoney(20800), '6', '108.116', 79)
+      + buyumeIsKart('belediye', 'belediye', '+' + fmtMoney(32700), '8', '207.958', 90)
+      + buyumeIsKart('buyuk_holding', 'holding', '+' + fmtMoney(48000), '10', '400.000', 100)
     );
     return;
   }
@@ -8387,29 +8614,35 @@ function ekranDegistir(tip) {
   }
 
   if (tip === 'sabotaj') {
-    if (typeof sabotajEkranAc === 'function') {
-      sabotajEkranAc(ic);
-    } else {
-      ic.innerHTML = '<p style="color:#c66;">' + escHtml(t('game.error.loadFailed')) + '</p>';
+    if (typeof sabotajEkranAc !== 'function') {
+      ekranModulYukleVeDevam(tip, 'sabotaj', function (ic) {
+        sabotajEkranAc(ic);
+      });
+      return;
     }
+    sabotajEkranAc(ic);
     return;
   }
 
   if (tip === 'borsa') {
-    if (typeof borsaEkranAc === 'function') {
-      borsaEkranAc(ic);
-    } else {
-      ic.innerHTML = '<p style="color:#c66;">' + escHtml(t('game.error.loadFailed')) + '</p>';
+    if (typeof borsaEkranAc !== 'function') {
+      ekranModulYukleVeDevam(tip, 'borsa', function (ic) {
+        borsaEkranAc(ic);
+      });
+      return;
     }
+    borsaEkranAc(ic);
     return;
   }
 
   if (tip === 'kumarhane') {
-    if (typeof kumarhaneEkranAc === 'function') {
-      kumarhaneEkranAc(ic);
-    } else {
-      ic.innerHTML = '<p style="color:#c66;">' + escHtml(t('game.error.loadFailed')) + '</p>';
+    if (typeof kumarhaneEkranAc !== 'function') {
+      ekranModulYukleVeDevam(tip, 'kumarhane', function (ic) {
+        kumarhaneEkranAc(ic);
+      });
+      return;
     }
+    kumarhaneEkranAc(ic);
     return;
   }
 
@@ -8462,14 +8695,7 @@ function profilTrTarih(ts) {
   if (!ts) return '—';
   var n = Number(ts);
   if (!n) return '—';
-  return new Date(n * 1000).toLocaleString('tr-TR', {
-    timeZone: 'Europe/Istanbul',
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
+  return fmtDateLocale(n);
 }
 
 function sehirTarihiGunSayisi(k) {
@@ -8729,7 +8955,7 @@ async function istihbaratAl() {
   var sayiEl = document.getElementById('istihbaratElemanSayi');
   if (sayiEl) sayiEl.textContent = String(ef.elemanSayisi);
   var maliyetEl = document.getElementById('istihbaratBirimMaliyet');
-  if (maliyetEl) maliyetEl.textContent = fmt(istihbaratBirimMaliyet) + ' TL';
+  if (maliyetEl) maliyetEl.textContent = fmtMoney(istihbaratBirimMaliyet);
 }
 
 async function istihbaratSpy() {
@@ -9012,7 +9238,7 @@ async function mafyaIslerCiz(box) {
         + '</h3>'
         + '<div class="gk-metrikler">'
         + '<div class="gk-metrik gk-metrik--kazanc"><span class="gk-metrik-etiket">' + escHtml(t('game.mafya.earnPerPerson')) + '</span>'
-        + '<div class="gk-metrik-deger">' + fmt(isDef.kazancKisi) + ' TL</div></div>'
+        + '<div class="gk-metrik-deger">' + fmtMoney(isDef.kazancKisi) + '</div></div>'
         + '<div class="gk-metrik"><span class="gk-metrik-etiket">' + escHtml(t('game.mafya.respectGain')) + '</span>'
         + '<div class="gk-metrik-deger">+' + isDef.sayginlikKisi + '</div></div>'
         + '</div>'
@@ -9075,8 +9301,8 @@ async function mafyaEviCiz(box) {
       + '<div class="mafya-evi-sahne"><img src="' + img + '" alt="' + escHtml(t('game.mafya.houseAlt')) + '" onerror="imgFallback(this)"></div>'
       + '<div class="mafya-evi-alt is-kart"><h3>' + escHtml(data.grupAdi || t('screen.mafya')) + ' — ' + escHtml(t('game.mafya.levelWord')) + s + '</h3>'
       + '<p>' + escHtml(t('game.mafya.capacity')) + ' <b>' + ev.kapasite + '</b>' + escHtml(t('game.mafya.membersWord')) + '</p>'
-      + '<p>' + escHtml(t('game.mafya.accumulation')) + ' <b style="color:#b8942a;">' + fmt(ev.birikmisPara) + ' TL</b></p>'
-      + '<p>' + escHtml(t('game.mafya.nextLevelCost')) + ' <b>' + fmt(ev.sonrakiMaliyet) + ' TL</b> ' + escHtml(t('game.mafya.remaining')) + ' ' + fmt(ev.kalan) + ' TL)</p>'
+      + '<p>' + escHtml(t('game.mafya.accumulation')) + ' <b style="color:#b8942a;">' + fmtMoney(ev.birikmisPara) + '</b></p>'
+      + '<p>' + escHtml(t('game.mafya.nextLevelCost')) + ' <b>' + fmtMoney(ev.sonrakiMaliyet) + '</b> ' + escHtml(t('game.mafya.remaining')) + ' ' + fmtMoney(ev.kalan) + ')</p>'
       + '</div>';
 
     html += '<div class="is-kart mafya-evi-alt" style="max-width:520px;margin:0 auto;">'
@@ -9370,8 +9596,8 @@ function mafyaEviBolumHTML(ev, grupAdi, benLiderim) {
     + '<p class="mafya-stat">' + escHtml(t('game.mafya.capacity')) + ' <b>' + ev.kapasite + '</b>' + escHtml(t('game.mafya.membersWord')) + '</p>'
     + '<p class="mafya-stat">' + escHtml(t('game.mafya.memberBonus')) + ' <b>+' + fmt(ev.uyeGucBonusu || 0) + '</b>' + escHtml(t('game.mafya.allMembers')) + '</p>'
     + '<p class="mafya-metin-dim">' + escHtml(t('game.mafya.nextBonus')) + ' <b>+' + fmt(ev.sonrakiUyeGucBonusu || 0) + '</b> (+' + fmt(ev.sonrakiBonusArtisi || 0) + escHtml(t('game.mafya.bonusIncrease')) + ')</p>'
-    + '<p class="mafya-stat mafya-stat-altin">' + escHtml(t('game.mafya.accumulation')) + ' <b>' + fmt(ev.birikmisPara) + ' TL</b></p>'
-    + '<p class="mafya-stat">' + escHtml(t('game.mafya.nextLevelShort')) + ' <b>' + fmt(ev.sonrakiMaliyet) + ' TL</b> <span class="mafya-metin-dim">' + escHtml(t('game.mafya.remaining')) + ' ' + fmt(ev.kalan) + ' TL)</span></p>'
+    + '<p class="mafya-stat mafya-stat-altin">' + escHtml(t('game.mafya.accumulation')) + ' <b>' + fmtMoney(ev.birikmisPara) + '</b></p>'
+    + '<p class="mafya-stat">' + escHtml(t('game.mafya.nextLevelShort')) + ' <b>' + fmtMoney(ev.sonrakiMaliyet) + '</b> <span class="mafya-metin-dim">' + escHtml(t('game.mafya.remaining')) + ' ' + fmtMoney(ev.kalan) + ')</span></p>'
     + '</div></div>'
     + '<div class="mafya-hibe-alan">'
     + '<h4 class="bolum-baslik">' + escHtml(t('game.mafya.donation')) + '</h4>'
@@ -9442,7 +9668,7 @@ async function mafyaHibeGecmisiGoster() {
     }
     var html = '<div class="tablo-container"><div class="tablo-izgara tablo-baslik-satir"><span>' + escHtml(t('game.mafya.donorCol')) + '</span><span>' + escHtml(t('game.mafya.dateCol')) + '</span><span>' + escHtml(t('game.mafya.amountCol')) + '</span></div>';
     liste.forEach(function(h) {
-      html += '<div class="tablo-izgara"><span>' + escHtml(h.reisAdi) + '</span><span>' + escHtml(h.tarih) + '</span><span>' + fmt(h.miktar) + ' TL</span></div>';
+      html += '<div class="tablo-izgara"><span>' + escHtml(h.reisAdi) + '</span><span>' + escHtml(h.tarih) + '</span><span>' + fmtMoney(h.miktar) + '</span></div>';
     });
     html += '</div>';
     box.innerHTML = html;
@@ -9473,6 +9699,11 @@ function mafyaGrupAciklamaDegistir() {
 
 async function mafyaGrupAciklamaKaydet() {
   var aciklama = mafyaGrupAciklamaAl();
+  var plain = String(aciklama || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  if (plain && plain.length < 10) {
+    toast(t('game.mafya.groupDescMin'), 'hata');
+    return;
+  }
   var ef = await sunucuAksiyon('mafya_grup_aciklama_degistir', null, null, { aciklama: aciklama });
   if (ef === null) return;
   window.__mafyaGrupAciklamaHtml = aciklama;
@@ -9503,6 +9734,10 @@ function mafyaOlusturAdim1() {
 async function mafyaOlusturAdim2() {
   var isim = document.getElementById('mafyaIsim').value.trim();
   var acik = document.getElementById('mafyaAciklama').value.trim();
+  if (acik && acik.length < 10) {
+    toast(t('game.mafya.groupDescMin'), 'hata');
+    return;
+  }
   var ef = await sunucuAksiyon('mafya_olustur', null, null, { isim: isim, aciklama: acik });
   if (ef === null) return;
   toast(t('game.toast.mafiaGroupCreated'), 'basari');
@@ -10036,8 +10271,8 @@ async function profilYukle() {
     );
     profilAlanGuncelle('profilOzLakap', p.lakap || 'Mafya');
     profilSirketDetayGuncelle(p.isDurumu, p.userId);
-    if (p.guc != null) profilAlanGuncelle('profilOzGuc', fmt(p.guc));
-    if (p.saatlikKazanc != null) profilAlanGuncelle('profilOzSaatlik', fmt(p.saatlikKazanc) + ' TL');
+    if (p.guc != null) profilAlanGuncelle('profilOzGuc', fmtGuc(p.guc));
+    if (p.saatlikKazanc != null) profilAlanGuncelle('profilOzSaatlik', fmtMoney(p.saatlikKazanc));
 
     var avatar = document.getElementById('profilAvatar');
     if (avatar) {
@@ -10167,7 +10402,7 @@ async function icerikRaporlaGonder(btn) {
 function profilOyuncuAdiUcretGuncelle() {
   var el = document.getElementById('profilOyuncuAdiUcret');
   if (!el) return;
-  el.textContent = fmt(Math.floor((saatlikKazanc || 0) * 5)) + ' TL';
+  el.textContent = fmtMoney(Math.floor((saatlikKazanc || 0) * 5));
 }
 
 async function profilOyuncuAdiDegistir() {
@@ -10596,22 +10831,76 @@ function mesajKutusuGovdeHTML(liste) {
     + '</div></div>';
 }
 
+function sohbetKanalEtiket(kanal) {
+  var key = 'game.chat.channel.' + kanal;
+  var val = t(key);
+  return val !== key ? val : ('#' + kanal);
+}
+
+function sohbetKanalSec(kanal) {
+  aktifSohbetKanal = kanal || 'global';
+  var ic = document.getElementById('anaIcerik');
+  if (ic && aktifEkran === 'mafyaSohbet') mafyaSohbetCiz(ic);
+}
+
+function sohbetKanalBarHTML() {
+  var html = '<div class="sb-kanal-bar" role="tablist">';
+  SOHBET_KANALLARI.forEach(function(k) {
+    html += '<button type="button" class="sb-kanal-btn' + (aktifSohbetKanal === k ? ' aktif' : '') + '"'
+      + ' onclick="sohbetKanalSec(\'' + k + '\')">' + escHtml(sohbetKanalEtiket(k)) + '</button>';
+  });
+  return html + '</div>';
+}
+
+async function sohbetMesajCevir(btn) {
+  if (!btn) return;
+  var metin = '';
+  try { metin = decodeURIComponent(btn.getAttribute('data-metin') || ''); } catch (_) { metin = btn.getAttribute('data-metin') || ''; }
+  if (!metin) return;
+  btn.disabled = true;
+  try {
+    var res = await apiFetch('/api/translate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: metin })
+    });
+    var data = await res.json().catch(function() { return {}; });
+    if (!res.ok || !data.ok) throw new Error(data.error || t('game.chat.translateFailed'));
+    var hedef = btn.parentElement && btn.parentElement.querySelector('.sb-ceviri-metin');
+    if (hedef) {
+      hedef.textContent = data.text;
+      hedef.classList.remove('gizli');
+    }
+  } catch (e) {
+    toast(e.message || t('game.chat.translateFailed'), 'hata');
+  }
+  btn.disabled = false;
+}
+
 function mafyaSohbetSatirHTML(s) {
   var avatarUrl = profilResmiUrl(s.userId, s.profilResmi);
   var avatarCls = profilResmiOzelMi(avatarUrl) ? ' sb-avatar-img--ozel' : '';
+  var metinRaw = String(s.mesaj || '');
+  var metinEsc = escHtml(metinRaw);
+  var metinAttr = encodeURIComponent(metinRaw);
   return '<div class="sb-sohbet-satir">'
     + '<span class="sb-sohbet-avatar"><img class="sb-avatar-img' + avatarCls + '" src="' + escHtml(avatarUrl) + '" alt="" loading="lazy" onerror="imgFallback(this)"></span>'
     + '<div class="sb-sohbet-govde"><div class="sb-sohbet-ust-satir">'
     + '<span class="sb-sohbet-isim-wrap">' + premiumIsimHtml(s.reisAdi, s.premiumPaket) + '</span>'
     + '<span class="sb-sohbet-zaman">' + escHtml(s.tarih || '') + '</span>'
-    + '</div><p class="sb-sohbet-metin">' + escHtml(s.mesaj) + '</p></div></div>';
+    + '</div><p class="sb-sohbet-metin">' + metinEsc + '</p>'
+    + '<button type="button" class="sb-ceviri-btn" data-metin="' + metinAttr + '" onclick="sohbetMesajCevir(this)">'
+    + escHtml(t('game.chat.translateBtn')) + '</button>'
+    + '<p class="sb-ceviri-metin gizli"></p>'
+    + '</div></div>';
 }
 
 function mafyaSohbetGovdeHTML(liste) {
   var satirlar = '';
   (liste || []).forEach(function(s) { satirlar += mafyaSohbetSatirHTML(s); });
   if (!satirlar) satirlar = '<p class="sb-mesaj-bos">' + escHtml(t('game.chat.salonEmpty')) + '</p>';
-  return '<p class="sb-giris">' + t('game.chat.mafiaLoungeIntro') + '</p>'
+  return sohbetKanalBarHTML()
+    + '<p class="sb-giris">' + t('game.chat.mafiaLoungeIntro') + '</p>'
     + '<div class="sb-meta-bar"><span>' + escHtml(t('game.chat.smsRemaining')) + '</span><strong id="sbSmsGoster">' + fmtSinirsiz(oyuncuSms || 0, oyuncuSmsSinirsiz) + '</strong></div>'
     + '<div class="sb-sohbet-liste" id="sohbetListe">' + satirlar + '</div>'
     + '<div class="sb-panel sb-panel--yaz">'
@@ -10695,6 +10984,7 @@ function mesajCevapla(id, ad) {
 }
 
 async function mafyaSohbetCiz(ic) {
+  if (!aktifSohbetKanal) aktifSohbetKanal = sohbetVarsayilanKanal();
   ic.innerHTML = sbSayfaKabuk(
     sohbetGorseller.mafyaMasa,
     '',
@@ -10713,7 +11003,7 @@ async function mafyaSohbetCiz(ic) {
     return;
   }
   try {
-    var res = await apiFetch('/api/sohbet');
+    var res = await apiFetch('/api/sohbet?kanal=' + encodeURIComponent(aktifSohbetKanal));
     if (res.status === 401) { cikisYap(); return; }
     var data = await res.json().catch(function() { return {}; });
     if (!res.ok || data.ok === false) throw new Error(data.error || ('HTTP ' + res.status));
@@ -10742,7 +11032,7 @@ async function mafyaSohbetGonder() {
   var el = document.getElementById('mafyaSohbetMetin');
   var metin = el ? el.value.trim() : '';
   if (!metin) return;
-  var ef = await sunucuAksiyon('mafya_sohbet', null, null, { metin: metin });
+  var ef = await sunucuAksiyon('mafya_sohbet', null, null, { metin: metin, kanal: aktifSohbetKanal });
   if (ef !== null) ekranDegistir('mafyaSohbet');
 }
 
@@ -10769,9 +11059,19 @@ async function oyunuBaslat() {
   try {
     var hazir = await sunucuHazirBekle(20000);
     if (!hazir) throw new Error(t('game.error.connectionFailed'));
-    await sunucudanYukle({ bootstrap: true });
+    await Promise.all([
+      sunucudanYukle({ bootstrap: true }),
+      typeof guvenlikMeta !== 'undefined' ? guvenlikMeta.getVisitorIdAsync().catch(function () {}) : Promise.resolve(),
+    ]);
     clearTimeout(yukTimeout);
     if (yuk) yuk.classList.add('gizli');
+    if (typeof yiModulOncedenYukle === 'function') {
+      var oncedenYukle = function () {
+        yiModulOncedenYukle(['meslek', 'borsa', 'kumarhane']);
+      };
+      if (typeof requestIdleCallback === 'function') requestIdleCallback(oncedenYukle, { timeout: 8000 });
+      else setTimeout(oncedenYukle, 2500);
+    }
     ekranGecmisi = [];
     ekranGeriNav = false;
     sesUiGuncelle();

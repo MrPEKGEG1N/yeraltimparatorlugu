@@ -187,10 +187,24 @@
     }, 3500);
   }
 
+  function getCsrfToken() {
+    try {
+      var m = document.cookie.match(/(?:^|;\s*)yi_csrf=([^;]+)/);
+      return m ? decodeURIComponent(m[1]) : "";
+    } catch (_) {
+      return "";
+    }
+  }
+
   function api(url, opts) {
     opts = opts || {};
     opts.credentials = "include";
     opts.headers = Object.assign({ "Content-Type": "application/json" }, opts.headers || {});
+    var csrf = getCsrfToken();
+    if (csrf) opts.headers["X-CSRF-Token"] = csrf;
+    if (typeof guvenlikMeta !== "undefined") {
+      Object.assign(opts.headers, guvenlikMeta.securityHeaders());
+    }
     if (opts.body && typeof opts.body === "object") opts.body = JSON.stringify(opts.body);
 
     var timeoutMs = opts.timeoutMs || 12000;

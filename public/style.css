@@ -92,6 +92,30 @@ body, html {
 
 .auth-alt { color: #888; text-align: center; font-size: 13px; margin-bottom: 16px; }
 
+.auth-uyari {
+  color: #b89860;
+  text-align: center;
+  font-size: 11px;
+  line-height: 1.45;
+  margin: -8px 0 14px;
+  padding: 8px 10px;
+  border: 1px solid rgba(184, 152, 96, 0.35);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.oyun-tema-uyari {
+  margin: 0 0 10px;
+  padding: 6px 10px;
+  text-align: center;
+  font-size: 11px;
+  letter-spacing: 0.3px;
+  color: #a89880;
+  border: 1px solid rgba(138, 115, 72, 0.28);
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.25);
+}
+
 .auth-sekmeler { display: flex; gap: 8px; margin-bottom: 16px; }
 
 .auth-sekme {
@@ -332,3 +356,29 @@ body, html {
 
 .ses-btn { background: none; border: none; color: #fff; cursor: pointer; font-size: 16px; }
 .ses-slider { width: 80px; }
+
+.yc-amount {
+  cursor: help;
+  white-space: nowrap;
+}
+
+html[dir='rtl'] #masterLayout .ml-header-inner,
+html[dir='rtl'] #masterLayout .ml-stat-bar,
+html[dir='rtl'] #masterLayout .sidebar-nav {
+  flex-direction: row-reverse;
+}
+
+html[dir='rtl'] #masterLayout .sidebar-nav .nav-item {
+  text-align: right;
+}
+
+html[dir='rtl'] #masterLayout #anaIcerik .sb-kanal-bar {
+  flex-direction: row-reverse;
+}
+
+html[dir='rtl'] .toast,
+html[dir='rtl'] .lang-picker-menu {
+  right: auto;
+  left: 30px;
+  text-align: right;
+}

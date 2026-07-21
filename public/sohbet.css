@@ -554,3 +554,70 @@
     max-height: 300px;
   }
 }
+
+#masterLayout #anaIcerik .sb-kanal-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 12px;
+  padding: 8px 10px;
+  border: 1px solid rgba(184, 148, 42, 0.28);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+#masterLayout #anaIcerik .sb-kanal-btn {
+  border: 1px solid rgba(184, 148, 42, 0.35);
+  border-radius: 999px;
+  background: rgba(20, 16, 10, 0.85);
+  color: #d8c89a;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+#masterLayout #anaIcerik .sb-kanal-btn:hover {
+  border-color: rgba(212, 175, 55, 0.65);
+  color: #f4e6b8;
+}
+
+#masterLayout #anaIcerik .sb-kanal-btn.aktif {
+  background: linear-gradient(180deg, rgba(184, 148, 42, 0.35), rgba(120, 90, 20, 0.45));
+  border-color: rgba(212, 175, 55, 0.85);
+  color: #fff4cc;
+}
+
+#masterLayout #anaIcerik .sb-ceviri-btn {
+  margin-top: 6px;
+  border: none;
+  background: transparent;
+  color: #8eb4d8;
+  font-size: 11px;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+#masterLayout #anaIcerik .sb-ceviri-btn:hover {
+  color: #b8d4f0;
+}
+
+#masterLayout #anaIcerik .sb-ceviri-btn:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+#masterLayout #anaIcerik .sb-ceviri-metin {
+  margin: 6px 0 0;
+  padding: 8px 10px;
+  border-left: 2px solid rgba(142, 180, 216, 0.55);
+  background: rgba(142, 180, 216, 0.08);
+  color: #d8e8f8;
+  font-size: 13px;
+  line-height: 1.45;
+  font-style: italic;
+}

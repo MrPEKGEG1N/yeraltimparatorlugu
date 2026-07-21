@@ -1125,7 +1125,7 @@ async function performAction(db, userId, action, key, adet = 1, extra = {}) {
   }
 
   if (action === "mafya_sohbet") {
-    const sonuc = await mafyaSohbetGonder(db, userId, extra.metin);
+    const sonuc = await mafyaSohbetGonder(db, userId, extra.metin, extra.kanal);
     if (!sonuc.ok) return sonuc;
     player = await loadPlayer(db, userId);
     return {

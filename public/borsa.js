@@ -15,7 +15,7 @@ function borsaKarZararHTML(tutar) {
   var n = Number(tutar) || 0;
   var cls = n >= 0 ? 'br-kz--kar' : 'br-kz--zarar';
   var isaret = n >= 0 ? '+' : '';
-  return '<span class="br-kz ' + cls + '">' + isaret + fmt(n) + ' TL</span>';
+  return '<span class="br-kz ' + cls + '">' + isaret + fmtMoney(n) + '</span>';
 }
 
 function borsaSonucGoster(html, tip) {
@@ -46,12 +46,12 @@ function borsaOzetGuncelle() {
   var emirEl = document.getElementById('borsaEmirSayisi');
   var kasaGoster = oz.kasa != null ? oz.kasa : oyuncuKasa;
   if (kasaEl) {
-    kasaEl.innerHTML = fmt(kasaGoster) + ' TL'
+    kasaEl.innerHTML = fmtMoney(kasaGoster)
       + (oz.bekleyenAlMaliyet > 0
         ? '<span class="br-ozet-alt">' + escHtml(t('game.borsa.reservedCash', { n: fmt(oz.bekleyenAlMaliyet) })) + '</span>'
         : '');
   }
-  if (degerEl) degerEl.textContent = fmt(oz.toplamDeger || 0) + ' TL';
+  if (degerEl) degerEl.textContent = fmtMoney(oz.toplamDeger || 0);
   if (kzEl) kzEl.innerHTML = borsaKarZararHTML(oz.karZarar || 0);
   if (pozEl) pozEl.textContent = String(oz.pozisyonSayisi || 0);
   if (emirEl) emirEl.textContent = String(oz.emirSayisi || 0);
@@ -123,7 +123,7 @@ function borsaPiyasaKartHTML(s) {
     + (bekleyenSat > 0 ? '<span class="br-chip br-chip--bekleyen">' + escHtml(t('game.borsa.pendingSellShares', { n: fmt(bekleyenSat) })) + '</span>' : '')
     + '</div>'
     + '<div class="br-hisse-fiyat">'
-    + '<div class="br-fiyat">' + fmt(s.fiyat) + ' <small>TL</small></div>'
+    + '<div class="br-fiyat">' + fmtMoney(s.fiyat) + '</div>'
     + borsaDegisimHTML(s.degisim)
     + '</div>'
     + '</div>'
@@ -168,9 +168,9 @@ function borsaPortfoySatirHTML(p) {
     + '<td class="br-ticker">' + escHtml(p.sirketId) + '</td>'
     + '<td class="br-ad"><b>' + escHtml(p.ad) + '</b><span class="br-sektor">' + escHtml(p.sektor) + '</span></td>'
     + '<td>' + fmt(p.adet) + '</td>'
-    + '<td>' + fmt(p.ortalamaMaliyet) + ' TL</td>'
-    + '<td>' + fmt(p.fiyat) + ' TL</td>'
-    + '<td>' + fmt(p.deger) + ' TL</td>'
+    + '<td>' + fmtMoney(p.ortalamaMaliyet) + '</td>'
+    + '<td>' + fmtMoney(p.fiyat) + '</td>'
+    + '<td>' + fmtMoney(p.deger) + '</td>'
     + '<td>' + borsaKarZararHTML(p.karZarar) + '</td>'
     + '<td class="br-islem">'
     + '<div class="br-islem-satir">'
@@ -213,8 +213,8 @@ function borsaEmirSatirHTML(e) {
     + '<td class="br-ad"><b>' + escHtml(e.ad) + '</b></td>'
     + '<td><span class="br-emir-tur ' + turCls + '">' + escHtml(turMetin) + '</span></td>'
     + '<td>' + fmt(e.adet) + '</td>'
-    + '<td class="br-fiyat">' + fmt(e.hedefFiyat) + ' TL</td>'
-    + '<td>' + fmt(e.guncelFiyat) + ' TL</td>'
+    + '<td class="br-fiyat">' + fmtMoney(e.hedefFiyat) + '</td>'
+    + '<td>' + fmtMoney(e.guncelFiyat) + '</td>'
     + '<td><span class="br-emir-durum">' + escHtml(t('game.borsa.orderPending')) + '</span></td>'
     + '<td class="br-islem">'
     + '<button type="button" class="br-btn br-btn--iptal" onclick="borsaEmirIptal(' + e.id + ')">' + escHtml(t('game.borsa.cancelOrder')) + '</button>'

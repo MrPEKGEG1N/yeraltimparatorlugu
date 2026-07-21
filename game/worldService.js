@@ -302,7 +302,20 @@ async function limanCok(db, attackerId, attacker, limanId, securityMeta = {}) {
 }
 
 function fmtGuc(n) {
-  return Number(n).toLocaleString("tr-TR");
+  const num = Math.max(0, Math.floor(Number(n) || 0));
+  if (num >= 1_000_000_000) {
+    const b = num / 1_000_000_000;
+    return (b >= 10 ? b.toFixed(0) : b.toFixed(1).replace(/\.0$/, "")) + "B";
+  }
+  if (num >= 1_000_000) {
+    const m = num / 1_000_000;
+    return (m >= 10 ? m.toFixed(0) : m.toFixed(1).replace(/\.0$/, "")) + "M";
+  }
+  if (num >= 10_000) {
+    const k = num / 1_000;
+    return (k >= 10 ? k.toFixed(0) : k.toFixed(1).replace(/\.0$/, "")) + "K";
+  }
+  return num.toLocaleString("tr-TR");
 }
 
 async function babaCok(db, attackerId, attacker, makam, securityMeta = {}) {

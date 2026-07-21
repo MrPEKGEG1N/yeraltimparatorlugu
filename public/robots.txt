@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://yeralti-game.onrender.com/sitemap.xml

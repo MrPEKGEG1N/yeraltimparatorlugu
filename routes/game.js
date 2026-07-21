@@ -61,6 +61,7 @@ const {
   createActionGuard,
   ipRateLimit,
 } = require("../middleware/security");
+const { logSecurityEvent } = require("../game/securityService");
 
 function createGameRouter(db) {
   const router = express.Router();
@@ -71,6 +72,23 @@ function createGameRouter(db) {
   router.use(createBannedCheck(db));
   router.use(createFingerprintRefresh(db));
   router.use(ipRateLimit({ windowMs: 60_000, max: 120 }));
+
+  router.post("/security/report", ipRateLimit({ windowMs: 60_000, max: 15 }), async (req, res) => {
+    try {
+      const type = String(req.body?.type || "unknown")
+        .replace(/[^a-z0-9_-]/gi, "")
+        .slice(0, 48);
+      const detail = req.body?.detail && typeof req.body.detail === "object" ? req.body.detail : {};
+      await logSecurityEvent(db, req.user.id, "client_" + type, {
+        ...detail,
+        ip: req.clientMeta?.ip,
+      });
+      res.json({ ok: true });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ ok: false });
+    }
+  });
 
   router.get("/player", async (req, res) => {
     try {
@@ -130,11 +148,32 @@ function createGameRouter(db) {
 
   router.get("/sohbet", async (req, res) => {
     try {
-      const liste = await mafyaSohbetListe(db);
-      res.json({ ok: true, liste });
+      const { normalizeSohbetKanal } = require("../game/sohbetKanal");
+      const { normalizeGameLang } = require("../game/localeMetaService");
+      const kanal = normalizeSohbetKanal(req.query.kanal);
+      const lang = normalizeGameLang(req.user?.oyun_dili || req.query.lang);
+      const liste = await mafyaSohbetListe(db, 60, kanal, lang);
+      res.json({ ok: true, liste, kanal });
     } catch (err) {
       console.error(err);
       res.status(500).json({ ok: false, error: "Sohbet yüklenemedi." });
+    }
+  });
+
+  router.post("/translate", async (req, res) => {
+    try {
+      const { translateText } = require("../game/translateService");
+      const { normalizeGameLang } = require("../game/localeMetaService");
+      const text = String(req.body?.text || "").trim().slice(0, 2000);
+      if (!text) return res.status(400).json({ ok: false, error: "Metin gerekli." });
+      const target = normalizeGameLang(req.body?.target || req.user?.oyun_dili || "en");
+      const source = req.body?.source ? normalizeGameLang(req.body.source) : null;
+      const out = await translateText(text, target, source);
+      if (!out.ok) return res.status(400).json(out);
+      res.json(out);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ ok: false, error: "Çeviri başarısız." });
     }
   });
 
@@ -434,7 +473,7 @@ function createGameRouter(db) {
     }
   });
 
-  router.post("/action", createActionGuard(db), async (req, res) => {
+  router.post("/action", ipRateLimit({ windowMs: 60_000, max: 90 }), createActionGuard(db), async (req, res) => {
     const body = req.body || {};
     const { action, key, adet, aktifEkran, ...extra } = body;
     if (!action) {

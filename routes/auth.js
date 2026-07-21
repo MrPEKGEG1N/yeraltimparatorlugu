@@ -6,6 +6,7 @@ const { COOKIE_NAME, TOKEN_MAX_AGE_MS } = require("../config");
 const { attachClientMeta, ipRateLimit } = require("../middleware/security");
 const { extractClientMeta } = require("../game/securityService");
 const { normalizeGameLang } = require("../game/localeMetaService");
+const { createCaptcha, verifyCaptcha } = require("../services/captchaService");
 
 function setAuthCookie(res, token) {
   res.cookie(COOKIE_NAME, token, {
@@ -24,7 +25,7 @@ function createAuthRouter(db) {
 
   const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 30,
+    max: 15,
     standardHeaders: true,
     legacyHeaders: false,
     message: { ok: false, error: "Çok fazla giriş denemesi. 15 dakika sonra tekrar dene." },
@@ -32,14 +33,23 @@ function createAuthRouter(db) {
 
   const registerLimiter = rateLimit({
     windowMs: 60 * 60 * 1000,
-    max: 5,
+    max: 3,
     standardHeaders: true,
     legacyHeaders: false,
     message: { ok: false, error: "Bu IP adresinden çok fazla kayıt denemesi yapıldı." },
   });
 
+  const captchaLimiter = ipRateLimit({ windowMs: 60_000, max: 15 });
+
+  router.get("/captcha", captchaLimiter, (req, res) => {
+    const c = createCaptcha();
+    res.json({ ok: true, id: c.id, question: c.question });
+  });
+
   router.post("/register", registerLimiter, async (req, res) => {
     try {
+      const cap = verifyCaptcha(req.body?.captchaId, req.body?.captchaAnswer);
+      if (!cap.ok) return res.status(400).json(cap);
       const meta = extractClientMeta(req);
       const result = await registerUser(db, req.body, meta);
       if (!result.ok) return res.status(400).json(result);
@@ -61,6 +71,8 @@ function createAuthRouter(db) {
 
   router.post("/login", authLimiter, async (req, res) => {
     try {
+      const cap = verifyCaptcha(req.body?.captchaId, req.body?.captchaAnswer);
+      if (!cap.ok) return res.status(400).json(cap);
       const meta = extractClientMeta(req);
       const result = await loginUser(db, req.body, meta);
       if (!result.ok) return res.status(400).json(result);

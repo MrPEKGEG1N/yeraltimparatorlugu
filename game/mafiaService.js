@@ -1,6 +1,7 @@
 const { get, all, run } = require("../db/database");
 const { ensureEvi, kapasite } = require("./mafyaEviService");
 const { sanitizeProfilAciklama } = require("./profilAciklamaSanitize");
+const { validateGrupAciklama } = require("./grupAciklamaValidate");
 const { syncBonusGuc } = require("./bonusGucService");
 const { grupAktifSavasVarMi } = require("./mafyaSavasService");
 
@@ -107,6 +108,8 @@ async function grupOlustur(db, userId, isim, aciklama) {
   ]);
   if (varMi) return { ok: false, error: "Bu isimde grup zaten var." };
 
+  const acikKontrol = validateGrupAciklama(aciklama);
+  if (!acikKontrol.ok) return { ok: false, error: acikKontrol.error };
   const acik = sanitizeProfilAciklama(aciklama);
 
   const ins = await run(
@@ -476,6 +479,8 @@ async function grupAciklamaDegistir(db, liderId, yeniAciklama) {
   if (!grup || grup.lider_user_id !== liderId) {
     return { ok: false, error: "Sadece Mafya Grubu lideri açıklamayı değiştirebilir." };
   }
+  const acikKontrol = validateGrupAciklama(yeniAciklama);
+  if (!acikKontrol.ok) return { ok: false, error: acikKontrol.error };
   const acik = sanitizeProfilAciklama(yeniAciklama);
   await run(db, `UPDATE mafya_gruplari SET aciklama = ? WHERE id = ?`, [acik, grup.id]);
   return { ok: true, aciklama: acik };

@@ -147,7 +147,7 @@ function kumarhaneOzetGuncelle() {
   if (!kumarhanePanelVeri) return;
   var kasaEl = document.getElementById('kmKasaGoster');
   var chipEl = document.getElementById('kmChipGoster');
-  if (kasaEl) kasaEl.textContent = fmt(oyuncuKasa) + ' TL';
+  if (kasaEl) kasaEl.textContent = fmtMoney(oyuncuKasa);
   if (chipEl) {
     chipEl.innerHTML = fmt(kumarhanePanelVeri.chip || 0)
       + '<span class="km-chip-yigin"><span class="km-chip-mini"></span><span class="km-chip-mini"></span><span class="km-chip-mini"></span></span>';

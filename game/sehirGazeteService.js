@@ -63,13 +63,18 @@ async function ensureSistemGunluk(db) {
   );
 }
 
+function kabusMekanMetni(icraatIs) {
+  const isSayisi = Math.max(0, Math.floor(Number(icraatIs) || 0));
+  return isSayisi > 0 ? String(isSayisi) : "birkaç";
+}
+
 function kabusHaberMetni(isim, sayginlik, icraatIs) {
   const ad = String(isim || "Bilinmeyen").trim();
-  const isSayisi = Math.max(0, Math.floor(Number(icraatIs) || 0));
+  const mekanMetni = kabusMekanMetni(icraatIs);
   const sayginlikN = Math.max(0, Math.floor(Number(sayginlik) || 0));
   return {
     baslik: `Şehrin Yeni Kabusu: ${ad}`,
-    metin: `Dün gece ülke sınırlarında tek başına ${isSayisi} mekana saldırı düzenleyerek ${sayginlikN} saygınlıkla öne çıkan ${ad}, emniyet güçlerini alarma geçirdi. Görgü tanıkları, gangsterin sokakları kendi kuralına göre yeniden yazdığını söylüyor. Şehir halkı diken üstünde!`,
+    metin: `Dün gece ülke sınırlarında tek başına ${mekanMetni} mekana saldırı düzenleyerek ${sayginlikN} saygınlıkla öne çıkan ${ad}, emniyet güçlerini alarma geçirdi. Görgü tanıkları, gangsterin sokakları kendi kuralına göre yeniden yazdığını söylüyor. Şehir halkı diken üstünde!`,
   };
 }
 

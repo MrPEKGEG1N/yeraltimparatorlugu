@@ -197,8 +197,8 @@ function sefirlikSehirGuncelle(sehir) {
   sefirlikPanel.ozet.sahipSayisi = liste.filter(function (s) {
     return s.benSahibim;
   }).length;
-  sefirlikPanel.ozet.toplamKontrol = liste.reduce(function (t, s) {
-    return t + (s.benimKontrol || 0);
+  sefirlikPanel.ozet.toplamKontrol = liste.reduce(function (acc, s) {
+    return acc + (s.benimKontrol || 0);
   }, 0);
   sefirlikSeciliSehirId = sehir.id;
   sefirlikTumunuCiz();
